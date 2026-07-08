@@ -1,10 +1,18 @@
 """Idempotent local/dev seed data — `make seed` / `python -m app.db.seed`.
 
-Seeds a small placeholder product catalog. Real product data is a separate Kaggle
-ingestion pipeline (docs/DATASETS_AND_APIS.md §2, `backend/app/services/admin/ingest/
-products.py` — not built yet); this is a stand-in so routines/recommendations have real
-`products` rows to reference end-to-end before that pipeline exists. Swapped out, not
-mixed in, once it lands.
+Seeds a small placeholder product catalog plus a curated ingredient master. Real product
+data is a separate Kaggle ingestion pipeline (docs/DATASETS_AND_APIS.md §2,
+`backend/app/services/admin/ingest/products.py` — not built yet); this is a stand-in so
+routines/recommendations have real `products` rows to reference end-to-end before that
+pipeline exists. Swapped out, not mixed in, once it lands.
+
+The ingredient master below is **hand-curated common dermatological knowledge** (INCI
+names, treats/avoid relationships), not scraped from INCIDecoder/COSDNA — exactly the
+approach `docs/DATASETS_AND_APIS.md` §3 prescribes ("no public API, do not scrape;
+build the ingredient master from curated references... quality over quantity") for the
+PDF's 8 named categories: Retinoids, Niacinamide, Vitamin C, Hyaluronic Acid, Salicylic
+Acid, Ceramides, Peptides, AHAs/BHAs. A larger, automated ingredient feed is out of scope
+until a licensed source is available.
 
 skin_types/skin_concerns aren't seeded here — they already exist in every environment
 loaded from database_schemas/skinlytics_postgresql_schema_v3.sql's own INSERT
@@ -18,7 +26,17 @@ from typing import TypedDict
 from sqlalchemy import select
 
 from app.db.postgres import async_session_factory
-from app.services.recommendations.models import Product, ProductConcern, ProductSkinType
+from app.services.ingredients.models import (
+    Ingredient,
+    IngredientConcernTreats,
+    IngredientSkintypeAvoid,
+)
+from app.services.recommendations.models import (
+    Product,
+    ProductConcern,
+    ProductIngredient,
+    ProductSkinType,
+)
 from app.services.skin_profile import service as skin_profile_service
 
 
@@ -31,6 +49,7 @@ class _ProductSeed(TypedDict, total=False):
     spf_rating: int
     skin_types: list[str]
     concerns: list[str]
+    ingredients: list[str]  # ingredient_name, must match an _INGREDIENTS entry below
 
 
 _PRODUCTS: list[_ProductSeed] = [
@@ -69,6 +88,7 @@ _PRODUCTS: list[_ProductSeed] = [
         "volume_ml": 30,
         "skin_types": ["Oily", "Combination"],
         "concerns": ["Acne", "Oily Skin"],
+        "ingredients": ["Salicylic Acid"],
     },
     {
         "brand_name": "Lumina Labs",
@@ -78,6 +98,7 @@ _PRODUCTS: list[_ProductSeed] = [
         "volume_ml": 30,
         "skin_types": ["Oily", "Combination", "Normal"],
         "concerns": ["Hyperpigmentation", "Dark Spots", "Uneven Skin Tone"],
+        "ingredients": ["Niacinamide"],
     },
     {
         "brand_name": "DermaCare Co",
@@ -87,6 +108,7 @@ _PRODUCTS: list[_ProductSeed] = [
         "volume_ml": 30,
         "skin_types": ["Normal", "Combination"],
         "concerns": ["Wrinkles", "Fine Lines"],
+        "ingredients": ["Retinol"],
     },
     {
         "brand_name": "Bare Basics",
@@ -96,6 +118,7 @@ _PRODUCTS: list[_ProductSeed] = [
         "volume_ml": 30,
         "skin_types": ["Normal", "Dry", "Oily", "Combination", "Sensitive"],
         "concerns": ["Dry Skin"],
+        "ingredients": ["Hyaluronic Acid"],
     },
     {
         "brand_name": "Bare Basics",
@@ -114,6 +137,27 @@ _PRODUCTS: list[_ProductSeed] = [
         "volume_ml": 30,
         "skin_types": ["Normal", "Combination", "Dry"],
         "concerns": ["Dark Spots", "Hyperpigmentation", "Uneven Skin Tone"],
+        "ingredients": ["Ascorbic Acid"],
+    },
+    {
+        "brand_name": "DermaCare Co",
+        "product_name": "8% Glycolic Acid Night Exfoliant",
+        "category": "Treatment",
+        "price": 720,
+        "volume_ml": 30,
+        "skin_types": ["Normal", "Oily", "Combination"],
+        "concerns": ["Dark Spots", "Uneven Skin Tone", "Wrinkles"],
+        "ingredients": ["Glycolic Acid"],
+    },
+    {
+        "brand_name": "Bare Basics",
+        "product_name": "Peptide Firming Serum",
+        "category": "Treatment",
+        "price": 810,
+        "volume_ml": 30,
+        "skin_types": ["Normal", "Dry", "Combination"],
+        "concerns": ["Wrinkles", "Fine Lines"],
+        "ingredients": ["Palmitoyl Pentapeptide-4"],
     },
     {
         "brand_name": "DermaCare Co",
@@ -123,6 +167,7 @@ _PRODUCTS: list[_ProductSeed] = [
         "volume_ml": 50,
         "skin_types": ["Dry", "Sensitive"],
         "concerns": ["Dry Skin"],
+        "ingredients": ["Ceramide NP", "Ceramide AP"],
     },
     {
         "brand_name": "Lumina Labs",
@@ -165,6 +210,165 @@ _PRODUCTS: list[_ProductSeed] = [
 ]
 
 
+class _IngredientSeed(TypedDict, total=False):
+    ingredient_name: str
+    inci_name: str
+    category: str
+    treats: list[tuple[str, str]]  # (concern_name, evidence_strength)
+    avoid_for: list[tuple[str, str]]  # (skin_type_name, reason)
+
+
+# The PDF's 8 named ingredient categories (docs/DATASETS_AND_APIS.md §3). One or two
+# well-established, commonly-cited actives per category — hand-curated, not scraped.
+_INGREDIENTS: list[_IngredientSeed] = [
+    {
+        "ingredient_name": "Retinol",
+        "inci_name": "Retinol",
+        "category": "Retinoids",
+        "treats": [("Wrinkles", "strong"), ("Fine Lines", "strong"), ("Acne", "moderate")],
+        "avoid_for": [("Sensitive", "High irritation/purging risk without gradual introduction")],
+    },
+    {
+        "ingredient_name": "Niacinamide",
+        "inci_name": "Niacinamide",
+        "category": "Niacinamide",
+        "treats": [
+            ("Hyperpigmentation", "strong"),
+            ("Dark Spots", "strong"),
+            ("Uneven Skin Tone", "strong"),
+            ("Oily Skin", "moderate"),
+            ("Redness", "moderate"),
+        ],
+        "avoid_for": [],
+    },
+    {
+        "ingredient_name": "Ascorbic Acid",
+        "inci_name": "L-Ascorbic Acid",
+        "category": "Vitamin C",
+        "treats": [
+            ("Dark Spots", "strong"),
+            ("Hyperpigmentation", "strong"),
+            ("Uneven Skin Tone", "moderate"),
+        ],
+        "avoid_for": [("Sensitive", "Low pH formulations can sting or irritate reactive skin")],
+    },
+    {
+        "ingredient_name": "Hyaluronic Acid",
+        "inci_name": "Sodium Hyaluronate",
+        "category": "Hyaluronic Acid",
+        "treats": [("Dry Skin", "strong"), ("Fine Lines", "moderate")],
+        "avoid_for": [],
+    },
+    {
+        "ingredient_name": "Salicylic Acid",
+        "inci_name": "Salicylic Acid",
+        "category": "Salicylic Acid",
+        "treats": [
+            ("Acne", "strong"),
+            ("Oily Skin", "strong"),
+            ("Uneven Skin Tone", "weak"),
+        ],
+        "avoid_for": [
+            ("Dry", "Can increase dryness and flaking"),
+            ("Sensitive", "Beta-hydroxy exfoliation risks irritation"),
+        ],
+    },
+    {
+        "ingredient_name": "Ceramide NP",
+        "inci_name": "Ceramide NP",
+        "category": "Ceramides",
+        "treats": [("Dry Skin", "strong"), ("Sensitive Skin", "moderate")],
+        "avoid_for": [],
+    },
+    {
+        "ingredient_name": "Ceramide AP",
+        "inci_name": "Ceramide AP",
+        "category": "Ceramides",
+        "treats": [("Dry Skin", "strong")],
+        "avoid_for": [],
+    },
+    {
+        "ingredient_name": "Palmitoyl Pentapeptide-4",
+        "inci_name": "Palmitoyl Pentapeptide-4",
+        "category": "Peptides",
+        "treats": [("Wrinkles", "moderate"), ("Fine Lines", "moderate")],
+        "avoid_for": [],
+    },
+    {
+        "ingredient_name": "Glycolic Acid",
+        "inci_name": "Glycolic Acid",
+        "category": "AHAs/BHAs",
+        "treats": [
+            ("Dark Spots", "moderate"),
+            ("Uneven Skin Tone", "moderate"),
+            ("Wrinkles", "weak"),
+        ],
+        "avoid_for": [("Sensitive", "Strong exfoliation risks irritation and barrier disruption")],
+    },
+    {
+        "ingredient_name": "Lactic Acid",
+        "inci_name": "Lactic Acid",
+        "category": "AHAs/BHAs",
+        "treats": [("Dry Skin", "moderate"), ("Uneven Skin Tone", "moderate")],
+        "avoid_for": [],
+    },
+]
+
+
+async def seed_ingredients() -> int:
+    async with async_session_factory() as db:
+        skin_types = {
+            t.skin_type_name: t.skin_type_id for t in await skin_profile_service.list_skin_types(db)
+        }
+        concerns = {
+            c.concern_name: c.concern_id for c in await skin_profile_service.list_skin_concerns(db)
+        }
+
+        existing_result = await db.execute(select(Ingredient.ingredient_name))
+        existing_names = {row[0] for row in existing_result.all()}
+
+        created = 0
+        for entry in _INGREDIENTS:
+            if entry["ingredient_name"] in existing_names:
+                continue  # idempotent — dedupe by ingredient_name (docs/DATASETS_AND_APIS.md)
+
+            ingredient = Ingredient(
+                ingredient_name=entry["ingredient_name"],
+                inci_name=entry.get("inci_name"),
+                category=entry["category"],
+                is_active=True,
+            )
+            db.add(ingredient)
+            await db.flush()  # assigns ingredient.ingredient_id without committing yet
+
+            for concern_name, evidence_strength in entry.get("treats", []):
+                concern_id = concerns.get(concern_name)
+                if concern_id is not None:
+                    db.add(
+                        IngredientConcernTreats(
+                            ingredient_id=ingredient.ingredient_id,
+                            concern_id=concern_id,
+                            evidence_strength=evidence_strength,
+                        )
+                    )
+
+            for skin_type_name, reason in entry.get("avoid_for", []):
+                skin_type_id = skin_types.get(skin_type_name)
+                if skin_type_id is not None:
+                    db.add(
+                        IngredientSkintypeAvoid(
+                            ingredient_id=ingredient.ingredient_id,
+                            skin_type_id=skin_type_id,
+                            reason=reason,
+                        )
+                    )
+
+            created += 1
+
+        await db.commit()
+        return created
+
+
 async def seed_products() -> int:
     async with async_session_factory() as db:
         skin_types = {
@@ -173,6 +377,11 @@ async def seed_products() -> int:
         concerns = {
             c.concern_name: c.concern_id for c in await skin_profile_service.list_skin_concerns(db)
         }
+
+        ingredient_result = await db.execute(
+            select(Ingredient.ingredient_name, Ingredient.ingredient_id)
+        )
+        ingredient_ids = {row[0]: row[1] for row in ingredient_result.all()}
 
         existing_result = await db.execute(select(Product.brand_name, Product.product_name))
         existing_pairs = {(row[0], row[1]) for row in existing_result.all()}
@@ -208,6 +417,15 @@ async def seed_products() -> int:
                 if concern_id is not None:
                     db.add(ProductConcern(product_id=product.product_id, concern_id=concern_id))
 
+            for ingredient_name in entry.get("ingredients", []):
+                ingredient_id = ingredient_ids.get(ingredient_name)
+                if ingredient_id is not None:
+                    db.add(
+                        ProductIngredient(
+                            product_id=product.product_id, ingredient_id=ingredient_id
+                        )
+                    )
+
             created += 1
 
         await db.commit()
@@ -215,6 +433,12 @@ async def seed_products() -> int:
 
 
 async def main() -> None:
+    # Ingredients first — seed_products() links product_ingredients against them.
+    ingredients_created = await seed_ingredients()
+    print(
+        f"Seeded {ingredients_created} new ingredient(s) "
+        f"({len(_INGREDIENTS) - ingredients_created} already present)."
+    )
     created = await seed_products()
     print(f"Seeded {created} new product(s) ({len(_PRODUCTS) - created} already present).")
 

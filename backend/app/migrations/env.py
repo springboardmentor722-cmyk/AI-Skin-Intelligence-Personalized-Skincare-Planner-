@@ -17,6 +17,7 @@ from app.db.postgres import Base
 # progress/ has no models.py — its schemas.py/service.py compose scores.service's
 # interface functions instead of owning any Postgres table (docs/ARCHITECTURE.md §4:
 # this dashboard-scope slice reads skin_scores, doesn't write anything of its own).
+from app.services.ingredients import models as _ingredients_models  # noqa: F401
 from app.services.recommendations import models as _recommendations_models  # noqa: F401
 from app.services.routines import models as _routines_models  # noqa: F401
 from app.services.scores import models as _scores_models  # noqa: F401

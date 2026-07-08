@@ -7,9 +7,10 @@ from app.db.postgres import Base
 
 # Nullability/types match database_schemas/skinlytics_postgresql_schema_v3.sql's literal
 # DDL exactly, same discipline as skin_profile/models.py. This service (Product
-# Recommendation, docs/ARCHITECTURE.md §4) owns `products` and its junction tables;
-# `product_ingredients` isn't mapped here — no dashboard/recommendation code path reads
-# it yet, and mapping unused tables ahead of need isn't this task's job.
+# Recommendation, docs/ARCHITECTURE.md §4) owns `products` and its `product_*` junction
+# tables, including `product_ingredients` (mapped below — the M1 "prepare initial
+# database" seeding task needs it to link seeded products to seeded ingredients; no
+# recommendation-ranking code path reads it yet, that's M3 scope).
 
 
 class Product(Base):
@@ -56,3 +57,15 @@ class ProductConcern(Base):
         ForeignKey("products.product_id", ondelete="CASCADE")
     )
     concern_id: Mapped[int] = mapped_column(ForeignKey("skin_concerns.concern_id"))
+
+
+class ProductIngredient(Base):
+    __tablename__ = "product_ingredients"
+    __table_args__ = (UniqueConstraint("product_id", "ingredient_id"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    product_id: Mapped[int] = mapped_column(
+        ForeignKey("products.product_id", ondelete="CASCADE")
+    )
+    ingredient_id: Mapped[int] = mapped_column(ForeignKey("ingredients.ingredient_id"))
+    concentration_notes: Mapped[str | None] = mapped_column(default=None)
