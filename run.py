@@ -13,19 +13,28 @@ Ctrl+C stops the backend and frontend; Docker containers are left running (same 
 
 from __future__ import annotations
 
+import io
 import shutil
 import signal
 import subprocess
 import sys
 import time
 from pathlib import Path
+from typing import NoReturn
 
 ROOT = Path(__file__).resolve().parent
 BACKEND = ROOT / "backend"
 WEB = ROOT / "web"
 
+# Python fully-buffers stdout when it isn't a TTY (e.g. piped, redirected, or captured
+# by tooling) — without this, these prints can sit invisible for minutes while
+# subprocess output (which bypasses Python's buffering) appears fine, making the script
+# look stuck or silent when it isn't.
+if isinstance(sys.stdout, io.TextIOWrapper):
+    sys.stdout.reconfigure(line_buffering=True)
 
-def fail(message: str) -> None:
+
+def fail(message: str) -> NoReturn:
     sys.exit(f"error: {message}")
 
 
@@ -33,6 +42,21 @@ def require_on_path(*commands: str) -> None:
     missing = [c for c in commands if shutil.which(c) is None]
     if missing:
         fail(f"required command(s) not found on PATH: {', '.join(missing)}")
+
+
+# Docker Desktop on macOS runs its daemon without always symlinking the `docker` CLI
+# into /usr/local/bin — the binary is there, just not on PATH. That's a common, working
+# install, not a broken one, so fall back to the known location instead of failing.
+MAC_DOCKER_DESKTOP_CLI = Path("/Applications/Docker.app/Contents/Resources/bin/docker")
+
+
+def find_docker() -> str | None:
+    found = shutil.which("docker")
+    if found:
+        return found
+    if sys.platform == "darwin" and MAC_DOCKER_DESKTOP_CLI.exists():
+        return str(MAC_DOCKER_DESKTOP_CLI)
+    return None
 
 
 def ensure_root_env() -> None:
@@ -57,17 +81,17 @@ def ensure_web_env_symlink() -> None:
     print(f"→ Created {web_env} -> ../.env")
 
 
-def start_docker_compose() -> None:
+def start_docker_compose(docker: str) -> None:
     print("→ Starting data stores (postgres, mongo, redis, elasticsearch)...")
-    subprocess.run(["docker", "compose", "up", "-d"], cwd=ROOT, check=True)
+    subprocess.run([docker, "compose", "up", "-d"], cwd=ROOT, check=True)
 
 
-def wait_for_postgres(timeout_seconds: int = 60) -> None:
+def wait_for_postgres(docker: str, timeout_seconds: int = 60) -> None:
     print("→ Waiting for Postgres to report healthy...")
     deadline = time.time() + timeout_seconds
     while time.time() < deadline:
         result = subprocess.run(
-            ["docker", "compose", "exec", "-T", "postgres", "pg_isready", "-U", "skinlytics"],
+            [docker, "compose", "exec", "-T", "postgres", "pg_isready", "-U", "skinlytics"],
             cwd=ROOT,
             capture_output=True,
         )
@@ -80,12 +104,21 @@ def wait_for_postgres(timeout_seconds: int = 60) -> None:
 
 
 def main() -> None:
-    require_on_path("docker", "uv", "npm")
+    docker = find_docker()
+    if docker is None:
+        fail(
+            "docker not found on PATH, and no Docker Desktop install found at "
+            f"{MAC_DOCKER_DESKTOP_CLI}. Install Docker Desktop, then re-run."
+        )
+    if docker != "docker":
+        print(f"→ `docker` isn't on PATH — using Docker Desktop's CLI directly at {docker}")
+        print(f'   (fix for good with: ln -s "{docker}" /usr/local/bin/docker)\n')
+    require_on_path("uv", "npm")
     ensure_root_env()
     ensure_web_env_symlink()
 
-    start_docker_compose()
-    wait_for_postgres()
+    start_docker_compose(docker)
+    wait_for_postgres(docker)
 
     print("→ Starting backend (uvicorn --reload, :8000) and frontend (next dev, :3000)...")
     print("   Ctrl+C to stop both (data stores keep running).\n")
@@ -96,7 +129,8 @@ def main() -> None:
     frontend = subprocess.Popen(["npm", "run", "dev"], cwd=WEB)
     processes = [backend, frontend]
 
-    def shutdown(_signum: int, _frame: object) -> None:
+    def shutdown(*_args: object) -> None:
+        del _args  # signal.signal requires (signum, frame); neither is used here
         print("\n→ Stopping backend and frontend (data stores are still running — "
               "`docker compose down` to stop those too)...")
         for p in processes:

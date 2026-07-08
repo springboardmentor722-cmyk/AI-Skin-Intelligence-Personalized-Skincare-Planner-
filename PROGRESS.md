@@ -245,13 +245,21 @@ Better Auth + RBAC, profile & lifestyle modules, seed data. No AI (ADR-007).
   their output streamed live. Ctrl+C stops both cleanly; if either process dies on its
   own (e.g. a startup crash) the other is stopped too rather than left running against
   nothing. Docker containers are left running on exit, matching `make dev`'s behavior.
-  **Verified:** the `.env`/symlink bootstrap logic in isolation (temporarily moved the
-  real `.env` aside, confirmed both files regenerate correctly, restored the original —
-  the real `BETTER_AUTH_SECRET` was never lost). **Not verified:** the Docker/backend/
-  frontend orchestration end-to-end — the `docker` CLI itself has never been on PATH in
-  this sandbox all session (only the services it manages, which the user started some
-  other way), so `require_on_path("docker", ...)` would fail-fast before reaching that
-  code. Please run `python3 run.py` yourself to confirm the full flow.
+  Falls back to Docker Desktop's known macOS CLI location
+  (`/Applications/Docker.app/Contents/Resources/bin/docker`) when `docker` isn't on
+  PATH — a common Docker Desktop install state, not a broken one — instead of failing
+  `require_on_path`. Stdout is forced to line-buffering at startup so the script's own
+  progress messages aren't silently held back when stdout isn't a TTY (found while
+  verifying end-to-end: subprocess output appeared live, but this script's own `print()`
+  calls didn't, since Python fully-buffers stdout by default when it's not a TTY).
+  **Verified end-to-end** on the maintainer's actual Mac: `docker compose up -d` pulled
+  and started postgres/mongo/redis/elasticsearch (postgres reported `healthy`), then the
+  backend (Uvicorn on `:8000`) and frontend (Next.js, fell back to `:3001` — an unrelated
+  stray process already held `:3000`) both came up clean. Along the way, found and fixed
+  a real environment issue on that machine, unrelated to run.py's own logic: the
+  installed Docker Desktop (4.81.0) required macOS 14+, but the machine was on macOS
+  12.7.6 — reinstalled Docker Desktop 4.41.2 (the last release supporting macOS 12) to
+  resolve it. Not a code change; noted here since it blocked verification.
 
 ## Partially Completed
 
