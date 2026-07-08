@@ -571,6 +571,30 @@ scoring/recs) is the natural next milestone.
   `run.py` was split into three files. Re-added to both. Verified live: with Postgres/
   Mongo down in this sandbox, both scripts now print the warning immediately and still
   start their process; confirmed the warning is not lost under output redirection.
+- ✔ **Bug fix** (`fix/google-oauth-account-linking`) — "Sign in with Google" 500'd with
+  `account_not_linked` for any user who had already signed up via email/password (hit for
+  real by the user, on their own machine, with real Google credentials in `.env`). Root
+  cause, traced through the actual installed `better-auth` source
+  (`node_modules/better-auth/dist/oauth2/link-account.mjs`), not guessed: Better Auth's
+  auto-link guard requires the *existing local* account's email to already be verified
+  (`requireLocalEmailVerified`, default `true`) — a check that's independent of
+  `trustedProviders` and not satisfied by it. This app has no email-verification flow
+  anywhere (`emailAndPassword` has no `requireEmailVerification`; no email-sending
+  adapter exists in `docs/DATASETS_AND_APIS.md`'s external-services list), so
+  `user.emailVerified` is `false` for every email/password signup, forever — meaning this
+  wasn't an edge case, it permanently blocked Google sign-in for every such user.
+  `web/lib/auth.ts` now sets `account.accountLinking.trustedProviders: ["google"]` +
+  `requireLocalEmailVerified: false`. **Real security tradeoff, deliberately accepted and
+  documented, not silently introduced** — see `docs/DECISIONS.md` ADR-011 for the exact
+  account-linking risk this opens (an attacker who front-registers someone else's email
+  via password signup would auto-absorb that person's later Google sign-in) and what
+  closes it correctly (real email verification, not built yet). Also updated
+  `database_schemas/skinlytics_identity_betterauth.md`'s config snippet + Gotchas to
+  match, since `auth.ts` claims to mirror it. `npm run {lint,typecheck,build}` clean.
+  **Not live-verified against a real Google OAuth callback this session** — no
+  Postgres/Docker in this sandbox; the fix is grounded directly in the installed
+  library's actual source condition, not assumption, but the real end-to-end callback
+  flow should still be exercised on a machine with the data stores up.
 
 ## Partially Completed
 

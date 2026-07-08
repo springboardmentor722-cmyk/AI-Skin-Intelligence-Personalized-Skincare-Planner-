@@ -29,6 +29,13 @@ export const auth = betterAuth({
     google:   { clientId: process.env.GOOGLE_CLIENT_ID!,   clientSecret: process.env.GOOGLE_CLIENT_SECRET! },
     // facebook, apple … as needed
   },
+  account: {                                      // ADR-011 — no email-verification flow
+    accountLinking: {                              // exists yet, so requiring the *local*
+      enabled: true,                                // account to already be verified would
+      trustedProviders: ["google"],                 // permanently block every email/password
+      requireLocalEmailVerified: false,              // user from ever using Google sign-in.
+    },
+  },
   plugins: [
     jwt(),        // issues JWTs + exposes JWKS at /api/auth/jwks (creates the `jwks` table)
     admin({       // RBAC: our four roles
@@ -124,3 +131,7 @@ plugin `banned`/`banExpires` on `user` covers longer-term bans.
 - `iss`/`aud` must equal `BETTER_AUTH_URL` (default). Mismatch → 401; check first when debugging.
 - Better Auth has no `useSession` hook — use `authClient.getSession()` in an effect.
 - The JWT plugin creates the `jwks` table but does not modify `session`; run its migration.
+- `account_not_linked` on an OAuth callback means a `user` row with that email already
+  exists and didn't qualify for auto-linking — see ADR-011 for the exact condition and
+  why `requireLocalEmailVerified: false` is required here specifically (no email
+  verification flow exists, so the local account's email is never verified).

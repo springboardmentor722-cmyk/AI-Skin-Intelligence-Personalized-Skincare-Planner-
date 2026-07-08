@@ -133,4 +133,35 @@ rebuildable; "single writer per fact" survives failures; one more process in
 docker-compose (`worker`). M1 may run a trivial inline projector, but the outbox table
 and job contracts exist from day one.
 
-<!-- Next ADR: ADR-011 — add yours here -->
+## ADR-011 — Google OAuth auto-links to an existing unverified email/password account
+**Status:** Accepted (M1, revisit when email verification is built)
+**Context:** Better Auth denies linking a new social account to an existing user by
+default unless *either* the incoming provider is a configured `trustedProvider` with a
+verified email, *or* the existing local account's own email is already verified
+(`account.accountLinking.requireLocalEmailVerified`, default `true` —
+`node_modules/better-auth/dist/oauth2/link-account.mjs`). This app has no
+email-verification flow (`emailAndPassword` has no `requireEmailVerification`, no
+`emailVerification.sendVerificationEmail` — no email-sending integration exists anywhere
+in `docs/DATASETS_AND_APIS.md`'s external-services list either). That means
+`user.emailVerified` is `false` for every email/password signup, permanently — so the
+default config **permanently** blocks "Sign in with Google" for any user who signed up
+with email/password first, for every such user, not just an edge case. Hit for real in
+M1 testing (`account_not_linked` 500 on `/api/auth/callback/google`).
+**Decision:** `web/lib/auth.ts` sets `account.accountLinking.trustedProviders: ["google"]`
+and `requireLocalEmailVerified: false`. Google verifies the email on its side before
+issuing an ID token, so a Google sign-in is accepted as sufficient proof of address
+ownership — but this **does** open a real account-linking risk: someone who registers a
+victim's email via email/password first (a password only the attacker knows, never
+verified) automatically absorbs the victim's later "Sign in with Google" into that same
+attacker-created account row. Accepted as a deliberate, scoped M1 tradeoff — no email
+verification exists to close this gap properly yet, and the current user base is
+pre-launch/local-dev.
+**Consequences:** Building real email verification (`emailAndPassword.
+requireEmailVerification` + an email-sending adapter, per `docs/DATASETS_AND_APIS.md`'s
+adapter pattern) closes this gap correctly — flip `requireLocalEmailVerified` back to
+`true` (or drop it, since `true` is the default) once that exists, rather than leaving
+this permanently. Don't silently "fix" this by re-enabling
+`requireLocalEmailVerified` without also shipping verification — that reintroduces the
+"every OAuth-after-password user is permanently locked out" bug this ADR fixed.
+
+<!-- Next ADR: ADR-012 — add yours here -->

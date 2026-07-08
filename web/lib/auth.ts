@@ -29,6 +29,22 @@ export const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
     },
   },
+  // ADR-011 (docs/DECISIONS.md) — without this, "Sign in with Google" on an email that
+  // already has a password account permanently 500s with `account_not_linked`, for
+  // *every* such user, forever: Better Auth's default linking guard also requires the
+  // *existing local* account's email to already be verified
+  // (node_modules/better-auth/dist/oauth2/link-account.mjs — `requireLocalEmailVerified`,
+  // default true, ANDed independently of `trustedProviders`), and this app has no
+  // email-verification flow, so `user.emailVerified` is always false for every
+  // email/password signup. `trustedProviders` alone (trusting Google's own verified
+  // email) does not bypass that separate check.
+  account: {
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ["google"],
+      requireLocalEmailVerified: false,
+    },
+  },
   plugins: [
     // Issues JWTs + exposes JWKS at /api/auth/jwks (creates the `jwks` table).
     jwt(),
