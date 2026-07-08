@@ -1,10 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// e2e config for the M1 screens (docs/WIREFRAMES.md). Screens aren't built yet
-// (PROGRESS.md) — only a scaffold smoke test exists in tests/e2e/ so far.
-// Reduced-transparency emulation isn't a native Playwright context option;
-// when the app shell/glass components land, cover it with a manual
-// `prefers-reduced-transparency` media-query CSS check instead.
+// e2e config for the M1 screens (docs/WIREFRAMES.md). Individual screens aren't built
+// yet (PROGRESS.md) — the scaffold smoke test and the app-shell tests are what exist so
+// far. Reduced-transparency emulation isn't a native Playwright context option; cover it
+// with a manual `prefers-reduced-transparency` media-query CSS check instead.
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
@@ -25,9 +24,13 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"], colorScheme: "dark" },
     },
   ],
+  // Production build, not `next dev` — the dev-mode overlay (bottom-left "N" indicator)
+  // physically overlaps fixed-position chrome like the sidebar's collapse toggle and
+  // intercepts real Playwright clicks there, unrelated to any app bug.
   webServer: {
-    command: "npm run dev",
+    command: "npm run build && npm run start",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
+    timeout: 120_000,
   },
 });

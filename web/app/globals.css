@@ -309,7 +309,9 @@
     background: var(--glass-bg-strong);
   }
 
-  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  @supports not (
+    (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+  ) {
     .glass,
     .glass-strong {
       background: var(--surface-container);

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Inter, Sora } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
 // Tri-font strategy — docs/DESIGN.md §4: Sora for headlines, Inter for body/UI,
@@ -39,10 +40,12 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${sora.variable} ${inter.variable} ${geist.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="flex min-h-full flex-col">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <div className="aurora" aria-hidden="true" />
-          {children}
+          <TooltipProvider delay={200}>
+            <div className="aurora" aria-hidden="true" />
+            {children}
+          </TooltipProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -50,6 +50,34 @@ Better Auth + RBAC, profile & lifestyle modules, seed data. No AI (ADR-007).
   (`uvicorn`), not just tests. `docker-compose.yml`/Dockerfiles for `api`/`web` were
   **not** added — Docker isn't installed in this dev sandbox, so I didn't want to commit
   unverified container config (see Known Issues).
+- ✔ Docs reconciled — `docs/WIREFRAMES.md`'s four per-role nav lists had drifted from
+  `AGENTS.md` (different item counts/wording), and the actual wireframe HTML disagreed
+  with both (mostly a generic Stitch draft nav, not real per-role IA). `WIREFRAMES.md`
+  now points to `AGENTS.md` §3 as the single source and notes the wireframe HTML's
+  sidebar text isn't binding.
+- ✔ App shell — `web/components/app-shell/{app-shell,glass-sidebar,glass-topbar}.tsx`.
+  Glass sidebar (role-based nav from `AGENTS.md` §3 via `lib/nav-config.ts`, active-link
+  state, collapsible to icons) + glass topbar (page title auto-derived from the route,
+  ⌘K command palette, weather/UV stub chip, notification bell, working theme toggle,
+  account dropdown) + solid content canvas over the global aurora. Route groups:
+  `app/(user)/...` stays bare (`/dashboard`); `app/consultant/...`,
+  `app/dermatologist/...`, `app/admin/...` are real (non-grouped) folders prefixed by
+  role, since Next.js route groups don't add URL segments and all four roles having their
+  own `/dashboard` would collide — this wasn't resolved by `CONVENTIONS.md`'s route tree,
+  flagged and decided with the user. One stub `dashboard/page.tsx` per role group (shell
+  smoke test, not designed screens). `npm run {lint,typecheck,build}` all pass; verified
+  in a real browser (light+dark screenshots, all 4 roles, collapse, account menu, ⌘K) and
+  with new Playwright e2e tests (`tests/e2e/app-shell.spec.ts`, 4 tests × 2 themes).
+  `playwright.config.ts`'s `webServer` now builds+starts production instead of running
+  `next dev` — the dev-mode overlay physically intercepts clicks on fixed bottom-left
+  chrome (our sidebar's collapse toggle included), unrelated to any app bug. Three real
+  runtime bugs caught by actually testing (not just typecheck) before they shipped: (1)
+  the sidebar's `collapsed` state wasn't lifted to the layout, so the content margin
+  wouldn't have followed the sidebar's width; (2) this shadcn preset uses `@base-ui/react`
+  (not Radix) — `asChild` doesn't exist, it's `render={<Element />}`; (3) Base UI's
+  `DropdownMenuLabel` throws at runtime unless wrapped in `DropdownMenuGroup`, and this
+  version's `CommandDialog` doesn't auto-wrap children in the `Command` root the way
+  older shadcn versions did.
 
 ## Partially Completed
 
@@ -59,9 +87,9 @@ Better Auth + RBAC, profile & lifestyle modules, seed data. No AI (ADR-007).
 
 ## Pending
 
-- ☐ App shell (glass sidebar/topbar, theme toggle, role-based nav) — `docs/WIREFRAMES.md`
 - ☐ Individual M1 screens (login, registration, dashboard, profile/lifestyle, assessment,
-  recommendations, progress) — each its own `feature/frontend-<screen>` branch
+  recommendations, progress) — each its own `feature/frontend-<screen>` branch. Login/
+  registration have no shell (standalone glass cards) — the app shell doesn't apply.
 - ☐ Better Auth wiring (registration, login, sessions, JWT/JWKS)
 - ☐ RBAC (`createAccessControl`, `require_role` dependency)
 - ☐ User profile module
@@ -91,10 +119,12 @@ real services.
 
 ## Frontend status
 
-Scaffold complete (`web/` — Next.js 16 / React 19 / Tailwind v4 / shadcn/ui). No real
-screens yet — `app/page.tsx` is a scaffold smoke test only, not a designed screen. No app
-shell, no Better Auth wiring, no `lib/api.ts` (waits on backend OpenAPI spec). Design
-assets remain in `web/designs/wireframes/` (83 files) as the build reference.
+Scaffold + app shell complete (`web/` — Next.js 16 / React 19 / Tailwind v4 / shadcn/ui).
+`app/page.tsx` is still a scaffold smoke test, not a designed screen — no real M1 screens
+built yet, just one stub `dashboard/page.tsx` per role proving the shell. No Better Auth
+wiring, no `lib/api.ts` (waits on backend OpenAPI spec), no visible role-switching (role
+is hardcoded per route-group layout until real sessions exist). Design assets remain in
+`web/designs/wireframes/` (83 files) as the build reference.
 
 ## Database status
 
@@ -135,9 +165,20 @@ instances have the schema loaded, no Alembic migration history, no Better Auth C
   formulas in this environment.
 - Docker isn't installed in this dev sandbox — `api`/`web` containerization needs a
   session where it's available (or the user's own machine) to write and verify.
+- **Route collision, resolved:** `docs/CONVENTIONS.md`'s route tree shows
+  `(user)/dashboard`, `(consultant)/…`, `(dermatologist)/…`, `(admin)/…` as route groups,
+  but Next.js route groups add no URL segment — four roles each having their own
+  `/dashboard` would collide. Decided with the user: User stays bare (`(user)/` is a true
+  route group), the other three roles get a real URL prefix (`app/consultant/`,
+  `app/dermatologist/`, `app/admin/` — not parenthesized). `CONVENTIONS.md`'s route tree
+  is now stale on this point and should be corrected next time it's touched.
+- Playwright + `curl` occasionally failed with `command not found` inside `for` loops in
+  this sandbox's shell (worked fine as standalone commands). Root cause not identified;
+  workaround is running commands individually rather than in a loop when this happens.
 
 ## Next task
 
-App shell (glass sidebar/topbar, role-based nav, theme toggle) or a service module
-(User/Auth glue is the natural first one, since Authentication is next on the
-milestone-1 checklist and needs `app/services/user/`) — user's call.
+A service module — User/Auth glue is the natural first one, since Authentication is next
+on the milestone-1 checklist and needs `app/services/user/`. Individual M1 screens
+(dashboard, profile/lifestyle, etc.) are the other frontend follow-on, now that the shell
+exists to build them inside.
