@@ -78,6 +78,35 @@ Better Auth + RBAC, profile & lifestyle modules, seed data. No AI (ADR-007).
   `DropdownMenuLabel` throws at runtime unless wrapped in `DropdownMenuGroup`, and this
   version's `CommandDialog` doesn't auto-wrap children in the `Command` root the way
   older shadcn versions did.
+- ✔ Authentication (Better Auth wiring, frontend side) — `web/lib/auth.ts` (server
+  instance: email/password, Google social provider config with blank credentials so the
+  button works the moment real ones land in `.env`, `jwt()` + `admin()` plugins,
+  `nextCookies()`), `web/lib/auth-client.ts` (`createAuthClient` from `better-auth/react`
+  + `jwtClient`/`adminClient`), `web/app/api/auth/[...all]/route.ts`,
+  `web/lib/permissions.ts` (the four roles declared via `createAccessControl` — admin
+  gets Better Auth's default user-management permissions, the other three get none; a
+  fine-grained per-resource ACL matrix is the dedicated **RBAC** task, not this one).
+  Three real screens — `app/(auth)/{login,register,forgot-password}/page.tsx` — built
+  against `docs/WIREFRAMES.md`'s component/state spec with react-hook-form + zod
+  (`lib/schemas/auth.ts`), standalone glass cards over the aurora (no shell), all states
+  from the spec (inline validation, show/hide password, password-strength meter, required
+  consent checkbox, loading spinner, rate-limit message, Google OAuth button). Verified
+  in a real browser: Zod validation errors render inline, the strength meter updates
+  live, and — critically — submitting against a database-less backend fails gracefully
+  with an inline error rather than crashing, proving the full request/response cycle
+  works end-to-end at the HTTP layer.
+  **Two real bugs found and fixed:** (1) Next.js only auto-loads `.env` from `web/`'s own
+  directory, not the repo-root `.env` the environment-setup task established — symlinked
+  `web/.env -> ../.env` rather than duplicating the file; (2) the identity doc's claim
+  that "Better Auth has no `useSession` hook" is stale against the installed version
+  (1.6.23), which does export one from `better-auth/react` — used the real, reactive hook
+  instead of the doc's manual `getSession()`-in-an-effect workaround.
+  **Not done in this task, deliberately:** no backend `app/services/user/` module yet (no
+  `/api/v1/users/me` to prove the JWT round-trip against FastAPI) — that's the natural
+  next task. **No live database verification** — Docker isn't available in this sandbox,
+  so `npx @better-auth/cli generate/migrate` couldn't run (confirmed: `generate` itself
+  needs a live Postgres connection to introspect, not just static config). See "Next
+  task" for the exact commands to run.
 
 ## Partially Completed
 
@@ -87,11 +116,13 @@ Better Auth + RBAC, profile & lifestyle modules, seed data. No AI (ADR-007).
 
 ## Pending
 
-- ☐ Individual M1 screens (login, registration, dashboard, profile/lifestyle, assessment,
-  recommendations, progress) — each its own `feature/frontend-<screen>` branch. Login/
-  registration have no shell (standalone glass cards) — the app shell doesn't apply.
-- ☐ Better Auth wiring (registration, login, sessions, JWT/JWKS)
-- ☐ RBAC (`createAccessControl`, `require_role` dependency)
+- ☐ Individual M1 screens (dashboard, profile/lifestyle, assessment, recommendations,
+  progress) — each its own `feature/frontend-<screen>` branch. Login/registration/
+  forgot-password are done.
+- ☐ Backend `app/services/user/` — a `/api/v1/users/me` endpoint reading `require_user`
+  to prove the frontend JWT round-trips through FastAPI's JWKS validation for real.
+- ☐ RBAC fine-grained ACL matrix (`web/lib/permissions.ts` currently only declares the
+  four roles; per-resource/action permissions are this task's job, not Authentication's)
 - ☐ User profile module
 - ☐ Lifestyle tracking module
 - ☐ Initial dataset seed (products/ingredients from Kaggle + curated INCIDecoder/COSDNA
@@ -119,18 +150,28 @@ real services.
 
 ## Frontend status
 
-Scaffold + app shell complete (`web/` — Next.js 16 / React 19 / Tailwind v4 / shadcn/ui).
-`app/page.tsx` is still a scaffold smoke test, not a designed screen — no real M1 screens
-built yet, just one stub `dashboard/page.tsx` per role proving the shell. No Better Auth
-wiring, no `lib/api.ts` (waits on backend OpenAPI spec), no visible role-switching (role
-is hardcoded per route-group layout until real sessions exist). Design assets remain in
-`web/designs/wireframes/` (83 files) as the build reference.
+Scaffold + app shell + Authentication complete (`web/` — Next.js 16 / React 19 /
+Tailwind v4 / shadcn/ui / Better Auth). `app/page.tsx` is still a scaffold smoke test.
+Login/register/forgot-password are real, wired screens; every other M1 screen is still
+just a stub `dashboard/page.tsx` per role proving the shell. No `lib/api.ts` yet (waits
+on backend OpenAPI spec), no visible role-switching (role is hardcoded per route-group
+layout until real sessions replace the stub `userName` in each layout). Design assets
+remain in `web/designs/wireframes/` (83 files) as the build reference.
 
 ## Database status
 
 Schemas fully designed (`database_schemas/`) but not applied — no live Postgres/MongoDB
 instances have the schema loaded, no Alembic migration history, no Better Auth CLI output.
 `docker-compose.yml` can bring up empty Postgres/Mongo/Redis/Elasticsearch containers.
+Confirmed this session: `npx @better-auth/cli generate` requires a *live* Postgres
+connection (it introspects existing tables via Kysely), not just static config — it
+cannot run without Postgres up first. Exact commands to unblock, root `.env` already has
+a generated `BETTER_AUTH_SECRET` (gitignored) waiting:
+```
+docker compose up -d postgres
+cd web && npx @better-auth/cli generate -y   # writes the Better Auth schema
+npx @better-auth/cli migrate -y              # applies it to the running Postgres
+```
 
 ## Known issues / open decisions
 
@@ -178,7 +219,10 @@ instances have the schema loaded, no Alembic migration history, no Better Auth C
 
 ## Next task
 
-A service module — User/Auth glue is the natural first one, since Authentication is next
-on the milestone-1 checklist and needs `app/services/user/`. Individual M1 screens
-(dashboard, profile/lifestyle, etc.) are the other frontend follow-on, now that the shell
-exists to build them inside.
+1. **You:** run the 3 commands in "Database status" above (needs Docker, unavailable in
+   this sandbox) so Better Auth's identity tables actually exist and login/register can
+   be tested against a real database, not just verified at the HTTP-error-handling level.
+2. **Then:** backend `app/services/user/` (`/api/v1/users/me`) to prove the JWT
+   round-trips through FastAPI — the natural next task either way.
+3. RBAC's fine-grained ACL matrix, or individual M1 screens (dashboard, profile/
+   lifestyle, etc.) now that the shell exists to build them inside — user's call.
