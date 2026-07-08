@@ -11,7 +11,16 @@ export const loginSchema = z.object({
 });
 export type LoginValues = z.infer<typeof loginSchema>;
 
-export const registerSchema = z
+// web/designs/wireframes/signup.html "Step A: Who are you?" — a declared/requested
+// role, shown on the signup form. Per docs/AGENTS.md and docs/WIREFRAMES.md
+// "Registration", every new account still defaults to role `user` at signup
+// (Better Auth's defaultRole, lib/auth.ts) — consultant/dermatologist access is
+// granted via admin verification afterward, never self-service at signup. This field
+// is not sent to Better Auth's signUp.email call; it's captured for the signup UI only
+// (no backend request-a-role endpoint exists yet — not invented here).
+export const SIGNUP_ROLES = ["user", "consultant", "dermatologist"] as const;
+
+export const signupSchema = z
   .object({
     firstName: z.string().trim().min(1, "First name is required"),
     lastName: z.string().trim().min(1, "Last name is required"),
@@ -22,6 +31,7 @@ export const registerSchema = z
       .regex(/[A-Z]/, "At least one uppercase letter")
       .regex(/[0-9]/, "At least one number"),
     confirmPassword: z.string(),
+    requestedRole: z.enum(SIGNUP_ROLES),
     // Skin-photo processing consent — required, docs/SUGGESTIONS.md P0.
     consent: z.literal(true, {
       error: "You must accept the Terms and consent to skin-photo processing",
@@ -31,7 +41,7 @@ export const registerSchema = z
     message: "Passwords don't match",
     path: ["confirmPassword"],
   });
-export type RegisterValues = z.infer<typeof registerSchema>;
+export type SignupValues = z.infer<typeof signupSchema>;
 
 export const forgotPasswordSchema = z.object({
   email: z.email("Enter a valid email address"),
