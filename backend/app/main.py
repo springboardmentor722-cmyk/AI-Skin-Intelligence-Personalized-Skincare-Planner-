@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.errors import register_exception_handlers
 from app.core.logging import RequestIdMiddleware, configure_logging
+from app.services.user.router import router as user_router
 
 
 @asynccontextmanager
@@ -37,10 +38,8 @@ def create_app() -> FastAPI:
     async def health() -> dict[str, str]:
         return {"status": "ok"}
 
-    # Service routers mount here as they're built, e.g.:
-    #   from app.services.user.router import router as user_router
-    #   api_v1.include_router(user_router, prefix="/users", tags=["users"])
     api_v1 = APIRouter(prefix="/api/v1")
+    api_v1.include_router(user_router, prefix="/users", tags=["users"])
     app.include_router(api_v1)
 
     return app

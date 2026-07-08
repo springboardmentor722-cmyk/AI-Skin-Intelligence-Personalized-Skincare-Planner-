@@ -6,6 +6,7 @@ from functools import lru_cache
 from typing import Any
 
 import jwt
+import structlog
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jwt import PyJWKClient
@@ -14,6 +15,7 @@ from app.core.config import settings
 from app.db.redis import get_redis
 
 bearer = HTTPBearer(auto_error=True)
+logger = structlog.get_logger()
 
 
 @lru_cache(maxsize=1)
@@ -35,7 +37,10 @@ def _decode(token: str) -> dict[str, Any]:
             options={"require": ["exp", "iss", "aud"]},
         )
     except jwt.PyJWTError as exc:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, f"Invalid token: {exc}") from exc
+        # Log the real cause server-side; never echo raw library exception text back to
+        # the client (it can leak internals — e.g. decode/codec errors).
+        logger.warning("jwt_validation_failed", error=str(exc))
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid or expired token") from exc
 
 
 async def require_user(
