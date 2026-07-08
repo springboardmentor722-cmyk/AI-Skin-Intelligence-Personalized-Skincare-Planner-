@@ -237,6 +237,21 @@ Better Auth + RBAC, profile & lifestyle modules, seed data. No AI (ADR-007).
   `ruff` N/A (frontend), `typecheck`/`lint` clean. All test users created during
   verification were deleted afterward; confirmed `ON DELETE CASCADE` cleaned up their
   profile/skin-profile rows and the 2 pre-existing real users were untouched.
+- ✔ `run.py` — one-command local dev bootstrap (stdlib only, no install needed to run
+  it): `docker compose up -d`, waits for Postgres to report healthy, creates the root
+  `.env` from `.env.development` and the `web/.env` symlink if either is missing (a
+  fresh clone wouldn't have either — `.env*` is gitignored by design), then runs the
+  backend (`uv run uvicorn --reload`) and frontend (`npm run dev`) as subprocesses with
+  their output streamed live. Ctrl+C stops both cleanly; if either process dies on its
+  own (e.g. a startup crash) the other is stopped too rather than left running against
+  nothing. Docker containers are left running on exit, matching `make dev`'s behavior.
+  **Verified:** the `.env`/symlink bootstrap logic in isolation (temporarily moved the
+  real `.env` aside, confirmed both files regenerate correctly, restored the original —
+  the real `BETTER_AUTH_SECRET` was never lost). **Not verified:** the Docker/backend/
+  frontend orchestration end-to-end — the `docker` CLI itself has never been on PATH in
+  this sandbox all session (only the services it manages, which the user started some
+  other way), so `require_on_path("docker", ...)` would fail-fast before reaching that
+  code. Please run `python3 run.py` yourself to confirm the full flow.
 
 ## Partially Completed
 
