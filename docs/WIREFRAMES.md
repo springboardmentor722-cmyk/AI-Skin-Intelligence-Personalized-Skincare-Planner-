@@ -13,13 +13,19 @@ Open `web/design/wireframes/index.html` to browse all seven.
   title, ⌘K search, weather/UV chip, notification bell, theme toggle, account menu) +
   solid content canvas over the subtle aurora (`DESIGN.md` §3). Data renders on solid
   Diagnostic Module cards — never on glass.
-- **User** nav: Dashboard · Skin profile · Skin assessment · Recommendations · Progress ·
-  Reminders · Reports · Settings.
-- **Consultant:** Clients · Client assessments · Progress monitoring · Recommendations · Notes.
-- **Dermatologist:** Patients · Condition reports · Treatment recommendations · Progress analytics.
-- **Admin:** Users · Content (products/ingredients/articles) · Platform analytics · System · Settings.
+- Nav lists per role are defined once, canonically, in `AGENTS.md` §3 — not repeated here
+  to avoid the two docs drifting (they did: this section previously listed different,
+  shorter nav sets than `AGENTS.md`; `AGENTS.md` wins per `CLAUDE.md`'s precedence rule,
+  so that's the version to build against).
 - Screens 1–2 (login, registration) are standalone centered **glass cards** over the
   aurora — no shell.
+- **The wireframe HTML's sidebar text is not binding.** The `app-*.html` files under
+  `web/designs/wireframes/` mostly share one generic Stitch draft nav (Dashboard /
+  Analyses / Consultants / Settings, with one slot relabeled per screen) — that's a rough
+  pass, not the finished per-role information architecture. Per `CONVENTIONS.md` ("raw
+  exports never ship"), use the wireframe HTML only for the glass sidebar's visual
+  treatment (blur, spacing, icon style, collapse behavior) — the actual nav items come
+  from `AGENTS.md` §3.
 
 ## Global patterns (every screen inherits these)
 - **Loading:** solid skeletons matching final layout (never glass skeletons); per-card,
