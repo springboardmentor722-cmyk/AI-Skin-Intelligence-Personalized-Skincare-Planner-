@@ -551,6 +551,26 @@ scoring/recs) is the natural next milestone.
   `project_docs/milestone_1/` (01, 04, 05) to match; `.claude/settings.local.json`'s
   permission entries still mention `run.py` but that's local tool config, not project
   code — left alone, harmlessly stale.
+- ✔ **Bug fix** (`fix/run-scripts-missing-datastore-check`) — the `run.py` split above
+  had a real regression: the single combined script always brought Docker up before
+  starting the backend/frontend, but the three split scripts don't enforce that order.
+  Running `web_run.py` (or `backend_run.py`) alone with Postgres/Mongo/Redis down — as
+  the user hit for real — surfaces as a raw `ECONNREFUSED` `AggregateError` deep in
+  Better Auth's own error handler (a 500 on `/api/auth/sign-in/social`) instead of a
+  clear message pointing at the actual cause. Added a preflight check to both scripts:
+  parse the relevant `.env` URL(s) (`DATABASE_URL` for `web_run.py`;
+  `DATABASE_URL`/`MONGO_URI`/`REDIS_URL` for `backend_run.py`), probe the host:port with
+  a plain `socket.create_connection`, and print an explicit "run `docker_run.py` first"
+  warning up front if anything's unreachable — non-blocking (matches `docker_run.py`'s
+  own existing "warn and continue" style for a slow Postgres healthcheck), so it doesn't
+  stop someone who genuinely just wants the dev server up.
+  **Second bug found while verifying the first fix:** the warning also silently
+  disappeared when this script's own stdout wasn't a TTY (piped/redirected) — the exact
+  buffering issue `docker_run.py` already documents and guards against
+  (`sys.stdout.reconfigure(line_buffering=True)`), which got dropped when the single
+  `run.py` was split into three files. Re-added to both. Verified live: with Postgres/
+  Mongo down in this sandbox, both scripts now print the warning immediately and still
+  start their process; confirmed the warning is not lost under output redirection.
 
 ## Partially Completed
 
