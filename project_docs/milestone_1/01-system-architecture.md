@@ -101,9 +101,10 @@ exclusively (ADR-005). Split into per-service containers at Milestone 4. All rou
 mount under `/api/v1` from day one (ADR-009).
 
 M1 local runtime (`docker-compose.yml`): `postgres`, `mongo`, `redis`, `elasticsearch` —
-plus `web` (Next.js) and `backend` (FastAPI) run directly (via `run.py` / `make dev`),
-not yet containerized themselves (tracked as a M1 "Partially Completed" item in
-`PROGRESS.md`; `web`/`api`/`minio`/`worker` compose entries land once verified against a
+plus `web` (Next.js) and `backend` (FastAPI) run directly (via `docker_run.py` +
+`backend_run.py` + `web_run.py`, one script per concern, or `make dev`), not yet
+containerized themselves (tracked as a M1 "Partially Completed" item in `PROGRESS.md`;
+`web`/`api`/`minio`/`worker` compose entries land once verified against a
 Docker-available session).
 
 ## 4. Data layer — five stores + one file store

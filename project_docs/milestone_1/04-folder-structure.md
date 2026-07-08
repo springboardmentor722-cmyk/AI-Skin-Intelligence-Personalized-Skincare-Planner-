@@ -12,7 +12,7 @@ Skinlytics/
 ├── PROGRESS.md                        # milestone/task state — updated every session
 ├── Makefile                           # shared task vocabulary (make dev/up/seed/lint/...)
 ├── docker-compose.yml                 # postgres, mongo, redis, elasticsearch
-├── run.py                             # one-command local dev bootstrap
+├── docker_run.py  backend_run.py  web_run.py   # one script per concern — see 05-setup-instructions.md
 ├── setup.sh                           # one-time local bootstrap (data stores + .env)
 ├── openapi.json                       # generated OpenAPI spec (gitignored intermediate)
 ├── .env / .env.example / .env.development / .env.production

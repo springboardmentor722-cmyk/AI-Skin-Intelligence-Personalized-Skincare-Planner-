@@ -12,17 +12,25 @@ Two ways to stand up the project locally. Both are safe to re-run.
   `brew install uv` — building it from source can exhaust a constrained temp partition
   on some machines (see root `PROGRESS.md`'s Known Issues).
 
-## Option A — one command (`run.py`)
+## Option A — three small scripts, one per concern
+
+Run each in its own terminal, in order:
 
 ```bash
-python3 run.py
+python3 docker_run.py     # data stores + .env bootstrap — run this first
+python3 backend_run.py    # FastAPI (uvicorn --reload, :8000)
+python3 web_run.py        # Next.js (next dev, :3000)
 ```
 
-This: starts the Docker data stores and waits for Postgres to report healthy, creates
-the root `.env` from `.env.development` (and a `web/.env` symlink) if either is missing,
-then runs the backend (`uv run uvicorn --reload`) and frontend (`npm run dev`) together,
-streaming both logs to one terminal. `Ctrl+C` stops both; Docker containers are left
-running (matching `make dev`'s behavior — you don't lose seeded data between sessions).
+`docker_run.py` starts the Docker data stores, waits for Postgres to report healthy,
+and creates the root `.env` from `.env.development` (plus the `web/.env` symlink) if
+either is missing — run it first every time, it's safe to re-run. `backend_run.py` and
+`web_run.py` each assume that's already done; `Ctrl+C` stops just that one process, and
+Docker containers are left running (matching `make dev`'s behavior — you don't lose
+seeded data between sessions). These replace the single combined `run.py` bootstrap
+script that this project used earlier — split by concern so each piece can be started,
+stopped, and restarted independently (e.g. restarting only the backend without taking
+the frontend down too).
 
 ## Option B — manual, step by step
 

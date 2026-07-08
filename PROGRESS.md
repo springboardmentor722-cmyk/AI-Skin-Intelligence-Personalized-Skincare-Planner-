@@ -529,6 +529,28 @@ scoring/recs) is the natural next milestone.
   `dev` (`git branch --merged` confirmed each before deletion). Only `main`/`dev` remain
   locally. No GitHub remote existed in this session (no `gh` CLI either) — wiring one is
   a user-driven step (see Known Issues).
+- ✔ GitHub remote wired — user added `origin`
+  (`https://github.com/Satya-Sai-Tharun/Skinlytics.git`) and pushed `dev` themselves;
+  confirmed via `git fetch` (`origin/dev` matched local `dev` exactly before this
+  session's new commits). `main` is not yet pushed (`origin` currently only has a `dev`
+  branch) — push it whenever a PR-based flow off `main` is actually needed, not blocking
+  anything today. Also confirmed no real `.env` file was ever committed — `.gitignore`
+  excludes `.env`/`.env.local`/`.env.*.local`; only the three template files
+  (`.env.example`/`.env.development`/`.env.production`, all blank secrets) are tracked.
+- ✔ `run.py` split into `docker_run.py` / `backend_run.py` / `web_run.py`, one script per
+  concern, then `run.py` deleted. `docker_run.py` owns Docker discovery, the `.env` /
+  `web/.env` bootstrap, `docker compose up -d`, and waiting for Postgres; `backend_run.py`
+  and `web_run.py` each just start their one process (uvicorn / `next dev`) and assume
+  `docker_run.py` already ran. Each is run in its own terminal now, rather than one script
+  managing both child processes' lifecycle together — simpler, and a backend restart no
+  longer requires taking the frontend down too. Verified each new script actually starts
+  its process cleanly (backend: uvicorn reload + app startup complete; frontend: `next
+  dev` ready) — Docker itself still isn't available in this sandbox, so `docker_run.py`'s
+  own `docker compose` calls aren't live-verified this session, same constraint the
+  original `run.py` always had here. Updated the `run.py` references in
+  `project_docs/milestone_1/` (01, 04, 05) to match; `.claude/settings.local.json`'s
+  permission entries still mention `run.py` but that's local tool config, not project
+  code — left alone, harmlessly stale.
 
 ## Partially Completed
 
