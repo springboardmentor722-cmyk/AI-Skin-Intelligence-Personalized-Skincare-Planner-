@@ -6,6 +6,12 @@ first, then the rest of `docs/`.
 
 **Current milestone:** M1 (weeks 1–2) — architecture, DB schema, wireframes, env setup,
 Better Auth + RBAC, profile & lifestyle modules, seed data. No AI (ADR-007).
+**M1 status: functionally complete** — all 11 milestone tasks done, including all 7 M1
+screens live-built and the fine-grained RBAC matrix. Milestone-close documentation lives
+in `project_docs/milestone_1/`. Remaining M1 items are verification-only (fresh-DB
+migration, MongoDB live check) or explicitly deferred infra (Docker containerization) —
+see Pending below. M2 (skin assessment engine, routine generation refinement, real
+scoring/recs) is the natural next milestone.
 
 ---
 
@@ -403,6 +409,126 @@ Better Auth + RBAC, profile & lifestyle modules, seed data. No AI (ADR-007).
   - `npm run lint`/`typecheck` clean (only 2 pre-existing, unrelated warnings on
     `(auth)/login` and `(auth)/register` remain). Verified visually end-to-end in both
     themes via Playwright screenshots across the full page — not just typecheck/lint.
+- ✔ Design system v2 — dark-mode "Deep Diagnostic Suite" (`feature/ui-design-system-auth-
+  assessment` branch, merged to `dev`) — rewrote `docs/DESIGN.md` and `web/app/globals.css`
+  from the light "Airy Lab" v1 tokens to the dark navy/blue/teal palette, updated shadcn
+  primitives (button, command, dialog, dropdown-menu, input, select) to the glassmorphism
+  recipe (backdrop blur, pill radii, no heavy shadows). Verified in both themes via
+  Playwright screenshots.
+- ✔ Login + Signup rebuilt on shadcn `login-02`/`signup-02` — moved out of the `(auth)`
+  route group into standalone `/login` and `/signup` routes with a two-column split
+  layout (`AuthSplitLayout`: illustration + form), matching the new design system.
+  Registration renamed to Signup throughout (`registerSchema`→`signupSchema`,
+  `RegisterValues`→`SignupValues`); added a requested-role selector (User/Consultant/
+  Dermatologist) per `web/designs/wireframes/signup.html` — new accounts still default to
+  role `user` at signup (Better Auth), the requested role is captured for admin-driven
+  verification later, not self-service elevation (no backend endpoint consumes it yet).
+  Auth functionality (Better Auth email/password + Google) unchanged. `npm run
+  {lint,typecheck,build}` clean.
+- ✔ Assessment flow (`web/app/assessment/*`) — 4-step wizard (Basics → Skin Type →
+  Concerns → Lifestyle) + Results, against `web/designs/wireframes/assessment-*.html`.
+  Shared `AssessmentShell` (glass progress header/stepper + sticky footer) and
+  `AssessmentProvider` (state persisted to `sessionStorage`, not a backend — no Skin
+  Assessment service exists yet, ADR-007). Skin type/concerns steps hit the real
+  `/skin-types`/`/skin-concerns` endpoints; Results computes a Skin Health Score
+  client-side using the real 35/20/20/15/10 weighting (`docs/AI_ML.md`), framed as an
+  estimate, not a diagnosis. **Bug found and fixed via live Playwright verification:**
+  when the backend was unreachable, both API-backed steps retried silently then rendered
+  a blank grid with no way to proceed — added a retry-capable error state (reused the
+  existing skeleton/empty-state visual language) to both.
+- ✔ RBAC fine-grained ACL matrix (backend enforcement) — every User-role domain endpoint
+  (`users/me/profile`, `skin-profiles*`, `lifestyle-logs*`, `scores/me`, `routines/me`,
+  `recommendations/me`, `progress/me/summary`) now requires `require_role("user")`
+  instead of the role-agnostic `require_user` — a consultant/dermatologist/admin JWT gets
+  a real 403, not empty/nonsensical self-scoped data. `GET /users/me` deliberately stays
+  role-agnostic (every role calls it to learn which dashboard to land on). New
+  `backend/tests/test_rbac.py`: unit tests for `require_role`'s allow/deny logic plus a
+  parametrized test asserting all 10 affected routes 403 a non-`user` role (via
+  `dependency_overrides`, never touching Postgres — the 403 fires before `get_db` is
+  ever resolved). `ruff`/`mypy --strict`/`pytest` (19 tests) all pass.
+- ✔ Ingredient seed data (`backend/app/db/seed.py`, `backend/app/services/ingredients/
+  models.py`) — curated `ingredients` + `ingredient_concern_treats` +
+  `ingredient_skintype_avoid` rows for the PDF's 8 named categories (Retinoids,
+  Niacinamide, Vitamin C, Hyaluronic Acid, Salicylic Acid, Ceramides, Peptides, AHAs/
+  BHAs) per `docs/DATASETS_AND_APIS.md` §3's prescribed approach (hand-curated common
+  dermatological knowledge, not scraped — no public API exists for INCIDecoder/COSDNA).
+  New `ProductIngredient` model (`recommendations/models.py`, a `product_*` junction) and
+  2 new products (Glycolic Acid exfoliant, Peptide serum) link real seeded products to
+  the new ingredients. New hand-written Alembic migration
+  (`ccb49f9b0f47_ingredients_and_product_ingredients.py`) — **not verified against a live
+  database this session** (Docker wasn't running); its docstring flags the same known gap
+  the baseline migration has (no earlier migration creates `products`, so `upgrade()`
+  will fail on a genuinely fresh DB until that's separately closed) and that on the real
+  project database it should be applied via `alembic stamp`, not `upgrade`, after
+  confirming an empty autogenerate diff — same reconciliation precedent as the baseline
+  migration. `ruff`/`mypy --strict`/`pytest` pass (no DB needed for these).
+- ✔ Three remaining M1 screens — Dashboard, Product Recommendations, Progress Tracking
+  (`web/app/(user)/{dashboard,recommendations,progress}/page.tsx`), completing all 7 M1
+  screens from `docs/WIREFRAMES.md`:
+  - **Dashboard** (screen 3): Skin Score Ring + weighted breakdown, today's AM/PM routine
+    checklist (client-side check state only — no `checklist_step_done` persistence
+    exists anywhere in the schema, matching why the Scoring service already stubs
+    `routine_adherence`), recommended products (3, match rings), progress mini-chart.
+    First-time state (no skin profile → `scores/me` 404) shows a CTA to `/profile`
+    instead of five broken cards. Dropped the wireframe's weather/reminders/AI-insight
+    modules — none are in `WIREFRAMES.md`'s documented component list and none have a
+    backing endpoint (`CONVENTIONS.md` "raw exports never ship").
+  - **Product Recommendations** (screen 6): category/brand/budget filter rail + sort,
+    all client-side over the single `recommendations/me` stub response (no filter query
+    params exist on the endpoint yet — added would be guessing at an unbuilt contract);
+    Compare drawer (shadcn `Sheet`, up to 3) and Alternatives dialog, both real
+    interactions over the fetched data. Dropped the wireframe's vegan/fragrance-free
+    preference filters — no such columns exist on `products`.
+  - **Progress Tracking** (screen 7): week/range selector (7D/30D/90D) driving a real
+    `days` query param — added to `GET /progress/me/summary` (the service function
+    already took `days`, it just wasn't reachable from the API); Skin Score trend chart
+    (shadcn `chart`/Recharts, first use in this codebase) + improvement-score (Δ) card.
+    Before/after photos, concern-changes table, milestones, and export are shown as
+    clearly-labeled "Coming soon" cards, not invented — none of Mongo `progress_logs`,
+    the Report Service, or S3 upload exist yet (`progress/service.py`'s own docstring
+    already flagged this as separate, larger scope).
+  - New shared components: `ProductRecommendationCard` + `MatchRing` (used by both
+    Dashboard's preview and the full Recommendations grid), `RoutineChecklistCard`.
+    Added shadcn `chart`, `sheet`, `skeleton` (first use of each) — patched `sheet.tsx`'s
+    content to the `glass glass-strong` recipe (ADR-008) since the generated default used
+    a plain solid popover. Added `formatPrice` to `lib/utils.ts` (INR via
+    `Intl.NumberFormat`, not a hard-coded ₹).
+  - **Verified against realistic mocked API data** (Playwright route interception, since
+    no backend/Docker was available this session) in addition to the real error-state
+    paths: score ring/breakdown, routine checkbox toggling, product cards, compare
+    drawer, alternatives modal, and the trend chart all confirmed rendering correctly
+    with zero console/page errors, both light and dark.
+  - `ruff`/`mypy --strict`/`pytest` (backend) and `npm run {lint,typecheck,build}`
+    (frontend) all clean.
+- ✔ Milestone 1 documentation — `project_docs/milestone_1/` (system architecture with a
+  Mermaid diagram, database schema with an ER diagram, the real API endpoint list
+  generated from the live OpenAPI schema — not hand-typed, actual folder structure, setup
+  instructions). Consolidates and cross-links `docs/`/`database_schemas/` for the
+  milestone-close deliverable rather than duplicating them as the ongoing source of truth.
+- ✔ App shell sidebar migrated to shadcn `sidebar-07` primitives — replaced the hand-
+  rolled `GlassSidebar` (manual `collapsed` state lifted through `AppShell`) with
+  `AppSidebar` (`components/app-shell/app-sidebar.tsx`) built on `components/ui/sidebar.tsx`
+  (`SidebarProvider`/`Sidebar`/`SidebarMenuButton`/`SidebarRail`, first use in this
+  codebase). Content is still ours, not sidebar-07's demo data: the real per-role
+  `NAV_ITEMS` (`lib/nav-config.ts`), Skinlytics branding, and the same active-link logic
+  — sidebar-07's Team Switcher/Projects/nested collapsible groups don't apply to this
+  app's flat per-role nav and weren't adopted. Patched `ui/sidebar.tsx`'s inner surface to
+  the `glass` recipe (ADR-008), same precedent as `dialog.tsx`/`sheet.tsx`. Gained for
+  free: cookie-persisted collapse state, ⌘/Ctrl+B shortcut, and a real mobile Sheet
+  fallback (glass, since `Sheet` was already patched) — none of which `GlassSidebar` had.
+  Added a `SidebarTrigger` to `GlassTopbar` (left of the page title) as the explicit
+  toggle button. **Bug found and fixed:** the generated `hooks/use-mobile.ts` used an
+  effect that calls `setState` synchronously on mount — this repo's React Compiler ESLint
+  rule flags that (the same class of issue `ThemeToggle` hit earlier); rewritten with
+  `useSyncExternalStore` instead of an effect, which sidesteps the rule and is the more
+  correct pattern for reading external (non-React) state like viewport width. Verified in
+  a real browser: expanded/collapsed/dark mode/mobile-sheet, `npm run
+  {lint,typecheck,build}` clean.
+- ✔ Git housekeeping — merged `feature/ui-design-system-auth-assessment` into `dev`
+  (fast-forward, no conflicts), deleted 15 other local branches already fully merged into
+  `dev` (`git branch --merged` confirmed each before deletion). Only `main`/`dev` remain
+  locally. No GitHub remote existed in this session (no `gh` CLI either) — wiring one is
+  a user-driven step (see Known Issues).
 
 ## Partially Completed
 
@@ -412,60 +538,75 @@ Better Auth + RBAC, profile & lifestyle modules, seed data. No AI (ADR-007).
 
 ## Pending
 
-- ☐ Individual M1 screens (dashboard, assessment, recommendations, progress) — each its
-  own `feature/frontend-<screen>` branch. Login/registration/forgot-password/skin
-  profile & lifestyle are done.
 - ☐ Nav entry point for `/profile` — not in `AGENTS.md`'s User nav list; currently only
   reachable via the post-registration redirect. Needs a product decision (account menu
   item? part of onboarding only? add to the nav list?), not a guess.
-- ☐ Playwright e2e coverage for the skin profile & lifestyle screen — verified manually
-  this session (including the 4 real bugs found and fixed), no automated test written
-  yet, unlike the app-shell/auth screens' coverage.
-- ☐ RBAC fine-grained ACL matrix (`web/lib/permissions.ts` currently only declares the
-  four roles; per-resource/action permissions are this task's job, not Authentication's)
+- ☐ Playwright e2e coverage for the skin profile & lifestyle, assessment, dashboard,
+  recommendations, and progress screens — all verified manually (real browser, both
+  themes; mocked-API for the three newest), no automated test suite written yet, unlike
+  the app-shell/auth screens' coverage.
 - ☐ Idempotent seed script (`make seed`) for `skin_types`/`skin_concerns` — currently
   only seeded because they were part of the user's direct SQL load, not from any script
-  in this repo. Product/ingredient seeding from Kaggle is separate, larger scope
-  (`docs/DATASETS_AND_APIS.md`).
+  in this repo. Full product/ingredient seeding from Kaggle (the real ingestion
+  pipeline, not the curated placeholder set now in `seed.py`) is separate, larger scope
+  (`docs/DATASETS_AND_APIS.md`) blocked on a Kaggle API token.
 - ☐ Verify `alembic upgrade head` against a genuinely fresh/empty database — only
-  `alembic stamp` (zero DDL) has been run, against the live pre-populated database.
+  `alembic stamp` (zero DDL) has been run, against the live pre-populated database. This
+  gap now also affects the new `ccb49f9b0f47` ingredients migration (its `upgrade()`
+  references `products`, which no earlier migration creates).
 - ☐ MongoDB verification — start it (`docker compose up -d mongo` or `make up`) and
   confirm `lifestyle-logs` endpoints work for real; only typecheck/lint cover them now.
 - ☐ `api`/`web` Dockerfiles + docker-compose entries — needs a Docker-available session
+- ☐ GitHub remote — no `git remote` configured and no `gh` CLI in this session's
+  sandbox. User is creating the repo directly on github.com; wiring `origin` once a URL
+  is provided is a one-command follow-up (`git remote add origin <url>`), not blocked on
+  anything else.
 - ☐ Graphify setup (ADR-006) — explicitly deferred by product owner, revisit later
   (2026-07-08 decision, see Known Issues)
+- ☐ Consultant/Dermatologist/Admin dashboards remain shell smoke-test stubs (proving the
+  app-shell, not designed screens) — out of Milestone 1's 7-screen scope
+  (`docs/ARCHITECTURE.md` §11 names only the User-role 7), tracked here for M2+.
 
 ## Folder structure
 
-Matches `docs/CONVENTIONS.md` §"Repository layout" — not reproduced here to avoid drift;
-read that file for the target tree. `backend/` and `web/` are both real now (see status
-sections below); `ml/` and `graphify-out/` still don't exist (M2+ / deferred, ADR-006).
+Real, current tree captured in `project_docs/milestone_1/04-folder-structure.md` —
+`docs/CONVENTIONS.md` §"Repository layout" is the forward-looking target and has drifted
+on a few points (see that file's own notes on route-group vs. real-folder role prefixes).
+`ml/` and `graphify-out/` still don't exist (M2+ / deferred, ADR-006).
 
 ## Backend status
 
 `app/services/user/`, `app/services/skin_profile/`, `app/services/scores/`,
 `app/services/routines/`, `app/services/recommendations/`, `app/services/progress/` are
-real, working, live-verified services (see "Completed" above). `app/ai/` has the stub
-seeding helper + AI-contract schemas the recommender uses; no service package is empty
-except `integrations`. First Alembic migration exists and is stamped against the live
-database — `env.py` now imports every service's models, so `alembic revision
---autogenerate` is a meaningful (not vacuous) drift check. Verified end-to-end against a
-real Postgres + Mongo + Redis this session.
+real, working, live-verified services; `app/services/ingredients/` has models + seed data
+but no API surface yet (M3 scope). Every User-role domain endpoint now enforces
+`require_role("user")` (this session's RBAC task — see Completed), not just `require_user`.
+`app/ai/` has the stub seeding helper + AI-contract schemas the recommender uses; no
+service package is empty except `integrations`. Two Alembic migrations exist
+(`50e82a643bf9` baseline, `ccb49f9b0f47` ingredients) — both hand-written, both only
+verified against a live, pre-populated database via `stamp`, not `upgrade` against a
+fresh one (tracked in Pending). `env.py` imports every service's models including
+`ingredients`, so `alembic revision --autogenerate` stays a meaningful drift check.
+19 backend tests pass (`ruff`/`mypy --strict`/`pytest`); no live Postgres/Mongo/Redis was
+reachable in this session (Docker wasn't running), so this session's backend changes are
+verified by static checks + tests with `dependency_overrides`, not a live round-trip —
+unlike the Postgres/Mongo/Redis-verified work from earlier sessions.
 
 ## Frontend status
 
-Scaffold + app shell + Authentication + typed API client complete (`web/` — Next.js 16 /
-React 19 / Tailwind v4 / shadcn/ui / Better Auth / TanStack Query / `openapi-fetch`).
-`app/page.tsx` is now the real public landing page (see "Completed"), replacing the
-scaffold smoke test. Login/register/forgot-password/skin profile & lifestyle are real,
-wired, live-verified screens; every M1 *app* screen (dashboard, assessment,
-recommendations, progress) is still just a stub `dashboard/page.tsx` per role proving
-the shell — their backends now exist (scores/routines/recommendations/progress
-services) but no frontend has been built against them yet. `lib/api.ts` +
-`lib/api-types.ts` now exist and are proven against the live backend. No visible
-role-switching (role is hardcoded per route-group layout until real sessions replace the
-stub `userName` in each layout). Design assets remain in `web/designs/wireframes/`
-(83 files) as the build reference.
+All 7 Milestone 1 screens are now real, wired, built screens: Login, Signup, User
+Dashboard, Skin Profile & Lifestyle, Skin Assessment (5-step wizard + results), Product
+Recommendations, Progress Tracking. Scaffold + app shell + Authentication + typed API
+client complete (`web/` — Next.js 16 / React 19 / Tailwind v4 / shadcn/ui / Better Auth /
+TanStack Query / `openapi-fetch`). Design system is now v2 (dark-mode "Deep Diagnostic
+Suite" — see Completed). `lib/api.ts` + `lib/api-types.ts` regenerated this session to
+include the newer scores/routines/recommendations/progress/skin-profile paths (they were
+stale, generated before those endpoints existed — `make openapi` closes this, worth
+re-running any time a backend route's shape changes). No visible role-switching (role is
+hardcoded per route-group layout until real sessions replace the stub `userName` in each
+layout) — Consultant/Dermatologist/Admin dashboards remain shell smoke-test stubs,
+correctly out of Milestone 1's User-role-only 7-screen scope. Design assets remain in
+`web/designs/wireframes/` (83 files) as the build reference.
 
 ## Database status
 
@@ -535,11 +676,26 @@ that's not what's running now.
 - Playwright + `curl` occasionally failed with `command not found` inside `for` loops in
   this sandbox's shell (worked fine as standalone commands). Root cause not identified;
   workaround is running commands individually rather than in a loop when this happens.
+- **`web/lib/api-types.ts` goes stale silently** — it's a committed, generated file, but
+  nothing fails loudly if a backend route changes shape and `make openapi` isn't re-run;
+  it was found stale this session (missing every route added after the initial scaffold)
+  only because a new screen's build needed a type that didn't exist. Re-run
+  `make openapi` as a matter of habit after any backend router change, not just when a
+  frontend build actually fails.
+- No `gh` CLI and no Docker daemon in this Claude Code sandbox session — all of this
+  session's backend/RBAC/migration work is verified by static checks (`ruff`/`mypy
+  --strict`/`pytest` with `dependency_overrides`) and frontend work by Playwright against
+  either real error paths or mocked API responses, **not** a live Postgres/Mongo/Redis
+  round-trip. Re-verify live on a Docker-available machine before treating the new
+  migration or the three new screens' data paths as fully proven (see Pending).
 
 ## Next task
 
-Skin profile & lifestyle is done and live-verified end to end (Postgres path). Natural
-next steps: starting MongoDB to verify `lifestyle-logs` for real (the one part of this
-task not live-tested), a nav entry point decision for `/profile`, RBAC's fine-grained
-ACL matrix, or the next M1 screen (dashboard is the obvious one — real data sources
-exist for parts of it now) — user's call.
+All 11 Milestone 1 tasks are done; M1 is functionally complete. Real remaining work is
+verification-only or explicitly out of scope (see Pending): MongoDB live check, a fresh-
+database `alembic upgrade head` run (now covering two migrations), `api`/`web`
+Dockerfiles, wiring the GitHub remote once the user provides a URL, and a nav-entry-point
+decision for `/profile`. The natural next *feature* milestone is M2 — real skin
+assessment (replacing the client-side ADR-007 stub), routine-generation refinement, and
+the first real scoring/recommendation models behind the same M1 API contracts — user's
+call on sequencing.
