@@ -39,7 +39,7 @@ export function LandingNavbar() {
           />
           <Button
             nativeButton={false}
-            render={<Link href="/register">Start free assessment</Link>}
+            render={<Link href="/signup">Start free assessment</Link>}
           />
         </div>
       </nav>

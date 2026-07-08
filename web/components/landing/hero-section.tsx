@@ -37,7 +37,7 @@ export function HeroSection() {
               size="lg"
               className="h-auto px-8 py-4 text-base"
               nativeButton={false}
-              render={<Link href="/register">Get started free</Link>}
+              render={<Link href="/signup">Get started free</Link>}
             />
             <Button
               size="lg"

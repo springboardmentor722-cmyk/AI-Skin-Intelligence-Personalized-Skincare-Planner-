@@ -21,7 +21,7 @@ export function FinalCtaSection() {
               size="lg"
               className="h-auto bg-white px-10 py-4 text-base text-black hover:bg-white/90"
               nativeButton={false}
-              render={<Link href="/register">Start assessment</Link>}
+              render={<Link href="/signup">Start assessment</Link>}
             />
             <Button
               size="lg"

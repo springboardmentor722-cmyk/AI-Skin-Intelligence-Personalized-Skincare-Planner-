@@ -2,7 +2,9 @@
 name: Skinlytics
 # Tokens are the machine-readable source of truth. Values below are normalized to the
 # brand palette described in prose (Deep Navy / Royal Blue / Teal). v2 adds: dark theme,
-# glass, elevation, motion. Frontend maps these onto shadcn CSS variables (see §10).
+# glass, elevation, motion. v3 (Skin Intelligence System) replaces the dark theme with an
+# authoritative palette — the light theme is unchanged. Frontend maps these onto shadcn
+# CSS variables (see §10).
 colors:
   surface: '#f7f9fb'
   surface-dim: '#e2e6ec'
@@ -41,34 +43,68 @@ colors:
   background: '#f7f9fb'
   on-background: '#0f172a'
   surface-variant: '#e2e8f0'
+# colors-dark v3 "Skin Intelligence System" — Deep Diagnostic Suite. Full authoritative
+# palette (supersedes the v2 mechanically-derived extension tokens flagged in
+# PROGRESS.md's Known Issues). success/warning aren't redefined by v3 — kept from v2.
 colors-dark:
-  background: '#0b1220'
-  surface: '#0b1220'
-  surface-container-lowest: '#0e1526'
-  surface-container-low: '#111a2e'
-  surface-container: '#152036'
-  surface-container-high: '#1a2740'
-  surface-container-highest: '#20304e'
-  on-surface: '#e6edf7'
-  on-surface-variant: '#94a3b8'
-  outline: '#475569'
-  outline-variant: '#24304a'
-  primary: '#f8fafc'          # dark-mode primary action fill (Linear-style)
-  on-primary: '#0f172a'
-  secondary: '#3b82f6'
-  on-secondary: '#ffffff'
-  tertiary: '#2dd4bf'
-  on-tertiary: '#042f2e'
+  surface: '#131315'
+  surface-dim: '#131315'
+  surface-bright: '#39393b'
+  surface-container-lowest: '#0e0e10'
+  surface-container-low: '#1b1b1d'
+  surface-container: '#1f1f21'
+  surface-container-high: '#2a2a2b'
+  surface-container-highest: '#353436'
+  on-surface: '#e4e2e4'
+  on-surface-variant: '#c6c6cd'
+  inverse-surface: '#e4e2e4'
+  inverse-on-surface: '#303032'
+  outline: '#909097'
+  outline-variant: '#45464d'
+  surface-tint: '#bec6e0'
+  primary: '#bec6e0'
+  on-primary: '#283044'
+  primary-container: '#0f172a'
+  on-primary-container: '#798098'
+  inverse-primary: '#565e74'
+  secondary: '#b4c5ff'
+  on-secondary: '#002a78'
+  secondary-container: '#0053db'
+  on-secondary-container: '#cdd7ff'
+  tertiary: '#4fdbc8'
+  on-tertiary: '#003731'
+  tertiary-container: '#001c18'
+  on-tertiary-container: '#009182'
   success: '#34d399'
   warning: '#fbbf24'
-  error: '#f87171'
+  error: '#ffb4ab'
+  on-error: '#690005'
+  error-container: '#93000a'
+  on-error-container: '#ffdad6'
+  background: '#131315'
+  on-background: '#e4e2e4'
+  surface-variant: '#353436'
+  # Fixed-tone extras (Material-3-style) — carried from the v3 spec for completeness;
+  # not yet mapped to a shadcn CSS variable (nothing in web/components consumes them).
+  primary-fixed: '#dae2fd'
+  primary-fixed-dim: '#bec6e0'
+  on-primary-fixed: '#131b2e'
+  on-primary-fixed-variant: '#3f465c'
+  secondary-fixed: '#dbe1ff'
+  secondary-fixed-dim: '#b4c5ff'
+  on-secondary-fixed: '#00174b'
+  on-secondary-fixed-variant: '#003ea8'
+  tertiary-fixed: '#71f8e4'
+  tertiary-fixed-dim: '#4fdbc8'
+  on-tertiary-fixed: '#00201c'
+  on-tertiary-fixed-variant: '#005048'
 glass:
   blur: '20px'
   saturation: '160%'
   bg-light: 'rgba(255,255,255,0.68)'
   bg-light-strong: 'rgba(255,255,255,0.82)'   # when text-heavy content must sit on glass
-  bg-dark: 'rgba(13,20,36,0.62)'
-  bg-dark-strong: 'rgba(13,20,36,0.78)'
+  bg-dark: 'rgba(15,23,42,0.68)'
+  bg-dark-strong: 'rgba(15,23,42,0.82)'
   border-light: 'rgba(15,23,42,0.08)'
   border-dark: 'rgba(255,255,255,0.08)'
   highlight-light: 'rgba(255,255,255,0.65)'    # 1px inset top edge
@@ -80,20 +116,53 @@ elevation:
   level-0: 'flat — background only'
   level-1: 'tonal container (surface-container-*) — grouping without borders'
   level-2: '1px outline-variant border on surface-container-lowest — the Diagnostic Module'
-  level-3: 'level-2 + 0 4px 20px rgba(37,99,235,0.08) — focused/active diagnostic card'
+  level-3: 'level-2 + 0 4px 20px rgba(37,99,235,0.08) — focused/active diagnostic card (dark: no shadow, one-step-lighter surface + border instead)'
   level-4: 'glass — app chrome, overlays, hero, score housings'
   z-scale: 'base 0 · sticky 30 · dropdown 40 · modal 50 · toast 60'
 typography:
-  display-lg: { fontFamily: Sora, fontSize: 48px, fontWeight: '700', lineHeight: 56px, letterSpacing: -0.02em }
-  headline-lg: { fontFamily: Sora, fontSize: 32px, fontWeight: '600', lineHeight: 40px, letterSpacing: -0.01em }
-  headline-lg-mobile: { fontFamily: Sora, fontSize: 24px, fontWeight: '600', lineHeight: 32px }
-  headline-md: { fontFamily: Sora, fontSize: 24px, fontWeight: '600', lineHeight: 32px }
-  body-lg: { fontFamily: Inter, fontSize: 18px, fontWeight: '400', lineHeight: 28px }
-  body-md: { fontFamily: Inter, fontSize: 16px, fontWeight: '400', lineHeight: 24px }
-  label-md: { fontFamily: Geist, fontSize: 14px, fontWeight: '500', lineHeight: 20px, letterSpacing: 0.02em }
-  label-sm: { fontFamily: Geist, fontSize: 12px, fontWeight: '600', lineHeight: 16px, letterSpacing: 0.05em }
-  data-lg: { fontFamily: Geist, fontSize: 40px, fontWeight: '600', lineHeight: 44px, fontVariantNumeric: tabular-nums }
-  code-sm: { fontFamily: Geist, fontSize: 13px, fontWeight: '400', lineHeight: 18px }
+  h1:
+    fontFamily: Sora
+    fontSize: 40px
+    fontWeight: '700'
+    lineHeight: '1.2'
+    letterSpacing: -0.02em
+  h1-mobile:
+    fontFamily: Sora
+    fontSize: 30px
+    fontWeight: '700'
+    lineHeight: '1.2'
+  h2:
+    fontFamily: Sora
+    fontSize: 32px
+    fontWeight: '600'
+    lineHeight: '1.3'
+    letterSpacing: -0.01em
+  h3:
+    fontFamily: Sora
+    fontSize: 24px
+    fontWeight: '600'
+    lineHeight: '1.4'
+  body-lg:
+    fontFamily: Inter
+    fontSize: 18px
+    fontWeight: '400'
+    lineHeight: '1.6'
+  body-md:
+    fontFamily: Inter
+    fontSize: 16px
+    fontWeight: '400'
+    lineHeight: '1.6'
+  label-caps:
+    fontFamily: Geist
+    fontSize: 12px
+    fontWeight: '600'
+    lineHeight: '1.0'
+    letterSpacing: 0.05em
+  data-display:
+    fontFamily: Geist
+    fontSize: 32px
+    fontWeight: '600'
+    lineHeight: '1.0'
 rounded:
   sm: 0.5rem
   DEFAULT: 1rem
@@ -102,16 +171,17 @@ rounded:
   xl: 3rem
   full: 9999px
 spacing:
-  unit: 4px
-  container-max: 1280px
+  base: 4px
+  xs: 4px
+  sm: 8px
+  md: 16px
+  lg: 24px
+  xl: 32px
+  2xl: 48px
+  3xl: 64px
   gutter: 24px
   margin-mobile: 16px
-  margin-desktop: 40px
-  stack-xs: 4px
-  stack-sm: 8px
-  stack-md: 16px
-  stack-lg: 32px
-  stack-xl: 64px
+  margin-desktop: 48px
 motion:
   duration-fast: 120ms
   duration-base: 200ms
@@ -122,53 +192,68 @@ motion:
 
 # Skinlytics design system — "Frosted Lab Glass"
 
+> **Naming note:** this system is referenced elsewhere (`AGENTS.md`, `CLAUDE.md`) as
+> "Frosted Lab Glass" and described as locked. The v3 dark-theme update below was
+> commissioned under the name "Skin Intelligence System" — same design system, same
+> light theme, an authoritative dark-theme repaint. If a genuinely new system name is
+> wanted, `AGENTS.md` §3 needs updating too (out of scope for this change — flagged,
+> not silently resolved).
+
 ## 1. Brand & style
 
 Skinlytics reads as a **medical-grade diagnostic instrument**, not a beauty app. The
-personality is authoritative yet accessible: AI-driven skincare presented as rigorous data
-science. The visual style is **Modern Minimalist with Technical Nuance** — Linear's
-utility density crossed with Oura's physiological-data calm — deliberately avoiding beauty
-tropes (swashes, pastels, soft-focus photography) and strictly **gender-neutral** in
-palette, imagery, and copy.
+personality is **Clinical but Human**: authoritative yet accessible, AI-driven skincare
+presented as rigorous data science — avoiding cold sterility in favor of a calm,
+data-driven atmosphere. The visual style is **Modern Minimalist with Technical Nuance**,
+deliberately avoiding beauty tropes (swashes, pastels, soft-focus photography) and
+strictly **gender-neutral** in palette, imagery, and copy.
 
-v2 evolves the surface language with **glassmorphism**. Frosted glass gives the interface
-dimensionality and a "looking through the instrument" quality — but glass is used with
-lab discipline: it frames data, it never sits under it. The result should feel like
-polished laboratory glassware over a quiet slate bench: precise, layered, light.
+Glassmorphism gives the interface dimensionality and a "looking through the instrument"
+quality — but glass is used with lab discipline: it frames data, it never sits under it.
+In light mode this reads as polished laboratory glassware over a quiet slate bench:
+precise, layered, light — the "Airy Lab." **v3's dark theme is the same instrument at
+night**: the "Deep Diagnostic Suite," a high-end night-time scan — quiet, authoritative,
+focused, leaning on heavy "darkspace" rather than whitespace to hold the same reduced
+cognitive load.
 
 ## 2. Color system
 
-Three brand hues with distinct jobs, on a slate neutral foundation:
+Three brand hues with distinct jobs, on a neutral foundation:
 
-- **Deep Navy `#0F172A` — primary.** Major actions, primary buttons, headline emphasis.
-  Grounded and authoritative.
+- **Deep Navy `#0F172A` — primary (light) / `primary-container` (dark).** Major actions,
+  primary buttons, headline emphasis. Grounded and authoritative. In dark mode, primary
+  itself shifts to a soft lavender-grey (`#BEC6E0`) for visibility on near-black
+  surfaces — navy moves to `primary-container`, still the brand's anchor color, just no
+  longer the highest-contrast one.
 - **Royal Blue `#2563EB` — secondary.** High-intent navigation, links, focus rings,
-  interactive states, chart series A.
+  interactive states, chart series A. Dark mode brightens this to a periwinkle
+  `#B4C5FF` for the same reason primary shifts.
 - **Teal `#14B8A6` — tertiary, "data-active."** Reserved for AI processing states, positive
   skin metrics, healthy selections, chart series B. Teal appearing means "the intelligence
-  layer is speaking."
+  layer is speaking." Dark mode: `#4FDBC8`.
 
-Semantic set: success `#059669`, warning `#D97706`, error `#DC2626`, info = Royal Blue.
-**Score bands** (Skin Health Score 0–100): 80–100 Teal · 60–79 Royal Blue · 40–59 Amber
-`#F59E0B` · 0–39 Red `#EF4444`.
+Semantic set (light): success `#059669`, warning `#D97706`, error `#DC2626`, info = Royal
+Blue. Semantic set (dark): success `#34D399`, warning `#FBBF24`, error `#FFB4AB`.
+**Score bands** (Skin Health Score 0–100, theme-invariant): 80–100 Teal · 60–79 Royal Blue
+· 40–59 Amber `#F59E0B` · 0–39 Red `#EF4444`.
 
-Neutrals are the tiered slate surfaces in the tokens: `background` → `surface-container-*`
-tiers distinguish page, grouping, and module layers **tonally**, so depth rarely needs
-shadows. Dark mode inverts onto a deep navy-slate ramp (`#0B1220` base); the primary
-action fill flips to near-white on navy for maximum affordance, Royal Blue and Teal
-brighten one step (`#3B82F6`, `#2DD4BF`).
+Neutrals are the tiered surface tokens: `background` → `surface-container-*` tiers
+distinguish page, grouping, and module layers **tonally**, so depth rarely needs shadows.
+**Dark mode (v3) is a true near-black neutral ramp** (`#131315` base, not a navy-tinted
+one) — navy is now reserved specifically for `primary-container`, a deliberate accent
+rather than the ambient surface color.
 
 Contrast floor: body text ≥ 4.5:1, large text and UI glyphs ≥ 3:1 — **measured against the
 effective backdrop, including glass surfaces** (see §3 guardrails).
 
-## 3. Glassmorphism — the elevation crown (new in v2)
+## 3. Glassmorphism — the elevation crown
 
 Glass is **level-4 elevation**: the highest layer, reserved for chrome and moments.
 
-**Where glass lives**
+**Where glass lives — every one of these, in both themes:**
 1. **App chrome:** the marketing navbar, the app sidebar, and the top header are frosted
    panels floating over the ambient background.
-2. **Overlays:** dialogs, sheets, dropdown menus, the ⌘K command palette, sticky
+2. **Overlays:** dialogs, sheets, dropdown menus, popovers, the ⌘K command palette, sticky
    action/compare bars, toasts.
 3. **Hero & signature housings:** the landing hero panel and the Skin Score Ring housing.
 
@@ -176,7 +261,8 @@ Glass is **level-4 elevation**: the highest layer, reserved for chrome and momen
 live on solid **Diagnostic Module** cards (level-2/3). Glass frames data; it never
 backgrounds it.
 
-**The recipe (use tokens, never ad-hoc values)**
+**The recipe (use tokens, never ad-hoc values)** — 20px backdrop blur, 160% saturation,
+in both themes:
 
 ```css
 .glass {
@@ -197,6 +283,11 @@ backgrounds it.
 }
 ```
 
+Dark mode's glass background is `rgba(15,23,42,0.68)` — the *old* navy, deliberately kept
+(not the new near-black surface) so glass chrome reads as a distinct branded layer over
+the neutral darkspace, the same way `primary-container` stays navy while `surface` went
+neutral. This is a v3 design decision, not an oversight.
+
 **The ambient aurora.** Blur is invisible over a flat background, so the `body` carries a
 very subtle fixed aurora: 2–3 large radial-gradient blobs in navy → royal blue → teal at
 **6–10% opacity** (4–6% in dark mode), softly blurred, optionally drifting over ~60s
@@ -212,27 +303,34 @@ very subtle fixed aurora: 2–3 large radial-gradient blobs in navy → royal bl
   animate `blur()`, don't apply glass to list items, and add `transform: translateZ(0)`
   only where paint profiling shows a win. Skeleton loaders are solid, not glass.
 - Every glass component must render correctly with the two fallbacks above — test them.
+- **No heavy drop shadows anywhere in glass or diagnostic surfaces** — depth comes from
+  translucency and tonal layering, not shadow. Transitions between elevation states
+  should be smooth (the existing `duration-base`/`duration-slow` motion tokens), never
+  abrupt.
 
 ## 4. Typography — tri-font strategy
 
-1. **Sora** — headlines and hero statements. Geometric, slightly futuristic; tight
-   letter-spacing at large sizes. Weights 600/700 only.
-2. **Inter** — all body copy and primary UI text. Neutral, highly readable.
-3. **Geist** — labels, metadata, and **all data**: metrics, prices, confidence scores, the
-   Skin Score numeral (`data-lg`). Always `tabular-nums` so columns of numbers align.
-   Increased tracking (+0.02–0.05em) at small sizes.
+1. **Sora** — headlines and hero statements (`h1`/`h1-mobile`/`h2`/`h3`). Geometric,
+   slightly futuristic; tight letter-spacing at large sizes. Weights 600/700 only.
+2. **Inter** — all body copy and primary UI text (`body-lg`/`body-md`). Neutral, highly
+   readable, legible across all skin-tone backgrounds and density levels.
+3. **Geist** — labels, metadata, and **all data** (`label-caps`/`data-display`): metrics,
+   prices, confidence scores, the Skin Score numeral. Always `tabular-nums` so columns of
+   numbers align. Increased tracking at small sizes (`label-caps` is +0.05em).
 
 Rules: sentence case everywhere; no font outside these three; numbers never render in
-Sora/Inter when they represent data.
+Sora/Inter when they represent data. `label-caps` doubles as the "medical-ledger" section
+header / status-indicator style.
 
 ## 5. Layout & spacing
 
-Fixed-fluid hybrid: content centered in a **1280px** container, 12-column grid, 24px
-gutters; single column with 16px margins on mobile. A strict **4px baseline** governs
-vertical rhythm via the `stack-*` scale. Two density modes: **data-dense** (dashboards,
-tables — stack-sm/md) and **breathable** (onboarding, education — stack-lg/xl). AI
-insights are always visually separated from raw tracking data by containment, not just
-whitespace.
+**Fluid Grid**, max-width **1440px** container. Desktop: 12-column grid, 24px gutters.
+Tablet: 8-column grid, 20px gutters. Mobile: 4-column grid, 16px gutters. A strict
+**4px base unit** governs rhythm via the `spacing` scale. Diagnostic modules are
+separated by `2xl` (48px) spacing — a whitespace-heavy (in dark mode, "darkspace-heavy")
+professional environment; internal card padding is strictly `lg` (24px) so data never
+feels cramped. Aurora mesh gradients respect "safe areas" and never interfere with the
+legibility of primary data points.
 
 ## 6. Elevation & depth — five levels
 
@@ -240,52 +338,60 @@ whitespace.
 |---|---|---|
 | 0 | flat background | page canvas |
 | 1 | tonal container (`surface-container-*`) | grouping, wells, input backgrounds |
-| 2 | white + 1px `outline-variant` border | **Diagnostic Module** cards, tables |
-| 3 | level-2 + `0 4px 20px rgba(37,99,235,0.08)` | focused/hovered diagnostic cards |
+| 2 | solid + 1px `outline-variant` border | **Diagnostic Module** cards, tables |
+| 3 | level-2 + `0 4px 20px rgba(37,99,235,0.08)` (light only) | focused/hovered diagnostic cards |
 | 4 | glass (§3) | chrome, overlays, hero, score housing |
 
-No other shadows exist. Dark mode drops the level-3 shadow in favor of a one-step lighter
-surface plus border; the Score Ring gains a faint teal glow.
+No other shadows exist — depth is **Material Realism**, tonal layering and translucency,
+not drop shadows. Dark mode drops the level-3 shadow entirely in favor of a one-step
+lighter surface plus border; the Score Ring gains a faint teal glow instead.
 
 ## 7. Shape
 
-Organic-technical: base radius **16px**; large diagnostic containers 32px (`lg`) and hero
-panels 48px (`xl`); **buttons, chips, and inputs are pill-influenced** (buttons fully
-rounded). Circles are reserved for avatars and progress/score rings — nothing else.
+Consistently **pill-influenced**, suggesting safety, organic skin forms, and modern tech:
+base radius **16px**; large diagnostic containers 32px (`lg`) and hero panels 48px (`xl`);
+**buttons, chips, and inputs are fully pill-shaped** (full radius) to distinguish them
+from the structural containers. Circles are reserved for avatars and progress/score
+rings — nothing else. Lucide icons carry a 1.5px stroke weight.
 
 ## 8. Motion
 
 Fast and physical: 120ms micro-interactions, 200ms standard transitions, 320ms
 overlays/sheets, with the two easings in tokens. Cards lift 2px on hover (transform +
-shadow, level-2→3). One orchestrated moment per flow (e.g., the score-reveal count-up on
-assessment results); everything else stays quiet. `prefers-reduced-motion` disables
-transforms, parallax, and the aurora drift — opacity fades remain.
+shadow in light mode; transform + border-brighten in dark mode, no shadow). One
+orchestrated moment per flow (e.g., the score-reveal count-up on assessment results);
+everything else stays quiet. `prefers-reduced-motion` disables transforms, parallax, and
+the aurora drift — opacity fades remain.
 
 ## 9. Components
 
-- **Buttons.** Primary: Deep Navy fill, white text, pill. Secondary: transparent, 1px slate
-  border, pill. AI actions: Royal Blue fill with a Geist icon-label. Destructive: error
-  red. Focus: 2px Royal Blue ring, offset 2px.
-- **Inputs.** Geist label above field; 16px radius; level-1 tonal fill; focus = 1px Royal
-  Blue border + soft blue outer glow. Inline validation below, error red.
-- **Diagnostic Module (the core card).** Level-2 surface, 16–32px radius, Sora `headline-md`
-  title, Geist metadata row; AI-derived modules carry a top-right **Geist "Confidence 92%"**
-  label; clinical (dermatologist) modules carry a "Clinical" tag instead — the two must
-  never be confusable.
+- **Buttons.** Primary: pill, Deep Navy fill + white text (light) / Royal Blue
+  (`secondary`) fill + white text (dark, for visibility against near-black surfaces).
+  Secondary/Action: pill, transparent background, 1px border. Destructive: error red.
+  Focus: 2px Royal Blue ring, offset 2px.
+- **Chips.** Pill-shaped; soft Teal or Blue backgrounds at 20% opacity with 100%-opacity
+  text for status indicators.
+- **Inputs.** Full pill-shape (v3). Geist label above field; level-1 tonal fill; focus =
+  Royal Blue border + a subtle 2px outer glow (0 blur, not a soft/diffuse glow).
+- **Diagnostic Module (the core card).** Level-2 surface, 16–32px radius, Sora `h3`
+  title, Geist metadata row; AI-derived modules carry a top-right **Geist "Confidence
+  92%"** label; clinical (dermatologist) modules carry a "Clinical" tag instead — the two
+  must never be confusable. No shadow, ever — a 1px border only (`rgba(255,255,255,0.08)`
+  in dark mode, `outline-variant` in light).
 - **Skin Score Ring (signature).** Radial gauge, teal→royal-blue gradient stroke, subtle
-  inner shadow, `data-lg` Geist numeral centered, band label beneath, the five weighted
-  bars (35/20/20/15/10) alongside; housed in glass at hero sizes, borderless at inline
-  sizes. Identical construction at every size.
-- **Chips & tags.** Fully pill; 10%-opacity tint of the category color; high-contrast text;
-  no borders. Severity chips use the score-band colors.
+  inner shadow, `data-display` Geist numeral centered, band label beneath, the five
+  weighted bars (35/20/20/15/10) alongside; housed in glass at hero sizes, borderless at
+  inline sizes. Identical construction at every size, in both themes.
+- **Lists.** Item names in Inter; associated technical values/timestamps in Geist.
+  Separate items with a 1px border at 8% opacity.
 - **Charts.** Recharts via shadcn charts. 2px strokes, Royal Blue series A, Teal series B;
   faint **dot-grid** plot background; Geist axis labels; gradient area fills at 15%
   opacity; annotations for routine/product events.
 - **Selection controls.** Radios circular; checkboxes 6px-rounded squares; checked state
   fills **Teal** (healthy/positive semantics).
 - **Glass components.** `GlassBar` (header/nav), `GlassPanel` (hero, score housing),
-  overlay primitives (Dialog/Sheet/Command) — all consume the §3 recipe via one shared
-  class; no component defines its own blur values.
+  overlay primitives (Dialog/Sheet/Popover/DropdownMenu/Command) — all consume the §3
+  recipe via one shared class; no component defines its own blur values.
 
 ## 10. Theming implementation (shadcn mapping)
 
@@ -295,7 +401,8 @@ variables: `--background`←background, `--card`←surface-container-lowest,
 `--secondary`←secondary, `--accent`←tertiary-container, `--destructive`←error, plus the
 `--glass-*` family from the frontmatter. Components in `web/components/ui` reference
 variables only — **hard-coded colors are a review blocker** (see `docs/CONVENTIONS.md`).
-Dark mode = `.dark` class strategy (`next-themes`), system-aware, toggle in the app header.
+Dark mode = `.dark` class strategy (`next-themes`), system-aware, toggle in every header
+(`web/components/theme-toggle.tsx`, shared by the app-shell topbar and the public navbar).
 
 ## 11. Accessibility floor
 
@@ -309,7 +416,9 @@ components carry descriptive alt text.
 
 **Do:** glass for chrome and moments · tonal layers for grouping · Geist for every number ·
 teal only when the AI/positive-health layer speaks · design empty, loading, and error
-states for every module · keep clinical vs AI outputs visually distinct.
+states for every module · keep clinical vs AI outputs visually distinct · pill-shape every
+interactive element (buttons, chips, inputs).
 
 **Don't:** glass under tables or forms · more than 2 glass layers · animated blur · new
-shadow recipes · pink/gendered styling · numbers in Sora/Inter · colors outside the tokens.
+shadow recipes · heavy drop shadows anywhere · pink/gendered styling · numbers in
+Sora/Inter · colors outside the tokens.

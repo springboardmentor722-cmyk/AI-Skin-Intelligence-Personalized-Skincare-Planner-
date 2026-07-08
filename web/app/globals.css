@@ -190,52 +190,52 @@
 }
 
 .dark {
-  /* docs/DESIGN.md `colors-dark:` */
-  --surface: #0b1220;
-  --surface-container-lowest: #0e1526;
-  --surface-container-low: #111a2e;
-  --surface-container: #152036;
-  --surface-container-high: #1a2740;
-  --surface-container-highest: #20304e;
-  --on-surface: #e6edf7;
-  --on-surface-variant: #94a3b8;
-  --outline: #475569;
-  --outline-variant: #24304a;
-  --primary: #f8fafc;
-  --on-primary: #0f172a;
-  --secondary: #3b82f6;
-  --on-secondary: #ffffff;
-  --tertiary: #2dd4bf;
-  --on-tertiary: #042f2e;
+  /* docs/DESIGN.md `colors-dark:` v3 "Skin Intelligence System" — authoritative dark
+     palette, supersedes the old mechanically-derived tokens (PROGRESS.md Known Issues:
+     this was flagged as unconfirmed; v3 resolves it with real designer values). */
+  --surface: #131315;
+  --surface-dim: #131315;
+  --surface-bright: #39393b;
+  --surface-container-lowest: #0e0e10;
+  --surface-container-low: #1b1b1d;
+  --surface-container: #1f1f21;
+  --surface-container-high: #2a2a2b;
+  --surface-container-highest: #353436;
+  --on-surface: #e4e2e4;
+  --on-surface-variant: #c6c6cd;
+  --inverse-surface: #e4e2e4;
+  --inverse-on-surface: #303032;
+  --outline: #909097;
+  --outline-variant: #45464d;
+  --surface-tint: #bec6e0;
+  --primary: #bec6e0;
+  --on-primary: #283044;
+  --primary-container: #0f172a;
+  --on-primary-container: #798098;
+  --inverse-primary: #565e74;
+  --secondary: #b4c5ff;
+  --on-secondary: #002a78;
+  --secondary-container: #0053db;
+  --on-secondary-container: #cdd7ff;
+  --tertiary: #4fdbc8;
+  --on-tertiary: #003731;
+  --tertiary-container: #001c18;
+  --on-tertiary-container: #009182;
   --success: #34d399;
   --warning: #fbbf24;
-  --error: #f87171;
-  --background: #0b1220;
+  --error: #ffb4ab;
+  --on-error: #690005;
+  --error-container: #93000a;
+  --on-error-container: #ffdad6;
+  --background: #131315;
+  --on-background: #e4e2e4;
+  --surface-variant: #353436;
 
-  /* Not explicit in docs/DESIGN.md colors-dark — derived mechanically from the
-     light/dark swap pattern the token set already uses elsewhere (e.g. primary
-     #0F172A <-> #F8FAFC), reusing only hex values already approved in DESIGN.md.
-     Flagged in PROGRESS.md; confirm with design before these ship on a real screen. */
-  --surface-dim: #0e1526;
-  --surface-bright: #1a2740;
-  --surface-variant: #1a2740;
-  --surface-tint: var(--secondary);
-  --inverse-surface: #e6edf7;
-  --inverse-on-surface: #0b1220;
-  --inverse-primary: #0f172a;
-  --primary-container: #1a2740;
-  --on-primary-container: #e6edf7;
-  --secondary-container: #1e3a8a;
-  --on-secondary-container: #dbeafe;
-  --tertiary-container: #0f766e;
-  --on-tertiary-container: #ccfbf1;
-  --error-container: #991b1b;
-  --on-error-container: #fee2e2;
-  --on-background: var(--on-surface);
-
-  /* docs/DESIGN.md `glass:` (dark) */
-  --glass-bg: rgba(13, 20, 36, 0.62);
-  --glass-bg-strong: rgba(13, 20, 36, 0.78);
+  /* docs/DESIGN.md `glass:` (dark) — deliberately kept as the *old* navy (not the new
+     near-black surface) so glass chrome reads as a distinct branded layer, matching
+     primary-container staying navy while surface itself went neutral. Not an oversight. */
+  --glass-bg: rgba(15, 23, 42, 0.68);
+  --glass-bg-strong: rgba(15, 23, 42, 0.82);
   --glass-border: rgba(255, 255, 255, 0.08);
   --glass-highlight: rgba(255, 255, 255, 0.14);
   --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
@@ -258,7 +258,7 @@
   --accent: var(--tertiary-container);
   --accent-foreground: var(--on-tertiary-container);
   --destructive: var(--error);
-  --destructive-foreground: var(--on-primary);
+  --destructive-foreground: var(--on-error);
   --border: var(--outline-variant);
   --input: var(--surface-container);
   --ring: var(--secondary);
