@@ -595,6 +595,29 @@ scoring/recs) is the natural next milestone.
   Postgres/Docker in this sandbox; the fix is grounded directly in the installed
   library's actual source condition, not assumption, but the real end-to-end callback
   flow should still be exercised on a machine with the data stores up.
+- ✔ **Bug fix** (`fix/dashboard-hydration-mismatch`) — the Dashboard's greeting/date row
+  threw a real hydration mismatch (server rendered "Thursday, July 9", client rendered
+  "Thursday 9 July"): `new Date().toLocaleDateString(undefined, ...)` uses whichever
+  locale each environment defaults to, and the server (Node) and browser don't
+  necessarily agree. The greeting text had the same class of bug via `getHours()`
+  (server/client can be in different timezones). Fixed with `useSyncExternalStore`
+  (`getServerSnapshot` returns a fixed, locale/timezone-agnostic placeholder for the SSR
+  + hydration pass; the real client-local value renders immediately after) — the same
+  pattern already established in this codebase for `hooks/use-mobile.ts`, instead of a
+  "mounted"-flag state-in-effect this repo's React Compiler lint rule disallows. Verified
+  live: no hydration-related console errors on `/dashboard`, date renders correctly.
+  `npm run {lint,typecheck,build}` clean.
+  **Separately reported, not a bug in our code:** a "Encountered a script tag while
+  rendering React component" dev-console notice traced to `next-themes`' own
+  `ThemeProvider` (`node_modules/next-themes/dist/index.mjs`) — it intentionally renders
+  a `<script>` element (already flagged `suppressHydrationWarning`) to set the theme
+  class before hydration and prevent a flash of the wrong theme; there's no prop we're
+  omitting that changes this, and no newer stable `next-themes` release exists (latest is
+  what's installed; the only newer version is an unreleased `1.0.0-beta`). This is a
+  known Next.js 16 / React 19 dev-only diagnostic about a legitimate third-party
+  technique, not something to patch around — doing so risks breaking the anti-flash
+  behavior for a cosmetic dev-mode-only warning. Left as-is; noted here rather than
+  silently ignored.
 
 ## Partially Completed
 

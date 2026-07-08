@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 import { ArrowRight, RotateCw, Sparkles, TriangleAlert } from "lucide-react";
 
@@ -32,11 +32,46 @@ const CHART_CONFIG = {
   overall_score: { label: "Skin score", color: "var(--secondary)" },
 } satisfies ChartConfig;
 
-function greeting(): string {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 18) return "Good afternoon";
-  return "Good evening";
+// Both the greeting (depends on the viewer's local hour) and today's date (can render
+// with a different weekday/month order depending on the environment's default locale)
+// differ between the server that renders the initial HTML and the browser that
+// hydrates it — computing them directly during render caused a real hydration mismatch
+// (server "Thursday, July 9" vs. client "Thursday 9 July", different default locales).
+// useSyncExternalStore's getServerSnapshot is the React-sanctioned fix for exactly this
+// class of value: it renders a fixed, locale/timezone-agnostic placeholder during SSR
+// and hydration, then reads the real client-local value immediately after — same
+// pattern already used for useIsMobile (hooks/use-mobile.ts), instead of a
+// "mounted"-flag state-in-effect this repo's React Compiler lint rule disallows.
+let cachedGreetingSnapshot: { greeting: string; today: string } | null = null;
+
+function getGreetingSnapshot() {
+  if (!cachedGreetingSnapshot) {
+    const now = new Date();
+    const hour = now.getHours();
+    cachedGreetingSnapshot = {
+      greeting: hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening",
+      today: now.toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+      }),
+    };
+  }
+  return cachedGreetingSnapshot;
+}
+
+const GREETING_SERVER_SNAPSHOT = { greeting: "Hello", today: "today" };
+
+function subscribeNever() {
+  return () => {};
+}
+
+function useGreeting() {
+  return useSyncExternalStore(
+    subscribeNever,
+    getGreetingSnapshot,
+    () => GREETING_SERVER_SNAPSHOT
+  );
 }
 
 function CardSkeleton({ className }: { className?: string }) {
@@ -106,20 +141,12 @@ export default function UserDashboardPage() {
     [progressQuery.data]
   );
 
-  const today = useMemo(
-    () =>
-      new Date().toLocaleDateString(undefined, {
-        weekday: "long",
-        month: "long",
-        day: "numeric",
-      }),
-    []
-  );
+  const { greeting, today } = useGreeting();
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="font-heading text-on-surface text-2xl font-bold">{greeting()}</h1>
+        <h1 className="font-heading text-on-surface text-2xl font-bold">{greeting}</h1>
         <p className="text-on-surface-variant mt-1 font-sans text-sm">
           Here&apos;s your clinical summary for {today}.
         </p>
