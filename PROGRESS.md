@@ -637,6 +637,25 @@ scoring/recs) is the natural next milestone.
   response simulating the exact first-time-setup scenario reported): picking "Oily"
   produces zero controlled/uncontrolled console warnings and the Select correctly
   displays the picked value. `npm run {lint,typecheck,build}` clean.
+- ✔ Buttons/interactive elements get `cursor: pointer` (`chore/shadcn-init-pointer`) —
+  traced the requested `npx shadcn@latest init --pointer` through the actual installed
+  CLI (`node_modules/shadcn/dist/index.js`) before running it: `--pointer` isn't a
+  persisted `components.json` field at all (confirmed — it only appears in the `init`
+  command's own CLI-args schema, never read back from the config file on later `add`
+  calls); it's a one-time query param telling shadcn's *registry server* which source
+  variant to serve while fetching components. Re-running `init` against this
+  already-initialized, heavily-customized project (declined its
+  "overwrite components.json?" prompt) would either refuse to proceed non-interactively
+  or risk re-fetching already-installed components (button, dialog, sheet, sidebar —
+  all patched for the glass recipe / pill-shape) from the registry and silently
+  clobbering those customizations for a purely cosmetic cursor change. Applied the
+  equivalent fix directly instead: a global `button:not(:disabled), [role="button"]
+  :not([aria-disabled="true"]) { cursor: pointer }` rule in `globals.css` — Tailwind's
+  preflight resets native `<button>` to `cursor: default`, and this restores the
+  "clickable" affordance for every current *and future* button-like element in one
+  place, with zero registry-refetch risk. Verified live: submit button computes
+  `cursor: pointer`, a disabled button still computes `cursor: default`. `npm run
+  {lint,typecheck,build}` clean.
 
 ## Partially Completed
 

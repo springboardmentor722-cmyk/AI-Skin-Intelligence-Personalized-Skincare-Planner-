@@ -287,6 +287,14 @@
   html {
     @apply font-sans;
   }
+  /* Tailwind's preflight resets native <button> to cursor: default — restore the
+     "this is clickable" affordance (shadcn's `pointer` init option, applied globally
+     here instead of per-component so every current and future button-like element is
+     covered automatically, incl. every already-customized components/ui/* primitive). */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
 }
 
 /* Glassmorphism recipe — docs/DESIGN.md §3 (ADR-008). Level-4 elevation only:
