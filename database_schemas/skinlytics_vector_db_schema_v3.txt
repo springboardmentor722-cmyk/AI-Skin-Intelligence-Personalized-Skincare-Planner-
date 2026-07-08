@@ -1,0 +1,109 @@
+# Skinlytics Vector DB Schema (v3 — Better Auth aligned)
+# DEV: FAISS (local, free, in-process)   PROD: Pinecone (managed, filtered ANN)
+# Full design rationale + pipeline: docs/AI_ML.md. Data sources: docs/DATASETS_AND_APIS.md.
+#
+# Changelog vs v2 (ADR-003): user vector ids and user_id metadata are strings
+# (Better Auth ids). Everything else unchanged.
+#
+# Embeddings are DERIVED. Source of truth:
+#   products / ingredients -> PostgreSQL     articles -> MongoDB knowledge_articles
+#   user profiles -> PostgreSQL skin_profiles (+ Mongo preferences)
+#   assessments -> MongoDB skin_assessments
+# Any upstream change re-embeds and upserts here; nothing is authored in the vector DB.
+# One embedding model per namespace, pinned in metadata (mixing versions corrupts search).
+
+====================================================
+Namespaces  (dim · model)
+====================================================
+1. products_namespace            384   all-MiniLM-L6-v2
+2. ingredients_namespace         384   all-MiniLM-L6-v2  (BioBERT optional later)
+3. knowledge_articles_namespace  768   PubMedBERT
+4. user_profiles_namespace       384   custom feature embedding
+5. skin_assessments_namespace   1280   EfficientNet-B0 output + metadata
+
+(M1: schema fixed only. Embedding pipelines land M2-M3.)
+
+====================================================
+1. products_namespace
+====================================================
+Vector ID: product_{product_id}          # = Postgres products.product_id
+Embedded text: product_name + description + ingredient names
+Metadata:
+{
+  "product_id": 502, "product_name": "Niacinamide Serum", "brand": "The Ordinary",
+  "category": "Serum", "ingredients": ["Niacinamide","Zinc"],
+  "skin_types": ["Oily","Combination"], "concerns": ["Acne","Oil control"],
+  "price": 1200, "currency": "INR", "rating": 4.6, "is_active": true,
+  "embedding_model": "all-MiniLM-L6-v2"
+}
+
+====================================================
+2. ingredients_namespace
+====================================================
+Vector ID: ingredient_{ingredient_id}    # = Postgres ingredients.ingredient_id
+Embedded text: ingredient_name + benefits + side effects + warnings
+Metadata:
+{
+  "ingredient_id": 22, "ingredient_name": "Niacinamide", "category": "Brightening agent",
+  "benefits": ["Oil control","Brightening"], "side_effects": ["Mild irritation"],
+  "suitable_for": ["Oily","Combination"], "avoid_for": ["Highly sensitive skin"],
+  "embedding_model": "all-MiniLM-L6-v2"
+}
+
+====================================================
+3. knowledge_articles_namespace
+====================================================
+Vector ID: article_{article_id}          # = Mongo knowledge_articles.article_id
+Embedded text: title + summary + content (chunk if > model max; ids article_{id}_c{n})
+Source: PubMed / Semantic Scholar / OpenAlex (see docs/DATASETS_AND_APIS.md §8);
+        DermNet/AAD summaries only (copyright).
+Metadata:
+{
+  "article_id": 801, "title": "Acne and Skin Barrier Repair", "source": "PubMed",
+  "tags": ["Acne","Barrier"], "condition": "Acne", "chunk": 0,
+  "embedding_model": "PubMedBERT"
+}
+
+====================================================
+4. user_profiles_namespace
+====================================================
+Vector ID: user_{user_id}                # user_id is a STRING (Better Auth id)
+Re-embed whenever skin_profiles or user_preferences change.
+Metadata:
+{
+  "user_id": "aXbY...32char", "skin_type": "Oily",
+  "concerns": ["Acne","Pigmentation"], "allergies": ["Fragrance"],
+  "preferences": ["Minimal routine"], "embedding_model": "custom-profile-v1"
+}
+
+====================================================
+5. skin_assessments_namespace
+====================================================
+Vector ID: assessment_{scan_id}          # = Mongo skin_assessments.scan_id
+Source: ISIC / Kaggle image models (see docs/DATASETS_AND_APIS.md §1).
+Metadata:
+{
+  "assessment_id": "scan_1001", "user_id": "aXbY...32char",
+  "skin_type_prediction": "Oily", "concerns_detected": ["Acne","Redness"],
+  "severity_score": 7.8, "model_version": "efficientnet-b0-v1"
+}
+
+====================================================
+Search flow  (no runtime graph DB — ADR-001)
+====================================================
+User profile (Postgres + Mongo preferences)
+  -> relational pre-filter (Postgres junctions: ingredient_concern_treats,
+     ingredient_skintype_avoid, product_skin_types, product_concerns, allergy exclusions)
+  -> vector similarity (this DB: products / ingredients / articles, metadata-filtered)
+  -> keyword / hybrid search (Elasticsearch: budget, brand, category, is_active)
+  -> XGBoost ranking (similarity, suitability, rating, popularity, price-fit)
+  -> routine + product recommendations  (Redis-cached; invalidated on profile change)
+
+====================================================
+FAISS (dev) vs Pinecone (prod)
+====================================================
+- Same namespace + metadata contract both sides so code is portable.
+- FAISS: one index per namespace on disk under ml/faiss/{namespace}.index + a sidecar
+  id->metadata map (FAISS stores vectors only). Rebuild from source stores on demand.
+- Pinecone: one index, namespaces as above; metadata filtering done server-side.
+- Selected by env (VECTOR_BACKEND=faiss|pinecone) behind app/db/vector client.

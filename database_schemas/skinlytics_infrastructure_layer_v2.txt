@@ -1,0 +1,149 @@
+# Skinlytics Infrastructure Layer (v2 — corrected)
+# Redis Cache + S3 Storage
+#
+# Changelog vs v1:
+#   * REMOVED the entire Graphify graph-database section. Rationale:
+#       - The architecture diagram's data layer contains exactly five
+#         stores (PostgreSQL, MongoDB, Elasticsearch, Vector DB, Redis) —
+#         a graph engine was never in the approved architecture.
+#       - Every query the graph served ("ingredients that treat acne",
+#         "products suitable for oily skin", "ingredients to avoid for
+#         sensitive skin") is a 1-2 hop lookup, now answered by the
+#         PostgreSQL v2 junction tables (ingredient_concern_treats,
+#         ingredient_skintype_avoid, product_skin_types, product_concerns)
+#         with plain indexed joins.
+#       - A sixth database means a sixth sync pipeline, backup policy and
+#         failure mode — unjustifiable for an 8-week MVP.
+#     If multi-hop relationship queries genuinely appear later (3+ hops,
+#     path finding), revisit with a dedicated graph DB then.
+#   * Redis: added refresh-token blacklist, per-endpoint rate limiting,
+#     and explicit eviction guidance.
+#   * S3: added scan-image lifecycle rule and upload constraints.
+
+====================================================
+1. Redis Cache Structure
+====================================================
+
+Purpose:
+- Session management + JWT/refresh-token blacklist
+- OTP storage
+- Temporary AI results cache
+- Rate limiting
+- Fast recommendation cache
+- Weather/UV cache
+
+Key Patterns:
+
+auth:session:{user_id}
+{ "token_id": "jti", "expires_at": "timestamp" }
+
+auth:blacklist:{jti}                      # NEW: revoked access/refresh tokens
+"1"                                        # value irrelevant; TTL = token TTL
+
+auth:otp:{user_id}
+{ "otp_hash": "sha256(...)", "attempts": 0 }   # store hash, never raw OTP
+
+user:state:{user_id}
+{ "last_active_page": "dashboard", "current_skin_scan_id": "scan_001" }
+
+recommendation:cache:{user_id}
+{ "recommended_products": [502, 601, 704], "generated_at": "timestamp" }
+
+weather:cache:{location}
+{ "uv_index": 8.5, "temperature": 33, "humidity": 70 }
+
+rate_limit:{user_id}:{endpoint_group}      # NEW: per endpoint group, not global
+{ "requests": 54, "window": "1m" }
+
+ai:scan_cache:{scan_id}
+{ "assessment_summary": "Moderate acne, oily skin" }
+
+TTL Strategy:
+OTP              -> 5 minutes
+Session          -> 24 hours (refresh token 7 days, blacklist TTL matches)
+Weather          -> 30 minutes
+AI cache         -> 1 hour
+Recommendations  -> 6 hours (also INVALIDATE on profile/preferences change —
+                    stale recommendations after a profile edit is a bug users
+                    notice immediately)
+
+Eviction: maxmemory-policy allkeys-lru is NOT safe here (would evict
+sessions). Use volatile-lru — everything above carries an explicit TTL.
+
+====================================================
+2. S3 Storage Structure
+====================================================
+
+Bucket: skinlytics-storage (private; access via signed URLs only)
+
+/profile-images/
+    user_{user_id}/profile.jpg
+
+/skin-scans/
+    user_{user_id}/scan_{scan_id}/original.jpg
+    user_{user_id}/scan_{scan_id}/processed.jpg
+    user_{user_id}/scan_{scan_id}/heatmap.jpg
+
+/progress-tracking/
+    user_{user_id}/week_{n}/before.jpg
+    user_{user_id}/week_{n}/after.jpg
+
+/reports/
+    user_{user_id}/monthly/report_{month}.pdf
+
+/exports/
+    user_{user_id}/skin_analytics.xlsx
+
+/knowledge-assets/
+    research_papers/
+    ingredient_docs/
+    product_docs/
+
+Naming convention: {entity_type}/{user_id}/{resource_id}/{file_name}
+
+Upload constraints (enforced at the API gateway):
+- images: jpg/png/webp, max 10 MB, strip EXIF (GPS in skin photos is a
+  privacy leak)
+- content-type validated server-side, never trusted from the client
+
+Lifecycle rules:
+- /skin-scans/ originals -> infrequent-access tier after 90 days
+- /exports/ -> delete after 30 days (regenerable)
+
+Security:
+- Signed URLs (15 min expiry for reads, 5 min for uploads)
+- Private bucket, IAM-restricted roles per service
+- Server-side encryption at rest (SSE-S3 or SSE-KMS)
+
+====================================================
+3. Relationship queries (replaces v1 Graphify section)
+====================================================
+
+All former graph queries map to indexed PostgreSQL joins:
+
+"Best ingredients for acne":
+    SELECT i.* FROM ingredients i
+    JOIN ingredient_concern_treats t ON t.ingredient_id = i.ingredient_id
+    JOIN skin_concerns c ON c.concern_id = t.concern_id
+    WHERE c.concern_name = 'Acne'
+    ORDER BY t.evidence_strength DESC;
+
+"Suitable products for oily skin":
+    SELECT p.* FROM products p
+    JOIN product_skin_types pst ON pst.product_id = p.product_id
+    JOIN skin_types st ON st.skin_type_id = pst.skin_type_id
+    WHERE st.skin_type_name = 'Oily' AND p.is_active;
+
+"Ingredients to avoid for sensitive skin":
+    SELECT i.* FROM ingredients i
+    JOIN ingredient_skintype_avoid a ON a.ingredient_id = i.ingredient_id
+    JOIN skin_types st ON st.skin_type_id = a.skin_type_id
+    WHERE st.skin_type_name = 'Sensitive';
+
+Recommendation flow (v2):
+User profile (PG + Mongo preferences)
+   -> relational filters (PG junctions, allergy exclusions)
+   -> vector similarity (FAISS/Pinecone)
+   -> keyword/hybrid search (Elasticsearch)
+   -> XGBoost ranking
+   -> final skincare routine

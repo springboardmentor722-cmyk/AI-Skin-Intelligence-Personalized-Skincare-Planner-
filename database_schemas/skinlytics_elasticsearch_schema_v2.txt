@@ -1,0 +1,127 @@
+# Skinlytics Elasticsearch Index Mappings (v2 — corrected)
+# Purpose: Product Search, Ingredient Search, Knowledge Search
+#
+# Changelog vs v1:
+#   * REMOVED article_embeddings_metadata_index — it duplicated fields
+#     already on knowledge_articles_index; embedding_id is now a field
+#     on knowledge_articles_index itself. One index fewer to keep in sync.
+#   * All ids (product_id, ingredient_id, article_id) match PostgreSQL /
+#     MongoDB ids exactly — ES documents are DERIVED, never authored here.
+#     Sync direction: PostgreSQL/MongoDB -> (change events) -> Elasticsearch.
+#   * products_index: added is_active + currency (filter out delisted
+#     products at query time; price without currency is ambiguous).
+#   * ingredients_index: added inci_name and category to mirror the new
+#     PostgreSQL ingredients master table.
+#   * user_search_logs_index: added results_count and an ILM note.
+#   * Added keyword sub-fields on names for exact-match filtering and
+#     aggregations (text alone cannot be aggregated).
+
+====================================================
+1. products_index
+====================================================
+
+PUT products_index
+{
+  "mappings": {
+    "properties": {
+      "product_id":           { "type": "integer" },
+      "brand_name":           { "type": "text", "fields": { "raw": { "type": "keyword" } } },
+      "product_name":         { "type": "text", "fields": { "raw": { "type": "keyword" } } },
+      "category":             { "type": "keyword" },
+      "description":          { "type": "text" },
+      "ingredients":          { "type": "text", "fields": { "raw": { "type": "keyword" } } },
+      "skin_types_supported": { "type": "keyword" },
+      "concerns_supported":   { "type": "keyword" },
+      "price":                { "type": "float" },
+      "currency":             { "type": "keyword" },
+      "spf_rating":           { "type": "integer" },
+      "rating":               { "type": "float" },
+      "popularity_score":     { "type": "float" },
+      "is_active":            { "type": "boolean" },
+      "created_at":           { "type": "date" },
+      "updated_at":           { "type": "date" }
+    }
+  }
+}
+
+# Typical queries this serves:
+#   - full-text product search with filters (category, skin type, concern)
+#   - budget filter: range on price + term on currency
+#   - "alternatives" = same category + overlapping concerns, exclude product_id
+
+====================================================
+2. ingredients_index
+====================================================
+
+PUT ingredients_index
+{
+  "mappings": {
+    "properties": {
+      "ingredient_id":        { "type": "integer" },
+      "ingredient_name":      { "type": "text", "fields": { "raw": { "type": "keyword" } } },
+      "inci_name":            { "type": "text", "fields": { "raw": { "type": "keyword" } } },
+      "aliases":              { "type": "text" },
+      "category":             { "type": "keyword" },
+      "benefits":             { "type": "text" },
+      "side_effects":         { "type": "text" },
+      "suitable_for":         { "type": "keyword" },
+      "avoid_for":            { "type": "keyword" },
+      "interaction_warnings": { "type": "text" },
+      "research_refs":        { "type": "keyword" },
+      "updated_at":           { "type": "date" }
+    }
+  }
+}
+
+# Source of truth split:
+#   relational facts (treats-concern, avoid-for-skin-type) -> PostgreSQL junctions
+#   searchable prose (benefits, warnings, aliases)          -> this index
+#   semantic similarity                                      -> vector DB
+
+====================================================
+3. knowledge_articles_index
+====================================================
+
+PUT knowledge_articles_index
+{
+  "mappings": {
+    "properties": {
+      "article_id":          { "type": "integer" },
+      "title":               { "type": "text", "fields": { "raw": { "type": "keyword" } } },
+      "source":              { "type": "keyword" },
+      "tags":                { "type": "keyword" },
+      "summary":             { "type": "text" },
+      "content":             { "type": "text" },
+      "related_conditions":  { "type": "keyword" },
+      "related_ingredients": { "type": "keyword" },
+      "embedding_id":        { "type": "keyword" },   # article_{article_id} in vector DB
+      "topic":               { "type": "keyword" },
+      "published_at":        { "type": "date" }
+    }
+  }
+}
+
+# v1's separate article_embeddings_metadata_index is folded into
+# embedding_id / topic / source fields here.
+
+====================================================
+4. user_search_logs_index
+====================================================
+
+PUT user_search_logs_index
+{
+  "mappings": {
+    "properties": {
+      "user_id":         { "type": "integer" },
+      "query":           { "type": "text", "fields": { "raw": { "type": "keyword" } } },
+      "search_type":     { "type": "keyword" },   # product | ingredient | article
+      "results_count":   { "type": "integer" },
+      "clicked_results": { "type": "keyword" },
+      "searched_at":     { "type": "date" }
+    }
+  }
+}
+
+# Operations note: put this index behind an ILM policy (e.g. rollover at
+# 30 days, delete at 180) — it grows unbounded and only feeds the
+# analytics service and future ranking-model training.

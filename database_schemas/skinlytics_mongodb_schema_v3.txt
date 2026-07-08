@@ -1,0 +1,132 @@
+// Skinlytics MongoDB Schema (v3 — Better Auth aligned)
+// Document store for high-volume, flexible-shape data.
+//
+// Changelog vs v2 (ADR-003): every "user_id" / "consultant_id" is now "String"
+// (was "Integer") to match Better Auth's string user IDs and the Postgres TEXT FKs.
+// All collections, fields, indexes and TTLs are otherwise identical to v2.
+//
+// Ownership recap:
+//   PostgreSQL   -> identity (Better Auth), profiles, routines, products, scores, billing
+//   MongoDB      -> time-series logs, AI assessment payloads, preferences, article content
+//   Elasticsearch-> derived search indexes      Vector DB -> derived embeddings
+
+// 1. lifestyle_logs  (time-series, one doc per user per day)
+{
+  "_id": "ObjectId",
+  "user_id": "String",              // FK -> Postgres "user"(id)
+  "log_date": "ISODate",            // unique with user_id
+  "sleep_hours": "Decimal",
+  "sleep_quality": "Integer",       // 1-10
+  "water_intake_liters": "Decimal",
+  "stress_level": "Integer",        // 1-10
+  "diet_quality": "Integer",        // 1-10
+  "exercise_frequency": "Integer",  // per week
+  "smoking": "Boolean",
+  "alcohol_consumption": "String",  // none | occasional | regular
+  "environmental_exposure": {
+    "sun_hours": "Decimal",
+    "pollution_level": "String",    // low | moderate | high
+    "ac_exposure_hours": "Decimal"
+  },
+  "logged_at": "ISODate"
+}
+// Index: { user_id: 1, log_date: -1 } unique ; { logged_at: -1 }
+
+// 2. skin_assessments  (AI scan payloads — written by Skin Assessment Service, M2+)
+{
+  "_id": "ObjectId",
+  "user_id": "String",
+  "scan_id": "String",              // matches S3 skin-scans/user_{id}/scan_{scan_id}/
+  "image_urls": ["String"],
+  "skin_type_prediction": "String",
+  "concerns_detected": [
+    { "concern": "String", "severity": "Integer", "confidence": "Decimal" }
+  ],
+  "hydration_level": "Integer",
+  "oiliness_level": "Integer",
+  "sensitivity_score": "Integer",
+  "texture_score": "Integer",
+  "redness_score": "Integer",
+  "analysis_summary": "String",
+  "model_version": "String",
+  "created_at": "ISODate"
+}
+// Index: { user_id: 1, created_at: -1 } ; { scan_id: 1 } unique
+
+// 3. progress_logs  (weekly before/after)
+{
+  "_id": "ObjectId",
+  "user_id": "String",
+  "week_number": "Integer",
+  "before_image": "String",         // S3 key
+  "after_image": "String",
+  "improvement_score": "Decimal",
+  "concern_changes": [
+    { "concern": "String", "before": "Integer", "after": "Integer" }
+  ],
+  "trend_summary": "String",
+  "created_at": "ISODate"
+}
+// Index: { user_id: 1, week_number: 1 } unique
+
+// 4. user_preferences  (one doc per user, upsert)
+{
+  "_id": "ObjectId",
+  "user_id": "String",              // unique
+  "preferred_budget": { "min": "Decimal", "max": "Decimal", "currency": "String" },
+  "preferred_brands": ["String"],
+  "avoid_ingredients": ["String"],
+  "preferred_routine_type": "String",   // minimal | standard | extensive
+  "vegan_only": "Boolean",
+  "fragrance_free": "Boolean",
+  "updated_at": "ISODate"
+}
+// Index: { user_id: 1 } unique
+
+// 5. weather_uv_logs
+{
+  "_id": "ObjectId",
+  "user_id": "String",
+  "location": "String",
+  "temperature": "Integer",
+  "humidity": "Integer",
+  "uv_index": "Decimal",
+  "pollution_index": "Integer",
+  "weather_condition": "String",
+  "captured_at": "ISODate"
+}
+// Index: { user_id: 1, captured_at: -1 } ; TTL on captured_at expireAfterSeconds 7776000 (90d)
+
+// 6. knowledge_articles  (SOURCE OF TRUTH for article content; ES indexes, vector embeds)
+{
+  "_id": "ObjectId",
+  "article_id": "Integer",          // stable id shared with ES + vector DB
+  "title": "String",
+  "source": "String",
+  "tags": ["String"],
+  "summary": "String",
+  "content": "String",              // full text
+  "related_conditions": ["String"],
+  "related_ingredients": ["String"],
+  "embedding_id": "String",         // article_{article_id}
+  "published_at": "ISODate",
+  "created_at": "ISODate"
+}
+// Index: { article_id: 1 } unique ; { tags: 1 }
+
+// 7. product_vectors_metadata  (sync bookkeeping: PG products <-> vector DB)
+{
+  "_id": "ObjectId",
+  "product_id": "Integer",          // FK -> Postgres products.product_id
+  "vector_id": "String",            // product_{product_id}
+  "ingredients": ["String"],
+  "skin_types_supported": ["String"],
+  "concerns_supported": ["String"],
+  "embedding_model": "String",
+  "synced_at": "ISODate",
+  "updated_at": "ISODate"
+}
+// Index: { product_id: 1 } unique
+
+// REMOVED in v2 (still removed): consultant_notes (Postgres only),
+// ingredient_insights (Postgres ingredients + ES prose).
