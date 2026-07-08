@@ -71,10 +71,10 @@ export default function RegisterPage() {
       return;
     }
 
-    // New accounts default to role "user" (defaultRole, lib/auth.ts) — no skin profile
-    // exists yet, so this routes to Dashboard until the Skin Profile module lands
-    // (PROGRESS.md pending), matching docs/WIREFRAMES.md's real target once it does.
-    router.push("/dashboard");
+    // New accounts default to role "user" (defaultRole, lib/auth.ts) — sent to skin
+    // profile setup first, matching docs/WIREFRAMES.md's documented Registration
+    // "success" state.
+    router.push("/profile");
   };
 
   return (

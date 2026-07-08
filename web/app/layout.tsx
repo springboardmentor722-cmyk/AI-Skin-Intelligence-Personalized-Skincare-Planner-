@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Inter, Sora } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/sonner";
+import { QueryProvider } from "@/components/providers/query-provider";
 import "./globals.css";
 
 // Tri-font strategy — docs/DESIGN.md §4: Sora for headlines, Inter for body/UI,
@@ -42,10 +44,13 @@ export default function RootLayout({
     >
       <body className="flex min-h-full flex-col">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <TooltipProvider delay={200}>
-            <div className="aurora" aria-hidden="true" />
-            {children}
-          </TooltipProvider>
+          <QueryProvider>
+            <TooltipProvider delay={200}>
+              <div className="aurora" aria-hidden="true" />
+              {children}
+              <Toaster />
+            </TooltipProvider>
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -184,6 +184,59 @@ Better Auth + RBAC, profile & lifestyle modules, seed data. No AI (ADR-007).
   table, and the new catch-all error envelope. **Not verified live:** the
   Mongo-backed `lifestyle-logs` endpoints (MongoDB isn't running this session) and a
   genuinely fresh `alembic upgrade head` — both pass `ruff`/`mypy --strict`, no more.
+- ✔ Skin profile & lifestyle screen — `docs/WIREFRAMES.md` screen 4, `app/(user)/profile/`.
+  Not in `AGENTS.md`'s User nav list (a real gap, not guessed at) — reached from the
+  post-registration redirect (`register/page.tsx` now sends new users here instead of
+  `/dashboard`, matching the documented Registration "success" state) and will need an
+  account-menu or onboarding entry point once that's designed. Two Diagnostic Module
+  cards: skin profile (skin type, age group, gender, the 10 concerns each with
+  severity/priority 1–10, allergies + sensitivities as tag inputs — WIREFRAMES says
+  "toggles" for sensitivities but no toggle option set is documented anywhere, so it
+  uses the same tag-input pattern as allergies rather than inventing one) and today's
+  lifestyle (sleep, water, exercise, stress, diet, smoking, alcohol, environmental
+  exposure). Each section saves independently (matching the two separate backend
+  writes). Optimistic save + rollback, "Saved" toast (Sonner), first-setup vs editing
+  copy, range validation.
+
+  **New foundational infra this task, not just the screen:** `lib/api.ts` (typed FastAPI
+  client — `openapi-fetch` + `openapi-typescript`, attaches the Better Auth JWT via
+  `authClient.$fetch("/token")`, since `jwtClient()` only wraps a `jwks()` convenience
+  method, not a `token()` one), `lib/api-types.ts` (generated from the real backend via
+  `make openapi`, committed; the intermediate `openapi.json` is gitignored),
+  `QueryProvider` (TanStack Query) and `Toaster` (Sonner) wired into the root layout.
+  Fixed a real bug in the `Makefile`'s `openapi` target while first running it —
+  `uv run --project backend` doesn't change the working directory, so `import app.main`
+  failed; needed an explicit `cd backend` first.
+
+  **Four real bugs found by actually driving this screen in a browser against the live
+  database** (signed up fresh test users, filled and saved both forms, reloaded the
+  page to check persistence — not just typecheck):
+  1. A stale `next start` process was still bound to port 3000 from an earlier task,
+     serving HTML that referenced chunk hashes from a build that no longer existed on
+     disk — looked exactly like a broken form (native GET submission instead of the
+     JS handler intercepting it) until traced to 404s on `_next/static/chunks/*`.
+     Not a code bug; documented so it isn't re-chased next time.
+  2. The optimistic-update `onMutate` spread `{...previous}` where `previous` is `null`
+     for a first-time profile (no profile yet, GET 404s) — the resulting object silently
+     had no `concerns` field, and crashed the form-hydration logic (`.map()` on
+     `undefined`) the instant the optimistic patch landed, right after clicking Save.
+     Fixed by building the full optimistic object explicitly instead of spreading.
+  3. The Skin type `<Select>` correctly showed the picked label right after an
+     interactive selection, but silently reverted to its placeholder after a page
+     reload — even though the checkbox and tag-input fields on the *same* fetched data
+     hydrated correctly. Root cause: the form was initialized to empty defaults and
+     patched via a `useEffect` after the data arrived, so Base UI's `Select` mounted
+     with `value={undefined}` and never properly picked up the later transition to a
+     real value (Base UI's `items` prop and an explicit `Select.Value` render-children
+     function both failed to fix this — the actual fix was structural: split the
+     component so the form's `useState` initializer reads the already-loaded query data
+     directly, guaranteeing the `Select` mounts with the correct value on its first
+     render, no post-mount transition at all).
+  4. Along the way, confirmed `Makefile`'s `openapi` target bug (above).
+
+  `ruff` N/A (frontend), `typecheck`/`lint` clean. All test users created during
+  verification were deleted afterward; confirmed `ON DELETE CASCADE` cleaned up their
+  profile/skin-profile rows and the 2 pre-existing real users were untouched.
 
 ## Partially Completed
 
@@ -193,10 +246,15 @@ Better Auth + RBAC, profile & lifestyle modules, seed data. No AI (ADR-007).
 
 ## Pending
 
-- ☐ Individual M1 screens (dashboard, skin profile & lifestyle, assessment,
-  recommendations, progress) — each its own `feature/frontend-<screen>` branch.
-  Login/registration/forgot-password are done. Skin profile & lifestyle now has a real
-  backend to build against (`/api/v1/skin-profiles`, `/lifestyle-logs`).
+- ☐ Individual M1 screens (dashboard, assessment, recommendations, progress) — each its
+  own `feature/frontend-<screen>` branch. Login/registration/forgot-password/skin
+  profile & lifestyle are done.
+- ☐ Nav entry point for `/profile` — not in `AGENTS.md`'s User nav list; currently only
+  reachable via the post-registration redirect. Needs a product decision (account menu
+  item? part of onboarding only? add to the nav list?), not a guess.
+- ☐ Playwright e2e coverage for the skin profile & lifestyle screen — verified manually
+  this session (including the 4 real bugs found and fixed), no automated test written
+  yet, unlike the app-shell/auth screens' coverage.
 - ☐ RBAC fine-grained ACL matrix (`web/lib/permissions.ts` currently only declares the
   four roles; per-resource/action permissions are this task's job, not Authentication's)
 - ☐ Idempotent seed script (`make seed`) for `skin_types`/`skin_concerns` — currently
@@ -228,13 +286,15 @@ this session (see "Completed" above); Mongo unverified (not running this session
 
 ## Frontend status
 
-Scaffold + app shell + Authentication complete (`web/` — Next.js 16 / React 19 /
-Tailwind v4 / shadcn/ui / Better Auth). `app/page.tsx` is still a scaffold smoke test.
-Login/register/forgot-password are real, wired screens; every other M1 screen is still
-just a stub `dashboard/page.tsx` per role proving the shell. No `lib/api.ts` yet (waits
-on backend OpenAPI spec), no visible role-switching (role is hardcoded per route-group
-layout until real sessions replace the stub `userName` in each layout). Design assets
-remain in `web/designs/wireframes/` (83 files) as the build reference.
+Scaffold + app shell + Authentication + typed API client complete (`web/` — Next.js 16 /
+React 19 / Tailwind v4 / shadcn/ui / Better Auth / TanStack Query / `openapi-fetch`).
+`app/page.tsx` is still a scaffold smoke test. Login/register/forgot-password/skin
+profile & lifestyle are real, wired, live-verified screens; every other M1 screen is
+still just a stub `dashboard/page.tsx` per role proving the shell. `lib/api.ts` +
+`lib/api-types.ts` now exist and are proven against the live backend. No visible
+role-switching (role is hardcoded per route-group layout until real sessions replace the
+stub `userName` in each layout). Design assets remain in `web/designs/wireframes/`
+(83 files) as the build reference.
 
 ## Database status
 
@@ -299,8 +359,8 @@ the full story. `docker-compose.yml` can also bring up empty containers for a fr
 
 ## Next task
 
-Postgres+Redis are live and the User/Skin-Profile backend is verified end-to-end
-against them. Natural next steps: the "Skin profile & lifestyle" frontend screen
-(`docs/WIREFRAMES.md` screen 4, real backend now exists to build against), starting
-MongoDB to verify `lifestyle-logs` for real, RBAC's fine-grained ACL matrix, or other
-M1 screens — user's call.
+Skin profile & lifestyle is done and live-verified end to end (Postgres path). Natural
+next steps: starting MongoDB to verify `lifestyle-logs` for real (the one part of this
+task not live-tested), a nav entry point decision for `/profile`, RBAC's fine-grained
+ACL matrix, or the next M1 screen (dashboard is the obvious one — real data sources
+exist for parts of it now) — user's call.

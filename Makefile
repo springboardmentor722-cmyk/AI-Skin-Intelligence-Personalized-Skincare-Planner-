@@ -55,8 +55,8 @@ graph:
 
 openapi:
 	@if [ -d backend ] && [ -d web ]; then \
-		uv run --project backend python -c "import json,app.main; json.dump(app.main.app.openapi(), open('openapi.json','w'))" && \
-		cd web && npx openapi-typescript ../openapi.json -o lib/api-types.ts; \
+		cd backend && uv run python -c "import json,app.main; json.dump(app.main.app.openapi(), open('../openapi.json','w'))" && \
+		cd ../web && npx openapi-typescript ../openapi.json -o lib/api-types.ts; \
 	else \
 		echo "backend/ and web/ must both exist before generating the typed client."; \
 	fi
