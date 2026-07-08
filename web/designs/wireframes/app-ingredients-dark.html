@@ -1,66 +1,64 @@
 <!DOCTYPE html>
 
-<html class="scroll-smooth" lang="en"><head>
+<html class="scroll-smooth dark" lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Ingredient Library - Skinlytics AI</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@600;700&family=Geist:wght@400;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Sora:wght@600;700&amp;family=Geist:wght@400;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
             theme: {
                 extend: {
                     "colors": {
-                        "on-surface-variant": "#45464d",
+                        "on-surface-variant": "#94A3B8",
                         "on-tertiary-fixed": "#00201c",
-                        "inverse-surface": "#303032",
-                        "on-primary": "#ffffff",
-                        "inverse-on-surface": "#f3f0f2",
-                        "error": "#ba1a1a",
+                        "inverse-surface": "#f3f0f2",
+                        "on-primary": "#0B1220",
+                        "inverse-on-surface": "#1b1b1d",
+                        "error": "#ffdad6",
                         "on-tertiary-fixed-variant": "#005048",
                         "on-secondary-fixed": "#00174b",
-                        "primary": "#000000",
-                        "secondary-fixed": "#dbe1ff",
-                        "surface-dim": "#dcd9db",
-                        "surface": "#fcf8fa",
-                        "secondary-container": "#316bf3",
-                        "surface-container-low": "#f6f3f5",
-                        "on-tertiary-container": "#009485",
-                        "on-primary-fixed": "#131b2e",
-                        "on-background": "#1b1b1d",
-                        "surface-variant": "#e4e2e4",
-                        "on-primary-container": "#7c839b",
-                        "inverse-primary": "#bec6e0",
-                        "on-secondary-container": "#fefcff",
-                        "on-secondary-fixed-variant": "#003ea8",
-                        "on-error-container": "#93000a",
+                        "primary": "#F8FAFC",
+                        "secondary-fixed": "#1A2740",
+                        "surface-dim": "#0B1220",
+                        "surface": "#0B1220",
+                        "secondary-container": "#3B82F6",
+                        "surface-container-low": "#111A2E",
+                        "on-tertiary-container": "#2DD4BF",
+                        "on-primary-fixed": "#E6EDF7",
+                        "on-background": "#E6EDF7",
+                        "surface-variant": "#1A2740",
+                        "on-primary-container": "#94A3B8",
+                        "inverse-primary": "#000000",
+                        "on-secondary-container": "#ffffff",
+                        "on-secondary-fixed-variant": "#3B82F6",
+                        "on-error-container": "#ffdad6",
                         "tertiary-fixed-dim": "#4fdbc8",
-                        "surface-container": "#f0edef",
+                        "surface-container": "#111A2E",
                         "primary-fixed-dim": "#bec6e0",
-                        "outline-variant": "#c6c6cd",
-                        "tertiary": "#000000",
-                        "surface-bright": "#fcf8fa",
-                        "surface-container-high": "#eae7e9",
-                        "primary-container": "#131b2e",
-                        "error-container": "#ffdad6",
-                        "background": "#fcf8fa",
-                        "surface-tint": "#565e74",
-                        "primary-fixed": "#dae2fd",
-                        "on-tertiary": "#ffffff",
-                        "surface-container-highest": "#e4e2e4",
-                        "outline": "#76777d",
-                        "secondary": "#0051d5",
-                        "surface-container-lowest": "#ffffff",
-                        "on-error": "#ffffff",
+                        "outline-variant": "#24304A",
+                        "tertiary": "#2DD4BF",
+                        "surface-bright": "#1A2740",
+                        "surface-container-high": "#1A2740",
+                        "primary-container": "#F8FAFC",
+                        "error-container": "#ba1a1a",
+                        "background": "#0B1220",
+                        "surface-tint": "#2DD4BF",
+                        "primary-fixed": "#E6EDF7",
+                        "on-tertiary": "#0B1220",
+                        "surface-container-highest": "#24304A",
+                        "outline": "#24304A",
+                        "secondary": "#3B82F6",
+                        "surface-container-lowest": "#0B1220",
+                        "on-error": "#ba1a1a",
                         "tertiary-container": "#00201c",
                         "on-secondary": "#ffffff",
-                        "on-primary-fixed-variant": "#3f465c",
-                        "secondary-fixed-dim": "#b4c5ff",
-                        "tertiary-fixed": "#71f8e4",
-                        "on-surface": "#1b1b1d"
+                        "on-primary-fixed-variant": "#94A3B8",
+                        "secondary-fixed-dim": "#1A2740",
+                        "tertiary-fixed": "#2DD4BF",
+                        "on-surface": "#E6EDF7"
                     },
                     "borderRadius": {
                         "DEFAULT": "0.25rem",
@@ -107,31 +105,46 @@
     </script>
 <style>
         .glass-panel {
-            background: rgba(255, 255, 255, 0.68);
+            background: rgba(13, 20, 36, 0.62);
             backdrop-filter: blur(20px) saturate(160%);
             -webkit-backdrop-filter: blur(20px) saturate(160%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
         }
         .material-symbols-outlined {
             font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
             vertical-align: middle;
         }
         .diagnostic-module {
-            background-color: #ffffff;
+            background-color: #111A2E;
             border-radius: 16px;
-            border: 1px solid rgba(15, 23, 42, 0.08);
+            border: 1px solid #24304A;
         }
-        .aurora-bg {
-            background: radial-gradient(circle at 0% 0%, rgba(219, 225, 255, 0.4) 0%, transparent 50%),
-                        radial-gradient(circle at 100% 100%, rgba(113, 248, 228, 0.2) 0%, transparent 50%);
+        .aurora-container {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            opacity: 1; /* Opacity handled inside shader for precision */
         }
         .active-letter {
-            box-shadow: 0 0 0 2px #0051d5;
+            box-shadow: 0 0 0 2px #3B82F6;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
     </style>
 </head>
-<body class="bg-background text-on-surface font-body-md min-h-screen aurora-bg">
+<body class="bg-background text-on-surface font-body-md min-h-screen">
+<!-- Background Aurora Shader -->
+<div class="aurora-container">
+    {{DATA:SCREEN:SCREEN_37}}
+</div>
 <!-- Side Navigation Shell -->
-<nav class="fixed left-0 top-0 h-screen w-64 z-40 bg-white/68 backdrop-blur-xl border-r border-on-surface/8 flex flex-col py-lg">
+<nav class="fixed left-0 top-0 h-screen w-64 z-40 bg-[#0D1424]/62 backdrop-blur-xl border-r border-[#24304A] flex flex-col py-lg">
 <div class="px-lg mb-xl">
 <h1 class="font-h3 text-h3 font-bold text-primary">Skinlytics AI</h1>
 <p class="font-label-caps text-label-caps text-on-surface-variant tracking-wider">Clinical Portal</p>
@@ -154,43 +167,43 @@
 <span class="font-body-md">Settings</span>
 </a>
 </div>
-<div class="px-lg mt-auto pt-lg border-t border-on-surface/8 space-y-4">
+<div class="px-lg mt-auto pt-lg border-t border-[#24304A] space-y-4">
 <button class="w-full bg-primary text-on-primary py-3 px-lg rounded-full font-body-md font-semibold transition-transform active:scale-95">
-                New Assessment
-            </button>
+            New Assessment
+        </button>
 <div class="flex flex-col gap-2">
 <a class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2 text-sm" href="#">
 <span class="material-symbols-outlined text-base">help</span> Help Center
-                </a>
+            </a>
 <a class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2 text-sm" href="#">
 <span class="material-symbols-outlined text-base">logout</span> Sign Out
-                </a>
+            </a>
 </div>
 </div>
 </nav>
 <!-- Main Content Canvas -->
 <main class="ml-64 min-h-screen">
 <!-- Top App Bar -->
-<header class="sticky top-0 w-full z-30 bg-white/68 backdrop-blur-xl border-b border-on-surface/8 px-lg py-sm flex justify-between items-center">
-<div class="flex items-center gap-4 bg-surface-container-low border border-on-surface/8 px-4 py-2 rounded-full w-96">
+<header class="sticky top-0 w-full z-30 bg-[#0D1424]/62 backdrop-blur-xl border-b border-[#24304A] px-lg py-sm flex justify-between items-center">
+<div class="flex items-center gap-4 bg-surface-container-low border border-[#24304A] px-4 py-2 rounded-full w-96">
 <span class="material-symbols-outlined text-on-surface-variant">search</span>
-<input class="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-on-surface-variant/50" placeholder="Search molecules, actives, or benefits..." type="text"/>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-on-surface-variant/50 text-on-surface" placeholder="Search molecules, actives, or benefits..." type="text"/>
 </div>
 <div class="flex items-center gap-6">
 <div class="flex items-center gap-3">
-<button class="material-symbols-outlined p-2 hover:bg-surface-container rounded-full transition-colors">wb_sunny</button>
-<button class="material-symbols-outlined p-2 hover:bg-surface-container rounded-full transition-colors">notifications</button>
-<button class="material-symbols-outlined p-2 hover:bg-surface-container rounded-full transition-colors">contrast</button>
+<button class="material-symbols-outlined p-2 hover:bg-surface-container rounded-full transition-colors text-on-surface-variant">wb_sunny</button>
+<button class="material-symbols-outlined p-2 hover:bg-surface-container rounded-full transition-colors text-on-surface-variant">notifications</button>
+<button class="material-symbols-outlined p-2 hover:bg-surface-container rounded-full transition-colors text-on-surface-variant">contrast</button>
 </div>
 <div class="h-10 w-10 rounded-full bg-secondary/20 border border-secondary/20 flex items-center justify-center overflow-hidden">
-<img class="w-full h-full object-cover" data-alt="A clean, minimalist high-key headshot portrait of a professional dermatologist in a crisp white lab coat, smiling warmly. The lighting is soft and clinical, set against a pristine white studio background with subtle blue-toned lens flare to suggest medical high-technology." src="source/images/app-ingredients/img_000_f4356cb6.jpg"/>
+<img alt="Dermatologist Profile" class="w-full h-full object-cover" src="source/images/app-ingredients/img_000_f4356cb6.jpg"/>
 </div>
 </div>
 </header>
 <div class="max-w-[1200px] mx-auto p-lg space-y-xl">
 <!-- Hero / Title -->
 <section class="space-y-sm">
-<h2 class="font-h1 text-h1">Ingredient Library</h2>
+<h2 class="font-h1 text-h1 text-primary">Ingredient Library</h2>
 <p class="font-body-lg text-on-surface-variant max-w-2xl">A clinical-grade database of cosmetic chemistry. Explore molecular compositions, efficacy studies, and personalized skin compatibility.</p>
 </section>
 <!-- Filters & A-Z Nav -->
@@ -198,99 +211,98 @@
 <!-- Category Pills -->
 <div class="flex flex-wrap gap-sm">
 <button class="px-6 py-2 rounded-full bg-primary text-on-primary font-body-md">All Ingredients</button>
-<button class="px-6 py-2 rounded-full border border-on-surface/8 hover:bg-surface-container/50 transition-colors font-body-md">Actives</button>
-<button class="px-6 py-2 rounded-full border border-on-surface/8 hover:bg-surface-container/50 transition-colors font-body-md">Hydrators</button>
-<button class="px-6 py-2 rounded-full border border-on-surface/8 hover:bg-surface-container/50 transition-colors font-body-md">Exfoliants</button>
-<button class="px-6 py-2 rounded-full border border-on-surface/8 hover:bg-surface-container/50 transition-colors font-body-md">Barrier Support</button>
+<button class="px-6 py-2 rounded-full border border-[#24304A] hover:bg-surface-container/50 transition-colors font-body-md text-on-surface">Actives</button>
+<button class="px-6 py-2 rounded-full border border-[#24304A] hover:bg-surface-container/50 transition-colors font-body-md text-on-surface">Hydrators</button>
+<button class="px-6 py-2 rounded-full border border-[#24304A] hover:bg-surface-container/50 transition-colors font-body-md text-on-surface">Exfoliants</button>
+<button class="px-6 py-2 rounded-full border border-[#24304A] hover:bg-surface-container/50 transition-colors font-body-md text-on-surface">Barrier Support</button>
 </div>
 <!-- A-Z Strip -->
-<div class="flex items-center gap-1 bg-surface-container-lowest/50 backdrop-blur-sm p-1 rounded-xl border border-on-surface/4 overflow-x-auto no-scrollbar">
+<div class="flex items-center gap-1 bg-[#111A2E]/50 backdrop-blur-sm p-1 rounded-xl border border-[#24304A] overflow-x-auto no-scrollbar">
 <div class="flex px-2 gap-1">
-<span class="w-8 h-8 flex items-center justify-center rounded-lg font-data-display text-sm bg-secondary text-on-secondary active-letter">A</span>
-<!-- Generate remaining letters dynamically in real usage, hardcoding a few for visual -->
-<span class="w-8 h-8 flex items-center justify-center rounded-lg font-data-display text-sm hover:bg-surface-container cursor-pointer transition-colors">B</span>
-<span class="w-8 h-8 flex items-center justify-center rounded-lg font-data-display text-sm hover:bg-surface-container cursor-pointer transition-colors">C</span>
-<span class="w-8 h-8 flex items-center justify-center rounded-lg font-data-display text-sm hover:bg-surface-container cursor-pointer transition-colors">D</span>
-<span class="w-8 h-8 flex items-center justify-center rounded-lg font-data-display text-sm hover:bg-surface-container cursor-pointer transition-colors">E</span>
-<span class="w-8 h-8 flex items-center justify-center rounded-lg font-data-display text-sm hover:bg-surface-container cursor-pointer transition-colors">F</span>
-<span class="w-8 h-8 flex items-center justify-center rounded-lg font-data-display text-sm hover:bg-surface-container cursor-pointer transition-colors">G</span>
-<span class="w-8 h-8 flex items-center justify-center rounded-lg font-data-display text-sm hover:bg-surface-container cursor-pointer transition-colors">H</span>
+<span class="w-8 h-8 flex items-center justify-center rounded-lg font-data-display text-sm bg-secondary text-white active-letter">A</span>
+<span class="w-8 h-8 flex items-center justify-center rounded-lg font-data-display text-sm hover:bg-surface-container cursor-pointer transition-colors text-on-surface-variant">B</span>
+<span class="w-8 h-8 flex items-center justify-center rounded-lg font-data-display text-sm hover:bg-surface-container cursor-pointer transition-colors text-on-surface-variant">C</span>
+<span class="w-8 h-8 flex items-center justify-center rounded-lg font-data-display text-sm hover:bg-surface-container cursor-pointer transition-colors text-on-surface-variant">D</span>
+<span class="w-8 h-8 flex items-center justify-center rounded-lg font-data-display text-sm hover:bg-surface-container cursor-pointer transition-colors text-on-surface-variant">E</span>
+<span class="w-8 h-8 flex items-center justify-center rounded-lg font-data-display text-sm hover:bg-surface-container cursor-pointer transition-colors text-on-surface-variant">F</span>
+<span class="w-8 h-8 flex items-center justify-center rounded-lg font-data-display text-sm hover:bg-surface-container cursor-pointer transition-colors text-on-surface-variant">G</span>
+<span class="w-8 h-8 flex items-center justify-center rounded-lg font-data-display text-sm hover:bg-surface-container cursor-pointer transition-colors text-on-surface-variant">H</span>
 <span class="w-8 h-8 flex items-center justify-center rounded-lg font-data-display text-sm text-on-surface-variant/30">I</span>
-<span class="w-8 h-8 flex items-center justify-center rounded-lg font-data-display text-sm hover:bg-surface-container cursor-pointer transition-colors">J</span>
-<span class="w-8 h-8 flex items-center justify-center rounded-lg font-data-display text-sm hover:bg-surface-container cursor-pointer transition-colors">K</span>
-<span class="w-8 h-8 flex items-center justify-center rounded-lg font-data-display text-sm hover:bg-surface-container cursor-pointer transition-colors">L</span>
-<span class="w-8 h-8 flex items-center justify-center rounded-lg font-data-display text-sm hover:bg-surface-container cursor-pointer transition-colors">M</span>
-<span class="w-8 h-8 flex items-center justify-center rounded-lg font-data-display text-sm hover:bg-surface-container cursor-pointer transition-colors">N</span>
+<span class="w-8 h-8 flex items-center justify-center rounded-lg font-data-display text-sm hover:bg-surface-container cursor-pointer transition-colors text-on-surface-variant">J</span>
+<span class="w-8 h-8 flex items-center justify-center rounded-lg font-data-display text-sm hover:bg-surface-container cursor-pointer transition-colors text-on-surface-variant">K</span>
+<span class="w-8 h-8 flex items-center justify-center rounded-lg font-data-display text-sm hover:bg-surface-container cursor-pointer transition-colors text-on-surface-variant">L</span>
+<span class="w-8 h-8 flex items-center justify-center rounded-lg font-data-display text-sm hover:bg-surface-container cursor-pointer transition-colors text-on-surface-variant">M</span>
+<span class="w-8 h-8 flex items-center justify-center rounded-lg font-data-display text-sm hover:bg-surface-container cursor-pointer transition-colors text-on-surface-variant">N</span>
 </div>
 </div>
 </section>
 <!-- Ingredient Grid -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-lg">
 <!-- Card 1 -->
-<div class="diagnostic-module p-lg flex flex-col hover:border-secondary/20 transition-all group">
+<div class="diagnostic-module p-lg flex flex-col hover:border-secondary/40 transition-all group">
 <div class="flex justify-between items-start mb-md">
-<div class="w-16 h-16 rounded-2xl bg-secondary-fixed/30 flex items-center justify-center overflow-hidden">
-<img class="w-12 h-12 object-contain group-hover:scale-110 transition-transform duration-500" data-alt="A hyper-realistic 3D molecular model of a Retinoid molecule. The atoms are rendered as semi-transparent frosted glass spheres with a soft teal and royal blue inner glow. The background is a clean, surgical white with subtle volumetric lighting casting soft shadows." src="source/images/app-ingredients/img_001_42cf9393.jpg"/>
+<div class="w-16 h-16 rounded-2xl bg-secondary-fixed flex items-center justify-center overflow-hidden">
+<img alt="Retinoid Molecule" class="w-12 h-12 object-contain group-hover:scale-110 transition-transform duration-500" src="source/images/app-ingredients/img_001_42cf9393.jpg"/>
 </div>
-<span class="px-3 py-1 rounded-full bg-on-tertiary-container/10 text-on-tertiary-container font-label-caps text-[10px]">FOR YOU: ✓ SUITABLE</span>
+<span class="px-3 py-1 rounded-full bg-tertiary/10 text-tertiary font-label-caps text-[10px] border border-tertiary/20">FOR YOU: ✓ SUITABLE</span>
 </div>
-<h3 class="font-h3 text-h3 mb-xs">Retinoids</h3>
+<h3 class="font-h3 text-h3 mb-xs text-primary">Retinoids</h3>
 <p class="text-on-surface-variant text-sm flex-grow">A powerhouse class of Vitamin A derivatives proven to accelerate cellular turnover, reduce fine lines, and treat acne.</p>
-<div class="mt-lg pt-md border-t border-on-surface/8 flex items-center justify-between">
+<div class="mt-lg pt-md border-t border-[#24304A] flex items-center justify-between">
 <span class="font-label-caps text-label-caps text-on-surface-variant">CAT: ACTIVES</span>
 <button class="text-secondary font-semibold text-sm flex items-center gap-1 group/btn">
-                            Clinical Data <span class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+                        Clinical Data <span class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
 </button>
 </div>
 </div>
 <!-- Card 2 -->
-<div class="diagnostic-module p-lg flex flex-col hover:border-secondary/20 transition-all group">
+<div class="diagnostic-module p-lg flex flex-col hover:border-secondary/40 transition-all group">
 <div class="flex justify-between items-start mb-md">
-<div class="w-16 h-16 rounded-2xl bg-secondary-fixed/30 flex items-center justify-center">
-<img class="w-12 h-12 object-contain group-hover:scale-110 transition-transform duration-500" data-alt="A professional scientific visualization of a Niacinamide molecular chain. The structure appears as a sophisticated network of polished chrome and frosted glass links. The lighting is cold and precise, using a professional clinical palette of soft grays and deep blues." src="source/images/app-ingredients/img_002_9689da34.jpg"/>
+<div class="w-16 h-16 rounded-2xl bg-secondary-fixed flex items-center justify-center overflow-hidden">
+<img alt="Niacinamide Molecule" class="w-12 h-12 object-contain group-hover:scale-110 transition-transform duration-500" src="source/images/app-ingredients/img_002_9689da34.jpg"/>
 </div>
-<span class="px-3 py-1 rounded-full bg-on-tertiary-container/10 text-on-tertiary-container font-label-caps text-[10px]">FOR YOU: ✓ SUITABLE</span>
+<span class="px-3 py-1 rounded-full bg-tertiary/10 text-tertiary font-label-caps text-[10px] border border-tertiary/20">FOR YOU: ✓ SUITABLE</span>
 </div>
-<h3 class="font-h3 text-h3 mb-xs">Niacinamide</h3>
+<h3 class="font-h3 text-h3 mb-xs text-primary">Niacinamide</h3>
 <p class="text-on-surface-variant text-sm flex-grow">Vitamin B3 that works to strengthen the skin barrier, refine pore appearance, and regulate oil production.</p>
-<div class="mt-lg pt-md border-t border-on-surface/8 flex items-center justify-between">
+<div class="mt-lg pt-md border-t border-[#24304A] flex items-center justify-between">
 <span class="font-label-caps text-label-caps text-on-surface-variant">CAT: BARRIER</span>
 <button class="text-secondary font-semibold text-sm flex items-center gap-1 group/btn">
-                            Clinical Data <span class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+                        Clinical Data <span class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
 </button>
 </div>
 </div>
 <!-- Card 3 -->
-<div class="diagnostic-module p-lg flex flex-col hover:border-secondary/20 transition-all group">
+<div class="diagnostic-module p-lg flex flex-col hover:border-secondary/40 transition-all group">
 <div class="flex justify-between items-start mb-md">
-<div class="w-16 h-16 rounded-2xl bg-error-container/20 flex items-center justify-center">
-<img class="w-12 h-12 object-contain group-hover:scale-110 transition-transform duration-500" data-alt="A 3D macro visualization of an Alpha Hydroxy Acid molecule. The structure is rendered with a sharp, crystalline aesthetic, featuring amber and soft red internal highlights. The style is that of a modern pharmaceutical textbook, high-contrast and very clean." src="source/images/app-ingredients/img_003_9adea64d.jpg"/>
+<div class="w-16 h-16 rounded-2xl bg-error-container/10 flex items-center justify-center overflow-hidden">
+<img alt="Glycolic Acid Molecule" class="w-12 h-12 object-contain group-hover:scale-110 transition-transform duration-500" src="source/images/app-ingredients/img_003_9adea64d.jpg"/>
 </div>
-<span class="px-3 py-1 rounded-full bg-error-container text-error font-label-caps text-[10px]">! USE WITH CARE</span>
+<span class="px-3 py-1 rounded-full bg-error-container/20 text-error font-label-caps text-[10px] border border-error/20">! USE WITH CARE</span>
 </div>
-<h3 class="font-h3 text-h3 mb-xs">Glycolic Acid</h3>
+<h3 class="font-h3 text-h3 mb-xs text-primary">Glycolic Acid</h3>
 <p class="text-on-surface-variant text-sm flex-grow">Small-molecule AHA that deeply exfoliates the skin surface, improving texture and addressing hyperpigmentation.</p>
-<div class="mt-lg pt-md border-t border-on-surface/8 flex items-center justify-between">
+<div class="mt-lg pt-md border-t border-[#24304A] flex items-center justify-between">
 <span class="font-label-caps text-label-caps text-on-surface-variant">CAT: EXFOLIANTS</span>
 <button class="text-secondary font-semibold text-sm flex items-center gap-1 group/btn">
-                            Clinical Data <span class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+                        Clinical Data <span class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
 </button>
 </div>
 </div>
 <!-- Card 4 -->
-<div class="diagnostic-module p-lg flex flex-col hover:border-secondary/20 transition-all group">
+<div class="diagnostic-module p-lg flex flex-col hover:border-secondary/40 transition-all group">
 <div class="flex justify-between items-start mb-md">
-<div class="w-16 h-16 rounded-2xl bg-secondary-fixed/30 flex items-center justify-center">
-<img class="w-12 h-12 object-contain group-hover:scale-110 transition-transform duration-500" data-alt="A scientific render of a Hyaluronic Acid polymer. The chain looks like a series of iridescent water droplets connected by silver filaments. The lighting is ethereal and bright, conveying a sense of extreme hydration and purity." src="source/images/app-ingredients/img_004_a7682901.jpg"/>
+<div class="w-16 h-16 rounded-2xl bg-secondary-fixed flex items-center justify-center overflow-hidden">
+<img alt="Hyaluronic Acid Molecule" class="w-12 h-12 object-contain group-hover:scale-110 transition-transform duration-500" src="source/images/app-ingredients/img_004_a7682901.jpg"/>
 </div>
-<span class="px-3 py-1 rounded-full bg-on-tertiary-container/10 text-on-tertiary-container font-label-caps text-[10px]">FOR YOU: ✓ SUITABLE</span>
+<span class="px-3 py-1 rounded-full bg-tertiary/10 text-tertiary font-label-caps text-[10px] border border-tertiary/20">FOR YOU: ✓ SUITABLE</span>
 </div>
-<h3 class="font-h3 text-h3 mb-xs">Hyaluronic Acid</h3>
+<h3 class="font-h3 text-h3 mb-xs text-primary">Hyaluronic Acid</h3>
 <p class="text-on-surface-variant text-sm flex-grow">A humectant that can hold up to 1000x its weight in water, providing instant plumping and deep hydration.</p>
-<div class="mt-lg pt-md border-t border-on-surface/8 flex items-center justify-between">
+<div class="mt-lg pt-md border-t border-[#24304A] flex items-center justify-between">
 <span class="font-label-caps text-label-caps text-on-surface-variant">CAT: HYDRATORS</span>
 <button class="text-secondary font-semibold text-sm flex items-center gap-1 group/btn">
-                            Clinical Data <span class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+                        Clinical Data <span class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
 </button>
 </div>
 </div>
@@ -298,64 +310,64 @@
 </div>
 <!-- Sticky Floating Interaction Checker -->
 <div class="fixed bottom-lg right-lg z-40">
-<button class="bg-secondary text-on-secondary px-8 py-4 rounded-full shadow-2xl flex items-center gap-3 font-semibold hover:bg-secondary-container transition-all active:scale-95 group" onclick="document.getElementById('checker-modal').classList.remove('hidden')">
+<button class="bg-secondary text-white px-8 py-4 rounded-full shadow-2xl flex items-center gap-3 font-semibold hover:bg-secondary/80 transition-all active:scale-95 group" onclick="document.getElementById('checker-modal').classList.remove('hidden')">
 <span class="material-symbols-outlined group-hover:rotate-12 transition-transform">science</span>
-                Check Interactions
-            </button>
+            Check Interactions
+        </button>
 </div>
 </main>
 <!-- Glass Dialog Modal -->
-<div class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm p-md" id="checker-modal">
-<div class="glass-panel w-full max-w-2xl rounded-3xl overflow-hidden border border-white/40 shadow-2xl animate-in fade-in zoom-in duration-300">
-<div class="p-lg border-b border-on-surface/8 flex justify-between items-center bg-white/40">
+<div class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-md" id="checker-modal">
+<div class="glass-panel w-full max-w-2xl rounded-3xl overflow-hidden animate-in fade-in zoom-in duration-300">
+<div class="p-lg border-b border-white/10 flex justify-between items-center bg-white/5">
 <div>
-<h2 class="font-h2 text-h2">Interaction Analyzer</h2>
+<h2 class="font-h2 text-h2 text-primary">Interaction Analyzer</h2>
 <p class="text-on-surface-variant text-sm">Select ingredients to check compatibility</p>
 </div>
-<button class="material-symbols-outlined p-2 hover:bg-on-surface/5 rounded-full" onclick="document.getElementById('checker-modal').classList.add('hidden')">close</button>
+<button class="material-symbols-outlined p-2 hover:bg-white/10 rounded-full text-on-surface-variant" onclick="document.getElementById('checker-modal').classList.add('hidden')">close</button>
 </div>
 <div class="p-lg space-y-lg">
 <!-- Selection Interface -->
 <div class="grid grid-cols-2 gap-md">
 <div class="space-y-sm">
-<label class="font-label-caps text-label-caps">Primary Ingredient</label>
-<select class="w-full bg-white/50 border-on-surface/8 rounded-xl py-3 focus:ring-secondary focus:border-secondary">
+<label class="font-label-caps text-label-caps text-on-surface-variant">Primary Ingredient</label>
+<select class="w-full bg-[#1A2740] border-[#24304A] rounded-xl py-3 focus:ring-secondary focus:border-secondary text-on-surface">
 <option>Retinoids</option>
 <option>Niacinamide</option>
 <option>Glycolic Acid</option>
 </select>
 </div>
 <div class="space-y-sm">
-<label class="font-label-caps text-label-caps">Secondary Ingredient</label>
-<select class="w-full bg-white/50 border-on-surface/8 rounded-xl py-3 focus:ring-secondary focus:border-secondary">
+<label class="font-label-caps text-label-caps text-on-surface-variant">Secondary Ingredient</label>
+<select class="w-full bg-[#1A2740] border-[#24304A] rounded-xl py-3 focus:ring-secondary focus:border-secondary text-on-surface">
 <option>Glycolic Acid</option>
 <option>Hyaluronic Acid</option>
 <option>Vitamin C</option>
 </select>
 </div>
 </div>
-<!-- Verdict Card (Initial State Hidden or Dynamic) -->
-<div class="diagnostic-module p-lg bg-error-container/10 border-error/20 flex gap-md items-start">
+<!-- Verdict Card -->
+<div class="diagnostic-module p-lg bg-error-container/5 border-error/20 flex gap-md items-start">
 <div class="bg-error-container p-3 rounded-2xl">
-<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">warning</span>
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">warning</span>
 </div>
 <div class="space-y-xs">
 <h4 class="font-h3 text-h3 text-error">AVOID DIRECT MIXING</h4>
 <p class="text-on-surface-variant text-sm leading-relaxed">
-<strong>The Why:</strong> Glycolic Acid (AHA) and Retinoids are both high-intensity exfoliants. Using them in the same routine increases risk of transepidermal water loss and barrier disruption.
-                        </p>
+<strong class="text-on-surface">The Why:</strong> Glycolic Acid (AHA) and Retinoids are both high-intensity exfoliants. Using them in the same routine increases risk of transepidermal water loss and barrier disruption.
+                    </p>
 <p class="text-secondary font-semibold text-sm pt-xs">Alternative: Use AHA in the morning and Retinoids at night, or alternate evenings.</p>
 </div>
 </div>
 </div>
-<div class="p-lg bg-white/40 flex justify-end gap-md border-t border-on-surface/8">
-<button class="px-6 py-2 rounded-full font-semibold text-on-surface-variant" onclick="document.getElementById('checker-modal').classList.add('hidden')">Cancel</button>
-<button class="px-8 py-2 rounded-full bg-primary text-on-primary font-semibold">Generate Full Report</button>
+<div class="p-lg bg-white/5 flex justify-end gap-md border-t border-white/10">
+<button class="px-6 py-2 rounded-full font-semibold text-on-surface-variant hover:text-on-surface" onclick="document.getElementById('checker-modal').classList.add('hidden')">Cancel</button>
+<button class="px-8 py-2 rounded-full bg-primary text-on-primary font-semibold hover:opacity-90">Generate Full Report</button>
 </div>
 </div>
 </div>
 <!-- Footer -->
-<footer class="ml-64 bg-white/68 backdrop-blur-xl border-t border-on-surface/8 py-md px-margin-desktop flex justify-between items-center">
+<footer class="ml-64 bg-[#0D1424]/62 backdrop-blur-xl border-t border-[#24304A] py-md px-margin-desktop flex justify-between items-center">
 <p class="font-label-caps text-label-caps text-on-surface-variant">© 2024 SKINLYTICS LAB. CLINICAL GRADE AI.</p>
 <div class="flex gap-lg">
 <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors" href="#">Privacy Policy</a>
@@ -364,28 +376,21 @@
 </div>
 </footer>
 <script>
-        // Micro-interactions for Ingredient Cards
-        document.querySelectorAll('.diagnostic-module').forEach(card => {
-            card.addEventListener('mouseenter', () => {
-                card.style.transform = 'translateY(-4px)';
-            });
-            card.addEventListener('mouseleave', () => {
-                card.style.transform = 'translateY(0)';
-            });
+    // Micro-interactions for Ingredient Cards
+    document.querySelectorAll('.diagnostic-module').forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            card.style.transform = 'translateY(-4px)';
         });
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'translateY(0)';
+        });
+    });
 
-        // Simple Search Filter Logic (Placeholder)
-        const searchInput = document.querySelector('header input');
-        searchInput.addEventListener('input', (e) => {
-            console.log('Searching for:', e.target.value);
-            // Dynamic filtering would happen here
-        });
-
-        // Close modal on escape key
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                document.getElementById('checker-modal').classList.add('hidden');
-            }
-        });
-    </script>
+    // Close modal on escape key
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            document.getElementById('checker-modal').classList.add('hidden');
+        }
+    });
+</script>
 </body></html>

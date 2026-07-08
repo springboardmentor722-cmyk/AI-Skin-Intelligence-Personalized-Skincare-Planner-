@@ -1,97 +1,122 @@
-# AGENTS.md — Skinlytics
+# Skinlytics — Agent Rules & Core Architecture
 
-> Single source of truth for every AI coding agent on this repo (Claude Code, Codex,
-> OpenCode, Antigravity, Cursor, Gemini CLI, …). `CLAUDE.md`, `.cursor/rules/*`, and
-> other tool configs all point here. Read this first, every session.
+> Read this in full before writing any code in this repository. It applies to every coding agent working here — Claude Code, Antigravity, Cursor, Codex, or otherwise. `CLAUDE.md` imports this file directly; other tools should treat this as their primary instruction file too.
 
-## What this project is
-**Skinlytics** — the AI Skin Intelligence & Personalized Skincare Planner. It analyzes a
-user's skin profile, lifestyle, sleep, hydration and environment to produce AI skin
-assessments, a weighted skin-health score, personalized routines, ingredient
-intelligence, product recommendations and progress tracking. Four roles: `user`,
-`consultant` (skincare consultant), `dermatologist`, `admin`.
+---
 
-Full detail lives in `docs/ARCHITECTURE.md`. Do not restate it from memory — read it.
+## 0. The rule that matters most: don't invent, look it up
 
-## Start-of-session ritual (do this before answering anything about the code)
-1. **Query the graph, don't grep.** This repo is indexed with Graphify. Prefer
-   `graphify query "<question>"`, `graphify path "A" "B"`, `graphify explain "X"` over
-   reading files one by one or ripgrep. See `docs/AGENT_WORKFLOW.md`.
-2. If the graph looks stale (you just pulled, or files changed), run `graphify . --update`.
-3. Read `PROGRESS.md` to see what's done and what's next. Never redo completed work.
-4. Read the relevant `docs/*.md` for the area you're touching (below).
+This repo has three sources of truth. Before touching any of them, read the matching source first — never rely on the general Skinlytics description below, or on chat/session history, as a substitute.
 
-## End-of-session ritual
-1. Update `PROGRESS.md` (check off what you finished, note what's next, list new decisions).
-2. If you made an architectural decision, append it to `docs/DECISIONS.md` (ADR format).
-3. `graphify save-result --question "…" --answer "…" --nodes … --outcome useful|dead_end|corrected`
-   so the next agent inherits what you learned. Then `graphify reflect --if-stale`.
-4. Conventional-commit your work (`feat:`, `fix:`, `docs:`, `chore:`). The post-commit
-   hook re-indexes the graph automatically.
+| Before you... | Read this first | Never |
+|---|---|---|
+| Build or modify any UI screen, component, layout, spacing, or copy | The matching file(s) in `web/designs/wireframes/` + its pair in `source/reference-screenshots/` | Invent a visual pattern, spacing value, color, or component not already present in the wireframes |
+| Build or modify any database model, migration, query, or API payload shape | `database_schemas/` (and `docs/` for surrounding context) | Invent a table, column, relationship, or field that isn't documented there |
+| Make an architectural call — new service, new endpoint, new data flow, new integration | `docs/` | Design a service boundary or contract from scratch without checking whether one already exists |
 
-## Where the detailed docs are (read the one that matches your task)
-| Doc | Read it when you are… |
-|---|---|
-| `docs/ARCHITECTURE.md` | touching anything structural — services, layers, data flow, stack |
-| `docs/DATA_MODEL.md` *(= database_schemas/ + this)* | changing the DB, adding a table/index/collection |
-| `docs/AI_ML.md` | working on models, embeddings, the vector DB, or the recommendation pipeline |
-| `docs/DATASETS_AND_APIS.md` | ingesting data or calling any external API — **look here before writing any adapter** |
-| `docs/CONVENTIONS.md` | writing any code — folder layout, naming, testing, commits |
-| `docs/DECISIONS.md` | wondering "why is it done this way?" before changing it |
-| `docs/AGENT_WORKFLOW.md` | switching agents, or unsure how to use the graph / persist context |
-| `docs/GRAPHIFY_SETUP.md` | setting up Graphify or the Google Stitch design source |
-| `docs/DESIGN.md` | capturing product/UX design notes, requirements, and implementation context |
-| `docs/SUGGESTIONS.md` | planning ahead / looking for the next improvement |
+If what you need isn't in any of these, say so and ask — don't guess and proceed as if it were confirmed.
 
-## The stack (authoritative — do not substitute without an ADR)
-- **Frontend:** Next.js (App Router) + TypeScript + Tailwind CSS + shadcn/ui. Charts via
-  shadcn charts (Recharts). Server state via TanStack Query. UI/UX from Google Stitch —
-  via a Stitch MCP server if configured, else exported screens in `web/design/`
-  (see `docs/GRAPHIFY_SETUP.md` → Stitch).
-- **Auth:** **Better Auth** in the Next.js layer is the *only* auth authority — email/
-  password (scrypt), OAuth2 social login, sessions, and JWT issuance via its JWT plugin
-  (JWKS endpoint). FastAPI never handles passwords; it only *validates* JWTs against the
-  cached JWKS. RBAC via Better Auth admin plugin. Details: `database_schemas/skinlytics_identity_betterauth.md`.
-- **Backend:** Python + FastAPI (async), served as a **modular monolith** for
-  Milestones 1–3 (one deployable, 12 service modules), split into containers at M4.
-- **Data:** PostgreSQL (source of truth) · MongoDB (logs, AI payloads, preferences) ·
-  Elasticsearch (search) · Vector DB — FAISS (dev) / Pinecone (prod) · Redis (cache,
-  rate-limit, token blacklist). File storage: S3 / Azure Blob.
-- **AI/ML:** scikit-learn, TensorFlow/PyTorch, XGBoost/LightGBM, SentenceTransformers /
-  PubMedBERT / EfficientNet. Stubbed behind interfaces in M1; real models M2–M3.
-- **DevOps:** Docker + docker-compose, GitHub + GitHub Actions, AWS or Azure.
+> `docs/` and `database_schemas/` are referenced throughout as top-level folders. If your actual paths differ, correct them here once, in this file, rather than letting every agent guess independently.
 
-## Golden rules (violating these breaks the build or the design)
-1. **Better Auth owns identity. User IDs are `TEXT` (strings), not integers.** Every
-   `user_id`/`consultant_id` foreign key is `TEXT REFERENCES "user"(id)`. Do not
-   reintroduce a serial-integer `users` table.
-2. **One writer per fact.** Each entity has exactly one authoritative store (see the
-   ownership table in `docs/ARCHITECTURE.md`). Elasticsearch and the vector DB are
-   *derived* — never author data there; sync it from Postgres/Mongo.
-3. **No runtime graph database.** The app does not use Neo4j/"Graphify-the-DB".
-   Relationship queries (ingredient→concern, product→skin-type) are indexed Postgres
-   joins. (Graphify-the-*tool* here is only a dev-time code map — unrelated.)
-4. **Invalidate `recommendation:cache:{user_id}` on any profile/preference change.**
-   TTLs are a fallback, not the mechanism.
-5. **Never commit secrets.** Use `.env` (see `.env.example`). Strip EXIF from uploaded
-   skin photos; images go to S3 via signed URLs only.
-6. **Milestone 1 has no AI.** Assessment/scoring/recommendation endpoints exist behind
-   interfaces returning stubbed/deterministic results until M2. Don't wire real models yet.
+---
 
-## Common commands
-```bash
-make up            # docker-compose: postgres, mongo, redis, elasticsearch
-make api           # run FastAPI (uvicorn --reload)
-make web           # run Next.js dev server
-make migrate       # apply DB migrations (Alembic + Better Auth CLI)
-make seed          # load skin types, concerns, roles, scoring weights, product/ingredient datasets
-make test          # backend + frontend tests
-graphify query "…" # ask the codebase graph instead of grepping
+## 1. What Skinlytics is
+
+An AI-powered skin intelligence and personalized skincare planner. It analyzes a person's skin profile, lifestyle, sleep, hydration, and environmental exposure to produce an AI skin assessment (Skin Health Score), personalized routines, ingredient intelligence, product recommendations, progress tracking, analytics, exportable reports, and reminders. Four roles: **User**, **Skincare Consultant**, **Dermatologist**, **Administrator** (Admin is internal, not signup-facing).
+
+---
+
+## 2. Repo layout
+
+```
+Skinlytics
+├── .agents
+│   └── rules
+│       └── skinlytics-stitch.md
+├── database_schemas
+│   ├── README_v3_changes.md
+│   ├── skinlytics_elasticsearch_schema_v2.txt
+│   ├── skinlytics_identity_betterauth.md
+│   ├── skinlytics_infrastructure_layer_v2.txt
+│   ├── skinlytics_mongodb_schema_v3.txt
+│   ├── skinlytics_postgresql_schema_v3.sql
+│   └── skinlytics_vector_db_schema_v3.txt
+├── docs
+│   ├── AGENT_WORKFLOW.md
+│   ├── AI_ML.md
+│   ├── ARCHITECTURE.md
+│   ├── CONVENTIONS.md
+│   ├── DATASETS_AND_APIS.md
+│   ├── DECISIONS.md
+│   ├── DESIGN.md
+│   ├── GRAPHIFY_SETUP.md
+│   ├── Skinlytics_Stitch_UI_Prompt_Pack_v2.md
+│   ├── SUGGESTIONS.md
+│   └── WIREFRAMES.md
+├── web
+│   └── designs
+│       └── wireframes
+│           ├── source
+│           │   ├── images/                ← Localized assets
+│           │   └── reference-screenshots/ ← UI reference screenshots
+│           ├── index.html                 ← Compiled Stitch gallery
+│           └── ... (82 extracted Stitch HTML files for light & dark themes)
+├── AGENTS.md                     ← Canonical, tool-agnostic rules
+├── AGENTS1.md                    ← Alternate agent configuration
+├── CLAUDE.md                     ← Claude Code entry point
+├── CLAUDE1.md                    ← Alternate Claude configuration
+├── docker-compose.yml            ← Local service topology
+└── Skinlytics_Antigravity_Stitch_Extraction_Prompt_Pack.md
 ```
 
-## Guardrails for agents
-- Small, reviewable diffs. One concern per commit/PR.
-- Don't invent endpoints, table names, or env vars — check the graph / docs first.
-- If a task needs a decision not covered here, write the ADR in `docs/DECISIONS.md`
-  *before* coding, so the next agent doesn't undo you.
-- Prefer editing the file the graph points to over creating a parallel new one.
+The directories above are the canonical project structure. Agents must reference these locations directly and must not create duplicate folders or alternate layouts unless the project architecture is intentionally updated.
+
+---
+
+## 3. Frontend architecture
+
+**Stack assumption — flag if wrong, since every rule below depends on it:** Next.js (App Router) + TypeScript + Tailwind CSS + shadcn/ui. This is the only stack that can faithfully reproduce the wireframes' component system without a rewrite; if the project ends up on something else, update this section *before* frontend work starts.
+
+**Design system is locked, not proposed — "Frosted Lab Glass."** Full spec lives in `docs/` (e.g. `DESIGN.md`); the essentials, so nobody has to go hunting mid-task:
+- **Glass lives in:** the app sidebar, top header, public navbar, dialogs/sheets/dropdowns/command palette, sticky action bars, toasts, the landing hero panel, and the Skin Score Ring housing. `backdrop-blur 20px`, `saturation 160%`.
+- **Data stays solid:** tables, charts, forms, product grids live on solid white "Diagnostic Module" cards (1px slate border, 16px radius). Glass frames data; it never sits under it.
+- **Typography (tri-font):** Sora for headlines, Inter for body/UI, Geist for labels & data (tabular figures for all numbers; substitute Space Grotesk for Geist if unavailable).
+- **Color tokens** — Light: bg `#F7F9FB` · card `#FFFFFF` · border `#E2E8F0` · text `#0F172A` · primary (Deep Navy) `#0F172A` · secondary (Royal Blue) `#2563EB` · tertiary (Teal) `#14B8A6`. Dark: bg `#0B1220` · card `#111A2E` · elevated `#1A2740` · border `#24304A` · text `#E6EDF7`. Every screen ships in both themes; the header always has a theme toggle.
+- **Signature element:** the Skin Score Ring — circular gauge in frosted glass, teal→royal-blue gradient stroke, Geist numeral, five weighted mini-bars (35/20/20/15/10) beside it. Identical treatment everywhere it appears.
+- **Radius:** base 16px, large containers 32px, buttons/chips fully pill-shaped. **Icons:** Lucide, 1.5px stroke.
+
+If any of the above conflicts with `docs/DESIGN.md`, the docs file wins — update this section to match, don't silently follow whichever you saw first.
+
+**Four role-based navs**, each a fixed set — don't add, remove, or rename an item without a matching wireframe:
+- **User:** Dashboard, My Routine, Daily Check-in, Products, Ingredients, Progress, Insights, Reports, Notifications, Settings
+- **Consultant:** Dashboard, Clients, Assessments, Recommendations, Reports, Settings
+- **Dermatologist:** Dashboard, Patients, Condition Reports, Treatment Plans, Analytics, Settings
+- **Admin:** Dashboard, Users, Content & Data, Monitoring, System Reports, Settings
+
+**Components:** only shadcn primitives already used in the wireframes — Card, Tabs, Button, Badge, Avatar, Progress, Slider, Switch, Select, Dialog, Sheet, Command, Data Table, Calendar, Accordion, Tooltip, Skeleton, Sonner toasts, shadcn Charts (Recharts). Check whether shadcn already ships something before writing a custom component.
+
+**Before marking any screen "done":** open the matching file in `web/designs/wireframes/` and its screenshot in `source/reference-screenshots/` side-by-side with the built version. Structural or token drift is a bug, not a style choice.
+
+---
+
+## 4. Backend architecture
+
+**Stack assumption — flag if wrong:** Python + FastAPI microservices, consistent with the AI/ML tooling (PyTorch/TensorFlow, LangChain, RAG pipelines) used elsewhere in this project.
+
+- **Dual database:** PostgreSQL is system-of-record for structured/relational data (per `database_schemas/`, ~43 tables); MongoDB holds whatever `database_schemas/` documents as its collections. Don't assume which store a given entity belongs to feature-by-feature — that split is defined in `database_schemas/`, not guessed.
+- **Roles map 1:1 to the four frontend navs above.** Every endpoint declares which role(s) can call it, and that must match what the corresponding wireframe's nav exposes to that role. A role that can't see a nav item shouldn't have a working endpoint behind it either.
+- **Skin Health Score** (0–100, weighted Skin Condition 35% · Lifestyle Habits 20% · Routine Consistency 20% · Sleep Quality 15% · Hydration 10%) is cross-cutting — it appears in wireframes, docs, and schema alike. If you change how it's computed or stored, update all three, not just one.
+- **Payments** via Stripe/Razorpay, dual currency (₹ primary, $ secondary). Check `docs/` for the actual integration contract before wiring anything — don't assume a provider's default flow is what this project uses.
+- **"Not medical advice"** is a compliance requirement on assessment/dermatologist-adjacent screens per the design spec. Any AI-generated clinical-sounding output from the backend should carry confidence/advisory framing consistent with that — never present itself as a diagnosis.
+
+---
+
+## 5. Cross-cutting rule: UI and API stay in lockstep
+
+Every wireframe implies a data shape; every schema entity implies a UI somewhere. Before adding a backend field with no UI to show it, or a UI element with no backend field to back it, check both `web/designs/wireframes/` and `database_schemas/` first — a mismatch usually means one of them is stale, not that you should guess the other into existence.
+
+---
+
+## 6. When something is missing or ambiguous
+
+Stop and ask, or clearly flag the assumption you're making — don't fill the gap from general skincare-app or SaaS conventions. This project has a real, checkable answer for almost everything that matters; the failure mode to avoid is a plausible-sounding invention quietly replacing it.
