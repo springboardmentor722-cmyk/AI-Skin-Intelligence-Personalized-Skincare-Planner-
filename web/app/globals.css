@@ -1,0 +1,369 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Skinlytics "Frosted Lab Glass" design system.
+   Tokens sourced verbatim from docs/DESIGN.md (frontmatter + prose) — ADR-008.
+   Do not hand-edit hex values here without updating docs/DESIGN.md first (CONVENTIONS.md golden rule 7). */
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  /* shadcn semantic mapping — docs/DESIGN.md §10 */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Raw Skinlytics token names — match the wireframe HTML's Tailwind config
+     1:1 (web/designs/wireframes/) so ported markup needs no class renames. */
+  --color-surface: var(--surface);
+  --color-surface-dim: var(--surface-dim);
+  --color-surface-bright: var(--surface-bright);
+  --color-surface-container-lowest: var(--surface-container-lowest);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-surface-container-highest: var(--surface-container-highest);
+  --color-surface-variant: var(--surface-variant);
+  --color-surface-tint: var(--surface-tint);
+  --color-on-surface: var(--on-surface);
+  --color-on-surface-variant: var(--on-surface-variant);
+  --color-inverse-surface: var(--inverse-surface);
+  --color-inverse-on-surface: var(--inverse-on-surface);
+  --color-inverse-primary: var(--inverse-primary);
+  --color-outline: var(--outline);
+  --color-outline-variant: var(--outline-variant);
+  --color-on-primary: var(--on-primary);
+  --color-primary-container: var(--primary-container);
+  --color-on-primary-container: var(--on-primary-container);
+  --color-on-secondary: var(--on-secondary);
+  --color-secondary-container: var(--secondary-container);
+  --color-on-secondary-container: var(--on-secondary-container);
+  --color-tertiary: var(--tertiary);
+  --color-on-tertiary: var(--on-tertiary);
+  --color-tertiary-container: var(--tertiary-container);
+  --color-on-tertiary-container: var(--on-tertiary-container);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  --color-on-error: var(--on-error);
+  --color-error-container: var(--error-container);
+  --color-on-error-container: var(--on-error-container);
+  --color-on-background: var(--on-background);
+
+  /* Skin Health Score bands — docs/DESIGN.md §2 (fixed across themes) */
+  --color-score-teal: var(--score-teal);
+  --color-score-blue: var(--score-blue);
+  --color-score-amber: var(--score-amber);
+  --color-score-red: var(--score-red);
+
+  /* Tri-font strategy — docs/DESIGN.md §4. Runtime vars (--font-inter,
+     --font-sora, --font-geist-sans) are set by next/font in app/layout.tsx. */
+  --font-sans: var(--font-inter);
+  --font-heading: var(--font-sora);
+  --font-geist: var(--font-geist-sans);
+  --font-mono: var(--font-geist-sans);
+
+  /* Shape — docs/DESIGN.md `rounded:` tokens §7. --radius (DEFAULT, 1rem) is set
+     per-theme below alongside the other shadcn semantic vars. */
+  --radius-sm: 0.5rem;
+  --radius-md: 1.5rem;
+  --radius-lg: 2rem;
+  --radius-xl: 3rem;
+  --radius-full: 9999px;
+}
+
+:root {
+  /* docs/DESIGN.md `colors:` (light) */
+  --surface: #f7f9fb;
+  --surface-dim: #e2e6ec;
+  --surface-bright: #ffffff;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #f1f4f8;
+  --surface-container: #eaeef4;
+  --surface-container-high: #e2e8f0;
+  --surface-container-highest: #d9e0ea;
+  --on-surface: #0f172a;
+  --on-surface-variant: #475569;
+  --inverse-surface: #0f172a;
+  --inverse-on-surface: #f1f5f9;
+  --outline: #64748b;
+  --outline-variant: #cbd5e1;
+  --surface-tint: #2563eb;
+  --primary: #0f172a;
+  --on-primary: #ffffff;
+  --primary-container: #1e293b;
+  --on-primary-container: #e2e8f0;
+  --inverse-primary: #93c5fd;
+  --secondary: #2563eb;
+  --on-secondary: #ffffff;
+  --secondary-container: #dbeafe;
+  --on-secondary-container: #1e3a8a;
+  --tertiary: #14b8a6;
+  --on-tertiary: #042f2e;
+  --tertiary-container: #ccfbf1;
+  --on-tertiary-container: #0f766e;
+  --success: #059669;
+  --warning: #d97706;
+  --error: #dc2626;
+  --on-error: #ffffff;
+  --error-container: #fee2e2;
+  --on-error-container: #991b1b;
+  --background: #f7f9fb;
+  --on-background: #0f172a;
+  --surface-variant: #e2e8f0;
+
+  /* docs/DESIGN.md `glass:` (light) */
+  --glass-bg: rgba(255, 255, 255, 0.68);
+  --glass-bg-strong: rgba(255, 255, 255, 0.82);
+  --glass-border: rgba(15, 23, 42, 0.08);
+  --glass-highlight: rgba(255, 255, 255, 0.65);
+  --glass-shadow: 0 8px 32px rgba(15, 23, 42, 0.1);
+
+  /* docs/DESIGN.md §2 score bands (theme-invariant) */
+  --score-teal: #14b8a6;
+  --score-blue: #2563eb;
+  --score-amber: #f59e0b;
+  --score-red: #ef4444;
+
+  /* shadcn semantic mapping — docs/DESIGN.md §10 (--background is already set
+     above; DESIGN.md uses the same name for the raw token and the shadcn slot) */
+  --foreground: var(--on-background);
+  --card: var(--surface-container-lowest);
+  --card-foreground: var(--on-surface);
+  --popover: var(--surface-container-lowest);
+  --popover-foreground: var(--on-surface);
+  --primary-foreground: var(--on-primary);
+  --secondary-foreground: var(--on-secondary);
+  --muted: var(--surface-container);
+  --muted-foreground: var(--on-surface-variant);
+  --accent: var(--tertiary-container);
+  --accent-foreground: var(--on-tertiary-container);
+  --destructive: var(--error);
+  --destructive-foreground: var(--on-error);
+  --border: var(--outline-variant);
+  --input: var(--surface-container);
+  --ring: var(--secondary);
+  --chart-1: var(--secondary);
+  --chart-2: var(--tertiary);
+  --chart-3: var(--warning);
+  --chart-4: var(--success);
+  --chart-5: var(--error);
+  --radius: 1rem;
+  --sidebar: var(--glass-bg);
+  --sidebar-foreground: var(--on-surface);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--on-primary);
+  --sidebar-accent: var(--tertiary-container);
+  --sidebar-accent-foreground: var(--on-tertiary-container);
+  --sidebar-border: var(--glass-border);
+  --sidebar-ring: var(--secondary);
+}
+
+.dark {
+  /* docs/DESIGN.md `colors-dark:` */
+  --surface: #0b1220;
+  --surface-container-lowest: #0e1526;
+  --surface-container-low: #111a2e;
+  --surface-container: #152036;
+  --surface-container-high: #1a2740;
+  --surface-container-highest: #20304e;
+  --on-surface: #e6edf7;
+  --on-surface-variant: #94a3b8;
+  --outline: #475569;
+  --outline-variant: #24304a;
+  --primary: #f8fafc;
+  --on-primary: #0f172a;
+  --secondary: #3b82f6;
+  --on-secondary: #ffffff;
+  --tertiary: #2dd4bf;
+  --on-tertiary: #042f2e;
+  --success: #34d399;
+  --warning: #fbbf24;
+  --error: #f87171;
+  --background: #0b1220;
+
+  /* Not explicit in docs/DESIGN.md colors-dark — derived mechanically from the
+     light/dark swap pattern the token set already uses elsewhere (e.g. primary
+     #0F172A <-> #F8FAFC), reusing only hex values already approved in DESIGN.md.
+     Flagged in PROGRESS.md; confirm with design before these ship on a real screen. */
+  --surface-dim: #0e1526;
+  --surface-bright: #1a2740;
+  --surface-variant: #1a2740;
+  --surface-tint: var(--secondary);
+  --inverse-surface: #e6edf7;
+  --inverse-on-surface: #0b1220;
+  --inverse-primary: #0f172a;
+  --primary-container: #1a2740;
+  --on-primary-container: #e6edf7;
+  --secondary-container: #1e3a8a;
+  --on-secondary-container: #dbeafe;
+  --tertiary-container: #0f766e;
+  --on-tertiary-container: #ccfbf1;
+  --error-container: #991b1b;
+  --on-error-container: #fee2e2;
+  --on-background: var(--on-surface);
+
+  /* docs/DESIGN.md `glass:` (dark) */
+  --glass-bg: rgba(13, 20, 36, 0.62);
+  --glass-bg-strong: rgba(13, 20, 36, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-highlight: rgba(255, 255, 255, 0.14);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+
+  --score-teal: #14b8a6;
+  --score-blue: #2563eb;
+  --score-amber: #f59e0b;
+  --score-red: #ef4444;
+
+  /* shadcn semantic mapping (--background already set above) */
+  --foreground: var(--on-background);
+  --card: var(--surface-container-lowest);
+  --card-foreground: var(--on-surface);
+  --popover: var(--surface-container-lowest);
+  --popover-foreground: var(--on-surface);
+  --primary-foreground: var(--on-primary);
+  --secondary-foreground: var(--on-secondary);
+  --muted: var(--surface-container);
+  --muted-foreground: var(--on-surface-variant);
+  --accent: var(--tertiary-container);
+  --accent-foreground: var(--on-tertiary-container);
+  --destructive: var(--error);
+  --destructive-foreground: var(--on-primary);
+  --border: var(--outline-variant);
+  --input: var(--surface-container);
+  --ring: var(--secondary);
+  --chart-1: var(--secondary);
+  --chart-2: var(--tertiary);
+  --chart-3: var(--warning);
+  --chart-4: var(--success);
+  --chart-5: var(--error);
+  --sidebar: var(--glass-bg);
+  --sidebar-foreground: var(--on-surface);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--on-primary);
+  --sidebar-accent: var(--tertiary-container);
+  --sidebar-accent-foreground: var(--on-tertiary-container);
+  --sidebar-border: var(--glass-border);
+  --sidebar-ring: var(--secondary);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+/* Glassmorphism recipe — docs/DESIGN.md §3 (ADR-008). Level-4 elevation only:
+   app chrome, overlays, hero/score housings. Never under tables/forms/charts.
+   One shared recipe; components must not define their own blur values
+   (CONVENTIONS.md golden rule 7). */
+@layer components {
+  .glass {
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid var(--glass-border);
+    box-shadow:
+      inset 0 1px 0 var(--glass-highlight),
+      var(--glass-shadow);
+    border-radius: var(--radius);
+  }
+
+  .glass-strong {
+    background: var(--glass-bg-strong);
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass,
+    .glass-strong {
+      background: var(--surface-container);
+    }
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .glass,
+    .glass-strong {
+      background: var(--surface-container);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+  }
+}
+
+/* Ambient aurora — docs/DESIGN.md §3. Fixed, very low-opacity radial blobs so
+   backdrop-filter blur has something to read; must never compete with content. */
+@layer components {
+  .aurora {
+    pointer-events: none;
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    opacity: 0.08;
+    filter: blur(100px);
+    background-image:
+      radial-gradient(circle at 15% 20%, var(--primary), transparent 60%),
+      radial-gradient(circle at 85% 15%, var(--secondary), transparent 55%),
+      radial-gradient(circle at 50% 90%, var(--tertiary), transparent 55%);
+  }
+
+  .dark .aurora {
+    opacity: 0.05;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .aurora {
+      animation: aurora-drift 60s ease-in-out infinite alternate;
+    }
+  }
+
+  @keyframes aurora-drift {
+    from {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    to {
+      transform: translate3d(-2%, 2%, 0) scale(1.05);
+    }
+  }
+}
+
+/* Geist labels/data are always tabular so number columns align — docs/DESIGN.md §4 */
+.font-geist,
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}

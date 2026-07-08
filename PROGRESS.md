@@ -21,7 +21,18 @@ Better Auth + RBAC, profile & lifestyle modules, seed data. No AI (ADR-007).
 - ✔ Local data-store topology — `docker-compose.yml` (postgres, mongo, redis,
   elasticsearch)
 - ✔ Environment setup — `.gitignore`, `.env.example`, `.env.development`,
-  `.env.production`, `Makefile`, `setup.sh` (this task)
+  `.env.production`, `Makefile`, `setup.sh`
+- ✔ Frontend scaffold — Next.js 16 (App Router) + TypeScript + Tailwind CSS v4 +
+  shadcn/ui (`base-nova` preset, `@base-ui/react`) in `web/`. Design tokens in
+  `app/globals.css` wired 1:1 from `docs/DESIGN.md` (light/dark, glass recipe, ambient
+  aurora, tri-font Sora/Inter/Geist via `next/font/google`, Skin Health Score band
+  colors). `next-themes` wired (`class` strategy, system-aware) — no visible toggle yet,
+  that belongs to the app-shell/topbar screen. One shadcn component installed (Button,
+  patched to the pill-shape DESIGN.md §7/§9 requires — the generated default used
+  `rounded-lg`). Playwright configured (`chromium-light`/`chromium-dark` projects) with
+  one smoke test; component-test framework deferred until a real form exists. ESLint +
+  Prettier + `prettier-plugin-tailwindcss`. `npm run {dev,lint,typecheck,test}` all pass;
+  verified visually in both themes (screenshots, not committed).
 
 ## Partially Completed
 
@@ -31,7 +42,9 @@ Better Auth + RBAC, profile & lifestyle modules, seed data. No AI (ADR-007).
 ## Pending
 
 - ☐ Backend scaffold (`backend/` — FastAPI modular monolith, per `docs/CONVENTIONS.md`)
-- ☐ Frontend scaffold (`web/app`, `web/components`, `web/lib` — Next.js + shadcn/ui)
+- ☐ App shell (glass sidebar/topbar, theme toggle, role-based nav) — `docs/WIREFRAMES.md`
+- ☐ Individual M1 screens (login, registration, dashboard, profile/lifestyle, assessment,
+  recommendations, progress) — each its own `feature/frontend-<screen>` branch
 - ☐ Better Auth wiring (registration, login, sessions, JWT/JWKS)
 - ☐ RBAC (`createAccessControl`, `require_role` dependency)
 - ☐ User profile module
@@ -55,8 +68,10 @@ Not started. No `backend/` directory, no `pyproject.toml`/`requirements.txt`.
 
 ## Frontend status
 
-Not started as an application. Design assets only (`web/designs/wireframes/`, 83 files).
-No `package.json`, no `web/app`.
+Scaffold complete (`web/` — Next.js 16 / React 19 / Tailwind v4 / shadcn/ui). No real
+screens yet — `app/page.tsx` is a scaffold smoke test only, not a designed screen. No app
+shell, no Better Auth wiring, no `lib/api.ts` (waits on backend OpenAPI spec). Design
+assets remain in `web/designs/wireframes/` (83 files) as the build reference.
 
 ## Database status
 
@@ -72,8 +87,25 @@ instances have the schema loaded, no Alembic migration history, no Better Auth C
   this as an open gap, not a resolved alternative.
 - `docker-compose.yml` doesn't yet include `minio`/`worker`/`web`/`api` — add when the
   scaffolds and outbox worker (ADR-010) land.
+- **Dark-mode token gap:** `docs/DESIGN.md`'s `colors-dark:` frontmatter doesn't define
+  `*-container`/`on-*-container`/`surface-dim`/`surface-bright`/`inverse-*`/`surface-tint`
+  for dark mode. `web/app/globals.css` derives these mechanically (reusing only hex values
+  already in DESIGN.md, via the same light/dark swap pattern the primary color already
+  uses) and comments each derived line. **Needs design/product-owner confirmation before
+  a real screen ships on dark mode** — verified visually OK for the current smoke test,
+  but not verified against a real dense screen (tables, forms).
+- `docs/WIREFRAMES.md` and `docs/CONVENTIONS.md` reference `web/design/wireframes/`
+  (singular); the real folder is `web/designs/wireframes/` (plural). Doc typo, not a code
+  issue — used the real path.
+- `npm audit` reports 2 moderate findings, both in Next.js's own transitive `postcss` dep;
+  no fix available without downgrading Next itself. Monitor for a Next.js patch release,
+  not actionable now.
+- shadcn's current CLI generates the `base-nova` preset on `@base-ui/react` (not
+  `@radix-ui/react-*`) — a newer shadcn architecture than older docs/training data
+  describe. Relevant if adding more `components/ui/*` later: check the actual generated
+  file, don't assume Radix primitives/props.
 
 ## Next task
 
-Backend scaffold or frontend scaffold (whichever the user picks next) — see
-`AskUserQuestion` decision log in session history; not yet chosen as of this entry.
+Backend scaffold (`backend/` — FastAPI modular monolith) is next up per the user's
+milestone-1 checklist; app shell / individual M1 screens are the frontend follow-ons.
