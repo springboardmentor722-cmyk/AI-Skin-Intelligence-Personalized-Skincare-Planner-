@@ -260,6 +260,90 @@ Better Auth + RBAC, profile & lifestyle modules, seed data. No AI (ADR-007).
   installed Docker Desktop (4.81.0) required macOS 14+, but the machine was on macOS
   12.7.6 — reinstalled Docker Desktop 4.41.2 (the last release supporting macOS 12) to
   resolve it. Not a code change; noted here since it blocked verification.
+- ✔ User dashboard backend (`docs/WIREFRAMES.md` screen 3) — four new services behind
+  `GET /api/v1/scores/me`, `/routines/me`, `/recommendations/me`, `/progress/me/summary`:
+  - **Skin Health Scoring** (`app/services/scores/`) — the exact weighted formula from
+    `docs/AI_ML.md` §"Weighted skin-health score": `skin_condition` from real declared
+    concern severities (the ADR-007 `ConcernDetector` stub's documented output *is* the
+    declared severities, so no extra randomization on top); `sleep_quality` (60% duration
+    band + 40% self-rated, most recent log); `hydration` (glasses/8 via the standard
+    250ml-glass conversion, 7-day avg of `lifestyle_logs.water_intake_liters`);
+    `lifestyle` (equal-weighted sub-index of exercise/stress/diet/sun-exposure, 30-day
+    window — the doc names these 4 components but not their sub-weights, an assumption,
+    not an invented field); `routine_adherence` — no completed-checklist-steps tracking
+    exists anywhere in the documented schema, so this one component is an ADR-007
+    deterministic `hash(user_id)`-seeded stub, same pattern the docs already sanction for
+    unbuilt AI surfaces. One `skin_scores` row per user per day (collapses repeat views).
+  - **Routine Planner** (`app/services/routines/`) — deterministic rule-based AM/PM
+    routine assembly over the `product_skin_types`/`product_concerns` junction tables
+    (ADR-001: indexed joins, not a graph DB) with a seeded pick where multiple products
+    qualify. No dedicated AI surface exists for routine generation (`AI_ML.md`'s 7 model
+    surfaces don't include one). Generated once per user, reused after — regenerating
+    automatically after a skin-profile update isn't built (`routines` has no
+    `skin_profile_id` column to key off), a known gap.
+  - **Product Recommendation** (`app/services/recommendations/`) — stub `Recommender`
+    per `AI_ML.md`: filters by skin type + concern junctions, emits real `reasons[]`.
+    `AI_ML.md`'s stub semantics say "sorts by rating", but the live `products` table has
+    no rating column — ranks by concern-overlap count (a real relational signal) with a
+    `hash(user_id)`-seeded tiebreak instead, matching ADR-007's determinism requirement
+    without inventing a schema column. Cached in Redis (`recommendation:cache:{user_id}`,
+    TTL 24h, already invalidated on profile save by the Skin Profile service).
+  - **Progress Tracking** (`app/services/progress/`) — deliberately minimal M1 slice:
+    just the dashboard's score-trend mini-chart, reading `skin_scores` through the
+    Scoring service's interface function. The full Progress screen (before/after photos,
+    Mongo `progress_logs`, milestones — `WIREFRAMES.md` screen 7) is separate, larger
+    scope, not built here.
+  - **Product seed** (`app/db/seed.py`, wired to the pre-existing `make seed` /
+    `python -m app.db.seed` target) — 14 hand-written placeholder products (clearly a
+    stand-in, not the real Kaggle ingestion pipeline per `DATASETS_AND_APIS.md` §2, which
+    isn't built yet) spanning Cleanser/Treatment/Moisturizer/Sunscreen, linked to real
+    `skin_types`/`skin_concerns` rows via `product_skin_types`/`product_concerns`.
+    Idempotent (dedupes by brand+name).
+  - **Two real bugs found and fixed during live verification:** (1) all new timestamp
+    columns (`created_at`/`updated_at`/`calculated_at`) were mapped with SQLAlchemy
+    client-side `default=None`, which explicitly sends `NULL` in the `INSERT` and
+    shadows the DB's own `DEFAULT CURRENT_TIMESTAMP` — fixed to `server_default=func.now()`
+    matching `skin_profile/models.py`'s already-correct pattern. (2) the score
+    day-collapse query (`ORDER BY calculated_at DESC LIMIT 1`) picked up a stray
+    `NULL`-`calculated_at` row left over from bug (1) — Postgres sorts `NULL` first in
+    `DESC` order by default — so it kept creating new rows instead of updating today's;
+    fixed with `.desc().nulls_last()`, which is correct regardless of whether any bad
+    rows exist.
+  - `env.py`'s model-import block updated to include all four new services (autogenerate
+    couldn't otherwise see their tables at all, silently vacuous-passing a "no drift"
+    check) — the real check then surfaced 6 missing indexes vs the live DDL
+    (`idx_routines_user`, `idx_routines_user_active`, `idx_routine_steps_routine`,
+    `idx_product_skin_types_product`, `idx_product_concerns_product`,
+    `idx_skin_scores_user_time`), added to match exactly; autogenerate now reports a
+    genuinely empty diff.
+  - `ruff`/`mypy` clean. **Verified live, end-to-end**, with a disposable test user (Oily
+    skin type, Acne + Oily Skin concerns, a real lifestyle log): all 5 score sub-scores
+    hand-verified against the formula and matched exactly; routines correctly picked
+    Oily/Acne-matching products and stayed stable across repeat calls; recommendations
+    returned 3 correctly-ranked, correctly-reasoned products and were confirmed
+    Redis-cached (identical on repeat call); progress summary returned real trend points.
+    Test user deleted afterward; `ON DELETE CASCADE` confirmed clean (skin_scores/
+    routines/skin_profiles all zeroed for that user), shared `products` catalog and the
+    2 real pre-existing users untouched.
+  - **Major incident during this task, unrelated to the dashboard code itself:** the
+    session's earlier disk-full event (see `run.py`'s entry above) had corrupted Docker
+    Desktop's VM-internal storage badly enough that a full Docker restart was needed
+    (`com.docker.backend.log` showed `no space left on device` / `read-only file system`
+    / `input/output error` writing Docker's own metadata store at the exact time of the
+    disk-full event). After restarting Docker, its Postgres *container* came back with
+    an empty database — but this turned out to be a red herring, not real data loss: a
+    **native Homebrew Postgres 14** (`brew services`, running since before this session)
+    was silently shadowing `localhost:5432`, and had been the actual database the whole
+    project used all along — Docker's Postgres container had never held the real data.
+    Confirmed via direct inspection (the native instance had the 2 real users + all
+    session data intact) before touching anything further. Resolved by migrating the
+    real data into Docker's Postgres (`pg_dump`/`pg_restore`, `--clean --if-exists`,
+    verified row-for-row including the undocumented `user_profiles` drift columns) and
+    stopping the native service (`brew services stop postgresql@14` — confirmed it no
+    longer auto-starts). Docker's Postgres is now genuinely the system of record, no
+    more port ambiguity. **Nothing was actually lost**, but this cost significant time —
+    worth remembering that `localhost:<port>` can silently resolve to a non-Docker
+    listener on this machine.
 
 ## Partially Completed
 
@@ -300,12 +384,14 @@ sections below); `ml/` and `graphify-out/` still don't exist (M2+ / deferred, AD
 
 ## Backend status
 
-`app/services/user/` (JWT round-trip + `user_profiles` CRUD) and
-`app/services/skin_profile/` (skin taxonomy, versioned skin profiles + concerns, Mongo
-lifestyle logs) are real, working, live-verified services. First Alembic migration
-exists and is stamped against the live database. Every other service package is still
-empty (`ai`, `integrations` too). Verified end-to-end against a real Postgres + Redis
-this session (see "Completed" above); Mongo unverified (not running this session).
+`app/services/user/`, `app/services/skin_profile/`, `app/services/scores/`,
+`app/services/routines/`, `app/services/recommendations/`, `app/services/progress/` are
+real, working, live-verified services (see "Completed" above). `app/ai/` has the stub
+seeding helper + AI-contract schemas the recommender uses; no service package is empty
+except `integrations`. First Alembic migration exists and is stamped against the live
+database — `env.py` now imports every service's models, so `alembic revision
+--autogenerate` is a meaningful (not vacuous) drift check. Verified end-to-end against a
+real Postgres + Mongo + Redis this session.
 
 ## Frontend status
 
@@ -321,20 +407,27 @@ stub `userName` in each layout). Design assets remain in `web/designs/wireframes
 
 ## Database status
 
-**Postgres is live and populated** — the user loaded
-`database_schemas/skinlytics_postgresql_schema_v3.sql` directly (all 32 v3 tables) plus
-ran the Better Auth CLI migration (identity tables). `alembic_version` is stamped at
-`50e82a643bf9` (this session's baseline migration for `user_profiles`/`skin_profiles`/
-`skin_types`/`skin_concerns`/`skin_profile_concerns` — see "Completed"). **Redis is also
-live** (confirmed: the skin-profile save's cache-invalidation call succeeded for real).
-**MongoDB is not running** this session — `lifestyle_logs` writes are implemented but
-unverified live; start it with `docker compose up -d mongo` (or `make up` for
-everything) to test for real.
+**Postgres runs in Docker (`docker-compose.yml`'s `postgres` service) and is now
+genuinely the system of record** — live and populated (all 32 v3 tables +
+Better Auth identity tables), `alembic_version` stamped at `50e82a643bf9`. **This
+wasn't always true**: for most of this session, a native Homebrew Postgres 14
+(`brew services`) was silently shadowing `localhost:5432` and was the database the app
+actually talked to; Docker's Postgres container was an unused decoy. Discovered when a
+Docker VM corruption (disk-full event, see `run.py`'s Completed entry) left Docker's
+container empty and made it *look* like real data had been lost — it hadn't. Resolved
+by `pg_dump`/`pg_restore`-migrating the real data (2 real users + all session data,
+verified row-for-row) into Docker's Postgres, then `brew services stop postgresql@14`
+(confirmed it no longer auto-starts — `brew services list` shows `none`). If a future
+session finds Postgres behaving unexpectedly again, check `lsof -i :5432` first — don't
+assume Docker's container is what's actually being talked to. **Redis is live**
+(confirmed via the recommendation-cache round-trip this session). **MongoDB is live**
+(confirmed via real `lifestyle_logs` writes this session).
 
 Known schema drift, not yet cleaned up: live `user_profiles` has 3 columns
 (`email`/`role`/`is_active`) absent from the documented v3 schema — see "Completed" for
-the full story. `docker-compose.yml` can also bring up empty containers for a from
--scratch setup, but that's not what's running now.
+the full story; preserved through the `pg_dump`/`pg_restore` migration above.
+`docker-compose.yml` can also bring up empty containers for a from-scratch setup, but
+that's not what's running now.
 
 ## Known issues / open decisions
 
@@ -367,8 +460,9 @@ the full story. `docker-compose.yml` can also bring up empty containers for a fr
   `curl -LsSf https://astral.sh/uv/install.sh | sh` installer instead, which ships a
   precompiled binary). Prefer precompiled installers over `brew install` for build-heavy
   formulas in this environment.
-- Docker isn't installed in this dev sandbox — `api`/`web` containerization needs a
-  session where it's available (or the user's own machine) to write and verify.
+- Docker isn't installed in the Claude Code sandbox, but is available and working on the
+  maintainer's actual Mac (see `run.py`'s Completed entry and "Database status" above) —
+  `api`/`web` containerization can now be written and verified there.
 - **Route collision, resolved:** `docs/CONVENTIONS.md`'s route tree shows
   `(user)/dashboard`, `(consultant)/…`, `(dermatologist)/…`, `(admin)/…` as route groups,
   but Next.js route groups add no URL segment — four roles each having their own

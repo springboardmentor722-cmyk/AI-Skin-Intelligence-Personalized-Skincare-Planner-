@@ -6,6 +6,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.errors import register_exception_handlers
 from app.core.logging import RequestIdMiddleware, configure_logging
+from app.services.progress.router import router as progress_router
+from app.services.recommendations.router import router as recommendations_router
+from app.services.routines.router import router as routines_router
+from app.services.scores.router import router as scores_router
 from app.services.skin_profile.router import lifestyle_router
 from app.services.skin_profile.router import router as skin_profile_router
 from app.services.user.router import router as user_router
@@ -47,6 +51,10 @@ def create_app() -> FastAPI:
     # two API prefixes per docs/ARCHITECTURE.md §4, so no extra prefix here.
     api_v1.include_router(skin_profile_router, tags=["skin-profiles"])
     api_v1.include_router(lifestyle_router, tags=["lifestyle-logs"])
+    api_v1.include_router(scores_router, tags=["scores"])
+    api_v1.include_router(routines_router, tags=["routines"])
+    api_v1.include_router(recommendations_router, tags=["recommendations"])
+    api_v1.include_router(progress_router, tags=["progress"])
     app.include_router(api_v1)
 
     return app
