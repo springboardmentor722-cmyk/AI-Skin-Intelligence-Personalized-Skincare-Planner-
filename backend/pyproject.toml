@@ -1,0 +1,45 @@
+[project]
+name = "skinlytics-backend"
+version = "0.1.0"
+description = "Skinlytics FastAPI modular monolith (docs/ARCHITECTURE.md, ADR-005)"
+requires-python = ">=3.11"
+dependencies = [
+    "alembic>=1.18.5",
+    "asyncpg>=0.31.0",
+    "fastapi>=0.139.0",
+    "motor>=3.7.1",
+    "pydantic-settings>=2.14.2",
+    "pyjwt>=2.13.0",
+    "redis>=8.0.1",
+    "sqlalchemy[asyncio]>=2.0.51",
+    "structlog>=26.1.0",
+    "uvicorn[standard]>=0.51.0",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "mypy>=2.2.0",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.15.20",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+# B008: FastAPI's Depends()-as-default is the framework's own dependency-injection
+# idiom (database_schemas/skinlytics_identity_betterauth.md), not a real bug here.
+ignore = ["B008"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+exclude = ["tests/"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

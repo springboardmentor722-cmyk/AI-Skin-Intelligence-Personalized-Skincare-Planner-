@@ -33,15 +33,32 @@ Better Auth + RBAC, profile & lifestyle modules, seed data. No AI (ADR-007).
   one smoke test; component-test framework deferred until a real form exists. ESLint +
   Prettier + `prettier-plugin-tailwindcss`. `npm run {dev,lint,typecheck,test}` all pass;
   verified visually in both themes (screenshots, not committed).
+- ✔ Backend scaffold — FastAPI modular monolith in `backend/` (Python 3.11+ floor, `.venv`
+  pinned to 3.12 via `uv`). `app/main.py` app factory: request-id middleware, CORS
+  (origin = `BETTER_AUTH_URL`), standard error envelope (`CONVENTIONS.md`) registered on
+  `starlette.exceptions.HTTPException` (not `fastapi.HTTPException` — the latter misses
+  Starlette's own routing-level 404/405s), `/health` (unversioned) + empty `/api/v1`
+  router ready for service routers. `app/core/security.py` — `require_user`/`require_role`
+  JWT-via-JWKS validation verbatim from the identity doc, extended with the Redis
+  `auth:blacklist:{jti}` check the doc describes separately. `app/db/{postgres,mongo,redis}.py`
+  wired (async SQLAlchemy/asyncpg, motor, redis.asyncio) — Elasticsearch and the vector DB
+  intentionally **not** wired yet (ADR-010: derived stores, worker lands M2, no reason to
+  hold an unused client). Alembic scaffolded (`app/migrations/`, async template,
+  `target_metadata = Base.metadata`) but **no migrations written yet** — no service owns
+  any tables until the next service-building task. `structlog` JSON/console logging.
+  `ruff`/`mypy --strict`/`pytest` all pass; verified against a real running server
+  (`uvicorn`), not just tests. `docker-compose.yml`/Dockerfiles for `api`/`web` were
+  **not** added — Docker isn't installed in this dev sandbox, so I didn't want to commit
+  unverified container config (see Known Issues).
 
 ## Partially Completed
 
-- ◐ `docker-compose.yml` — missing `web`, `api`, `minio`, `worker` services (added as
-  those scaffolds land; `minio` needed once file-storage-dependent modules start)
+- ◐ `docker-compose.yml` — missing `web`, `api`, `minio`, `worker` services. `backend/`
+  and `web/` now exist so this is unblocked, but adding Dockerfiles/compose entries needs
+  verification against a real Docker daemon first (not available in this session).
 
 ## Pending
 
-- ☐ Backend scaffold (`backend/` — FastAPI modular monolith, per `docs/CONVENTIONS.md`)
 - ☐ App shell (glass sidebar/topbar, theme toggle, role-based nav) — `docs/WIREFRAMES.md`
 - ☐ Individual M1 screens (login, registration, dashboard, profile/lifestyle, assessment,
   recommendations, progress) — each its own `feature/frontend-<screen>` branch
@@ -51,7 +68,9 @@ Better Auth + RBAC, profile & lifestyle modules, seed data. No AI (ADR-007).
 - ☐ Lifestyle tracking module
 - ☐ Initial dataset seed (products/ingredients from Kaggle + curated INCIDecoder/COSDNA
   references, per `docs/DATASETS_AND_APIS.md`)
-- ☐ Real Postgres/MongoDB instances provisioned + Alembic migrations applied
+- ☐ Real Postgres/MongoDB instances provisioned + first Alembic migration (waits on the
+  first service owning tables — e.g. User/Auth glue or Skin Profile)
+- ☐ `api`/`web` Dockerfiles + docker-compose entries — needs a Docker-available session
 - ☐ Graphify setup (ADR-006) — explicitly deferred by product owner, revisit later
   (2026-07-08 decision, see Known Issues)
 
@@ -64,7 +83,11 @@ config files exist. `backend/`, `web/app`, `ml/`, `graphify-out/` do not exist y
 
 ## Backend status
 
-Not started. No `backend/` directory, no `pyproject.toml`/`requirements.txt`.
+Scaffold complete (`backend/` — FastAPI, `uv`, SQLAlchemy async/Mongo/Redis wired,
+Alembic ready). No services implemented yet — `app/services/` is an empty package. No
+routes exist under `/api/v1` beyond the empty router; `/health` is the only live
+endpoint. Waits on the Authentication/RBAC/User-Profile/Lifestyle-Tracking tasks to add
+real services.
 
 ## Frontend status
 
@@ -104,8 +127,17 @@ instances have the schema loaded, no Alembic migration history, no Better Auth C
   `@radix-ui/react-*`) — a newer shadcn architecture than older docs/training data
   describe. Relevant if adding more `components/ui/*` later: check the actual generated
   file, don't assume Radix primitives/props.
+- This dev sandbox has a small/constrained temp partition separate from the main disk —
+  `brew install <anything that builds from source>` can exhaust it (hit this installing
+  `uv` via a source-built `rustc` dependency; fixed by using the official
+  `curl -LsSf https://astral.sh/uv/install.sh | sh` installer instead, which ships a
+  precompiled binary). Prefer precompiled installers over `brew install` for build-heavy
+  formulas in this environment.
+- Docker isn't installed in this dev sandbox — `api`/`web` containerization needs a
+  session where it's available (or the user's own machine) to write and verify.
 
 ## Next task
 
-Backend scaffold (`backend/` — FastAPI modular monolith) is next up per the user's
-milestone-1 checklist; app shell / individual M1 screens are the frontend follow-ons.
+App shell (glass sidebar/topbar, role-based nav, theme toggle) or a service module
+(User/Auth glue is the natural first one, since Authentication is next on the
+milestone-1 checklist and needs `app/services/user/`) — user's call.
