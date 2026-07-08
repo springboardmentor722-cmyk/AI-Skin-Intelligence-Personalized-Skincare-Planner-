@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Skinlytics | Assessment Intro</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;family=Geist:wght@400;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface": "#fcf8fa",
+                    "on-surface": "#1b1b1d",
+                    "on-error-container": "#93000a",
+                    "on-primary": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "surface-variant": "#e4e2e4",
+                    "inverse-primary": "#bec6e0",
+                    "surface-container-highest": "#e4e2e4",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-fixed": "#00174b",
+                    "on-background": "#1b1b1d",
+                    "surface-dim": "#dcd9db",
+                    "outline": "#76777d",
+                    "primary-fixed": "#dae2fd",
+                    "on-tertiary-fixed": "#00201c",
+                    "inverse-on-surface": "#f3f0f2",
+                    "tertiary-container": "#00201c",
+                    "surface-bright": "#fcf8fa",
+                    "primary": "#000000",
+                    "on-primary-fixed-variant": "#3f465c",
+                    "on-tertiary-fixed-variant": "#005048",
+                    "surface-container-lowest": "#ffffff",
+                    "outline-variant": "#c6c6cd",
+                    "surface-container-low": "#f6f3f5",
+                    "error": "#ba1a1a",
+                    "tertiary-fixed-dim": "#4fdbc8",
+                    "on-secondary-fixed-variant": "#003ea8",
+                    "tertiary-fixed": "#71f8e4",
+                    "secondary-fixed-dim": "#b4c5ff",
+                    "secondary": "#0051d5",
+                    "on-error": "#ffffff",
+                    "secondary-fixed": "#dbe1ff",
+                    "secondary-container": "#316bf3",
+                    "on-primary-container": "#7c839b",
+                    "primary-container": "#131b2e",
+                    "primary-fixed-dim": "#bec6e0",
+                    "on-secondary-container": "#fefcff",
+                    "surface-container-high": "#eae7e9",
+                    "error-container": "#ffdad6",
+                    "surface-container": "#f0edef",
+                    "on-tertiary-container": "#009485",
+                    "on-surface-variant": "#45464d",
+                    "inverse-surface": "#303032",
+                    "background": "#fcf8fa",
+                    "tertiary": "#000000",
+                    "surface-tint": "#565e74",
+                    "on-primary-fixed": "#131b2e"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "3xl": "64px",
+                    "margin-desktop": "48px",
+                    "xl": "32px",
+                    "xs": "4px",
+                    "margin-mobile": "16px",
+                    "sm": "8px",
+                    "base": "4px",
+                    "lg": "24px",
+                    "md": "16px",
+                    "gutter": "24px",
+                    "2xl": "48px"
+            },
+            "fontFamily": {
+                    "h2": ["Sora"],
+                    "h1-mobile": ["Sora"],
+                    "h1": ["Sora"],
+                    "body-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "label-caps": ["Geist"],
+                    "h3": ["Sora"],
+                    "data-display": ["Geist"]
+            },
+            "fontSize": {
+                    "h2": ["32px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "h1-mobile": ["30px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "h1": ["40px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "h3": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "data-display": ["32px", {"lineHeight": "1.0", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.68);
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+        }
+        .stepper-line {
+            height: 2px;
+            background: rgba(15, 23, 42, 0.08);
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            z-index: 0;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-dot {
+            box-shadow: 0 0 12px rgba(0, 81, 213, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md selection:bg-secondary/20 overflow-x-hidden min-h-screen">
+<!-- Ambient Shader Background -->
+<div class="fixed inset-0 z-0 pointer-events-none opacity-40">
+<!-- STITCH_SHADER_START:ANIMATION_3 class="absolute inset-0 w-full h-full" -->
+<div class="absolute inset-0 w-full h-full" style="display:block;">
+<canvas id="shader-canvas-ANIMATION_3" style="display:block;width:100%;height:100%"></canvas>
+<script>
+(function() {
+  const canvas = document.getElementById('shader-canvas-ANIMATION_3');
+
+  // Sync the WebGL drawing-buffer size with the CSS-driven layout size.
+  // This fires on initial layout and whenever the element is resized.
+  function syncSize() {
+    const w = canvas.clientWidth  || 1280;
+    const h = canvas.clientHeight || 720;
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width  = w;
+      canvas.height = h;
+    }
+  }
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(syncSize).observe(canvas);
+  }
+  syncSize();
+
+  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  if (!gl) return;
+  const vs = `attribute vec2 a_position;
+varying vec2 v_texCoord;
+void main() {
+  v_texCoord = a_position * 0.5 + 0.5;
+  gl_Position = vec4(a_position, 0.0, 1.0);
+}`;
+  const fs = `precision highp float;
+uniform float u_time;
+uniform vec2 u_resolution;
+varying vec2 v_texCoord;
+
+void main() {
+    vec2 uv = v_texCoord;
+    
+    // Smooth drifting aurora effect using sine waves and time
+    float noise1 = sin(uv.x * 2.0 + u_time * 0.2) * 0.5 + 0.5;
+    float noise2 = sin(uv.y * 1.5 - u_time * 0.15) * 0.5 + 0.5;
+    
+    // Skinlytics Palette: Navy -> Royal Blue -> Teal
+    vec3 color1 = vec3(0.058, 0.09, 0.165); // Deep Navy (#0F172A)
+    vec3 color2 = vec3(0.145, 0.388, 0.922); // Royal Blue (#2563EB)
+    vec3 color3 = vec3(0.078, 0.722, 0.651); // Teal (#14B8A6)
+    
+    // Create a mesh-like drift
+    float t = u_time * 0.1;
+    vec2 p1 = vec2(0.5 + 0.3 * cos(t), 0.5 + 0.3 * sin(t));
+    vec2 p2 = vec2(0.5 + 0.3 * cos(t + 2.0), 0.5 + 0.3 * sin(t + 2.0));
+    vec2 p3 = vec2(0.5 + 0.3 * cos(t + 4.0), 0.5 + 0.3 * sin(t + 4.0));
+    
+    float d1 = 1.0 - smoothstep(0.0, 1.0, distance(uv, p1));
+    float d2 = 1.0 - smoothstep(0.0, 1.0, distance(uv, p2));
+    float d3 = 1.0 - smoothstep(0.0, 1.0, distance(uv, p3));
+    
+    vec3 finalColor = mix(color1, color2, d2 * 0.15);
+    finalColor = mix(finalColor, color3, d3 * 0.1);
+    
+    // Final ambient opacity (6-10% as requested)
+    gl_FragColor = vec4(finalColor, 0.08);
+}`;
+  function cs(type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    return s;
+  }
+  const prog = gl.createProgram();
+  gl.attachShader(prog, cs(gl.VERTEX_SHADER, vs));
+  gl.attachShader(prog, cs(gl.FRAGMENT_SHADER, fs));
+  gl.linkProgram(prog);
+  gl.useProgram(prog);
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+  const pos = gl.getAttribLocation(prog, 'a_position');
+  gl.enableVertexAttribArray(pos);
+  gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
+  const uTime = gl.getUniformLocation(prog, 'u_time');
+  const uRes = gl.getUniformLocation(prog, 'u_resolution');
+  const uMouse = gl.getUniformLocation(prog, 'u_mouse');
+
+  // u_mouse is in pixel coordinates matching u_resolution (ShaderToy convention).
+  // Shaders that need normalized coords should use: u_mouse / u_resolution.
+  let mouse = { x: canvas.width / 2, y: canvas.height / 2 };
+  window.addEventListener('mousemove', (event) => {
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width && rect.height) {
+      const nx = (event.clientX - rect.left) / rect.width;
+      const ny = 1.0 - (event.clientY - rect.top) / rect.height;
+      mouse.x = nx * canvas.width;
+      mouse.y = ny * canvas.height;
+    }
+  });
+
+  function render(t) {
+    if (typeof ResizeObserver === 'undefined') syncSize();
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    if (uTime) gl.uniform1f(uTime, t * 0.001);
+    if (uRes) gl.uniform2f(uRes, canvas.width, canvas.height);
+    if (uMouse) gl.uniform2f(uMouse, mouse.x, mouse.y);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    requestAnimationFrame(render);
+  }
+  render(0);
+})();
+</script>
+</div>
+<!-- STITCH_SHADER_END:ANIMATION_3 -->
+</div>
+<!-- Layout Container -->
+<main class="relative z-10 flex flex-col items-center min-h-screen px-margin-mobile md:px-margin-desktop py-lg max-w-[1440px] mx-auto">
+<!-- Header / Stepper Preview -->
+<header class="w-full max-w-3xl mb-3xl">
+<div class="flex items-center justify-between mb-md">
+<span class="font-h3 text-h3 font-bold text-primary">Skinlytics</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">Introduction</span>
+</div>
+<div class="relative flex justify-between items-center w-full px-xs">
+<div class="stepper-line"></div>
+<!-- Step 1 (Active) -->
+<div class="relative z-10 flex flex-col items-center">
+<div class="w-4 h-4 rounded-full bg-secondary active-dot border-2 border-white"></div>
+<span class="absolute top-6 font-label-caps text-[10px] whitespace-nowrap text-secondary font-bold">START</span>
+</div>
+<!-- Step 2 -->
+<div class="relative z-10 flex flex-col items-center">
+<div class="w-3 h-3 rounded-full bg-surface-variant border border-on-surface/10"></div>
+</div>
+<!-- Step 3 -->
+<div class="relative z-10 flex flex-col items-center">
+<div class="w-3 h-3 rounded-full bg-surface-variant border border-on-surface/10"></div>
+</div>
+<!-- Step 4 -->
+<div class="relative z-10 flex flex-col items-center">
+<div class="w-3 h-3 rounded-full bg-surface-variant border border-on-surface/10"></div>
+</div>
+<!-- Step 5 -->
+<div class="relative z-10 flex flex-col items-center">
+<div class="w-3 h-3 rounded-full bg-surface-variant border border-on-surface/10"></div>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<section class="w-full max-w-4xl flex flex-col items-center gap-xl">
+<!-- Welcome Message -->
+<div class="text-center space-y-sm">
+<h1 class="font-h1 text-h1 text-primary">Hi Aarav — let's understand your skin.</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-xl mx-auto">
+                    Your personalized clinical-grade analysis begins with a comprehensive look at your unique biology and environment.
+                </p>
+</div>
+<!-- Glass Panel: Diagnostic Overview -->
+<div class="glass-panel rounded-xl p-lg md:p-xl w-full grid grid-cols-1 md:grid-cols-2 gap-xl items-center">
+<!-- Left: Content -->
+<div class="space-y-lg">
+<div class="space-y-md">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary">clinical_notes</span>
+<h3 class="font-h3 text-h3 text-primary">Assessment Plan</h3>
+</div>
+<p class="text-on-surface-variant">
+                            We use a 5-step protocol taking approximately <span class="text-primary font-semibold">3 minutes</span>. Our AI cross-references visual markers with your daily habits for maximum accuracy.
+                        </p>
+</div>
+<!-- Analysis Points -->
+<div class="grid grid-cols-1 gap-md">
+<div class="flex items-start gap-md group">
+<div class="p-sm rounded-lg bg-secondary/5 text-secondary transition-colors group-hover:bg-secondary/10">
+<span class="material-symbols-outlined">face</span>
+</div>
+<div>
+<h4 class="font-body-md font-semibold text-primary">Skin Micro-Texture</h4>
+<p class="text-on-surface-variant text-sm">Visual analysis of pore size, hydration levels, and elasticity.</p>
+</div>
+</div>
+<div class="flex items-start gap-md group">
+<div class="p-sm rounded-lg bg-secondary/5 text-secondary transition-colors group-hover:bg-secondary/10">
+<span class="material-symbols-outlined">bedtime</span>
+</div>
+<div>
+<h4 class="font-body-md font-semibold text-primary">Lifestyle &amp; Sleep</h4>
+<p class="text-on-surface-variant text-sm">Evaluating recovery cycles and hormonal impact on barrier health.</p>
+</div>
+</div>
+<div class="flex items-start gap-md group">
+<div class="p-sm rounded-lg bg-secondary/5 text-secondary transition-colors group-hover:bg-secondary/10">
+<span class="material-symbols-outlined">thermostat</span>
+</div>
+<div>
+<h4 class="font-body-md font-semibold text-primary">Environmental Stress</h4>
+<p class="text-on-surface-variant text-sm">Local UV index, humidity, and pollution mapping for your location.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Right: Visual/Image Component -->
+<div class="relative group">
+<div class="absolute inset-0 bg-secondary/10 rounded-xl -rotate-2 group-hover:rotate-0 transition-transform duration-500"></div>
+<div class="relative rounded-xl overflow-hidden aspect-[4/5] shadow-lg">
+<img class="w-full h-full object-cover" data-alt="A high-end, clinical-style close-up photograph of a professional diagnostic facial scan in progress. A modern laboratory setting with soft, cool white and blue lighting. The image captures the translucent layers of skin being illuminated by a gentle, glowing blue analytical light, emphasizing medical precision and clean technology. The aesthetic is serene, professional, and sophisticated, reflecting a high-tech wellness lab." src="source/images/assessment-intro/img_000_22c402cb.jpg"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+<div class="absolute bottom-md left-md right-md">
+<div class="glass-panel p-sm rounded-lg flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary animate-pulse">camping</span>
+<span class="font-label-caps text-[10px] text-primary">AI ENGINE ACTIVE</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Privacy & Consent Footer Inside Content Area -->
+<div class="w-full max-w-2xl text-center space-y-md">
+<div class="flex flex-col md:flex-row items-center justify-center gap-md text-on-surface-variant/80 text-sm">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+<span>HIPAA Compliant Privacy</span>
+</div>
+<div class="hidden md:block w-1 h-1 bg-on-surface/20 rounded-full"></div>
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">photo_camera</span>
+<span>Photo consent required for analysis</span>
+</div>
+</div>
+<!-- CTA Section -->
+<div class="flex flex-col sm:flex-row items-center justify-center gap-md pt-md">
+<button class="px-3xl py-md bg-primary text-on-primary rounded-full font-semibold hover:bg-primary/90 transition-all active:scale-95 flex items-center gap-sm">
+                        Begin assessment
+                        <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<button class="px-xl py-md border border-primary/10 text-on-surface-variant rounded-full font-medium hover:bg-surface-container transition-all active:scale-95">
+                        Skip for now
+                    </button>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="mt-auto pt-3xl w-full border-t border-on-surface/8 flex flex-col md:flex-row justify-between items-center gap-md py-lg">
+<span class="font-label-caps text-label-caps text-on-surface-variant">© 2024 Skinlytics Lab. Clinical Grade AI.</span>
+<div class="flex gap-lg">
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors" href="#">Terms of Service</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors" href="#">HIPAA Compliance</a>
+</div>
+</footer>
+</main>
+<script>
+        // Micro-interaction for the CTA button pulse effect
+        const primaryCta = document.querySelector('button.bg-primary');
+        if (primaryCta) {
+            primaryCta.addEventListener('mouseenter', () => {
+                primaryCta.querySelector('.material-symbols-outlined').style.transform = 'translateX(4px)';
+            });
+            primaryCta.addEventListener('mouseleave', () => {
+                primaryCta.querySelector('.material-symbols-outlined').style.transform = 'translateX(0px)';
+            });
+        }
+
+        // Add smooth appearance for the glass panel
+        document.addEventListener('DOMContentLoaded', () => {
+            const panel = document.querySelector('.glass-panel');
+            panel.style.opacity = '0';
+            panel.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                panel.style.transition = 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)';
+                panel.style.opacity = '1';
+                panel.style.transform = 'translateY(0px)';
+            }, 100);
+        });
+    </script>
+</body></html>

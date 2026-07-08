@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Patient Detail | Skinlytics AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@600;700;800&family=Geist:wght@400;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-shell {
+            background: rgba(255, 255, 255, 0.68);
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+        }
+        .diagnostic-card {
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 16px;
+        }
+        .aurora-bg {
+            background: radial-gradient(circle at 0% 0%, rgba(0, 81, 213, 0.05) 0%, transparent 50%),
+                        radial-gradient(circle at 100% 100%, rgba(113, 248, 228, 0.08) 0%, transparent 50%);
+        }
+        .skin-score-gradient {
+            stroke: url(#scoreGradient);
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s ease-out;
+        }
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 24px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary": "#0051d5",
+                        "error": "#ba1a1a",
+                        "surface-dim": "#dcd9db",
+                        "surface-container-low": "#f6f3f5",
+                        "secondary-fixed-dim": "#b4c5ff",
+                        "on-primary-container": "#7c839b",
+                        "surface-container-high": "#eae7e9",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "on-error-container": "#93000a",
+                        "on-surface": "#1b1b1d",
+                        "error-container": "#ffdad6",
+                        "background": "#fcf8fa",
+                        "surface-variant": "#e4e2e4",
+                        "outline-variant": "#c6c6cd",
+                        "secondary-container": "#316bf3",
+                        "on-background": "#1b1b1d",
+                        "surface-tint": "#565e74",
+                        "on-tertiary-fixed": "#00201c",
+                        "surface-container-highest": "#e4e2e4",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-container": "#fefcff",
+                        "inverse-on-surface": "#f3f0f2",
+                        "primary": "#000000",
+                        "tertiary-fixed": "#71f8e4",
+                        "surface-bright": "#fcf8fa",
+                        "on-tertiary-container": "#009485",
+                        "on-surface-variant": "#45464d",
+                        "on-secondary-fixed-variant": "#003ea8",
+                        "on-error": "#ffffff",
+                        "on-secondary-fixed": "#00174b",
+                        "tertiary-container": "#00201c",
+                        "primary-fixed": "#dae2fd",
+                        "on-tertiary-fixed-variant": "#005048",
+                        "surface-container-lowest": "#ffffff",
+                        "outline": "#76777d",
+                        "primary-container": "#131b2e",
+                        "on-primary": "#ffffff",
+                        "primary-fixed-dim": "#bec6e0",
+                        "on-primary-fixed": "#131b2e",
+                        "inverse-surface": "#303032",
+                        "tertiary-fixed-dim": "#4fdbc8",
+                        "surface-container": "#f0edef",
+                        "inverse-primary": "#bec6e0",
+                        "on-secondary": "#ffffff",
+                        "tertiary": "#000000",
+                        "secondary-fixed": "#dbe1ff",
+                        "surface": "#fcf8fa"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xl": "32px",
+                        "xs": "4px",
+                        "margin-desktop": "48px",
+                        "2xl": "48px",
+                        "base": "4px",
+                        "3xl": "64px",
+                        "margin-mobile": "16px",
+                        "md": "16px",
+                        "sm": "8px",
+                        "lg": "24px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "h2": ["Sora"],
+                        "body-md": ["Inter"],
+                        "label-caps": ["Geist"],
+                        "body-lg": ["Inter"],
+                        "h1": ["Sora"],
+                        "h3": ["Sora"],
+                        "h1-mobile": ["Sora"],
+                        "data-display": ["Geist"]
+                    },
+                    "fontSize": {
+                        "h2": ["32px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "h1": ["40px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "h3": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "h1-mobile": ["30px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "data-display": ["32px", {"lineHeight": "1.0", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background font-body-md text-on-surface aurora-bg min-h-screen">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-desktop h-20 glass-shell border-b border-outline-variant/10">
+<div class="flex items-center gap-xl">
+<span class="font-h3 text-h3 font-bold text-primary">Skinlytics</span>
+<nav class="hidden md:flex gap-lg">
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md" href="#">Features</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md" href="#">How it works</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md" href="#">Professionals</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md" href="#">Pricing</a>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<button class="font-body-md text-primary hover:opacity-80 transition-opacity px-lg py-sm">Login</button>
+<button class="bg-primary text-on-primary font-body-md px-lg py-sm rounded-full hover:bg-primary/90 transition-all">Start free assessment</button>
+</div>
+</header>
+<!-- Side Navigation -->
+<aside class="fixed left-0 top-0 h-full w-64 glass-shell border-r border-outline-variant/10 flex flex-col p-lg pt-24 hidden md:flex">
+<div class="space-y-sm flex-1">
+<div class="flex items-center gap-md p-md rounded-lg bg-secondary/10 text-secondary border-r-4 border-secondary">
+<span class="material-symbols-outlined" data-icon="clinical_notes">clinical_notes</span>
+<span class="font-label-caps text-label-caps">Analyses</span>
+</div>
+<div class="flex items-center gap-md p-md rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-caps text-label-caps">Dashboard</span>
+</div>
+<div class="flex items-center gap-md p-md rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined" data-icon="science">science</span>
+<span class="font-label-caps text-label-caps">Ingredients</span>
+</div>
+<div class="flex items-center gap-md p-md rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined" data-icon="trending_up">trending_up</span>
+<span class="font-label-caps text-label-caps">Progress</span>
+</div>
+<div class="flex items-center gap-md p-md rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-label-caps text-label-caps">Insights</span>
+</div>
+</div>
+<div class="border-t border-outline-variant/10 pt-lg space-y-sm">
+<div class="flex items-center gap-md p-md rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-caps text-label-caps">Account</span>
+</div>
+<div class="flex items-center gap-md p-md rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-caps text-label-caps">Settings</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:ml-64 pt-24 px-lg pb-xl max-w-[1440px]">
+<!-- Patient Header Section -->
+<div class="diagnostic-card p-xl mb-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-xl">
+<div class="flex items-center gap-xl">
+<div class="relative w-24 h-24">
+<!-- Skin Score Ring -->
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 100 100">
+<circle cx="50" cy="50" fill="none" r="45" stroke="#f0edef" stroke-width="8"></circle>
+<circle class="skin-score-gradient" cx="50" cy="50" fill="none" r="45" stroke="#0051d5" stroke-dasharray="283" stroke-dashoffset="99" stroke-width="8"></circle>
+<defs>
+<lineargradient id="scoreGradient" x1="0%" x2="100%" y1="0%" y2="0%">
+<stop offset="0%" stop-color="#0051d5"></stop>
+<stop offset="100%" stop-color="#71f8e4"></stop>
+</lineargradient>
+</defs>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center rotate-90">
+<span class="font-data-display text-data-display text-primary leading-none">65</span>
+<span class="text-[10px] font-label-caps text-on-surface-variant uppercase">Score</span>
+</div>
+</div>
+<div>
+<h1 class="font-h2 text-h2 text-primary">Eleanor Vance</h1>
+<div class="flex items-center gap-md mt-sm">
+<span class="text-on-surface-variant font-label-caps">ID: PX-8829-M</span>
+<span class="bg-error/10 text-error px-md py-xs rounded-full text-label-caps font-semibold">HIGH RISK</span>
+</div>
+</div>
+</div>
+<div class="flex gap-md">
+<button class="px-lg py-sm border border-primary rounded-full font-body-md hover:bg-surface-container-low transition-colors">Export PDF</button>
+<button class="px-lg py-sm bg-primary text-on-primary rounded-full font-body-md hover:opacity-90 transition-all shadow-lg shadow-primary/5">Generate Diagnostic Batch</button>
+</div>
+</div>
+<!-- Navigation Tabs -->
+<div class="flex gap-xl border-b border-outline-variant/10 mb-lg">
+<button class="pb-md text-primary font-bold border-b-2 border-secondary font-body-md transition-all">Condition Report</button>
+<button class="pb-md text-on-surface-variant hover:text-primary font-body-md transition-all">History</button>
+<button class="pb-md text-on-surface-variant hover:text-primary font-body-md transition-all">Photos</button>
+<button class="pb-md text-on-surface-variant hover:text-primary font-body-md transition-all">Documents</button>
+</div>
+<!-- Condition Report Grid -->
+<div class="bento-grid">
+<!-- Left Column: Face Map & Severity -->
+<div class="col-span-12 lg:col-span-8 space-y-gutter">
+<!-- Face Map Module -->
+<div class="diagnostic-card p-xl">
+<div class="flex justify-between items-center mb-xl">
+<h3 class="font-h3 text-h3 text-primary">Affected Area Mapping</h3>
+<div class="flex gap-md">
+<span class="flex items-center gap-xs font-label-caps"><span class="w-3 h-3 rounded-full bg-error"></span> Active Inflam</span>
+<span class="flex items-center gap-xs font-label-caps"><span class="w-3 h-3 rounded-full bg-secondary"></span> Erythema</span>
+</div>
+</div>
+<div class="flex flex-col md:flex-row gap-xl items-center">
+<div class="w-full md:w-1/2 aspect-square relative flex items-center justify-center bg-surface-container-lowest rounded-xl">
+<!-- Placeholder for Gender-neutral Face Map Line Art -->
+<div class="w-64 h-64 opacity-60 relative">
+<svg class="w-full h-full text-outline-variant" viewbox="0 0 100 100">
+<path d="M50,10 C30,10 15,30 15,50 C15,70 30,90 50,90 C70,90 85,70 85,50 C85,30 70,10 50,10 Z" fill="none" stroke="currentColor" stroke-width="1"></path>
+<path d="M35,45 Q40,40 45,45" fill="none" stroke="currentColor" stroke-width="1"></path>
+<path d="M55,45 Q60,40 65,45" fill="none" stroke="currentColor" stroke-width="1"></path>
+<path d="M45,65 Q50,70 55,65" fill="none" stroke="currentColor" stroke-width="1"></path>
+</svg>
+<!-- Highlight Zones -->
+<div class="absolute top-[35%] left-[25%] w-8 h-8 bg-error/20 rounded-full blur-md animate-pulse"></div>
+<div class="absolute top-[40%] right-[30%] w-10 h-10 bg-error/30 rounded-full blur-lg animate-pulse"></div>
+<div class="absolute bottom-[20%] left-[45%] w-12 h-6 bg-secondary/20 rounded-full blur-md"></div>
+</div>
+</div>
+<div class="w-full md:w-1/2 space-y-md">
+<div class="p-lg border border-outline-variant/10 rounded-lg">
+<span class="text-error font-label-caps block mb-xs">Primary Concern</span>
+<p class="font-body-md text-primary font-semibold">Cystic Acne Conglobata</p>
+<p class="text-on-surface-variant text-sm mt-xs">Deep inflammation concentrated on the zygomatic arch and mandibular line.</p>
+</div>
+<div class="p-lg border border-outline-variant/10 rounded-lg">
+<span class="text-secondary font-label-caps block mb-xs">Secondary Observation</span>
+<p class="font-body-md text-primary font-semibold">Post-Inflammatory Erythema</p>
+<p class="text-on-surface-variant text-sm mt-xs">Widespread redness across the nasal bridge and lower chin.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Severity Matrix -->
+<div class="diagnostic-card p-xl">
+<h3 class="font-h3 text-h3 text-primary mb-xl">Clinical Severity Matrix</h3>
+<div class="overflow-x-auto">
+<table class="w-full border-collapse">
+<thead>
+<tr class="text-left border-b border-outline-variant/10">
+<th class="pb-md font-label-caps text-on-surface-variant">Metric</th>
+<th class="pb-md font-label-caps text-on-surface-variant">Baseline</th>
+<th class="pb-md font-label-caps text-on-surface-variant">Current</th>
+<th class="pb-md font-label-caps text-on-surface-variant">Deviation</th>
+<th class="pb-md font-label-caps text-on-surface-variant">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/8">
+<tr>
+<td class="py-md font-body-md text-primary">Lesion Count</td>
+<td class="py-md font-label-caps">12</td>
+<td class="py-md font-label-caps">24</td>
+<td class="py-md font-label-caps text-error">+100%</td>
+<td class="py-md"><span class="bg-error/10 text-error px-sm py-xs rounded text-[10px] font-bold">CRITICAL</span></td>
+</tr>
+<tr>
+<td class="py-md font-body-md text-primary">Sebum Levels</td>
+<td class="py-md font-label-caps">4.2 μg</td>
+<td class="py-md font-label-caps">6.1 μg</td>
+<td class="py-md font-label-caps text-secondary">+45%</td>
+<td class="py-md"><span class="bg-secondary/10 text-secondary px-sm py-xs rounded text-[10px] font-bold">WARNING</span></td>
+</tr>
+<tr>
+<td class="py-md font-body-md text-primary">Transepidermal Water Loss</td>
+<td class="py-md font-label-caps">18 g/h/m²</td>
+<td class="py-md font-label-caps">29 g/h/m²</td>
+<td class="py-md font-label-caps text-error">+61%</td>
+<td class="py-md"><span class="bg-error/10 text-error px-sm py-xs rounded text-[10px] font-bold">CRITICAL</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Right Column: AI Insights & Risk Factors -->
+<div class="col-span-12 lg:col-span-4 space-y-gutter">
+<!-- AI Observations -->
+<div class="diagnostic-card p-xl">
+<div class="flex items-center gap-sm mb-lg">
+<span class="material-symbols-outlined text-secondary" data-icon="biotech">biotech</span>
+<h3 class="font-h3 text-h3 text-primary">AI Insights</h3>
+</div>
+<div class="space-y-lg">
+<div class="p-md rounded-xl bg-surface-container-low border-l-4 border-secondary">
+<div class="flex justify-between items-start mb-sm">
+<span class="font-label-caps text-secondary">EPIDERMAL INTEGRITY</span>
+<span class="bg-white/80 px-sm py-xs rounded text-[10px] font-geist font-bold text-primary">92% CONF</span>
+</div>
+<p class="font-body-md text-primary text-sm leading-relaxed">Epidermal barrier thinning detected in T-zone, correlating with high TEWL values.</p>
+</div>
+<div class="p-md rounded-xl bg-surface-container-low border-l-4 border-secondary">
+<div class="flex justify-between items-start mb-sm">
+<span class="font-label-caps text-secondary">VASCULAR ANALYSIS</span>
+<span class="bg-white/80 px-sm py-xs rounded text-[10px] font-geist font-bold text-primary">88% CONF</span>
+</div>
+<p class="font-body-md text-primary text-sm leading-relaxed">Micro-vascular congestion observed. Suggestive of early stage rosacea overlap.</p>
+</div>
+<div class="p-md rounded-xl bg-surface-container-low border-l-4 border-secondary">
+<div class="flex justify-between items-start mb-sm">
+<span class="font-label-caps text-secondary">MICROBIOME PROXY</span>
+<span class="bg-white/80 px-sm py-xs rounded text-[10px] font-geist font-bold text-primary">76% CONF</span>
+</div>
+<p class="font-body-md text-primary text-sm leading-relaxed">C. acnes proliferation pattern identified via UV-fluorescence mapping proxy.</p>
+</div>
+</div>
+</div>
+<!-- Risk Factor Analysis -->
+<div class="diagnostic-card p-xl">
+<h3 class="font-h3 text-h3 text-primary mb-xl">Risk Factor Index</h3>
+<div class="space-y-xl">
+<div>
+<div class="flex justify-between font-label-caps mb-xs">
+<span>UV Exposure</span>
+<span class="text-error">High</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-error w-[85%] rounded-full"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between font-label-caps mb-xs">
+<span>Hydration Deficit</span>
+<span class="text-secondary">Medium</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[60%] rounded-full"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between font-label-caps mb-xs">
+<span>Pollution Index</span>
+<span class="text-on-surface-variant">Low</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[30%] rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Clinical Photos Small Grid -->
+<div class="diagnostic-card p-xl">
+<div class="flex justify-between items-center mb-lg">
+<h3 class="font-h3 text-h3 text-primary">Clinical Photos</h3>
+<a class="text-secondary text-sm font-semibold" href="#">View All</a>
+</div>
+<div class="grid grid-cols-2 gap-md">
+<div class="aspect-square rounded-lg overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="High-resolution clinical dermatology macro photograph showing a close-up of skin texture on a cheek, with visible pores and slight redness. The lighting is bright and clinical, typical of a professional medical setting, maintaining the Skinlytics light-mode aesthetic with clean whites and soft shadows. Professional diagnostic quality." src="source/images/derm-patient-detail/img_000_9c49346a.jpg"/>
+</div>
+<div class="aspect-square rounded-lg overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="Dermatological clinical photography of a forehead area under cross-polarized light to highlight subsurface inflammation and pigment irregularities. Minimalist lab environment, soft white background, and sharp focus on skin integrity. The color palette is dominated by neutral skin tones and medical whites." src="source/images/derm-patient-detail/img_001_b76149b0.jpg"/>
+</div>
+</div>
+<p class="text-[10px] font-label-caps text-on-surface-variant mt-md text-center">LAST UPDATED: 24 OCT 2024</p>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-xl px-margin-desktop flex flex-col md:flex-row justify-between items-center gap-md bg-background border-t border-outline-variant/8">
+<span class="font-label-caps text-on-surface-variant">© 2024 Skinlytics AI. HIPAA Compliant Platform.</span>
+<div class="flex gap-lg">
+<a class="font-label-caps text-on-surface-variant hover:text-secondary transition-colors" href="#">Privacy Policy</a>
+<a class="font-label-caps text-on-surface-variant hover:text-secondary transition-colors" href="#">Terms of Service</a>
+<a class="font-label-caps text-on-surface-variant hover:text-secondary transition-colors" href="#">HIPAA Compliance</a>
+<a class="font-label-caps text-on-surface-variant hover:text-secondary transition-colors" href="#">Medical Disclaimer</a>
+</div>
+</footer>
+<script>
+        // Micro-interactions and Tab Logic
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('mousedown', () => {
+                button.classList.add('scale-[0.98]');
+            });
+            button.addEventListener('mouseup', () => {
+                button.classList.remove('scale-[0.98]');
+            });
+            button.addEventListener('mouseleave', () => {
+                button.classList.remove('scale-[0.98]');
+            });
+        });
+
+        // Simple Tab Switch Simulation (Visual only for demonstration)
+        const tabs = document.querySelectorAll('.pb-md');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => {
+                    t.classList.remove('text-primary', 'font-bold', 'border-b-2', 'border-secondary');
+                    t.classList.add('text-on-surface-variant');
+                });
+                tab.classList.remove('text-on-surface-variant');
+                tab.classList.add('text-primary', 'font-bold', 'border-b-2', 'border-secondary');
+            });
+        });
+    </script>
+</body></html>

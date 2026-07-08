@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Skinlytics | Skin Type Assessment</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Sora:wght@600;700;800&amp;family=Geist:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "#fcf8fa",
+                        "on-surface": "#1b1b1d",
+                        "on-error-container": "#93000a",
+                        "on-primary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "surface-variant": "#e4e2e4",
+                        "inverse-primary": "#bec6e0",
+                        "surface-container-highest": "#e4e2e4",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed": "#00174b",
+                        "on-background": "#1b1b1d",
+                        "surface-dim": "#dcd9db",
+                        "outline": "#76777d",
+                        "primary-fixed": "#dae2fd",
+                        "on-tertiary-fixed": "#00201c",
+                        "inverse-on-surface": "#f3f0f2",
+                        "tertiary-container": "#00201c",
+                        "surface-bright": "#fcf8fa",
+                        "primary": "#000000",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "on-tertiary-fixed-variant": "#005048",
+                        "surface-container-lowest": "#ffffff",
+                        "outline-variant": "#c6c6cd",
+                        "surface-container-low": "#f6f3f5",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed-dim": "#4fdbc8",
+                        "on-secondary-fixed-variant": "#003ea8",
+                        "tertiary-fixed": "#71f8e4",
+                        "secondary-fixed-dim": "#b4c5ff",
+                        "secondary": "#0051d5",
+                        "on-error": "#ffffff",
+                        "secondary-fixed": "#dbe1ff",
+                        "secondary-container": "#316bf3",
+                        "on-primary-container": "#7c839b",
+                        "primary-container": "#131b2e",
+                        "primary-fixed-dim": "#bec6e0",
+                        "on-secondary-container": "#fefcff",
+                        "surface-container-high": "#eae7e9",
+                        "error-container": "#ffdad6",
+                        "surface-container": "#f0edef",
+                        "on-tertiary-container": "#009485",
+                        "on-surface-variant": "#45464d",
+                        "inverse-surface": "#303032",
+                        "background": "#fcf8fa",
+                        "tertiary": "#000000",
+                        "surface-tint": "#565e74",
+                        "on-primary-fixed": "#131b2e"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "3xl": "64px",
+                        "margin-desktop": "48px",
+                        "xl": "32px",
+                        "xs": "4px",
+                        "margin-mobile": "16px",
+                        "sm": "8px",
+                        "base": "4px",
+                        "lg": "24px",
+                        "md": "16px",
+                        "gutter": "24px",
+                        "2xl": "48px"
+                    },
+                    "fontFamily": {
+                        "h2": ["Sora"],
+                        "h1-mobile": ["Sora"],
+                        "h1": ["Sora"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-caps": ["Geist"],
+                        "h3": ["Sora"],
+                        "data-display": ["Geist"]
+                    },
+                    "fontSize": {
+                        "h2": ["32px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "h1-mobile": ["30px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "h1": ["40px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "h3": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "data-display": ["32px", {"lineHeight": "1.0", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.68);
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+        }
+        .diagnostic-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .diagnostic-card:hover {
+            transform: translateY(-4px);
+            border-color: #0051d5;
+        }
+        .card-selected {
+            border-color: #0051d5 !important;
+            background-color: rgba(0, 81, 213, 0.04);
+            box-shadow: 0 0 0 2px #0051d5;
+        }
+        .aurora-mesh {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(180, 197, 255, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(113, 248, 228, 0.1) 0%, transparent 40%);
+            background-color: #f7f9fb;
+        }
+        .progress-fill {
+            transition: width 1s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-surface font-body-md text-on-surface antialiased min-h-screen flex flex-col">
+<!-- Aurora Background -->
+<div class="aurora-mesh"></div>
+<!-- Navigation Header (Filtered for Transactional Focus) -->
+<header class="fixed top-0 w-full z-50 glass-panel border-b border-on-surface/8 h-20">
+<div class="flex justify-between items-center max-w-[1440px] mx-auto px-margin-desktop h-full">
+<div class="flex items-center gap-4">
+<span class="font-h3 text-h3 font-bold text-primary">Skinlytics</span>
+<div class="h-6 w-[1px] bg-outline-variant mx-2"></div>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Assessment Step 2 of 5</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden md:flex flex-col items-end gap-1">
+<span class="font-label-caps text-label-caps text-on-surface-variant">Overall Progress</span>
+<div class="w-48 h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="progress-fill h-full bg-secondary" style="width: 40%"></div>
+</div>
+</div>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">close</button>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-grow pt-32 pb-40 px-margin-mobile md:px-margin-desktop max-w-[1440px] mx-auto w-full">
+<section class="max-w-4xl mx-auto text-center mb-12">
+<h1 class="font-h1 text-h1-mobile md:text-h1 text-primary mb-4">Define your skin type</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto">Our AI uses this baseline to calibrate its diagnostic model for your unique skin chemistry.</p>
+</section>
+<!-- Selection Grid -->
+<div class="grid grid-cols-1 md:grid-cols-5 gap-gutter">
+<!-- Normal -->
+<button class="diagnostic-card bg-surface-container-lowest border border-on-surface/8 rounded-xl p-lg flex flex-col items-center text-center group cursor-pointer" onclick="selectType(this)">
+<div class="w-32 h-32 mb-6 rounded-full overflow-hidden relative">
+<div class="absolute inset-0 bg-gradient-to-br from-blue-100 to-teal-50 animate-pulse"></div>
+<img class="w-full h-full object-cover mix-blend-multiply opacity-80" data-alt="A macro photography style 3D abstract orb representing normal skin. The surface is perfectly smooth, translucent, and radiant with a soft pearlescent glow. Lighting is clean and clinical, using a mix of cool blues and soft whites to convey a healthy, balanced hydration state within a high-tech lab environment." src="source/images/assessment-step-2-skin-type/img_000_3a13ff65.jpg"/>
+</div>
+<h3 class="font-h3 text-h3 text-primary mb-2">Normal</h3>
+<p class="font-label-caps text-label-caps text-secondary mb-4">Balanced &amp; Even</p>
+<div class="text-left w-full space-y-2">
+<div class="flex items-start gap-2">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant mt-0.5">info</span>
+<p class="text-sm text-on-surface-variant">Feels hydrated and elastic without excess oil.</p>
+</div>
+</div>
+</button>
+<!-- Dry -->
+<button class="diagnostic-card bg-surface-container-lowest border border-on-surface/8 rounded-xl p-lg flex flex-col items-center text-center group cursor-pointer" onclick="selectType(this)">
+<div class="w-32 h-32 mb-6 rounded-full overflow-hidden relative">
+<div class="absolute inset-0 bg-gradient-to-br from-orange-50 to-amber-50 animate-pulse"></div>
+<img class="w-full h-full object-cover mix-blend-multiply opacity-80" data-alt="A macro photography style 3D abstract orb representing dry skin. The surface has a fine, microscopic texture resembling delicate cracked porcelain or dried clay. The palette consists of warm beige and pale sandy tones. Soft, directional studio lighting highlights the subtle roughness and matte finish, set against a pristine minimalist background." src="source/images/assessment-step-2-skin-type/img_001_71b528ad.jpg"/>
+</div>
+<h3 class="font-h3 text-h3 text-primary mb-2">Dry</h3>
+<p class="font-label-caps text-label-caps text-secondary mb-4">Tight &amp; Matte</p>
+<div class="text-left w-full space-y-2">
+<div class="flex items-start gap-2">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant mt-0.5">info</span>
+<p class="text-sm text-on-surface-variant">May feel flaky or tight, especially after washing.</p>
+</div>
+</div>
+</button>
+<!-- Oily -->
+<button class="diagnostic-card bg-surface-container-lowest border border-on-surface/8 rounded-xl p-lg flex flex-col items-center text-center group cursor-pointer" onclick="selectType(this)">
+<div class="w-32 h-32 mb-6 rounded-full overflow-hidden relative">
+<div class="absolute inset-0 bg-gradient-to-br from-teal-50 to-blue-100 animate-pulse"></div>
+<img class="w-full h-full object-cover mix-blend-multiply opacity-80" data-alt="A macro photography style 3D abstract orb representing oily skin. The surface is highly reflective and glossy, as if coated in a thin, shimmering liquid film. Large, soft specular highlights dance across the deep teal and cool silver surface. The aesthetic is sleek, fluid, and high-tech, emphasizing moisture and sheen in a professional clinical setting." src="source/images/assessment-step-2-skin-type/img_002_293bb84e.jpg"/>
+</div>
+<h3 class="font-h3 text-h3 text-primary mb-2">Oily</h3>
+<p class="font-label-caps text-label-caps text-secondary mb-4">Shiny &amp; Porous</p>
+<div class="text-left w-full space-y-2">
+<div class="flex items-start gap-2">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant mt-0.5">info</span>
+<p class="text-sm text-on-surface-variant">Presence of shine and enlarged pores across face.</p>
+</div>
+</div>
+</button>
+<!-- Combination -->
+<button class="diagnostic-card bg-surface-container-lowest border border-on-surface/8 rounded-xl p-lg flex flex-col items-center text-center group cursor-pointer" onclick="selectType(this)">
+<div class="w-32 h-32 mb-6 rounded-full overflow-hidden relative">
+<div class="absolute inset-0 bg-gradient-to-br from-indigo-50 to-purple-50 animate-pulse"></div>
+<img class="w-full h-full object-cover mix-blend-multiply opacity-80" data-alt="A macro photography style 3D abstract orb representing combination skin. The orb features a dual-texture surface: a matte, soft-focus region merging into a glossy, reflective central zone. The color palette transitions from muted lavender to bright crystalline white. The lighting is sophisticated, using multiple sources to define the contrasting surface qualities in a futuristic lab style." src="source/images/assessment-step-2-skin-type/img_003_c323acc4.jpg"/>
+</div>
+<h3 class="font-h3 text-h3 text-primary mb-2">Combo</h3>
+<p class="font-label-caps text-label-caps text-secondary mb-4">Mixed Zones</p>
+<div class="text-left w-full space-y-2">
+<div class="flex items-start gap-2">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant mt-0.5">info</span>
+<p class="text-sm text-on-surface-variant">Oily T-zone (forehead/nose) with dry or normal cheeks.</p>
+</div>
+</div>
+</button>
+<!-- Sensitive -->
+<button class="diagnostic-card bg-surface-container-lowest border border-on-surface/8 rounded-xl p-lg flex flex-col items-center text-center group cursor-pointer" onclick="selectType(this)">
+<div class="w-32 h-32 mb-6 rounded-full overflow-hidden relative">
+<div class="absolute inset-0 bg-gradient-to-br from-rose-50 to-pink-50 animate-pulse"></div>
+<img class="w-full h-full object-cover mix-blend-multiply opacity-80" data-alt="A macro photography style 3D abstract orb representing sensitive skin. The surface appears thin and delicate, with a soft diffused pink glow emanating from within. Fine, intricate networks of thread-like patterns suggest reactivity and fragility. The atmosphere is calm, soft, and protective, rendered in a palette of warm rose and clean surgical whites." src="source/images/assessment-step-2-skin-type/img_004_ad0419ee.jpg"/>
+</div>
+<h3 class="font-h3 text-h3 text-primary mb-2">Sensitive</h3>
+<p class="font-label-caps text-label-caps text-secondary mb-4">Reactive &amp; Thin</p>
+<div class="text-left w-full space-y-2">
+<div class="flex items-start gap-2">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant mt-0.5">info</span>
+<p class="text-sm text-on-surface-variant">Prone to redness, itching, or burning sensations.</p>
+</div>
+</div>
+</button>
+</div>
+<!-- Footer Quiz Prompt -->
+<div class="mt-12 text-center">
+<button class="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-secondary text-secondary hover:bg-secondary/5 transition-colors font-body-md font-medium" onclick="toggleQuiz()">
+<span class="material-symbols-outlined">quiz</span>
+                Not sure? Take the 30-second quiz
+            </button>
+</div>
+</main>
+<!-- Sticky Footer Actions -->
+<footer class="fixed bottom-0 w-full glass-panel border-t border-on-surface/8 z-50">
+<div class="max-w-[1440px] mx-auto px-margin-desktop py-lg flex justify-between items-center">
+<button class="px-8 py-3 rounded-full font-body-md font-semibold text-on-surface hover:bg-surface-container transition-all">
+                Back
+            </button>
+<button class="px-10 py-3 rounded-full font-body-md font-semibold bg-secondary text-on-secondary disabled:opacity-30 disabled:cursor-not-allowed shadow-lg shadow-secondary/20 active:scale-95 transition-all" disabled="" id="continueBtn">
+                Continue
+            </button>
+</div>
+</footer>
+<!-- Glass Dialog Modal (Hidden by default) -->
+<div class="fixed inset-0 z-[100] hidden flex items-center justify-center p-margin-mobile" id="quizModal">
+<div class="absolute inset-0 bg-primary/20 backdrop-blur-md" onclick="toggleQuiz()"></div>
+<div class="relative w-full max-w-lg glass-panel rounded-2xl border border-white/20 p-xl shadow-3xl">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h2 class="font-h2 text-h2 text-primary">Quick Skin ID</h2>
+<p class="text-on-surface-variant">3 questions to pinpoint your type</p>
+</div>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary" onclick="toggleQuiz()">close</button>
+</div>
+<div class="space-y-6">
+<div>
+<p class="font-body-md font-semibold mb-3">1. How does your skin feel 1 hour after washing?</p>
+<div class="grid grid-cols-2 gap-2">
+<button class="p-3 text-sm text-left border border-on-surface/10 rounded-lg hover:border-secondary transition-colors">Tight &amp; dry</button>
+<button class="p-3 text-sm text-left border border-on-surface/10 rounded-lg hover:border-secondary transition-colors">Shiny all over</button>
+<button class="p-3 text-sm text-left border border-on-surface/10 rounded-lg hover:border-secondary transition-colors">Oily T-zone only</button>
+<button class="p-3 text-sm text-left border border-on-surface/10 rounded-lg hover:border-secondary transition-colors">Comfortable</button>
+</div>
+</div>
+<button class="w-full py-4 bg-primary text-on-primary rounded-full font-semibold">Next Question</button>
+</div>
+</div>
+</div>
+<script>
+        function selectType(element) {
+            // Remove selection from all
+            document.querySelectorAll('.diagnostic-card').forEach(card => {
+                card.classList.remove('card-selected');
+            });
+            // Add selection to current
+            element.classList.add('card-selected');
+            // Enable continue button
+            const btn = document.getElementById('continueBtn');
+            btn.disabled = false;
+        }
+
+        function toggleQuiz() {
+            const modal = document.getElementById('quizModal');
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            } else {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+    </script>
+</body></html>

@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>System & Edge States | Skinlytics (Dark)</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=JetBrains+Mono:wght@100..900&family=Manrope:wght@100..900&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-low": "#1b1b1d",
+                    "inverse-surface": "#e4e2e4",
+                    "surface": "#131315",
+                    "on-primary-fixed": "#131b2e",
+                    "secondary-container": "#0566d9",
+                    "secondary": "#adc6ff",
+                    "primary-fixed": "#dae2fd",
+                    "background": "#131315",
+                    "secondary-fixed-dim": "#adc6ff",
+                    "error": "#ffb4ab",
+                    "outline": "#909097",
+                    "on-background": "#e4e2e4",
+                    "surface-container-high": "#2a2a2b",
+                    "on-secondary-fixed": "#001a42",
+                    "on-error": "#690005",
+                    "inverse-primary": "#565e74",
+                    "primary": "#bec6e0",
+                    "surface-dim": "#131315",
+                    "surface-container-highest": "#353436",
+                    "on-tertiary-fixed-variant": "#005047",
+                    "on-surface": "#e4e2e4",
+                    "on-secondary-container": "#e6ecff",
+                    "surface-variant": "#353436",
+                    "on-primary-fixed-variant": "#3f465c",
+                    "surface-container": "#1f1f21",
+                    "primary-container": "#0f172a",
+                    "error-container": "#93000a",
+                    "surface-tint": "#bec6e0",
+                    "tertiary-fixed-dim": "#3cddc7",
+                    "on-tertiary-fixed": "#00201c",
+                    "on-primary": "#283044",
+                    "on-secondary": "#002e6a",
+                    "tertiary": "#3cddc7",
+                    "surface-bright": "#39393b",
+                    "on-surface-variant": "#c6c6cd",
+                    "on-secondary-fixed-variant": "#004395",
+                    "on-tertiary-container": "#009182",
+                    "secondary-fixed": "#d8e2ff",
+                    "on-primary-container": "#798098",
+                    "on-error-container": "#ffdad6",
+                    "on-tertiary": "#003731",
+                    "tertiary-fixed": "#62fae3",
+                    "surface-container-lowest": "#0e0e10",
+                    "outline-variant": "#45464d",
+                    "tertiary-container": "#001c18",
+                    "primary-fixed-dim": "#bec6e0",
+                    "inverse-on-surface": "#303032",
+                    "skin-navy": "#0B1220",
+                    "skin-card": "#111A2E",
+                    "skin-elevated": "#1A2740",
+                    "skin-teal": "#2DD4BF"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "max-width": "1280px",
+                    "margin-mobile": "16px",
+                    "gutter": "24px",
+                    "unit": "4px",
+                    "margin-desktop": "48px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Manrope"],
+                    "body-md": ["Inter"],
+                    "label-md": ["JetBrains Mono"],
+                    "body-lg": ["Inter"],
+                    "label-sm": ["JetBrains Mono"],
+                    "headline-md": ["Manrope"],
+                    "display-lg": ["Manrope"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #0B1220;
+            color: #e4e2e4;
+            overflow-x: hidden;
+        }
+        .glass {
+            background: rgba(27, 27, 29, 0.68);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+        }
+        .skin-glow {
+            box-shadow: 0 0 20px rgba(45, 212, 191, 0.15);
+        }
+        .skeleton {
+            background: linear-gradient(90deg, #1A2740 25%, #24304A 50%, #1A2740 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+        }
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .droplet-3d {
+            filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.5));
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-40 flex justify-between items-center px-lg py-sm ml-0 md:ml-64 bg-white/68 backdrop-blur-[20px] saturate-[160%] border-b border-outline-variant/8">
+<div class="flex items-center gap-4">
+<div class="relative w-64 hidden md:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full bg-surface-container-low border border-outline-variant/20 rounded-lg pl-10 py-2 focus:ring-2 focus:ring-secondary/20 outline-none text-label-md font-label-md" placeholder="Search system states..." type="text"/>
+</div>
+<h1 class="font-headline-md text-headline-md font-bold text-primary md:hidden">Skinlytics</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 hover:opacity-80 transition-opacity"><span class="material-symbols-outlined text-on-surface-variant">wb_sunny</span></button>
+<button class="p-2 hover:opacity-80 transition-opacity"><span class="material-symbols-outlined text-on-surface-variant">dark_mode</span></button>
+<button class="p-2 hover:opacity-80 transition-opacity relative">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+</div>
+</header>
+<!-- SideNavBar -->
+<nav class="fixed left-0 top-0 h-full w-64 hidden md:flex flex-col p-lg bg-white/68 backdrop-blur-[20px] saturate-[160%] border-r border-outline-variant/10 z-50">
+<div class="mb-10">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-primary-container rounded-lg flex items-center justify-center skin-glow">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">biotech</span>
+</div>
+<div>
+<h2 class="font-h3 text-h3 font-bold text-primary leading-none">Skinlytics</h2>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">AI Intelligence</p>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-2 flex-grow overflow-y-auto">
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 bg-secondary/10 text-secondary border-r-4 border-secondary" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-caps text-label-caps font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-on-surface-variant hover:bg-surface-container-low" href="#">
+<span class="material-symbols-outlined">science</span>
+<span class="font-label-caps text-label-caps font-medium">Analyses</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-on-surface-variant hover:bg-surface-container-low" href="#">
+<span class="material-symbols-outlined">clinical_notes</span>
+<span class="font-label-caps text-label-caps font-medium">Consultants</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-on-surface-variant hover:bg-surface-container-low" href="#">
+<span class="material-symbols-outlined">category</span>
+<span class="font-label-caps text-label-caps font-medium">Products</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-on-surface-variant hover:bg-surface-container-low" href="#">
+<span class="material-symbols-outlined">biotech</span>
+<span class="font-label-caps text-label-caps font-medium">Ingredients</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-on-surface-variant hover:bg-surface-container-low" href="#">
+<span class="material-symbols-outlined">trending_up</span>
+<span class="font-label-caps text-label-caps font-medium">Progress</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-on-surface-variant hover:bg-surface-container-low" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-caps text-label-caps font-medium">Insights</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-on-surface-variant hover:bg-surface-container-low" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="font-label-caps text-label-caps font-medium">Reports</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-on-surface-variant hover:bg-surface-container-low" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-caps text-label-caps font-medium">Settings</span>
+</a>
+</div>
+<div class="mt-auto pt-6 border-t border-outline-variant/10">
+<button class="w-full bg-primary-container text-primary font-bold py-3 px-4 rounded-xl mb-4 skin-glow hover:opacity-90 transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">add</span>
+                New Analysis
+            </button>
+<div class="flex flex-col gap-2">
+<a class="flex items-center gap-3 px-4 py-2 rounded-xl text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-sm">help</span>
+<span class="font-label-caps text-label-caps text-sm">Support</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-xl text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-sm">person</span>
+<span class="font-label-caps text-label-caps text-sm">Account</span>
+</a>
+</div>
+</div>
+</nav>
+<!-- Main Canvas -->
+<main class="ml-0 md:ml-64 p-margin-desktop space-y-24 pb-32">
+<!-- Header Section -->
+<section>
+<h2 class="font-display-lg text-display-lg font-bold text-primary mb-2">Edge States Library</h2>
+<p class="text-on-surface-variant max-w-2xl font-body-lg text-body-lg">A clinical collection of system behaviors, feedback mechanisms, and error handling for the Skinlytics platform.</p>
+</section>
+<!-- Loading Skeletons Section -->
+<section class="space-y-8">
+<div class="flex items-center justify-between border-b border-outline-variant/10 pb-4">
+<h3 class="font-headline-lg text-headline-lg font-bold text-on-surface">01 Dashboard Skeleton</h3>
+<span class="text-label-sm font-label-sm text-secondary bg-secondary/10 px-3 py-1 rounded-full uppercase">Loading State</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Large Skeleton Card -->
+<div class="md:col-span-2 glass rounded-2xl p-8 h-96 relative overflow-hidden flex flex-col gap-6">
+<div class="flex justify-between">
+<div class="w-48 h-8 skeleton rounded-lg"></div>
+<div class="w-24 h-8 skeleton rounded-lg"></div>
+</div>
+<div class="flex-grow flex gap-6 items-end">
+<div class="w-full h-4/5 skeleton rounded-t-xl"></div>
+<div class="w-full h-3/5 skeleton rounded-t-xl"></div>
+<div class="w-full h-5/6 skeleton rounded-t-xl"></div>
+<div class="w-full h-2/5 skeleton rounded-t-xl"></div>
+<div class="w-full h-4/5 skeleton rounded-t-xl"></div>
+</div>
+</div>
+<!-- Small Skeleton Cards -->
+<div class="space-y-gutter">
+<div class="glass rounded-2xl p-6 h-44 flex flex-col gap-4">
+<div class="w-32 h-6 skeleton rounded-lg"></div>
+<div class="w-full h-12 skeleton rounded-xl"></div>
+<div class="w-24 h-4 skeleton rounded-lg"></div>
+</div>
+<div class="glass rounded-2xl p-6 h-44 flex flex-col gap-4">
+<div class="w-32 h-6 skeleton rounded-lg"></div>
+<div class="w-16 h-16 skeleton rounded-full self-center"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Empty States Section -->
+<section class="space-y-8">
+<div class="flex items-center justify-between border-b border-outline-variant/10 pb-4">
+<h3 class="font-headline-lg text-headline-lg font-bold text-on-surface">02 Empty States</h3>
+<span class="text-label-sm font-label-sm text-tertiary bg-tertiary/10 px-3 py-1 rounded-full uppercase">System Feedback</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Empty Search -->
+<div class="glass rounded-3xl p-12 flex flex-col items-center text-center gap-6 group hover:border-secondary/30 transition-colors">
+<div class="w-32 h-32 rounded-full bg-surface-container-highest flex items-center justify-center relative">
+<span class="material-symbols-outlined text-6xl text-on-surface-variant group-hover:scale-110 transition-transform duration-500">search_off</span>
+<div class="absolute inset-0 rounded-full border border-secondary/20 animate-pulse"></div>
+</div>
+<div>
+<h4 class="font-headline-md text-headline-md font-bold mb-2">No analyses found</h4>
+<p class="text-on-surface-variant max-w-xs mx-auto">We couldn't find any skin reports matching your current filter criteria.</p>
+</div>
+<button class="bg-secondary text-on-secondary font-bold py-3 px-8 rounded-full hover:shadow-lg hover:shadow-secondary/20 transition-all">
+                        Clear all filters
+                    </button>
+</div>
+<!-- Initial Setup -->
+<div class="glass rounded-3xl p-12 flex flex-col items-center text-center gap-6 group hover:border-skin-teal/30 transition-colors">
+<div class="w-32 h-32 rounded-full bg-surface-container-highest flex items-center justify-center relative">
+<span class="material-symbols-outlined text-6xl text-skin-teal group-hover:rotate-12 transition-transform duration-500" style="font-variation-settings: 'FILL' 1;">face_retouching_natural</span>
+<div class="absolute -top-2 -right-2 w-8 h-8 bg-skin-teal/20 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-skin-teal text-sm">spark</span>
+</div>
+</div>
+<div>
+<h4 class="font-headline-md text-headline-md font-bold mb-2">Ready for your first scan?</h4>
+<p class="text-on-surface-variant max-w-xs mx-auto">Upload a high-resolution photo of your skin to begin your clinical AI journey.</p>
+</div>
+<button class="bg-primary-container text-primary border border-primary/20 font-bold py-3 px-8 rounded-full hover:bg-primary/10 transition-all flex items-center gap-2">
+<span class="material-symbols-outlined">add_a_photo</span>
+                        Start Analysis
+                    </button>
+</div>
+</div>
+</section>
+<!-- Error Pages (404/500) -->
+<section class="space-y-8">
+<div class="flex items-center justify-between border-b border-outline-variant/10 pb-4">
+<h3 class="font-headline-lg text-headline-lg font-bold text-on-surface">03 Critical Errors</h3>
+<span class="text-label-sm font-label-sm text-error bg-error/10 px-3 py-1 rounded-full uppercase">Edge Cases</span>
+</div>
+<div class="relative w-full h-[600px] rounded-[40px] overflow-hidden glass border-error/20 flex flex-col items-center justify-center text-center px-6">
+<!-- 3D Droplets Simulated Background -->
+<div class="absolute inset-0 pointer-events-none opacity-40">
+<div class="absolute top-1/4 left-1/4 w-32 h-40 bg-gradient-to-br from-secondary/40 to-transparent rounded-full blur-3xl droplet-3d"></div>
+<div class="absolute bottom-1/4 right-1/4 w-48 h-60 bg-gradient-to-br from-skin-teal/30 to-transparent rounded-full blur-3xl droplet-3d" style="animation-delay: -2s;"></div>
+<div class="absolute top-1/2 right-1/3 w-20 h-24 bg-gradient-to-br from-error/20 to-transparent rounded-full blur-3xl droplet-3d" style="animation-delay: -4s;"></div>
+</div>
+<div class="relative z-10 space-y-6">
+<span class="font-display-lg text-[120px] font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-primary to-surface-container-highest leading-none tracking-tighter">404</span>
+<div class="space-y-2">
+<h4 class="font-headline-lg text-headline-lg font-bold">Analysis Path Severed</h4>
+<p class="text-on-surface-variant max-w-md mx-auto font-body-lg text-body-lg">The biometric data you're looking for doesn't exist in our repository. It might have been relocated or purged.</p>
+</div>
+<div class="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+<a class="bg-primary-container text-primary font-bold py-4 px-10 rounded-full skin-glow border border-primary/20 hover:scale-105 transition-transform" href="#">
+                            Return to Dashboard
+                        </a>
+<button class="bg-transparent border border-outline-variant/30 text-on-surface font-bold py-4 px-10 rounded-full hover:bg-surface-container-low transition-colors">
+                            Report Missing Data
+                        </button>
+</div>
+</div>
+<!-- Floating Code Snippet for 500 context -->
+<div class="absolute bottom-8 left-8 right-8 flex justify-between items-end">
+<div class="hidden md:block text-left glass p-4 rounded-xl border-error/10">
+<p class="text-label-sm font-label-sm text-error mb-1">SYSTEM_STATUS: CRITICAL</p>
+<p class="text-[10px] font-label-md text-on-surface-variant opacity-60">Error Trace: null_pointer_exception_at_core_biometric_engine</p>
+</div>
+<div class="text-label-sm font-label-sm text-on-surface-variant flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-error animate-ping"></span>
+                        Server Sync Interrupted
+                    </div>
+</div>
+</div>
+</section>
+</main>
+<!-- Cookie Consent Banner -->
+<div class="fixed bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl z-50 transform translate-y-32 transition-transform duration-700 ease-out" id="cookie-banner">
+<div class="glass p-6 rounded-3xl border-secondary/20 shadow-2xl flex flex-col md:flex-row items-center gap-6">
+<div class="w-12 h-12 rounded-2xl bg-secondary/10 flex-shrink-0 flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary">cookie</span>
+</div>
+<div class="flex-grow text-center md:text-left">
+<h5 class="font-bold text-on-surface">Data Precision & Privacy</h5>
+<p class="text-sm text-on-surface-variant">We use technical identifiers to ensure the accuracy of your AI skin analysis. By continuing, you agree to our clinical data processing standards.</p>
+</div>
+<div class="flex gap-3 w-full md:w-auto">
+<button class="flex-grow md:flex-grow-0 bg-transparent text-on-surface-variant text-sm font-bold px-6 py-3 rounded-xl hover:text-on-surface transition-colors" onclick="hideCookies()">Preferences</button>
+<button class="flex-grow md:flex-grow-0 bg-secondary text-on-secondary text-sm font-bold px-8 py-3 rounded-xl hover:opacity-90 transition-opacity" onclick="hideCookies()">Accept All</button>
+</div>
+</div>
+</div>
+<!-- Footer -->
+<footer class="w-full py-xl px-margin-desktop flex flex-col md:flex-row justify-between items-center gap-md bg-background border-t border-outline-variant/8">
+<div class="flex items-center gap-2">
+<span class="font-h3 text-h3 text-primary font-bold">Skinlytics</span>
+<span class="text-xs text-on-surface-variant font-label-caps mt-1">© 2024 Skinlytics AI. HIPAA Compliant Platform.</span>
+</div>
+<div class="flex flex-wrap justify-center gap-6">
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-secondary transition-colors" href="#">Privacy Policy</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-secondary transition-colors" href="#">Terms of Service</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-secondary transition-colors" href="#">HIPAA Compliance</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-secondary transition-colors" href="#">Medical Disclaimer</a>
+</div>
+</footer>
+<script>
+        // Micro-interactions and Atmospheric Effects
+        window.onload = () => {
+            // Show cookie banner after delay
+            setTimeout(() => {
+                const banner = document.getElementById('cookie-banner');
+                banner.style.transform = 'translateY(0) translateX(-50%)';
+            }, 1500);
+
+            // Add subtle mouse follow effect to glass surfaces
+            document.addEventListener('mousemove', (e) => {
+                const x = e.clientX / window.innerWidth;
+                const y = e.clientY / window.innerHeight;
+                
+                const drops = document.querySelectorAll('.droplet-3d');
+                drops.forEach((drop, index) => {
+                    const speed = (index + 1) * 20;
+                    drop.style.transform = `translate(${x * speed}px, ${y * speed}px)`;
+                });
+            });
+        };
+
+        function hideCookies() {
+            const banner = document.getElementById('cookie-banner');
+            banner.style.transform = 'translateY(200px) translateX(-50%)';
+        }
+
+        // Add intersection observer for reveal animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('opacity-100');
+                    entry.target.classList.remove('opacity-0', 'translate-y-8');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('section').forEach(section => {
+            section.classList.add('transition-all', 'duration-700', 'opacity-0', 'translate-y-8');
+            observer.observe(section);
+        });
+    </script>
+</body></html>

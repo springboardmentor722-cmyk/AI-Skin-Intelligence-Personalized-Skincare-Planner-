@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Skinlytics - My Routine</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Inter:wght@400;500;600&family=Geist:wght@400;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-surface-variant": "#45464d",
+                    "on-tertiary-fixed": "#00201c",
+                    "inverse-surface": "#303032",
+                    "on-primary": "#ffffff",
+                    "inverse-on-surface": "#f3f0f2",
+                    "error": "#ba1a1a",
+                    "on-tertiary-fixed-variant": "#005048",
+                    "on-secondary-fixed": "#00174b",
+                    "primary": "#000000",
+                    "secondary-fixed": "#dbe1ff",
+                    "surface-dim": "#dcd9db",
+                    "surface": "#fcf8fa",
+                    "secondary-container": "#316bf3",
+                    "surface-container-low": "#f6f3f5",
+                    "on-tertiary-container": "#009485",
+                    "on-primary-fixed": "#131b2e",
+                    "on-background": "#1b1b1d",
+                    "surface-variant": "#e4e2e4",
+                    "on-primary-container": "#7c839b",
+                    "inverse-primary": "#bec6e0",
+                    "on-secondary-container": "#fefcff",
+                    "on-secondary-fixed-variant": "#003ea8",
+                    "on-error-container": "#93000a",
+                    "tertiary-fixed-dim": "#4fdbc8",
+                    "surface-container": "#f0edef",
+                    "primary-fixed-dim": "#bec6e0",
+                    "outline-variant": "#c6c6cd",
+                    "tertiary": "#000000",
+                    "surface-bright": "#fcf8fa",
+                    "surface-container-high": "#eae7e9",
+                    "primary-container": "#131b2e",
+                    "error-container": "#ffdad6",
+                    "background": "#fcf8fa",
+                    "surface-tint": "#565e74",
+                    "primary-fixed": "#dae2fd",
+                    "on-tertiary": "#ffffff",
+                    "surface-container-highest": "#e4e2e4",
+                    "outline": "#76777d",
+                    "secondary": "#0051d5",
+                    "surface-container-lowest": "#ffffff",
+                    "on-error": "#ffffff",
+                    "tertiary-container": "#00201c",
+                    "on-secondary": "#ffffff",
+                    "on-primary-fixed-variant": "#3f465c",
+                    "secondary-fixed-dim": "#b4c5ff",
+                    "tertiary-fixed": "#71f8e4",
+                    "on-surface": "#1b1b1d"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "base": "4px",
+                    "xs": "4px",
+                    "sm": "8px",
+                    "xl": "32px",
+                    "margin-mobile": "16px",
+                    "lg": "24px",
+                    "3xl": "64px",
+                    "2xl": "48px",
+                    "md": "16px",
+                    "margin-desktop": "48px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "h2": ["Sora"],
+                    "h1": ["Sora"],
+                    "body-md": ["Inter"],
+                    "data-display": ["Geist"],
+                    "h1-mobile": ["Sora"],
+                    "body-lg": ["Inter"],
+                    "label-caps": ["Geist"],
+                    "h3": ["Sora"]
+            },
+            "fontSize": {
+                    "h2": ["32px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "h1": ["40px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "data-display": ["32px", {"lineHeight": "1.0", "fontWeight": "600"}],
+                    "h1-mobile": ["30px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "h3": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .glass-shell {
+            background: rgba(255, 255, 255, 0.68);
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+        }
+        .diagnostic-card {
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 16px;
+        }
+        .aurora-bg {
+            background: radial-gradient(circle at 0% 0%, #dae2fd 0%, transparent 50%),
+                        radial-gradient(circle at 100% 100%, #71f8e4 0%, transparent 50%);
+            opacity: 0.3;
+        }
+        .step-line::before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 40px;
+            bottom: -20px;
+            width: 1.5px;
+            background: rgba(15, 23, 42, 0.08);
+        }
+        .step-line:last-child::before {
+            display: none;
+        }
+        .tab-active {
+            color: #0051d5;
+            border-bottom: 2px solid #0051d5;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background font-body-md text-on-surface min-h-screen">
+<!-- Ambient Aurora Background -->
+<div class="fixed inset-0 aurora-bg -z-10 pointer-events-none"></div>
+<!-- Sidebar Navigation (From JSON) -->
+<aside class="fixed left-0 top-0 h-screen w-64 z-40 bg-white/68 backdrop-blur-xl border-r border-on-surface/8 flex flex-col py-lg">
+<div class="px-lg mb-3xl">
+<h1 class="font-h3 text-h3 font-bold text-primary">Skinlytics AI</h1>
+<p class="text-on-surface-variant font-label-caps text-[10px] mt-1">Clinical Portal</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="bg-secondary/10 text-secondary border-r-4 border-secondary px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">event_note</span>
+<span>Routine</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">biotech</span>
+<span>Analyses</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">medical_services</span>
+<span>Consultants</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="px-lg mt-auto space-y-4">
+<button class="w-full bg-primary text-on-primary font-semibold py-3 px-4 rounded-full flex items-center justify-center gap-2 transition-transform active:scale-95">
+<span class="material-symbols-outlined text-[20px]">add</span>
+<span>New Assessment</span>
+</button>
+<div class="pt-lg border-t border-on-surface/8 space-y-2">
+<a class="text-on-surface-variant hover:text-primary flex items-center gap-3 text-sm" href="#">
+<span class="material-symbols-outlined text-[18px]">help</span>
+<span>Help Center</span>
+</a>
+<a class="text-on-surface-variant hover:text-error flex items-center gap-3 text-sm" href="#">
+<span class="material-symbols-outlined text-[18px]">logout</span>
+<span>Sign Out</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="ml-64 min-h-screen">
+<!-- Top App Bar -->
+<header class="sticky top-0 w-full z-30 glass-shell border-b border-on-surface/8 flex justify-between items-center px-lg py-sm">
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant text-[20px]">search</span>
+<input class="pl-10 pr-4 py-2 bg-surface-container/40 border-none rounded-full focus:ring-2 focus:ring-secondary/20 w-64 text-sm" placeholder="Search routine..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-on-surface-variant hover:text-secondary transition-colors">wb_sunny</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-secondary transition-colors">notifications</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-secondary transition-colors">contrast</button>
+</div>
+<div class="h-8 w-8 rounded-full overflow-hidden border border-on-surface/8">
+<img class="w-full h-full object-cover" data-alt="A close-up portrait of a professional medical professional with a clean, high-key lighting aesthetic. The image is crisp and clinical, with a soft-focus laboratory background featuring glass equipment and cool blue tones. The professional is wearing a white lab coat, projecting authority, precision, and healthcare expertise in a modern, tech-focused wellness environment." src="source/images/app-routine/img_000_4f79469d.jpg"/>
+</div>
+</div>
+</header>
+<!-- Content Area -->
+<div class="max-w-[1200px] mx-auto p-margin-desktop space-y-lg">
+<!-- Page Header & Actions -->
+<div class="flex flex-col md:flex-row justify-between items-end gap-4">
+<div>
+<h2 class="font-h1 text-h1 text-primary">My Routine</h2>
+<p class="text-on-surface-variant mt-2 font-body-lg">Clinically optimized based on your last scan (Jan 24).</p>
+</div>
+<div class="flex items-center gap-3">
+<button class="px-6 py-2 border border-primary text-primary font-semibold rounded-full hover:bg-primary hover:text-white transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+<span>Edit routine</span>
+</button>
+<button class="px-6 py-2 bg-secondary text-white font-semibold rounded-full hover:bg-secondary/90 transition-all shadow-lg shadow-secondary/20 flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px]">auto_awesome</span>
+<span>Regenerate with AI</span>
+</button>
+</div>
+</div>
+<!-- Seasonal Banner -->
+<div class="glass-shell p-lg rounded-2xl border border-on-surface/8 flex items-center justify-between relative overflow-hidden">
+<div class="absolute -right-10 -top-10 w-40 h-40 bg-secondary/5 blur-3xl rounded-full"></div>
+<div class="flex items-center gap-4 relative z-10">
+<div class="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[32px]">ac_unit</span>
+</div>
+<div>
+<h4 class="font-h3 text-lg font-bold">Seasonal update — winter adjustments ready</h4>
+<p class="text-on-surface-variant text-sm">Increased barrier support recommended due to humidity drop.</p>
+</div>
+</div>
+<button class="bg-primary text-on-primary px-8 py-2 rounded-full font-semibold relative z-10 hover:opacity-90 transition-opacity">Review</button>
+</div>
+<!-- Routine Navigation Tabs -->
+<div class="flex border-b border-on-surface/8 gap-8 mt-xl">
+<button class="pb-4 font-semibold text-lg flex items-center gap-2 transition-all tab-active" id="tab-am" onclick="switchTab('am')">
+<span class="material-symbols-outlined">light_mode</span> AM Routine
+                </button>
+<button class="pb-4 font-semibold text-lg flex items-center gap-2 text-on-surface-variant hover:text-primary transition-all" id="tab-pm" onclick="switchTab('pm')">
+<span class="material-symbols-outlined">dark_mode</span> PM Routine
+                </button>
+<button class="pb-4 font-semibold text-lg flex items-center gap-2 text-on-surface-variant hover:text-primary transition-all" id="tab-weekly" onclick="switchTab('weekly')">
+<span class="material-symbols-outlined">calendar_view_week</span> Weekly Care
+                </button>
+</div>
+<!-- View Containers -->
+<div class="space-y-md animate-in fade-in duration-500" id="view-am">
+<div class="flex items-center gap-4 py-md">
+<span class="material-symbols-outlined text-4xl text-secondary" style="font-variation-settings: 'FILL' 1;">wb_sunny</span>
+<div>
+<p class="font-label-caps text-on-surface-variant">Estimated time</p>
+<p class="font-data-display text-2xl">8 minutes</p>
+</div>
+</div>
+<div class="space-y-4">
+<!-- Step 1 -->
+<div class="diagnostic-card p-lg flex gap-6 relative step-line group">
+<div class="flex-shrink-0 w-10 h-10 rounded-full bg-surface-container flex items-center justify-center font-data-display text-lg border border-on-surface/8">1</div>
+<div class="flex-grow flex gap-6">
+<div class="w-24 h-24 rounded-xl bg-surface-container overflow-hidden border border-on-surface/8">
+<img class="w-full h-full object-cover" data-alt="A luxury skincare product bottle featuring minimal medical-style typography on a frosted glass container. The lighting is soft and professional, with a clean white and soft teal aesthetic. The background is a slightly blurred laboratory marble surface, conveying purity, high-end formulation, and clinical precision." src="source/images/app-routine/img_001_ecf7d647.jpg"/>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<div>
+<span class="px-3 py-1 bg-secondary/10 text-secondary rounded-full text-xs font-semibold mb-2 inline-block">Cleansing</span>
+<h4 class="font-h3 text-xl">Hydrating Gentle Cleanser</h4>
+<p class="text-on-surface-variant text-sm mt-1">Focus: Preservation of natural lipids</p>
+</div>
+<div class="text-right">
+<p class="font-data-display text-xl">2:00</p>
+<p class="text-[10px] font-label-caps text-on-surface-variant">Min duration</p>
+</div>
+</div>
+<details class="mt-4 group/details">
+<summary class="list-none cursor-pointer text-secondary font-semibold text-sm flex items-center gap-1">
+                                        Instructions <span class="material-symbols-outlined text-[18px] transition-transform group-open/details:rotate-180">expand_more</span>
+</summary>
+<div class="mt-3 text-on-surface-variant text-sm leading-relaxed border-l-2 border-secondary/20 pl-4 py-1">
+                                        Apply a dime-sized amount to damp skin. Massage in circular motions for 60 seconds, paying particular attention to the T-zone. Rinse with lukewarm water to avoid thermal stress.
+                                    </div>
+</details>
+</div>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="diagnostic-card p-lg flex gap-6 relative step-line group">
+<div class="flex-shrink-0 w-10 h-10 rounded-full bg-surface-container flex items-center justify-center font-data-display text-lg border border-on-surface/8">2</div>
+<div class="flex-grow flex gap-6">
+<div class="w-24 h-24 rounded-xl bg-surface-container overflow-hidden border border-on-surface/8">
+<img class="w-full h-full object-cover" data-alt="A sleek glass dropper bottle containing a transparent blue-toned serum. The aesthetic is extremely clinical and high-tech, with light refracting through the glass to create sharp, prismatic highlights. The setting is a minimalist white environment with soft shadows, emphasizing medical-grade quality and scientific innovation." src="source/images/app-routine/img_002_d32cd634.jpg"/>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<div>
+<span class="px-3 py-1 bg-tertiary-fixed-dim/20 text-on-tertiary-container rounded-full text-xs font-semibold mb-2 inline-block">Treatment</span>
+<h4 class="font-h3 text-xl">15% Vitamin C + Ferulic Acid</h4>
+<p class="text-on-surface-variant text-sm mt-1">Focus: Antioxidant Protection</p>
+</div>
+<div class="text-right">
+<p class="font-data-display text-xl">1:00</p>
+<p class="text-[10px] font-label-caps text-on-surface-variant">Absorption</p>
+</div>
+</div>
+<details class="mt-4 group/details">
+<summary class="list-none cursor-pointer text-secondary font-semibold text-sm flex items-center gap-1">
+                                        Instructions <span class="material-symbols-outlined text-[18px] transition-transform group-open/details:rotate-180">expand_more</span>
+</summary>
+<div class="mt-3 text-on-surface-variant text-sm leading-relaxed border-l-2 border-secondary/20 pl-4 py-1">
+                                        Apply 4-5 drops to a dry face, neck, and chest. Allow 60 seconds for complete absorption before applying subsequent products. Avoid the orbital area.
+                                    </div>
+</details>
+</div>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="diagnostic-card p-lg flex gap-6 relative group">
+<div class="flex-shrink-0 w-10 h-10 rounded-full bg-surface-container flex items-center justify-center font-data-display text-lg border border-on-surface/8">3</div>
+<div class="flex-grow flex gap-6">
+<div class="w-24 h-24 rounded-xl bg-surface-container overflow-hidden border border-on-surface/8">
+<img class="w-full h-full object-cover" data-alt="A wide-mouthed frosted plastic tub of white facial moisturizer. The shot is a high-end commercial style with a focus on texture and density. Soft, diffused lighting creates a sense of moisture and hydration. The overall palette is white, silver, and pale blue, embodying a clean and professional wellness aesthetic." src="source/images/app-routine/img_003_21f8c4c9.jpg"/>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<div>
+<span class="px-3 py-1 bg-secondary-fixed/50 text-on-secondary-fixed-variant rounded-full text-xs font-semibold mb-2 inline-block">Moisturization</span>
+<h4 class="font-h3 text-xl">Ceramide Barrier Cream</h4>
+<p class="text-on-surface-variant text-sm mt-1">Focus: Transepidermal Water Loss</p>
+</div>
+<div class="text-right">
+<p class="font-data-display text-xl">1:00</p>
+<p class="text-[10px] font-label-caps text-on-surface-variant">Application</p>
+</div>
+</div>
+<details class="mt-4 group/details">
+<summary class="list-none cursor-pointer text-secondary font-semibold text-sm flex items-center gap-1">
+                                        Instructions <span class="material-symbols-outlined text-[18px] transition-transform group-open/details:rotate-180">expand_more</span>
+</summary>
+<div class="mt-3 text-on-surface-variant text-sm leading-relaxed border-l-2 border-secondary/20 pl-4 py-1">
+                                        Apply liberally over face and neck. Press gently into the skin with palms rather than rubbing to minimize friction.
+                                    </div>
+</details>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- PM View (Hidden by default) -->
+<div class="hidden space-y-md animate-in slide-in-from-right-4 duration-300" id="view-pm">
+<div class="flex items-center gap-4 py-md">
+<span class="material-symbols-outlined text-4xl text-secondary" style="font-variation-settings: 'FILL' 1;">dark_mode</span>
+<div>
+<p class="font-label-caps text-on-surface-variant">Estimated time</p>
+<p class="font-data-display text-2xl">12 minutes</p>
+</div>
+</div>
+<div class="diagnostic-card p-3xl text-center">
+<span class="material-symbols-outlined text-6xl text-surface-variant mb-4">nights_stay</span>
+<h3 class="font-h3">PM Routine details are loading...</h3>
+<p class="text-on-surface-variant mt-2">Clinical verification in progress for your nighttime active ingredients.</p>
+</div>
+</div>
+<!-- Weekly View (Hidden by default) -->
+<div class="hidden space-y-md animate-in slide-in-from-right-4 duration-300" id="view-weekly">
+<div class="diagnostic-card p-lg">
+<h4 class="font-h3 text-xl mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined">calendar_today</span> 7-Day Treatment Plan
+                    </h4>
+<div class="grid grid-cols-7 gap-4">
+<!-- Monday -->
+<div class="flex flex-col items-center">
+<span class="font-label-caps text-on-surface-variant mb-4">Mon</span>
+<div class="w-full aspect-[1/2] rounded-xl bg-surface-container border border-on-surface/8 p-2 flex flex-col items-center justify-center">
+<div class="w-2 h-2 rounded-full bg-surface-variant"></div>
+</div>
+</div>
+<!-- Tuesday -->
+<div class="flex flex-col items-center">
+<span class="font-label-caps text-on-surface-variant mb-4">Tue</span>
+<div class="w-full aspect-[1/2] rounded-xl bg-secondary/5 border border-secondary/20 p-2 flex flex-col items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-sm">scuba_diving</span>
+<div class="bg-secondary/20 text-secondary text-[8px] font-bold px-1 py-0.5 rounded uppercase">Exfoliation</div>
+</div>
+</div>
+<!-- Wednesday -->
+<div class="flex flex-col items-center">
+<span class="font-label-caps text-on-surface-variant mb-4">Wed</span>
+<div class="w-full aspect-[1/2] rounded-xl bg-surface-container border border-on-surface/8 p-2 flex flex-col items-center justify-center">
+<div class="w-2 h-2 rounded-full bg-surface-variant"></div>
+</div>
+</div>
+<!-- Thursday -->
+<div class="flex flex-col items-center">
+<span class="font-label-caps text-on-surface-variant mb-4">Thu</span>
+<div class="w-full aspect-[1/2] rounded-xl bg-surface-container border border-on-surface/8 p-2 flex flex-col items-center justify-center">
+<div class="w-2 h-2 rounded-full bg-surface-variant"></div>
+</div>
+</div>
+<!-- Friday -->
+<div class="flex flex-col items-center">
+<span class="font-label-caps text-on-surface-variant mb-4">Fri</span>
+<div class="w-full aspect-[1/2] rounded-xl bg-secondary/5 border border-secondary/20 p-2 flex flex-col items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-sm">scuba_diving</span>
+<div class="bg-secondary/20 text-secondary text-[8px] font-bold px-1 py-0.5 rounded uppercase">Exfoliation</div>
+</div>
+</div>
+<!-- Saturday -->
+<div class="flex flex-col items-center">
+<span class="font-label-caps text-on-surface-variant mb-4">Sat</span>
+<div class="w-full aspect-[1/2] rounded-xl bg-surface-container border border-on-surface/8 p-2 flex flex-col items-center justify-center">
+<div class="w-2 h-2 rounded-full bg-surface-variant"></div>
+</div>
+</div>
+<!-- Sunday -->
+<div class="flex flex-col items-center">
+<span class="font-label-caps text-on-surface-variant mb-4">Sun</span>
+<div class="w-full aspect-[1/2] rounded-xl bg-on-tertiary-container/5 border border-on-tertiary-container/20 p-2 flex flex-col items-center gap-2">
+<span class="material-symbols-outlined text-on-tertiary-container text-sm">spa</span>
+<div class="bg-on-tertiary-container/20 text-on-tertiary-container text-[8px] font-bold px-1 py-0.5 rounded uppercase">Face Mask</div>
+</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-6 mt-6">
+<div class="diagnostic-card p-lg">
+<h5 class="font-h3 text-lg mb-3">Product Rotation</h5>
+<p class="text-on-surface-variant text-sm">Maintain consistency for 4 weeks before evaluating results. Next scan window opens in 12 days.</p>
+</div>
+<div class="diagnostic-card p-lg bg-surface-container/30">
+<h5 class="font-h3 text-lg mb-3">Clinical Insight</h5>
+<p class="text-on-surface-variant text-sm">Your skin barrier is currently 12% more reactive than your baseline. Avoid mechanical exfoliation until further notice.</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Navigation JS -->
+<script>
+        function switchTab(view) {
+            // Hide all views
+            document.getElementById('view-am').classList.add('hidden');
+            document.getElementById('view-pm').classList.add('hidden');
+            document.getElementById('view-weekly').classList.add('hidden');
+            
+            // Remove active classes from tabs
+            document.getElementById('tab-am').classList.remove('tab-active');
+            document.getElementById('tab-am').classList.add('text-on-surface-variant');
+            document.getElementById('tab-pm').classList.remove('tab-active');
+            document.getElementById('tab-pm').classList.add('text-on-surface-variant');
+            document.getElementById('tab-weekly').classList.remove('tab-active');
+            document.getElementById('tab-weekly').classList.add('text-on-surface-variant');
+
+            // Show selected view
+            document.getElementById('view-' + view).classList.remove('hidden');
+            
+            // Set active tab
+            const activeTab = document.getElementById('tab-' + view);
+            activeTab.classList.add('tab-active');
+            activeTab.classList.remove('text-on-surface-variant');
+        }
+
+        // Add micro-interactions for cards
+        document.querySelectorAll('.diagnostic-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-2px)';
+                card.style.transition = 'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                card.style.borderColor = 'rgba(0, 81, 213, 0.2)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+                card.style.borderColor = 'rgba(15, 23, 42, 0.08)';
+            });
+        });
+    </script>
+</body></html>

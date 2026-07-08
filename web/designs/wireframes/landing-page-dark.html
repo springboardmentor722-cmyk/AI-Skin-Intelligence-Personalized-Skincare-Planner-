@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Skinlytics | Personalized Skincare Intelligence</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;family=JetBrains+Mono:wght@100..900&amp;family=Manrope:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<style>
+    :root {
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --glass-highlight: inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+    }
+    body {
+      background-color: #131315;
+      color: #e4e2e4;
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+    .glass-panel {
+      background: rgba(17, 26, 46, 0.6);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--glass-highlight);
+    }
+    .hero-glass {
+      background: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(40px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      box-shadow: var(--glass-highlight), 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+    .skin-score-glow {
+      filter: drop-shadow(0 0 15px rgba(60, 221, 199, 0.3));
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .pill-cta-glow:hover {
+      box-shadow: 0 0 20px rgba(45, 212, 191, 0.2);
+    }
+  </style>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-error": "#690005",
+            "inverse-primary": "#565e74",
+            "on-tertiary-container": "#009182",
+            "secondary-container": "#0566d9",
+            "primary-fixed": "#dae2fd",
+            "on-tertiary-fixed": "#00201c",
+            "on-primary-fixed-variant": "#3f465c",
+            "surface-bright": "#39393b",
+            "inverse-on-surface": "#303032",
+            "surface-dim": "#131315",
+            "on-secondary-container": "#e6ecff",
+            "on-tertiary-fixed-variant": "#005047",
+            "background": "#131315",
+            "on-tertiary": "#003731",
+            "primary": "#bec6e0",
+            "surface-container-lowest": "#0e0e10",
+            "error-container": "#93000a",
+            "error": "#ffb4ab",
+            "inverse-surface": "#e4e2e4",
+            "on-primary": "#283044",
+            "surface-container-high": "#2a2a2b",
+            "tertiary-fixed-dim": "#3cddc7",
+            "tertiary-container": "#001c18",
+            "surface-container-low": "#1b1b1d",
+            "primary-container": "#0f172a",
+            "surface-tint": "#bec6e0",
+            "on-surface-variant": "#c6c6cd",
+            "on-surface": "#e4e2e4",
+            "secondary-fixed": "#d8e2ff",
+            "on-background": "#e4e2e4",
+            "surface-container-highest": "#353436",
+            "secondary": "#adc6ff",
+            "surface": "#131315",
+            "tertiary-fixed": "#62fae3",
+            "on-secondary-fixed": "#001a42",
+            "outline-variant": "#45464d",
+            "on-error-container": "#ffdad6",
+            "secondary-fixed-dim": "#adc6ff",
+            "on-primary-fixed": "#131b2e",
+            "surface-container": "#1f1f21",
+            "surface-variant": "#353436",
+            "on-secondary": "#002e6a",
+            "on-primary-container": "#798098",
+            "primary-fixed-dim": "#bec6e0",
+            "on-secondary-fixed-variant": "#004395",
+            "outline": "#909097",
+            "tertiary": "#3cddc7"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "unit": "4px",
+            "max-width": "1280px",
+            "margin-mobile": "16px",
+            "gutter": "24px",
+            "margin-desktop": "48px"
+          },
+          "fontFamily": {
+            "headline-lg": ["Manrope"],
+            "headline-md": ["Manrope"],
+            "body-lg": ["Inter"],
+            "headline-lg-mobile": ["Manrope"],
+            "label-md": ["JetBrains Mono"],
+            "display-lg": ["Manrope"],
+            "label-sm": ["JetBrains Mono"],
+            "body-md": ["Inter"]
+          },
+          "fontSize": {
+            "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+            "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+            "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+            "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+            "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+            "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+            "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500"}],
+            "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-background text-on-background">
+<!-- Aurora Background Animation -->
+
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-background/60 backdrop-blur-xl border-b border-white/10 shadow-[0_0_20px_rgba(45,212,191,0.05)]">
+<div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 w-full max-w-max-width mx-auto">
+<div class="flex items-center gap-8">
+<a class="font-headline-md text-headline-md font-bold text-primary" href="/">Skinlytics</a>
+<div class="hidden md:flex gap-6 items-center">
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-tertiary transition-colors duration-300" href="#">Science</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-tertiary transition-colors duration-300" href="#">Treatment</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-tertiary transition-colors duration-300" href="#">Results</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-tertiary transition-colors duration-300" href="#">Journal</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="hidden md:block font-label-md text-label-md text-on-surface-variant hover:text-tertiary px-4 py-2 transition-colors">Login</button>
+<button class="bg-primary-container text-primary font-label-md text-label-md px-6 py-2.5 rounded-full border border-white/5 shadow-lg active:scale-95 transition-transform">Start free assessment</button>
+</div>
+</div>
+</nav>
+<main class="pt-24 pb-20 px-margin-mobile md:px-margin-desktop max-w-max-width mx-auto">
+<!-- Hero Section -->
+<section class="mt-8 md:mt-12">
+<div class="hero-glass rounded-3xl p-8 md:p-16 flex flex-col md:flex-row items-center gap-12 relative overflow-hidden">
+<!-- Background light effect -->
+<div class="absolute -top-24 -right-24 w-96 h-96 bg-tertiary/10 rounded-full blur-[100px]"></div>
+<div class="w-full md:w-1/2 flex flex-col gap-8 relative z-10">
+<h1 class="font-display-lg text-display-lg leading-tight">Skincare intelligence, personalized to your skin.</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-md">
+            Our clinical AI analyzes your unique skin biome, lifestyle patterns, sleep quality, and local environment to engineer a routine that actually works.
+          </p>
+<div class="flex flex-wrap gap-4">
+<button class="bg-primary text-on-primary font-label-md text-label-md px-8 py-4 rounded-full flex items-center gap-2 hover:bg-tertiary transition-all active:scale-95">
+              Take Skin Scan <span class="material-symbols-outlined">center_focus_strong</span>
+</button>
+<button class="bg-white/5 border border-white/10 font-label-md text-label-md px-8 py-4 rounded-full hover:bg-white/10 transition-all">
+              Explore Science
+            </button>
+</div>
+<div class="flex items-center gap-3 pt-4 opacity-70">
+<div class="flex -space-x-2">
+<div class="w-8 h-8 rounded-full border border-background bg-surface-container-high"></div>
+<div class="w-8 h-8 rounded-full border border-background bg-surface-container-low"></div>
+<div class="w-8 h-8 rounded-full border border-background bg-surface-container-highest"></div>
+</div>
+<p class="font-label-sm text-label-sm">12,000+ skin profiles analyzed · Dermatologist-informed</p>
+</div>
+</div>
+<div class="w-full md:w-1/2 flex justify-center relative">
+<!-- Visual: Skin Score & 3D elements -->
+<div class="relative w-72 h-72 md:w-96 md:h-96">
+<!-- Glass Housing -->
+<div class="absolute inset-0 rounded-full bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center skin-score-glow">
+<div class="relative flex flex-col items-center">
+<span class="font-display-lg text-6xl text-tertiary font-bold">82</span>
+<span class="font-label-sm text-label-sm text-on-tertiary-container tracking-widest uppercase">Skin Score</span>
+<!-- Circular Track -->
+<svg class="absolute -inset-16 w-[200%] h-[200%] -rotate-90 pointer-events-none">
+<circle cx="50%" cy="50%" fill="none" r="90" stroke="rgba(255,255,255,0.05)" stroke-width="8"></circle>
+<circle cx="50%" cy="50%" fill="none" r="90" stroke="url(#gradient)" stroke-dasharray="565" stroke-dashoffset="100" stroke-linecap="round" stroke-width="12"></circle>
+<defs>
+<lineargradient id="gradient" x1="0%" x2="100%" y1="0%" y2="100%">
+<stop offset="0%" style="stop-color:#3cddc7;stop-opacity:1"></stop>
+<stop offset="100%" style="stop-color:#0566d9;stop-opacity:1"></stop>
+</lineargradient>
+</defs>
+</svg>
+</div>
+</div>
+<!-- Orbiting Spheres -->
+<div class="absolute top-0 left-0 w-full h-full animate-[spin_20s_linear_infinite]">
+<div class="absolute top-10 left-10 w-12 h-12 bg-surface-container-high rounded-full border border-white/20 backdrop-blur-xl flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined text-sm text-primary">science</span>
+</div>
+</div>
+<div class="absolute top-0 left-0 w-full h-full animate-[spin_15s_linear_infinite_reverse]">
+<div class="absolute bottom-10 right-10 w-16 h-16 bg-surface-container-highest rounded-full border border-white/20 backdrop-blur-xl flex items-center justify-center shadow-xl">
+<span class="material-symbols-outlined text-xl text-tertiary">spa</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- How it Works -->
+<section class="mt-24">
+<div class="flex flex-col items-center text-center gap-4 mb-16">
+<h2 class="font-headline-lg text-headline-lg">Precision Path to Radiant Skin</h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-xl">Our clinical engine processes millions of data points to create your roadmap.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Card 1 -->
+<div class="glass-panel p-8 rounded-3xl group hover:border-tertiary/40 transition-all duration-500">
+<div class="w-12 h-12 bg-tertiary/10 rounded-xl flex items-center justify-center mb-6 text-tertiary">
+<span class="material-symbols-outlined">book_ribbon</span>
+</div>
+<h3 class="font-headline-md text-headline-md mb-4">Assess</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Perform a high-res AI skin scan. We analyze texture, hydration levels, and emerging concerns.</p>
+<div class="mt-8 flex items-center gap-2 text-tertiary font-label-md text-label-md opacity-0 group-hover:opacity-100 transition-opacity">
+            Learn about AI scanning <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="glass-panel p-8 rounded-3xl group hover:border-secondary transition-all duration-500 transform md:-translate-y-4">
+<div class="w-12 h-12 bg-secondary/10 rounded-xl flex items-center justify-center mb-6 text-secondary">
+<span class="material-symbols-outlined">auto_fix_high</span>
+</div>
+<h3 class="font-headline-md text-headline-md mb-4">Get your AI routine</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Receive a custom curation of ingredients and products mathematically matched to your profile.</p>
+<div class="mt-8 flex items-center gap-2 text-secondary font-label-md text-label-md opacity-0 group-hover:opacity-100 transition-opacity">
+            View sample routine <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="glass-panel p-8 rounded-3xl group hover:border-primary transition-all duration-500">
+<div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-6 text-primary">
+<span class="material-symbols-outlined">monitoring</span>
+</div>
+<h3 class="font-headline-md text-headline-md mb-4">Track progress</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Log changes weekly. Our AI learns from your progress and pivots your routine in real-time.</p>
+<div class="mt-8 flex items-center gap-2 text-primary font-label-md text-label-md opacity-0 group-hover:opacity-100 transition-opacity">
+            Start tracking <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Score Explainer Band -->
+<section class="mt-24">
+<div class="glass-panel rounded-full px-8 py-6 flex flex-wrap justify-center items-center gap-8 md:gap-12 border border-white/5">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest">Weighted Skin Algorithm:</span>
+<div class="flex items-center gap-6">
+<div class="flex flex-col">
+<span class="font-headline-md text-tertiary">35%</span>
+<span class="font-label-sm text-label-sm opacity-60">Surface Hydration</span>
+</div>
+<div class="w-px h-8 bg-white/10"></div>
+<div class="flex flex-col">
+<span class="font-headline-md text-tertiary">20%</span>
+<span class="font-label-sm text-label-sm opacity-60">Lipid Barrier</span>
+</div>
+<div class="w-px h-8 bg-white/10"></div>
+<div class="flex flex-col">
+<span class="font-headline-md text-tertiary">20%</span>
+<span class="font-label-sm text-label-sm opacity-60">Environment</span>
+</div>
+<div class="w-px h-8 bg-white/10"></div>
+<div class="flex flex-col">
+<span class="font-headline-md text-tertiary">15%</span>
+<span class="font-label-sm text-label-sm opacity-60">Lifestyle/Sleep</span>
+</div>
+<div class="w-px h-8 bg-white/10"></div>
+<div class="flex flex-col">
+<span class="font-headline-md text-tertiary">10%</span>
+<span class="font-label-sm text-label-sm opacity-60">Genetic Bias</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Feature Grid -->
+<section class="mt-24">
+<div class="flex justify-between items-end mb-12">
+<div>
+<h2 class="font-headline-lg text-headline-lg mb-2">Advanced Skin Diagnostics</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Scientific rigor in every feature.</p>
+</div>
+<button class="font-label-md text-label-md text-tertiary flex items-center gap-2 hover:underline">See technical docs <span class="material-symbols-outlined text-sm">open_in_new</span></button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Feature 1 -->
+<div class="bg-surface-container p-8 rounded-3xl border border-white/5 hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-tertiary mb-6" style="font-size: 32px;">photo_camera</span>
+<h4 class="font-headline-md text-headline-md mb-2">AI Skin Assessment</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">Computer vision technology that identifies 12+ skin markers from a single selfie.</p>
+</div>
+<!-- Feature 2 -->
+<div class="bg-surface-container p-8 rounded-3xl border border-white/5 hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-tertiary mb-6" style="font-size: 32px;">rule</span>
+<h4 class="font-headline-md text-headline-md mb-2">Personalized Routines</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">Dynamic morning and night routines that adjust based on your daily UV and humidity levels.</p>
+</div>
+<!-- Feature 3 -->
+<div class="bg-surface-container p-8 rounded-3xl border border-white/5 hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-tertiary mb-6" style="font-size: 32px;">database</span>
+<h4 class="font-headline-md text-headline-md mb-2">Ingredient Intelligence</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">Deep-dive analysis of ingredient interactions to avoid product conflicts and irritation.</p>
+</div>
+<!-- Feature 4 -->
+<div class="bg-surface-container p-8 rounded-3xl border border-white/5 hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-tertiary mb-6" style="font-size: 32px;">verified</span>
+<h4 class="font-headline-md text-headline-md mb-2">Product Match Scoring</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">Scan any product barcode to see a 1-100 compatibility score with your specific skin.</p>
+</div>
+<!-- Feature 5 -->
+<div class="bg-surface-container p-8 rounded-3xl border border-white/5 hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-tertiary mb-6" style="font-size: 32px;">insights</span>
+<h4 class="font-headline-md text-headline-md mb-2">Progress Tracking</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">Side-by-side photographic history with analytical overlay showing metric improvements.</p>
+</div>
+<!-- Feature 6 -->
+<div class="bg-surface-container p-8 rounded-3xl border border-white/5 hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-tertiary mb-6" style="font-size: 32px;">alarm</span>
+<h4 class="font-headline-md text-headline-md mb-2">Smart Reminders</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">Contextual notifications for sunscreen reapplication and specific routine steps.</p>
+</div>
+</div>
+</section>
+<!-- Built for Every Role -->
+<section class="mt-32">
+<div class="text-center mb-16">
+<h2 class="font-headline-lg text-headline-lg mb-4">Built for Every Role</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Custom tools for the entire skincare ecosystem.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- User -->
+<div class="flex flex-col gap-6">
+<div class="aspect-[4/5] rounded-3xl overflow-hidden relative group">
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10"></div>
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="A close-up, high-detail portrait of a young person with glowing, healthy skin, looking into a bathroom mirror where digital UI elements are projected. The lighting is soft and warm, highlighting the skin's natural texture. The background is a clean, modern bathroom with glass and marble accents." src="source/images/landing-page/img_000_eef536ba.jpg"/>
+<div class="absolute bottom-6 left-6 z-20">
+<h4 class="font-headline-md text-white">For Individuals</h4>
+<p class="font-body-md text-white/70">Master your own routine.</p>
+</div>
+</div>
+<button class="bg-surface-container p-4 rounded-xl font-label-md text-label-md hover:bg-surface-container-high transition-colors">Learn More</button>
+</div>
+<!-- Consultant -->
+<div class="flex flex-col gap-6">
+<div class="aspect-[4/5] rounded-3xl overflow-hidden relative group">
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10"></div>
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="A professional aesthetician in a sleek, laboratory-inspired clinic setting, using a tablet to explain skin data to a client. The room features cool, clinical blue and teal ambient lighting, glass shelving with minimalist product bottles, and futuristic medical equipment. The mood is professional and high-tech." src="source/images/landing-page/img_001_9db42da8.jpg"/>
+<div class="absolute bottom-6 left-6 z-20">
+<h4 class="font-headline-md text-white">For Consultants</h4>
+<p class="font-body-md text-white/70">Data-driven client advice.</p>
+</div>
+</div>
+<button class="bg-surface-container p-4 rounded-xl font-label-md text-label-md hover:bg-surface-container-high transition-colors">Learn More</button>
+</div>
+<!-- Dermatologist -->
+<div class="flex flex-col gap-6">
+<div class="aspect-[4/5] rounded-3xl overflow-hidden relative group">
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10"></div>
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="A highly detailed, macro shot of skin through a clinical lens, revealing microscopic hydration levels and pore structure. In the background, a dermatologist in a white coat examines complex data charts on a large vertical touchscreen display. The aesthetic is extremely clinical, scientific, and precise." src="source/images/landing-page/img_002_765b9101.jpg"/>
+<div class="absolute bottom-6 left-6 z-20">
+<h4 class="font-headline-md text-white">For Dermatologists</h4>
+<p class="font-body-md text-white/70">Clinical-grade diagnostic aid.</p>
+</div>
+</div>
+<button class="bg-surface-container p-4 rounded-xl font-label-md text-label-md hover:bg-surface-container-high transition-colors">Learn More</button>
+</div>
+</div>
+</section>
+<!-- Testimonial Carousel (Static Mock) -->
+<section class="mt-32">
+<div class="glass-panel p-12 rounded-[40px] flex flex-col md:flex-row gap-12 items-center">
+<div class="w-full md:w-1/3">
+<div class="w-16 h-16 bg-tertiary/20 rounded-full flex items-center justify-center text-tertiary mb-6">
+<span class="material-symbols-outlined" style="font-size: 32px;">format_quote</span>
+</div>
+<h2 class="font-headline-lg text-headline-lg mb-4">Loved by 12,000+ faces.</h2>
+<div class="flex gap-2">
+<button class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 transition-colors">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+<div class="w-full md:w-2/3 grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="bg-background/40 p-6 rounded-3xl border border-white/5">
+<p class="font-body-md text-body-md mb-6">"Skinlytics caught a reaction between two of my products that was causing chronic redness. Within two weeks, my skin was calm for the first time in years."</p>
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest"></div>
+<div>
+<p class="font-label-md text-label-md">Alex Rivera</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Sensitive/Reactive Skin</p>
+</div>
+</div>
+</div>
+<div class="bg-background/40 p-6 rounded-3xl border border-white/5 opacity-50 hidden md:block">
+<p class="font-body-md text-body-md mb-6">"The environmental tracking is a game changer for my travel. It suggests heavier barriers when I'm in dry climates automatically."</p>
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest"></div>
+<div>
+<p class="font-label-md text-label-md">Jordan Lee</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Frequent Traveler</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Pricing Teaser -->
+<section class="mt-32">
+<div class="text-center mb-16">
+<h2 class="font-headline-lg text-headline-lg mb-4">Invest in your skin.</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Start free, upgrade for deeper clinical insights.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto gap-8">
+<!-- Free -->
+<div class="bg-surface-container-low p-10 rounded-[32px] border border-white/5">
+<h4 class="font-label-md text-label-md text-on-surface-variant mb-2">Essential</h4>
+<div class="flex items-baseline gap-1 mb-8">
+<span class="font-display-lg text-4xl">$0</span>
+<span class="font-label-sm text-label-sm opacity-60">/ forever</span>
+</div>
+<ul class="flex flex-col gap-4 mb-10">
+<li class="flex items-center gap-3 font-body-md"><span class="material-symbols-outlined text-tertiary text-lg">check_circle</span> Basic AI Skin Scan</li>
+<li class="flex items-center gap-3 font-body-md"><span class="material-symbols-outlined text-tertiary text-lg">check_circle</span> Daily Routine Builder</li>
+<li class="flex items-center gap-3 font-body-md"><span class="material-symbols-outlined text-tertiary text-lg">check_circle</span> Ingredient Conflict Checker</li>
+</ul>
+<button class="w-full py-4 rounded-xl border border-white/10 font-label-md text-label-md hover:bg-white/5 transition-colors">Start for free</button>
+</div>
+<!-- Pro -->
+<div class="bg-primary-container p-10 rounded-[32px] border border-tertiary/20 relative">
+<div class="absolute top-6 right-6 bg-tertiary text-on-tertiary font-label-sm text-label-sm px-3 py-1 rounded-full">POPULAR</div>
+<h4 class="font-label-md text-label-md text-on-surface-variant mb-2">Professional</h4>
+<div class="flex items-baseline gap-1 mb-8">
+<span class="font-display-lg text-4xl">$12</span>
+<span class="font-label-sm text-label-sm opacity-60">/ month</span>
+</div>
+<ul class="flex flex-col gap-4 mb-10">
+<li class="flex items-center gap-3 font-body-md"><span class="material-symbols-outlined text-tertiary text-lg">check_circle</span> Clinical-Grade Analysis</li>
+<li class="flex items-center gap-3 font-body-md"><span class="material-symbols-outlined text-tertiary text-lg">check_circle</span> Environmental Adaptation</li>
+<li class="flex items-center gap-3 font-body-md"><span class="material-symbols-outlined text-tertiary text-lg">check_circle</span> Dermatologist Consultation</li>
+<li class="flex items-center gap-3 font-body-md"><span class="material-symbols-outlined text-tertiary text-lg">check_circle</span> Priority Feature Access</li>
+</ul>
+<button class="w-full py-4 rounded-xl bg-tertiary text-on-tertiary font-label-md text-label-md hover:opacity-90 transition-all shadow-[0_0_20px_rgba(60,221,199,0.2)]">Get Started</button>
+</div>
+</div>
+</section>
+<!-- FAQ Accordion -->
+<section class="mt-32 max-w-3xl mx-auto">
+<h2 class="font-headline-lg text-headline-lg text-center mb-12">Common Questions</h2>
+<div class="flex flex-col gap-4">
+<div class="bg-surface-container p-6 rounded-2xl border border-white/5">
+<button class="flex justify-between items-center w-full font-headline-md text-lg text-left" onclick="this.nextElementSibling.classList.toggle('hidden')">
+            How accurate is the AI scanning?
+            <span class="material-symbols-outlined">expand_more</span>
+</button>
+<div class="mt-4 font-body-md text-on-surface-variant hidden">
+            Our models are trained on over 5 million clinical images and developed in partnership with board-certified dermatologists. While not a medical diagnosis, our accuracy for common skin conditions is verified at 94% compared to in-person assessments.
+          </div>
+</div>
+<div class="bg-surface-container p-6 rounded-2xl border border-white/5">
+<button class="flex justify-between items-center w-full font-headline-md text-lg text-left" onclick="this.nextElementSibling.classList.toggle('hidden')">
+            Is my biometric data safe?
+            <span class="material-symbols-outlined">expand_more</span>
+</button>
+<div class="mt-4 font-body-md text-on-surface-variant hidden">
+            We use end-to-end encryption for all photo data. Your images are processed on-device whenever possible and are never sold to third-party cosmetic companies.
+          </div>
+</div>
+</div>
+</section>
+<!-- Final CTA -->
+<section class="mt-32">
+<div class="relative rounded-[40px] overflow-hidden p-12 md:p-20 text-center">
+<!-- Background Gradient -->
+<div class="absolute inset-0 bg-gradient-to-br from-primary-container via-surface-container-lowest to-background"></div>
+<div class="absolute inset-0 opacity-20">
+
+</div>
+<div class="relative z-10 flex flex-col items-center gap-8">
+<h2 class="font-display-lg text-display-lg max-w-2xl">Ready for your smartest skin yet?</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-lg">Join 12,000+ users who have optimized their skin health with clinical-grade intelligence.</p>
+<button class="bg-tertiary text-on-tertiary font-label-md text-label-md px-10 py-5 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all">Start Assessment Now — It's Free</button>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-lowest border-t border-white/5 py-16 px-margin-mobile md:px-margin-desktop">
+<div class="max-w-max-width mx-auto grid grid-cols-2 md:grid-cols-5 gap-12">
+<div class="col-span-2">
+<a class="font-headline-md text-headline-md font-bold text-primary mb-6 block" href="#">Skinlytics</a>
+<p class="font-body-md text-on-surface-variant max-w-xs mb-8">Personalized skincare intelligence powered by clinical AI and dermatological science.</p>
+<div class="flex gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center border border-white/5"><span class="material-symbols-outlined text-sm">public</span></div>
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center border border-white/5"><span class="material-symbols-outlined text-sm">alternate_email</span></div>
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center border border-white/5"><span class="material-symbols-outlined text-sm">share</span></div>
+</div>
+</div>
+<div>
+<h5 class="font-label-md text-label-md text-white mb-6">Product</h5>
+<ul class="flex flex-col gap-4 font-body-md text-on-surface-variant">
+<li><a class="hover:text-tertiary transition-colors" href="#">Features</a></li>
+<li><a class="hover:text-tertiary transition-colors" href="#">AI Scanning</a></li>
+<li><a class="hover:text-tertiary transition-colors" href="#">Pricing</a></li>
+<li><a class="hover:text-tertiary transition-colors" href="#">API</a></li>
+</ul>
+</div>
+<div>
+<h5 class="font-label-md text-label-md text-white mb-6">Company</h5>
+<ul class="flex flex-col gap-4 font-body-md text-on-surface-variant">
+<li><a class="hover:text-tertiary transition-colors" href="#">About</a></li>
+<li><a class="hover:text-tertiary transition-colors" href="#">Science Board</a></li>
+<li><a class="hover:text-tertiary transition-colors" href="#">Journal</a></li>
+<li><a class="hover:text-tertiary transition-colors" href="#">Contact</a></li>
+</ul>
+</div>
+<div>
+<h5 class="font-label-md text-label-md text-white mb-6">Legal</h5>
+<ul class="flex flex-col gap-4 font-body-md text-on-surface-variant">
+<li><a class="hover:text-tertiary transition-colors" href="#">Privacy</a></li>
+<li><a class="hover:text-tertiary transition-colors" href="#">Terms</a></li>
+<li><a class="hover:text-tertiary transition-colors" href="#">Biometric Policy</a></li>
+</ul>
+</div>
+</div>
+<div class="max-w-max-width mx-auto mt-16 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between gap-4 font-label-sm text-label-sm text-on-surface-variant opacity-60">
+<p>© 2024 Skinlytics. Engineered for healthier skin.</p>
+<p>Laboratory Grade Diagnostics · Made in Switzerland</p>
+</div>
+</footer>
+<script>
+    // Micro-interactions and effects
+    document.addEventListener('mousemove', (e) => {
+      // Subtle parallax for spheres if desired
+    });
+  </script>
+</body></html>

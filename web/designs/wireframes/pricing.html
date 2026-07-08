@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Plans &amp; Billing | Skinlytics AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Geist:wght@400;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.68);
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+        }
+        .pro-gradient-border {
+            position: relative;
+            background: #ffffff;
+            background-clip: padding-box;
+            border: 2px solid transparent;
+        }
+        .pro-gradient-border::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            z-index: -1;
+            margin: -2px;
+            border-radius: inherit;
+            background: linear-gradient(135deg, #0051d5, #4fdbc8);
+        }
+        .billing-toggle-knob {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #billing-toggle:checked ~ .billing-toggle-knob {
+            transform: translateX(100%);
+        }
+        .aurora-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            background-color: #fcf8fa;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#4fdbc8",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed": "#71f8e4",
+                        "secondary-fixed-dim": "#b4c5ff",
+                        "on-secondary-fixed-variant": "#003ea8",
+                        "on-primary-container": "#7c839b",
+                        "primary-container": "#131b2e",
+                        "secondary": "#0051d5",
+                        "on-error": "#ffffff",
+                        "secondary-fixed": "#dbe1ff",
+                        "secondary-container": "#316bf3",
+                        "primary-fixed-dim": "#bec6e0",
+                        "on-secondary-container": "#fefcff",
+                        "surface-container": "#f0edef",
+                        "surface-container-high": "#eae7e9",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-container": "#009485",
+                        "on-surface-variant": "#45464d",
+                        "inverse-surface": "#303032",
+                        "tertiary": "#000000",
+                        "surface-tint": "#565e74",
+                        "on-primary-fixed": "#131b2e",
+                        "background": "#fcf8fa",
+                        "on-error-container": "#93000a",
+                        "on-primary": "#ffffff",
+                        "surface": "#fcf8fa",
+                        "on-surface": "#1b1b1d",
+                        "surface-container-highest": "#e4e2e4",
+                        "on-secondary": "#ffffff",
+                        "surface-variant": "#e4e2e4",
+                        "inverse-primary": "#bec6e0",
+                        "on-background": "#1b1b1d",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed": "#00174b",
+                        "surface-dim": "#dcd9db",
+                        "outline": "#76777d",
+                        "primary-fixed": "#dae2fd",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "on-tertiary-fixed-variant": "#005048",
+                        "on-tertiary-fixed": "#00201c",
+                        "inverse-on-surface": "#f3f0f2",
+                        "tertiary-container": "#00201c",
+                        "surface-bright": "#fcf8fa",
+                        "primary": "#000000",
+                        "surface-container-low": "#f6f3f5",
+                        "surface-container-lowest": "#ffffff",
+                        "outline-variant": "#c6c6cd"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "48px",
+                        "xl": "32px",
+                        "3xl": "64px",
+                        "sm": "8px",
+                        "base": "4px",
+                        "lg": "24px",
+                        "md": "16px",
+                        "gutter": "24px",
+                        "2xl": "48px",
+                        "xs": "4px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "h2": ["Sora"],
+                        "h1-mobile": ["Sora"],
+                        "h1": ["Sora"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-caps": ["Geist"],
+                        "h3": ["Sora"],
+                        "data-display": ["Geist"]
+                    },
+                    "fontSize": {
+                        "h2": ["32px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "h1-mobile": ["30px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "h1": ["40px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "h3": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "data-display": ["32px", {"lineHeight": "1.0", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background font-body-md selection:bg-secondary/20">
+<div class="aurora-bg">
+
+</div>
+<!-- SideNavBar Anchor -->
+<aside class="fixed left-0 top-0 h-screen w-64 z-40 bg-white/68 backdrop-blur-xl border-r border-on-surface/8 flex flex-col py-lg">
+<div class="px-lg mb-3xl">
+<h1 class="font-h3 text-h3 font-bold text-primary">Skinlytics AI</h1>
+<p class="font-label-caps text-label-caps text-on-surface-variant opacity-60">Clinical Portal</p>
+</div>
+<nav class="flex-1 flex flex-col gap-1">
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">biotech</span>
+<span>Analyses</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">medical_services</span>
+<span>Consultants</span>
+</a>
+<a class="bg-secondary/10 text-secondary border-r-4 border-secondary px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="mt-auto px-md flex flex-col gap-1">
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-3 flex items-center gap-3 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">help</span>
+<span>Help Center</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-3 flex items-center gap-3 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span>Sign Out</span>
+</a>
+</div>
+</aside>
+<main class="ml-64 min-h-screen">
+<!-- TopAppBar Anchor -->
+<header class="sticky top-0 w-full z-30 bg-white/68 backdrop-blur-xl border-b border-on-surface/8 flex justify-between items-center px-lg py-sm">
+<div class="flex items-center gap-md">
+<div class="bg-surface-container rounded-full px-md py-xs flex items-center gap-sm">
+<span class="material-symbols-outlined text-on-surface-variant">search</span>
+<input class="bg-transparent border-none focus:ring-0 font-body-md text-on-surface-variant w-64" placeholder="Search analytics..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="material-symbols-outlined text-on-surface-variant hover:text-secondary transition-transform scale-95 active:scale-90">wb_sunny</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-secondary transition-transform scale-95 active:scale-90">notifications</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-secondary transition-transform scale-95 active:scale-90">contrast</button>
+<div class="h-8 w-8 rounded-full bg-surface-container overflow-hidden ml-sm border border-on-surface/8">
+<img class="w-full h-full object-cover" data-alt="A clean, professional headshot of a female doctor in a white clinical coat, minimalist lighting, high-end medical professional aesthetic, soft daylight background, representing the user's high-trust identity." src="source/images/app-billing/img_000_c464766c.jpg"/>
+</div>
+</div>
+</header>
+<section class="max-w-6xl mx-auto px-margin-desktop py-2xl">
+<!-- Header Section -->
+<div class="mb-3xl flex flex-col md:flex-row md:items-end justify-between gap-xl">
+<div>
+<h2 class="font-h1 text-h1 text-primary mb-md">Plans &amp; Billing</h2>
+<p class="font-body-lg text-on-surface-variant max-w-xl">
+                        Manage your clinical diagnostic capacity and team workspace. Upgrade to unlock high-resolution AI epidermal analysis.
+                    </p>
+</div>
+<!-- Toggle -->
+<div class="flex items-center gap-md bg-surface-container-low p-base rounded-full border border-on-surface/8">
+<span class="font-label-caps text-label-caps ml-md" id="monthly-label">Monthly</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only" id="billing-toggle" type="checkbox"/>
+<div class="w-14 h-8 bg-surface-container-highest rounded-full border border-outline-variant"></div>
+<div class="billing-toggle-knob absolute left-1 top-1 w-6 h-6 bg-white rounded-full shadow-sm border border-outline-variant"></div>
+</label>
+<span class="font-label-caps text-label-caps mr-md text-on-surface-variant">Yearly <span class="text-on-tertiary-container">(Save 20%)</span></span>
+</div>
+</div>
+<!-- Pricing Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-xl items-stretch mb-3xl">
+<!-- Free Tier -->
+<div class="bg-surface-container-lowest rounded-xl border border-on-surface/8 p-lg flex flex-col">
+<div class="mb-xl">
+<h3 class="font-h3 text-h3 text-primary mb-xs">Free</h3>
+<p class="font-body-md text-on-surface-variant">Essential skin health tracking for individuals.</p>
+</div>
+<div class="mb-xl">
+<span class="font-data-display text-data-display text-primary">₹0</span>
+<span class="font-body-md text-on-surface-variant">/month</span>
+</div>
+<ul class="flex-1 flex flex-col gap-md mb-2xl">
+<li class="flex items-center gap-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-on-tertiary-container text-[18px]">check_circle</span>
+<span>5 AI scans per month</span>
+</li>
+<li class="flex items-center gap-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-on-tertiary-container text-[18px]">check_circle</span>
+<span>Standard resolution analysis</span>
+</li>
+<li class="flex items-center gap-sm text-on-surface-variant opacity-40">
+<span class="material-symbols-outlined text-[18px]">cancel</span>
+<span>Historical data export</span>
+</li>
+</ul>
+<button class="w-full py-md rounded-full border border-primary font-label-caps text-label-caps uppercase hover:bg-primary hover:text-on-primary transition-all">Current Plan</button>
+</div>
+<!-- Pro Tier (Glass & Gradient) -->
+<div class="pro-gradient-border rounded-xl p-lg flex flex-col relative">
+<div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-secondary text-white px-md py-1 rounded-full font-label-caps text-[10px] tracking-widest uppercase">Most Popular</div>
+<div class="mb-xl">
+<h3 class="font-h3 text-h3 text-secondary mb-xs">Pro</h3>
+<p class="font-body-md text-on-surface-variant">Deep diagnostic insights for skin enthusiasts.</p>
+</div>
+<div class="mb-xl">
+<span class="font-data-display text-data-display text-primary">₹499</span>
+<span class="font-body-md text-on-surface-variant">/month</span>
+</div>
+<ul class="flex-1 flex flex-col gap-md mb-2xl">
+<li class="flex items-center gap-sm text-on-surface">
+<span class="material-symbols-outlined text-secondary text-[18px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="font-semibold">Unlimited AI scans</span>
+</li>
+<li class="flex items-center gap-sm text-on-surface">
+<span class="material-symbols-outlined text-secondary text-[18px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="font-semibold">Clinical-grade 4K analysis</span>
+</li>
+<li class="flex items-center gap-sm text-on-surface">
+<span class="material-symbols-outlined text-secondary text-[18px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span>Advanced pigment tracking</span>
+</li>
+<li class="flex items-center gap-sm text-on-surface">
+<span class="material-symbols-outlined text-secondary text-[18px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span>Priority specialist chat</span>
+</li>
+</ul>
+<button class="w-full py-md rounded-full bg-secondary text-white font-label-caps text-label-caps uppercase shadow-lg shadow-secondary/20 hover:opacity-90 transition-all" onclick="openPaymentSheet()">Upgrade Now</button>
+</div>
+<!-- Clinic/Team Tier -->
+<div class="bg-surface-container-lowest rounded-xl border border-on-surface/8 p-lg flex flex-col">
+<div class="mb-xl">
+<h3 class="font-h3 text-h3 text-primary mb-xs">Clinic</h3>
+<p class="font-body-md text-on-surface-variant">Multi-user workspace for dermatology teams.</p>
+</div>
+<div class="mb-xl">
+<span class="font-data-display text-data-display text-primary">₹2,499</span>
+<span class="font-body-md text-on-surface-variant">/month</span>
+</div>
+<ul class="flex-1 flex flex-col gap-md mb-2xl">
+<li class="flex items-center gap-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-on-tertiary-container text-[18px]">check_circle</span>
+<span>Up to 10 Team Members</span>
+</li>
+<li class="flex items-center gap-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-on-tertiary-container text-[18px]">check_circle</span>
+<span>Full Patient History API</span>
+</li>
+<li class="flex items-center gap-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-on-tertiary-container text-[18px]">check_circle</span>
+<span>HIPAA Compliant Storage</span>
+</li>
+</ul>
+<button class="w-full py-md rounded-full border border-primary font-label-caps text-label-caps uppercase hover:bg-primary hover:text-on-primary transition-all">Contact Sales</button>
+</div>
+</div>
+<!-- Billing History Table -->
+<div class="bg-surface-container-lowest rounded-xl border border-on-surface/8 overflow-hidden">
+<div class="px-lg py-md border-b border-on-surface/8 flex justify-between items-center bg-surface-container-low">
+<h4 class="font-h3 text-h3 text-primary text-body-md">Billing History</h4>
+<button class="font-label-caps text-label-caps text-secondary hover:underline">Download All (PDF)</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider border-b border-on-surface/8">
+<th class="px-lg py-md font-semibold">Date</th>
+<th class="px-lg py-md font-semibold">Description</th>
+<th class="px-lg py-md font-semibold">Amount</th>
+<th class="px-lg py-md font-semibold">Status</th>
+<th class="px-lg py-md font-semibold text-right">Invoice</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-on-surface/8">
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="px-lg py-md font-data-display text-[14px]">May 12, 2024</td>
+<td class="px-lg py-md text-on-surface">Pro Plan - Monthly Renewal</td>
+<td class="px-lg py-md font-data-display text-[14px]">₹499.00</td>
+<td class="px-lg py-md">
+<span class="px-sm py-1 rounded-full bg-tertiary-fixed-dim/20 text-on-tertiary-container text-[11px] font-bold uppercase tracking-tight">Paid</span>
+</td>
+<td class="px-lg py-md text-right">
+<button class="material-symbols-outlined text-secondary hover:scale-110 transition-transform">download</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="px-lg py-md font-data-display text-[14px]">Apr 12, 2024</td>
+<td class="px-lg py-md text-on-surface">Pro Plan - Monthly Renewal</td>
+<td class="px-lg py-md font-data-display text-[14px]">₹499.00</td>
+<td class="px-lg py-md">
+<span class="px-sm py-1 rounded-full bg-tertiary-fixed-dim/20 text-on-tertiary-container text-[11px] font-bold uppercase tracking-tight">Paid</span>
+</td>
+<td class="px-lg py-md text-right">
+<button class="material-symbols-outlined text-secondary hover:scale-110 transition-transform">download</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="px-lg py-md font-data-display text-[14px]">Mar 12, 2024</td>
+<td class="px-lg py-md text-on-surface">Pro Plan - Monthly Renewal</td>
+<td class="px-lg py-md font-data-display text-[14px]">₹499.00</td>
+<td class="px-lg py-md">
+<span class="px-sm py-1 rounded-full bg-error-container text-on-error-container text-[11px] font-bold uppercase tracking-tight">Refunded</span>
+</td>
+<td class="px-lg py-md text-right">
+<button class="material-symbols-outlined text-secondary hover:scale-110 transition-transform">download</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<!-- Footer Anchor -->
+<footer class="mt-2xl bg-white/68 backdrop-blur-xl border-t border-on-surface/8 py-lg px-margin-desktop flex flex-col md:flex-row justify-between items-center gap-md">
+<p class="font-label-caps text-label-caps text-on-surface-variant">© 2024 Skinlytics Lab. Clinical Grade AI.</p>
+<div class="flex gap-lg">
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors" href="#">Terms of Service</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors" href="#">HIPAA Compliance</a>
+</div>
+</footer>
+</main>
+<!-- Payment Sheet Backdrop -->
+<div class="fixed inset-0 bg-primary/40 backdrop-blur-sm z-[60] hidden transition-opacity duration-300 opacity-0 items-center justify-center" id="payment-overlay">
+<!-- Payment Sheet -->
+<div class="bg-white rounded-2xl w-full max-w-md shadow-2xl transform translate-y-10 transition-transform duration-300 mx-margin-mobile" id="payment-sheet">
+<div class="p-lg border-b border-on-surface/8 flex justify-between items-center">
+<h3 class="font-h3 text-h3 text-primary">Secure Checkout</h3>
+<button class="material-symbols-outlined text-on-surface-variant" onclick="closePaymentSheet()">close</button>
+</div>
+<div class="p-lg">
+<div class="mb-lg p-md bg-surface-container-low rounded-xl flex items-center justify-between border border-on-surface/8">
+<div>
+<p class="font-label-caps text-label-caps text-on-surface-variant uppercase">Plan Selection</p>
+<p class="font-body-lg text-primary font-semibold">Pro Plan (Monthly)</p>
+</div>
+<p class="font-data-display text-h3 text-secondary">₹499</p>
+</div>
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-md uppercase">Select Payment Method</p>
+<div class="flex flex-col gap-md">
+<button class="flex items-center justify-between p-md border-2 border-secondary bg-secondary/5 rounded-xl transition-all hover:bg-secondary/10">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center border border-on-surface/8">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">account_balance_wallet</span>
+</div>
+<div class="text-left">
+<p class="font-body-md text-primary font-semibold">Razorpay</p>
+<p class="text-[12px] text-on-surface-variant">UPI, Cards, Netbanking (India)</p>
+</div>
+</div>
+<div class="w-5 h-5 rounded-full border-4 border-secondary"></div>
+</button>
+<button class="flex items-center justify-between p-md border border-on-surface/8 rounded-xl transition-all hover:bg-surface-container-low">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center border border-on-surface/8">
+<span class="material-symbols-outlined text-on-surface-variant">payments</span>
+</div>
+<div class="text-left">
+<p class="font-body-md text-primary font-semibold">Stripe</p>
+<p class="text-[12px] text-on-surface-variant">International Credit/Debit Cards</p>
+</div>
+</div>
+</button>
+</div>
+<div class="mt-lg p-md bg-surface-container-highest/30 rounded-xl flex gap-sm items-start">
+<span class="material-symbols-outlined text-on-tertiary-container scale-75">lock</span>
+<p class="text-[12px] text-on-surface-variant">Your transaction is encrypted with 256-bit SSL security. We do not store your full card details.</p>
+</div>
+<button class="w-full mt-xl py-md bg-primary text-on-primary rounded-full font-label-caps text-label-caps uppercase hover:opacity-90 active:scale-[0.98] transition-all">Proceed to Payment</button>
+</div>
+</div>
+</div>
+<script>
+        function openPaymentSheet() {
+            const overlay = document.getElementById('payment-overlay');
+            const sheet = document.getElementById('payment-sheet');
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                sheet.classList.remove('translate-y-10');
+            }, 10);
+        }
+
+        function closePaymentSheet() {
+            const overlay = document.getElementById('payment-overlay');
+            const sheet = document.getElementById('payment-sheet');
+            overlay.classList.add('opacity-0');
+            sheet.classList.add('translate-y-10');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                overlay.classList.remove('flex');
+            }, 300);
+        }
+
+        // Close on backdrop click
+        document.getElementById('payment-overlay').addEventListener('click', (e) => {
+            if (e.target.id === 'payment-overlay') closePaymentSheet();
+        });
+
+        // Price Animation logic (Mock)
+        document.getElementById('billing-toggle').addEventListener('change', (e) => {
+            const prices = document.querySelectorAll('.font-data-display');
+            prices.forEach((price, idx) => {
+                let currentVal = parseInt(price.innerText.replace('₹', '').replace(',', ''));
+                if (e.target.checked) {
+                    // Yearly logic
+                    price.innerText = '₹' + Math.floor(currentVal * 10 * 0.8).toLocaleString();
+                } else {
+                    // Monthly logic
+                    if (idx === 1) price.innerText = '₹499';
+                    if (idx === 2) price.innerText = '₹2,499';
+                }
+            });
+        });
+    </script>
+</body></html>

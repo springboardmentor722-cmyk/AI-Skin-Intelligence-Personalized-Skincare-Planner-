@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Skinlytics | Ingredient Intelligence</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;family=Geist:wght@400;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.68);
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+        }
+        .diagnostic-module {
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 16px;
+        }
+        .molecule-orb {
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                "on-surface-variant": "#45464d",
+                "on-tertiary-fixed": "#00201c",
+                "inverse-surface": "#303032",
+                "on-primary": "#ffffff",
+                "inverse-on-surface": "#f3f0f2",
+                "error": "#ba1a1a",
+                "on-tertiary-fixed-variant": "#005048",
+                "on-secondary-fixed": "#00174b",
+                "primary": "#000000",
+                "secondary-fixed": "#dbe1ff",
+                "surface-dim": "#dcd9db",
+                "surface": "#fcf8fa",
+                "secondary-container": "#316bf3",
+                "surface-container-low": "#f6f3f5",
+                "on-tertiary-container": "#009485",
+                "on-primary-fixed": "#131b2e",
+                "on-background": "#1b1b1d",
+                "surface-variant": "#e4e2e4",
+                "on-primary-container": "#7c839b",
+                "inverse-primary": "#bec6e0",
+                "on-secondary-container": "#fefcff",
+                "on-secondary-fixed-variant": "#003ea8",
+                "on-error-container": "#93000a",
+                "tertiary-fixed-dim": "#4fdbc8",
+                "surface-container": "#f0edef",
+                "primary-fixed-dim": "#bec6e0",
+                "outline-variant": "#c6c6cd",
+                "tertiary": "#000000",
+                "surface-bright": "#fcf8fa",
+                "surface-container-high": "#eae7e9",
+                "primary-container": "#131b2e",
+                "error-container": "#ffdad6",
+                "background": "#fcf8fa",
+                "surface-tint": "#565e74",
+                "primary-fixed": "#dae2fd",
+                "on-tertiary": "#ffffff",
+                "surface-container-highest": "#e4e2e4",
+                "outline": "#76777d",
+                "secondary": "#0051d5",
+                "surface-container-lowest": "#ffffff",
+                "on-error": "#ffffff",
+                "tertiary-container": "#00201c",
+                "on-secondary": "#ffffff",
+                "on-primary-fixed-variant": "#3f465c",
+                "secondary-fixed-dim": "#b4c5ff",
+                "tertiary-fixed": "#71f8e4",
+                "on-surface": "#1b1b1d"
+              },
+              "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+              },
+              "spacing": {
+                "base": "4px",
+                "xs": "4px",
+                "sm": "8px",
+                "xl": "32px",
+                "margin-mobile": "16px",
+                "lg": "24px",
+                "3xl": "64px",
+                "2xl": "48px",
+                "md": "16px",
+                "margin-desktop": "48px",
+                "gutter": "24px"
+              },
+              "fontFamily": {
+                "h2": ["Sora"],
+                "h1": ["Sora"],
+                "body-md": ["Inter"],
+                "data-display": ["Geist"],
+                "h1-mobile": ["Sora"],
+                "body-lg": ["Inter"],
+                "label-caps": ["Geist"],
+                "h3": ["Sora"]
+              },
+              "fontSize": {
+                "h2": ["32px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                "h1": ["40px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                "data-display": ["32px", {"lineHeight": "1.0", "fontWeight": "600"}],
+                "h1-mobile": ["30px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                "h3": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}]
+              }
+            }
+          }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md overflow-x-hidden selection:bg-secondary/20">
+<!-- Glass App Shell: Top Navigation -->
+<header class="fixed top-0 w-full z-50 glass-panel border-b border-on-surface/8 flex justify-between items-center max-w-[1440px] left-1/2 -translate-x-1/2 px-margin-desktop py-md">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary text-h3">biotech</span>
+<span class="font-h3 text-h3 font-bold text-primary">Skinlytics</span>
+</div>
+<nav class="hidden md:flex gap-xl">
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md" href="#">Features</a>
+<a class="text-secondary font-semibold border-b-2 border-secondary pb-1 font-body-md" href="#">Library</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md" href="#">Professionals</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md" href="#">Pricing</a>
+</nav>
+<div class="flex items-center gap-md">
+<button class="text-on-surface-variant hover:text-primary transition-colors font-body-md">Login</button>
+<button class="bg-primary text-on-primary rounded-full px-lg py-sm font-body-md hover:opacity-90 transition-opacity">Start free assessment</button>
+</div>
+</header>
+<!-- Sidebar Navigation (Desktop) -->
+<aside class="fixed left-0 top-0 h-screen w-64 z-40 glass-panel border-r border-on-surface/8 flex flex-col py-lg hidden lg:flex">
+<div class="px-lg mb-3xl">
+<h2 class="font-h3 text-h3 font-bold text-primary">Skinlytics AI</h2>
+<p class="text-on-surface-variant text-sm uppercase tracking-widest font-label-caps">Clinical Portal</p>
+</div>
+<nav class="flex-grow space-y-xs">
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-3 flex items-center gap-3 mx-md rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                Dashboard
+            </a>
+<a class="bg-secondary/10 text-secondary border-r-4 border-secondary px-4 py-3 flex items-center gap-3 mx-md transition-all" href="#">
+<span class="material-symbols-outlined">science</span>
+                Analyses
+            </a>
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-3 flex items-center gap-3 mx-md rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">medical_services</span>
+                Consultants
+            </a>
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-3 flex items-center gap-3 mx-md rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+                Settings
+            </a>
+</nav>
+<div class="px-lg mt-auto space-y-md">
+<button class="w-full py-md px-lg bg-secondary-container text-on-secondary-container rounded-xl font-semibold flex items-center justify-center gap-sm transition-transform active:scale-95">
+<span class="material-symbols-outlined">add_circle</span>
+                New Assessment
+            </button>
+<div class="flex flex-col gap-sm">
+<a class="text-on-surface-variant hover:underline text-xs font-label-caps flex items-center gap-xs" href="#">
+<span class="material-symbols-outlined text-sm">help</span> Help Center
+                </a>
+<a class="text-on-surface-variant hover:underline text-xs font-label-caps flex items-center gap-xs" href="#">
+<span class="material-symbols-outlined text-sm">logout</span> Sign Out
+                </a>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="lg:ml-64 pt-3xl pb-2xl px-margin-mobile md:px-margin-desktop min-h-screen bg-[#F7F9FB]">
+<!-- Hero Section -->
+<section class="max-w-6xl mx-auto mt-lg">
+<div class="diagnostic-module overflow-hidden p-0 relative">
+<div class="flex flex-col md:flex-row">
+<!-- 3D Molecule Graphic Side -->
+<div class="md:w-1/3 bg-primary-container relative min-h-[320px] flex items-center justify-center overflow-hidden">
+
+<div class="relative z-10 molecule-orb p-xl bg-white/10 backdrop-blur-md rounded-full border border-white/20">
+<span class="material-symbols-outlined text-on-primary text-[80px]" data-weight="fill">science</span>
+</div>
+</div>
+<!-- Content Side -->
+<div class="md:w-2/3 p-2xl">
+<div class="flex flex-wrap items-center gap-sm mb-md">
+<span class="px-sm py-xs bg-secondary-fixed text-on-secondary-fixed-variant rounded-full text-xs font-label-caps">Alpha Hydroxy Acid</span>
+<span class="px-sm py-xs bg-tertiary-fixed text-on-tertiary-fixed-variant rounded-full text-xs font-label-caps">Exfoliant</span>
+</div>
+<h1 class="font-h1 text-h1 text-primary mb-xs">Glycolic Acid</h1>
+<p class="text-on-surface-variant font-body-lg mb-lg">Also known as: Hydroxyacetic acid, 2-Hydroxyethanoic acid.</p>
+<!-- Suitability Banner -->
+<div class="bg-secondary/5 border border-secondary/20 rounded-xl p-md flex items-start gap-md">
+<div class="mt-1">
+<span class="material-symbols-outlined text-secondary">verified_user</span>
+</div>
+<div>
+<p class="font-semibold text-secondary">Suitable for your Combination Skin</p>
+<p class="text-on-surface-variant text-sm">Personalized Protocol: Start 2×/week at night. Increase frequency only after 14 days without irritation.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Bento Grid Content -->
+<section class="max-w-6xl mx-auto mt-2xl grid grid-cols-1 md:grid-cols-3 gap-lg">
+<!-- What it does -->
+<div class="diagnostic-module p-lg md:col-span-2">
+<div class="flex items-center gap-sm mb-lg">
+<span class="material-symbols-outlined text-primary">auto_awesome</span>
+<h2 class="font-h2 text-h2">What it does</h2>
+</div>
+<p class="text-on-surface-variant font-body-md leading-relaxed mb-md">
+                    Glycolic acid is a gold-standard exfoliant. As the smallest molecule in the AHA family, it penetrates deeply into the skin to dissolve the "glue" that binds dead skin cells together. This process promotes cellular turnover, revealing a smoother, brighter complexion and improving overall skin texture.
+                </p>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-md mt-lg">
+<div class="p-md bg-surface-container-low rounded-lg">
+<span class="material-symbols-outlined text-secondary mb-xs">layers</span>
+<h4 class="font-bold text-sm mb-1">Micro-Exfoliation</h4>
+<p class="text-xs text-on-surface-variant">Dissolves intercellular lipids to shed dull skin layers.</p>
+</div>
+<div class="p-md bg-surface-container-low rounded-lg">
+<span class="material-symbols-outlined text-secondary mb-xs">water_drop</span>
+<h4 class="font-bold text-sm mb-1">Humectant Action</h4>
+<p class="text-xs text-on-surface-variant">Helps skin retain moisture while refining its surface.</p>
+</div>
+</div>
+</div>
+<!-- Concerns it targets -->
+<div class="diagnostic-module p-lg">
+<h3 class="font-h3 text-h3 mb-lg">Concerns it targets</h3>
+<ul class="space-y-md">
+<li class="flex items-center gap-sm p-sm border-b border-on-surface/8">
+<span class="material-symbols-outlined text-secondary">check_circle</span>
+<span class="font-body-md">Uneven Texture</span>
+</li>
+<li class="flex items-center gap-sm p-sm border-b border-on-surface/8">
+<span class="material-symbols-outlined text-secondary">check_circle</span>
+<span class="font-body-md">Hyper-pigmentation</span>
+</li>
+<li class="flex items-center gap-sm p-sm border-b border-on-surface/8">
+<span class="material-symbols-outlined text-secondary">check_circle</span>
+<span class="font-body-md">Fine Lines</span>
+</li>
+<li class="flex items-center gap-sm p-sm border-b border-on-surface/8">
+<span class="material-symbols-outlined text-secondary">check_circle</span>
+<span class="font-body-md">Dullness</span>
+</li>
+</ul>
+</div>
+<!-- How to use -->
+<div class="diagnostic-module p-lg md:col-span-3">
+<h3 class="font-h3 text-h3 mb-xl">Clinical Application Guide</h3>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-xl">
+<div class="flex flex-col items-center text-center p-md bg-[#F7F9FB] rounded-2xl">
+<span class="material-symbols-outlined text-3xl text-secondary mb-md">monitoring</span>
+<span class="font-label-caps text-on-surface-variant uppercase mb-xs">Strength</span>
+<span class="font-data-display text-primary text-h2">5% - 10%</span>
+<p class="text-xs mt-sm">Clinical threshold for daily use</p>
+</div>
+<div class="flex flex-col items-center text-center p-md bg-[#F7F9FB] rounded-2xl">
+<span class="material-symbols-outlined text-3xl text-secondary mb-md">nights_stay</span>
+<span class="font-label-caps text-on-surface-variant uppercase mb-xs">Timing</span>
+<span class="font-data-display text-primary text-h2">PM Preferred</span>
+<p class="text-xs mt-sm">Increases photosensitivity</p>
+</div>
+<div class="flex flex-col items-center text-center p-md bg-[#F7F9FB] rounded-2xl">
+<span class="material-symbols-outlined text-3xl text-secondary mb-md">calendar_today</span>
+<span class="font-label-caps text-on-surface-variant uppercase mb-xs">Frequency</span>
+<span class="font-data-display text-primary text-h2">2-3× Week</span>
+<p class="text-xs mt-sm">Titrate up slowly</p>
+</div>
+<div class="flex flex-col items-center text-center p-md bg-error-container/20 rounded-2xl border border-error/10">
+<span class="material-symbols-outlined text-3xl text-error mb-md">warning</span>
+<span class="font-label-caps text-error uppercase mb-xs">Allergy Note</span>
+<p class="text-xs font-semibold text-error">Patch test recommended. Avoid on compromised or peeling skin barriers.</p>
+</div>
+</div>
+</div>
+<!-- Synergies & Contraindications -->
+<div class="diagnostic-module p-lg md:col-span-2">
+<h3 class="font-h3 text-h3 mb-lg">Molecular Synergy</h3>
+<div class="space-y-xl">
+<div>
+<p class="font-label-caps text-on-surface-variant mb-md flex items-center gap-xs">
+<span class="material-symbols-outlined text-on-tertiary-container text-sm">thumb_up</span> PAIRS WELL WITH
+                        </p>
+<div class="flex flex-wrap gap-sm">
+<span class="px-md py-sm bg-surface-container rounded-full flex items-center gap-xs text-sm font-semibold">
+<span class="material-symbols-outlined text-secondary text-sm">add</span> Hyaluronic Acid
+                            </span>
+<span class="px-md py-sm bg-surface-container rounded-full flex items-center gap-xs text-sm font-semibold">
+<span class="material-symbols-outlined text-secondary text-sm">add</span> Ceramides
+                            </span>
+<span class="px-md py-sm bg-surface-container rounded-full flex items-center gap-xs text-sm font-semibold">
+<span class="material-symbols-outlined text-secondary text-sm">add</span> Niacinamide
+                            </span>
+</div>
+</div>
+<div>
+<p class="font-label-caps text-on-surface-variant mb-md flex items-center gap-xs">
+<span class="material-symbols-outlined text-error text-sm">block</span> AVOID MIXING
+                        </p>
+<div class="flex flex-wrap gap-sm">
+<span class="px-md py-sm border border-error/20 bg-error-container/10 rounded-full flex items-center gap-xs text-sm font-semibold text-on-error-container">
+<span class="material-symbols-outlined text-sm">close</span> Retinol (Same Routine)
+                            </span>
+<span class="px-md py-sm border border-error/20 bg-error-container/10 rounded-full flex items-center gap-xs text-sm font-semibold text-on-error-container">
+<span class="material-symbols-outlined text-sm">close</span> Benzoyl Peroxide
+                            </span>
+<span class="px-md py-sm border border-error/20 bg-error-container/10 rounded-full flex items-center gap-xs text-sm font-semibold text-on-error-container">
+<span class="material-symbols-outlined text-sm">close</span> Vitamin C (L-AA)
+                            </span>
+</div>
+</div>
+</div>
+</div>
+<!-- Backed by Research -->
+<div class="diagnostic-module p-lg">
+<h3 class="font-h3 text-h3 mb-lg">Clinical Citations</h3>
+<div class="space-y-md">
+<div class="text-xs group cursor-help">
+<p class="text-on-surface-variant mb-1 group-hover:text-primary transition-colors italic">"The role of Alpha-Hydroxy Acids in Skin Care: A Review."</p>
+<p class="font-bold text-secondary">Journal of Cosmetic Dermatology, 2021</p>
+</div>
+<div class="text-xs group cursor-help">
+<p class="text-on-surface-variant mb-1 group-hover:text-primary transition-colors italic">"Comparison of chemical peeling with Glycolic Acid vs Lactic Acid."</p>
+<p class="font-bold text-secondary">Dermatological Surgery Reports, 2019</p>
+</div>
+<div class="text-xs group cursor-help">
+<p class="text-on-surface-variant mb-1 group-hover:text-primary transition-colors italic">"Topical Glycolic Acid and its effect on collagen synthesis."</p>
+<p class="font-bold text-secondary">Clinical, Cosmetic and Investigational Dermatology, 2022</p>
+</div>
+</div>
+<button class="mt-lg w-full py-sm text-xs font-label-caps border border-on-surface/10 rounded hover:bg-surface-container transition-colors">VIEW ALL 14 PAPERS</button>
+</div>
+</section>
+<!-- Related Products Carousel -->
+<section class="max-w-6xl mx-auto mt-3xl">
+<div class="flex justify-between items-end mb-lg">
+<div>
+<h2 class="font-h2 text-h2 mb-xs">Recommended Products</h2>
+<p class="text-on-surface-variant">Curated for your profile and routine compatibility.</p>
+</div>
+<div class="flex gap-sm">
+<button class="w-10 h-10 rounded-full border border-on-surface/10 flex items-center justify-center hover:bg-white transition-colors">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="w-10 h-10 rounded-full border border-on-surface/10 flex items-center justify-center hover:bg-white transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-lg">
+<!-- Product Card 1 -->
+<div class="diagnostic-module overflow-hidden group cursor-pointer">
+<div class="h-48 bg-surface-container-high relative flex items-center justify-center p-lg overflow-hidden">
+<img class="h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500" data-alt="A minimalist white serum bottle against a clean, clinical backdrop with soft blue shadows and laboratory-style lighting. The aesthetic is high-end skincare, professional and sterile. The bottle has a sleek matte finish and clinical typography on the label." src="source/images/app-ingredient-detail/img_000_7f2ee2ce.jpg"/>
+<div class="absolute top-sm right-sm">
+<span class="bg-primary text-on-primary text-[10px] px-2 py-1 rounded-full font-label-caps">94% MATCH</span>
+</div>
+</div>
+<div class="p-md">
+<p class="text-[10px] font-label-caps text-on-surface-variant mb-1 uppercase">Radiance Lab</p>
+<h4 class="font-bold text-primary mb-1">Advanced 7% Glow Toner</h4>
+<div class="flex items-center gap-xs mb-md">
+<span class="text-secondary font-semibold text-sm">$28.00</span>
+</div>
+<button class="w-full py-sm bg-primary text-on-primary rounded-lg text-sm font-semibold transition-transform active:scale-95">Add to Routine</button>
+</div>
+</div>
+<!-- Product Card 2 -->
+<div class="diagnostic-module overflow-hidden group cursor-pointer">
+<div class="h-48 bg-surface-container-high relative flex items-center justify-center p-lg overflow-hidden">
+<img class="h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500" data-alt="A glass dropper bottle with clear liquid inside, placed on a white marble surface under bright daylight. Surrounding it are subtle glass prisms creating rainbow refractions. The image conveys purity, medical grade quality, and premium skincare science." src="source/images/app-ingredient-detail/img_001_1e0889dc.jpg"/>
+<div class="absolute top-sm right-sm">
+<span class="bg-secondary text-on-secondary text-[10px] px-2 py-1 rounded-full font-label-caps">STAPLE</span>
+</div>
+</div>
+<div class="p-md">
+<p class="text-[10px] font-label-caps text-on-surface-variant mb-1 uppercase">Bio-Clinical</p>
+<h4 class="font-bold text-primary mb-1">Pure Glycolic Resurfacing</h4>
+<div class="flex items-center gap-xs mb-md">
+<span class="text-secondary font-semibold text-sm">$42.00</span>
+</div>
+<button class="w-full py-sm bg-primary text-on-primary rounded-lg text-sm font-semibold transition-transform active:scale-95">Add to Routine</button>
+</div>
+</div>
+<!-- Product Card 3 -->
+<div class="diagnostic-module overflow-hidden group cursor-pointer">
+<div class="h-48 bg-surface-container-high relative flex items-center justify-center p-lg overflow-hidden">
+<img class="h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500" data-alt="Minimalist skincare tube design with a clean blue and white color palette. The tube is resting on a stack of professional medical journals. The lighting is crisp and cool, emphasizing the clinical wellness theme of the Skinlytics platform." src="source/images/app-ingredient-detail/img_002_931ff46a.jpg"/>
+<div class="absolute top-sm right-sm">
+<span class="bg-primary text-on-primary text-[10px] px-2 py-1 rounded-full font-label-caps">88% MATCH</span>
+</div>
+</div>
+<div class="p-md">
+<p class="text-[10px] font-label-caps text-on-surface-variant mb-1 uppercase">Derma-Tech</p>
+<h4 class="font-bold text-primary mb-1">Overnight AHA Mask</h4>
+<div class="flex items-center gap-xs mb-md">
+<span class="text-secondary font-semibold text-sm">$35.00</span>
+</div>
+<button class="w-full py-sm bg-primary text-on-primary rounded-lg text-sm font-semibold transition-transform active:scale-95">Add to Routine</button>
+</div>
+</div>
+<!-- Product Card 4 -->
+<div class="diagnostic-module overflow-hidden group cursor-pointer">
+<div class="h-48 bg-surface-container-high relative flex items-center justify-center p-lg overflow-hidden">
+<img class="h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500" data-alt="A high-tech skincare dispenser bottle with a metallic pump head. It sits on a frosted glass platform with soft glowing teal lights underneath, representing the futuristic and data-driven nature of Skinlytics AI. Very professional, high-contrast, and modern." src="source/images/app-ingredient-detail/img_003_719270c5.jpg"/>
+<div class="absolute top-sm right-sm">
+<span class="bg-primary text-on-primary text-[10px] px-2 py-1 rounded-full font-label-caps">NEW RELEASE</span>
+</div>
+</div>
+<div class="p-md">
+<p class="text-[10px] font-label-caps text-on-surface-variant mb-1 uppercase">Molecular Wellness</p>
+<h4 class="font-bold text-primary mb-1">Complex Glyco-Peptide</h4>
+<div class="flex items-center gap-xs mb-md">
+<span class="text-secondary font-semibold text-sm">$54.00</span>
+</div>
+<button class="w-full py-sm bg-primary text-on-primary rounded-lg text-sm font-semibold transition-transform active:scale-95">Add to Routine</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="lg:ml-64 bg-white/68 backdrop-blur-xl border-t border-on-surface/8 py-md px-margin-desktop flex justify-between items-center relative z-50">
+<span class="font-label-caps text-label-caps text-on-surface-variant">© 2024 Skinlytics Lab. Clinical Grade AI.</span>
+<div class="flex gap-lg">
+<a class="text-label-caps font-label-caps text-on-surface-variant hover:underline hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="text-label-caps font-label-caps text-on-surface-variant hover:underline hover:text-primary transition-colors" href="#">Terms of Service</a>
+<a class="text-label-caps font-label-caps text-on-surface-variant hover:underline hover:text-primary transition-colors" href="#">HIPAA Compliance</a>
+</div>
+</footer>
+<script>
+        // Micro-interactions for scrolling and glass effects
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            if (window.scrollY > 20) {
+                header.classList.add('shadow-md');
+                header.classList.remove('shadow-sm');
+            } else {
+                header.classList.remove('shadow-md');
+                header.classList.add('shadow-sm');
+            }
+        });
+
+        // Initialize simple tilt effect for product cards
+        const cards = document.querySelectorAll('.diagnostic-module');
+        cards.forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                const rotateX = (y - centerY) / 20;
+                const rotateY = (centerX - x) / 20;
+                
+                // Only applying a very subtle transform to maintain "clinical" feel
+                if (card.classList.contains('group')) {
+                    card.style.transform = `perspective(1000px) rotateX(${rotateX * 0.1}deg) rotateY(${rotateY * 0.1}deg)`;
+                }
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg)`;
+            });
+        });
+    </script>
+</body></html>

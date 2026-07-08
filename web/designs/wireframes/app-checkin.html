@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Daily Check-in | Skinlytics AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@600;700;800&family=Geist:wght@400;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.68);
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+        }
+        .diagnostic-module {
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 16px;
+        }
+        .aurora-bg {
+            background: radial-gradient(circle at 0% 0%, rgba(180, 197, 255, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 100% 100%, rgba(113, 248, 228, 0.1) 0%, transparent 50%);
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #0051d5;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid white;
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.1);
+            border-radius: 10px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-surface-variant": "#45464d",
+                      "on-tertiary-fixed": "#00201c",
+                      "inverse-surface": "#303032",
+                      "on-primary": "#ffffff",
+                      "inverse-on-surface": "#f3f0f2",
+                      "error": "#ba1a1a",
+                      "on-tertiary-fixed-variant": "#005048",
+                      "on-secondary-fixed": "#00174b",
+                      "primary": "#000000",
+                      "secondary-fixed": "#dbe1ff",
+                      "surface-dim": "#dcd9db",
+                      "surface": "#fcf8fa",
+                      "secondary-container": "#316bf3",
+                      "surface-container-low": "#f6f3f5",
+                      "on-tertiary-container": "#009485",
+                      "on-primary-fixed": "#131b2e",
+                      "on-background": "#1b1b1d",
+                      "surface-variant": "#e4e2e4",
+                      "on-primary-container": "#7c839b",
+                      "inverse-primary": "#bec6e0",
+                      "on-secondary-container": "#fefcff",
+                      "on-secondary-fixed-variant": "#003ea8",
+                      "on-error-container": "#93000a",
+                      "tertiary-fixed-dim": "#4fdbc8",
+                      "surface-container": "#f0edef",
+                      "primary-fixed-dim": "#bec6e0",
+                      "outline-variant": "#c6c6cd",
+                      "tertiary": "#000000",
+                      "surface-bright": "#fcf8fa",
+                      "surface-container-high": "#eae7e9",
+                      "primary-container": "#131b2e",
+                      "error-container": "#ffdad6",
+                      "background": "#fcf8fa",
+                      "surface-tint": "#565e74",
+                      "primary-fixed": "#dae2fd",
+                      "on-tertiary": "#ffffff",
+                      "surface-container-highest": "#e4e2e4",
+                      "outline": "#76777d",
+                      "secondary": "#0051d5",
+                      "surface-container-lowest": "#ffffff",
+                      "on-error": "#ffffff",
+                      "tertiary-container": "#00201c",
+                      "on-secondary": "#ffffff",
+                      "on-primary-fixed-variant": "#3f465c",
+                      "secondary-fixed-dim": "#b4c5ff",
+                      "tertiary-fixed": "#71f8e4",
+                      "on-surface": "#1b1b1d"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "base": "4px",
+                      "xs": "4px",
+                      "sm": "8px",
+                      "xl": "32px",
+                      "margin-mobile": "16px",
+                      "lg": "24px",
+                      "3xl": "64px",
+                      "2xl": "48px",
+                      "md": "16px",
+                      "margin-desktop": "48px",
+                      "gutter": "24px"
+              },
+              "fontFamily": {
+                      "h2": ["Sora"],
+                      "h1": ["Sora"],
+                      "body-md": ["Inter"],
+                      "data-display": ["Geist"],
+                      "h1-mobile": ["Sora"],
+                      "body-lg": ["Inter"],
+                      "label-caps": ["Geist"],
+                      "h3": ["Sora"]
+              },
+              "fontSize": {
+                      "h2": ["32px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "h1": ["40px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "data-display": ["32px", {"lineHeight": "1.0", "fontWeight": "600"}],
+                      "h1-mobile": ["30px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                      "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "h3": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}]
+              }
+            }
+          }
+        }
+    </script>
+</head>
+<body class="bg-background font-body-md text-on-surface aurora-bg min-h-screen">
+<!-- SideNavBar (Shared Component) -->
+<nav class="fixed left-0 top-0 h-screen w-64 z-40 bg-white/68 backdrop-blur-xl border-r border-on-surface/8 flex flex-col h-full py-lg">
+<div class="px-6 mb-10">
+<h1 class="font-h3 text-h3 font-bold text-primary">Skinlytics AI</h1>
+<p class="text-[12px] uppercase tracking-widest text-on-surface-variant font-medium opacity-60">Clinical Portal</p>
+</div>
+<div class="flex-1 space-y-1">
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body-md text-body-md">Dashboard</span>
+</a>
+<a class="bg-secondary/10 text-secondary border-r-4 border-secondary px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">edit_calendar</span>
+<span class="font-body-md text-body-md">Daily Check-in</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">biotech</span>
+<span class="font-body-md text-body-md">Analyses</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">medical_services</span>
+<span class="font-body-md text-body-md">Consultants</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-md text-body-md">Settings</span>
+</a>
+</div>
+<div class="mt-auto pt-6 border-t border-on-surface/8 space-y-1">
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-body-md text-body-md">Help Center</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined text-error">logout</span>
+<span class="font-body-md text-body-md text-error">Sign Out</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="ml-64 min-h-screen">
+<!-- TopAppBar (Shared Component) -->
+<header class="sticky top-0 w-full z-30 bg-white/68 backdrop-blur-xl border-b border-on-surface/8 flex justify-between items-center px-lg py-sm">
+<div class="flex items-center gap-4">
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[20px]">search</span>
+<input class="bg-surface-container-low border-none rounded-full py-2 pl-10 pr-4 text-sm w-64 focus:ring-2 focus:ring-secondary/20 transition-all" placeholder="Search data..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-on-surface-variant hover:text-secondary scale-95 active:scale-90 transition-transform">wb_sunny</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-secondary scale-95 active:scale-90 transition-transform">notifications</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-secondary scale-95 active:scale-90 transition-transform">contrast</button>
+</div>
+<div class="h-8 w-[1px] bg-on-surface/8"></div>
+<div class="flex items-center gap-3">
+<div class="text-right">
+<p class="text-sm font-semibold text-primary">Dr. Sarah Chen</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-tighter">Premium Member</p>
+</div>
+<img class="w-10 h-10 rounded-full border border-secondary/20 object-cover" data-alt="A professional headshot of a woman with a kind expression, wearing clinical attire, set against a soft-lit medical office background. High-quality portrait photography with a professional, trustworthy, and clean aesthetic." src="source/images/app-checkin/img_000_fe60bb4b.jpg"/>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<div class="max-w-[1200px] mx-auto p-margin-desktop space-y-xl">
+<!-- Header Section -->
+<div class="flex justify-between items-end">
+<div>
+<h2 class="font-h2 text-h2 text-primary">Daily Check-in</h2>
+<p class="text-on-surface-variant mt-1">Consistency is the foundation of clinical progress.</p>
+</div>
+<div class="bg-secondary/5 border border-secondary/10 px-4 py-2 rounded-xl flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+<span class="font-data-display text-[18px] text-secondary">12-day streak</span>
+</div>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Routine Checklist (AM/PM) -->
+<div class="col-span-12 lg:col-span-4 diagnostic-module p-lg flex flex-col gap-lg">
+<div>
+<h3 class="font-h3 text-h3 text-primary mb-1">Ritual Check</h3>
+<p class="font-label-caps text-label-caps text-on-surface-variant">Daily Protocol Adherence</p>
+</div>
+<div class="space-y-6">
+<!-- AM Section -->
+<div class="space-y-3">
+<div class="flex items-center gap-2 text-secondary">
+<span class="material-symbols-outlined">light_mode</span>
+<span class="font-semibold text-sm uppercase tracking-widest">Morning Routine</span>
+</div>
+<div class="space-y-2">
+<label class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-container transition-colors cursor-pointer border border-transparent hover:border-on-surface/5">
+<input checked="" class="rounded-sm border-on-surface/20 text-secondary focus:ring-secondary" type="checkbox"/>
+<span class="text-sm">Gentle Hydrating Cleanser</span>
+</label>
+<label class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-container transition-colors cursor-pointer border border-transparent hover:border-on-surface/5">
+<input checked="" class="rounded-sm border-on-surface/20 text-secondary focus:ring-secondary" type="checkbox"/>
+<span class="text-sm">Vitamin C Serum (15%)</span>
+</label>
+<label class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-container transition-colors cursor-pointer border border-transparent hover:border-on-surface/5">
+<input class="rounded-sm border-on-surface/20 text-secondary focus:ring-secondary" type="checkbox"/>
+<span class="text-sm">Broad Spectrum SPF 50</span>
+</label>
+</div>
+</div>
+<!-- PM Section -->
+<div class="space-y-3">
+<div class="flex items-center gap-2 text-primary-container">
+<span class="material-symbols-outlined">dark_mode</span>
+<span class="font-semibold text-sm uppercase tracking-widest">Evening Routine</span>
+</div>
+<div class="space-y-2">
+<label class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-container transition-colors cursor-pointer border border-transparent hover:border-on-surface/5">
+<input class="rounded-sm border-on-surface/20 text-secondary focus:ring-secondary" type="checkbox"/>
+<span class="text-sm">Double Cleansing (Oil + Water)</span>
+</label>
+<label class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-container transition-colors cursor-pointer border border-transparent hover:border-on-surface/5">
+<input class="rounded-sm border-on-surface/20 text-secondary focus:ring-secondary" type="checkbox"/>
+<span class="text-sm">Retinoid Treatment</span>
+</label>
+<label class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-container transition-colors cursor-pointer border border-transparent hover:border-on-surface/5">
+<input class="rounded-sm border-on-surface/20 text-secondary focus:ring-secondary" type="checkbox"/>
+<span class="text-sm">Ceramide Night Cream</span>
+</label>
+</div>
+</div>
+</div>
+</div>
+<!-- Hydration & Sleep Center -->
+<div class="col-span-12 lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Hydration Tracker -->
+<div class="diagnostic-module p-lg flex flex-col justify-between">
+<div>
+<h3 class="font-h3 text-h3 text-primary mb-1">Hydration</h3>
+<p class="font-label-caps text-label-caps text-on-surface-variant">Daily H2O Target: 2.5L</p>
+</div>
+<div class="my-lg">
+<div class="grid grid-cols-4 gap-4" id="glass-container">
+<!-- Glass Icons -->
+<button class="glass-btn flex justify-center p-3 rounded-xl border border-on-surface/5 hover:bg-secondary/5 transition-all" onclick="toggleGlass(0)">
+<span class="material-symbols-outlined text-on-surface-variant" id="glass-0">water_full</span>
+</button>
+<button class="glass-btn flex justify-center p-3 rounded-xl border border-on-surface/5 hover:bg-secondary/5 transition-all" onclick="toggleGlass(1)">
+<span class="material-symbols-outlined text-on-surface-variant" id="glass-1">water_full</span>
+</button>
+<button class="glass-btn flex justify-center p-3 rounded-xl border border-on-surface/5 hover:bg-secondary/5 transition-all" onclick="toggleGlass(2)">
+<span class="material-symbols-outlined text-on-surface-variant" id="glass-2">water_full</span>
+</button>
+<button class="glass-btn flex justify-center p-3 rounded-xl border border-on-surface/5 hover:bg-secondary/5 transition-all" onclick="toggleGlass(3)">
+<span class="material-symbols-outlined text-on-surface-variant" id="glass-3">water_full</span>
+</button>
+<button class="glass-btn flex justify-center p-3 rounded-xl border border-on-surface/5 hover:bg-secondary/5 transition-all" onclick="toggleGlass(4)">
+<span class="material-symbols-outlined text-on-surface-variant" id="glass-4">water_full</span>
+</button>
+<button class="glass-btn flex justify-center p-3 rounded-xl border border-on-surface/5 hover:bg-secondary/5 transition-all" onclick="toggleGlass(5)">
+<span class="material-symbols-outlined text-on-surface-variant" id="glass-5">water_full</span>
+</button>
+<button class="glass-btn flex justify-center p-3 rounded-xl border border-on-surface/5 hover:bg-secondary/5 transition-all" onclick="toggleGlass(6)">
+<span class="material-symbols-outlined text-on-surface-variant" id="glass-6">water_full</span>
+</button>
+<button class="glass-btn flex justify-center p-3 rounded-xl border border-on-surface/5 hover:bg-secondary/5 transition-all" onclick="toggleGlass(7)">
+<span class="material-symbols-outlined text-on-surface-variant" id="glass-7">water_full</span>
+</button>
+</div>
+</div>
+<div class="text-center">
+<span class="font-data-display text-primary text-[28px]" id="hydration-count">0</span>
+<span class="text-on-surface-variant font-medium">/ 8 Glasses</span>
+</div>
+</div>
+<!-- Sleep Log -->
+<div class="diagnostic-module p-lg flex flex-col justify-between">
+<div>
+<h3 class="font-h3 text-h3 text-primary mb-1">Rest Cycle</h3>
+<p class="font-label-caps text-label-caps text-on-surface-variant">Sleep Duration & Quality</p>
+</div>
+<div class="space-y-8 my-md">
+<div class="space-y-3">
+<div class="flex justify-between text-sm">
+<span class="text-on-surface-variant">Duration</span>
+<span class="font-bold text-secondary" id="sleep-val">7.5 hrs</span>
+</div>
+<input class="w-full h-1.5 bg-surface-container rounded-lg appearance-none cursor-pointer" max="12" min="4" oninput="updateSleep(this.value)" step="0.5" type="range" value="7.5"/>
+</div>
+<div class="space-y-3">
+<span class="text-sm text-on-surface-variant block">Quality</span>
+<div class="flex justify-between">
+<button class="quality-btn p-3 rounded-xl border border-on-surface/5 hover:bg-error/5 transition-all grayscale hover:grayscale-0">
+<span class="text-2xl">😫</span>
+</button>
+<button class="quality-btn p-3 rounded-xl border border-on-surface/5 hover:bg-surface-container transition-all grayscale hover:grayscale-0">
+<span class="text-2xl">😐</span>
+</button>
+<button class="quality-btn p-3 rounded-xl border border-secondary/10 bg-secondary/5 transition-all grayscale-0">
+<span class="text-2xl">😊</span>
+</button>
+<button class="quality-btn p-3 rounded-xl border border-on-surface/5 hover:bg-secondary/5 transition-all grayscale hover:grayscale-0">
+<span class="text-2xl">🤩</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Skin Feeling Status -->
+<div class="col-span-1 md:col-span-2 diagnostic-module p-lg">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-md">
+<div>
+<h3 class="font-h3 text-h3 text-primary mb-1">Skin Sensation</h3>
+<p class="text-on-surface-variant text-sm">How does your skin feel today?</p>
+</div>
+<div class="flex flex-wrap gap-sm">
+<button class="pill-select px-6 py-2 rounded-full border border-secondary bg-secondary text-white font-medium transition-all shadow-md shadow-secondary/20">Great</button>
+<button class="pill-select px-6 py-2 rounded-full border border-on-surface/10 bg-surface-container/50 hover:bg-surface-container text-on-surface-variant font-medium transition-all">Okay</button>
+<button class="pill-select px-6 py-2 rounded-full border border-on-surface/10 bg-surface-container/50 hover:bg-surface-container text-on-surface-variant font-medium transition-all">Irritated</button>
+<button class="pill-select px-6 py-2 rounded-full border border-on-surface/10 bg-surface-container/50 hover:bg-surface-container text-on-surface-variant font-medium transition-all">Dry</button>
+<button class="pill-select px-6 py-2 rounded-full border border-on-surface/10 bg-surface-container/50 hover:bg-surface-container text-on-surface-variant font-medium transition-all">Oily</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Progress Photo Section -->
+<div class="col-span-12 diagnostic-module p-lg grid grid-cols-1 lg:grid-cols-3 gap-xl">
+<div class="lg:col-span-1 flex flex-col justify-between">
+<div>
+<h3 class="font-h3 text-h3 text-primary mb-2">Progress Mapping</h3>
+<p class="text-on-surface-variant mb-6">Capture daily metrics for AI visual analysis. Consistency improves diagnostic accuracy.</p>
+<div class="space-y-4">
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-secondary mt-0.5">lightbulb</span>
+<div>
+<p class="text-sm font-semibold">Lighting Tip</p>
+<p class="text-[13px] text-on-surface-variant">Use natural window light. Avoid harsh shadows for best skin texture analysis.</p>
+</div>
+</div>
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-secondary mt-0.5">face</span>
+<div>
+<p class="text-sm font-semibold">Alignment</p>
+<p class="text-[13px] text-on-surface-variant">Align your eyes and nose with the on-screen guide indicators.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-lg">
+<button class="w-full border-2 border-dashed border-on-surface/10 rounded-xl py-8 flex flex-col items-center gap-2 hover:bg-surface-container transition-all group">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-secondary transition-colors">upload_file</span>
+<span class="text-sm font-medium text-on-surface-variant">Or upload from library</span>
+</button>
+</div>
+</div>
+<div class="lg:col-span-2 relative aspect-[16/9] bg-surface-container-highest rounded-2xl overflow-hidden border border-on-surface/5 group">
+<!-- Camera Placeholder / Background -->
+<div class="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-60 transition-opacity" data-alt="A clean, minimalist high-key photo of a modern skincare laboratory interior, featuring blurred glass equipment and clinical lighting. The aesthetic is bright, professional, and medical-grade." style="background-image: url('source/images/app-checkin/img_001_8981cb66.jpg')"></div>
+<!-- HUD Overlays -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+<!-- Face Guide -->
+<svg class="w-64 h-80 text-white/40" fill="none" stroke="currentColor" stroke-width="0.5" viewbox="0 0 100 120">
+<path d="M50,10 C30,10 15,30 15,60 C15,90 30,110 50,110 C70,110 85,90 85,60 C85,30 70,10 50,10 Z"></path>
+<circle cx="35" cy="50" r="2"></circle>
+<circle cx="65" cy="50" r="2"></circle>
+<path d="M40,85 Q50,90 60,85"></path>
+</svg>
+</div>
+<!-- Camera Actions -->
+<div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-6">
+<button class="w-12 h-12 rounded-full glass-panel flex items-center justify-center hover:bg-white transition-all">
+<span class="material-symbols-outlined">refresh</span>
+</button>
+<button class="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-xl active:scale-95 transition-all">
+<div class="w-12 h-12 rounded-full border-2 border-primary-fixed"></div>
+</button>
+<button class="w-12 h-12 rounded-full glass-panel flex items-center justify-center hover:bg-white transition-all">
+<span class="material-symbols-outlined">timer</span>
+</button>
+</div>
+<!-- Exposure Warning -->
+<div class="absolute top-6 right-6 px-3 py-1 bg-error/90 text-white text-[10px] font-bold uppercase rounded-md flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">warning</span>
+                            Exposure High
+                        </div>
+</div>
+</div>
+</div>
+<!-- Global Action -->
+<div class="flex justify-center pt-8 pb-16">
+<button class="bg-primary text-white px-12 py-4 rounded-full font-bold text-lg hover:bg-secondary transition-all shadow-xl shadow-primary/20 flex items-center gap-3" onclick="triggerSuccess()">
+                    Log Today
+                    <span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Success Toast (Initially Hidden) -->
+<div class="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 transform translate-y-20 opacity-0 transition-all duration-500 ease-out" id="success-toast">
+<div class="bg-primary text-white px-8 py-4 rounded-full flex items-center gap-4 shadow-2xl border border-white/20">
+<span class="text-2xl">🔥</span>
+<div>
+<p class="font-bold leading-none">12-day streak</p>
+<p class="text-[12px] opacity-80">Log successfully recorded</p>
+</div>
+<button class="material-symbols-outlined text-sm opacity-50 hover:opacity-100" onclick="closeToast()">close</button>
+</div>
+</div>
+<!-- Footer (Shared Component) -->
+<footer class="ml-64 bg-white/68 backdrop-blur-xl border-t border-on-surface/8 flex justify-between items-center px-margin-desktop py-md">
+<p class="font-label-caps text-label-caps text-on-surface-variant">© 2024 Skinlytics Lab. Clinical Grade AI.</p>
+<div class="flex gap-6">
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:underline" href="#">Privacy Policy</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:underline" href="#">Terms of Service</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:underline" href="#">HIPAA Compliance</a>
+</div>
+</footer>
+<script>
+        // Hydration Logic
+        let glasses = 0;
+        function toggleGlass(id) {
+            const icon = document.getElementById('glass-' + id);
+            const parent = icon.parentElement;
+            
+            if (icon.style.fontVariationSettings.includes("'FILL' 1")) {
+                icon.style.fontVariationSettings = "'FILL' 0";
+                icon.classList.remove('text-secondary');
+                icon.classList.add('text-on-surface-variant');
+                parent.classList.remove('bg-secondary/10', 'border-secondary/20');
+                glasses--;
+            } else {
+                icon.style.fontVariationSettings = "'FILL' 1";
+                icon.classList.add('text-secondary');
+                icon.classList.remove('text-on-surface-variant');
+                parent.classList.add('bg-secondary/10', 'border-secondary/20');
+                glasses++;
+            }
+            document.getElementById('hydration-count').innerText = glasses;
+        }
+
+        // Sleep Slider
+        function updateSleep(val) {
+            document.getElementById('sleep-val').innerText = val + ' hrs';
+        }
+
+        // Quality Select
+        document.querySelectorAll('.quality-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.quality-btn').forEach(b => {
+                    b.classList.remove('bg-secondary/5', 'border-secondary/10', 'grayscale-0');
+                    b.classList.add('grayscale');
+                });
+                btn.classList.add('bg-secondary/5', 'border-secondary/10', 'grayscale-0');
+                btn.classList.remove('grayscale');
+            });
+        });
+
+        // Pill Select
+        document.querySelectorAll('.pill-select').forEach(btn => {
+            btn.addEventListener('click', () => {
+                btn.classList.toggle('bg-secondary');
+                btn.classList.toggle('text-white');
+                btn.classList.toggle('border-secondary');
+                btn.classList.toggle('shadow-md');
+                btn.classList.toggle('shadow-secondary/20');
+            });
+        });
+
+        // Success Toast
+        function triggerSuccess() {
+            const toast = document.getElementById('success-toast');
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            
+            setTimeout(() => {
+                closeToast();
+            }, 5000);
+        }
+
+        function closeToast() {
+            const toast = document.getElementById('success-toast');
+            toast.classList.add('translate-y-20', 'opacity-0');
+            toast.classList.remove('translate-y-0', 'opacity-100');
+        }
+    </script>
+</body></html>

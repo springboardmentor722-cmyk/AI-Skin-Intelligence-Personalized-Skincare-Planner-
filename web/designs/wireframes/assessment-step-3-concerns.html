@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Skinlytics | Assessment - Step 3</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@600;700;800&family=Geist:wght@400;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.68);
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+        }
+        .diagnostic-module {
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 16px;
+        }
+        .pill-active {
+            background-color: #0051d5;
+            color: white;
+            border-color: #0051d5;
+        }
+        .drag-handle {
+            cursor: grab;
+        }
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+        /* Custom range/segmented style for severity */
+        .severity-input:checked + label {
+            background-color: #0051d5;
+            color: white;
+        }
+        @keyframes aurora {
+            0% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(2%, 5%) scale(1.1); }
+            66% { transform: translate(-2%, 3%) scale(0.9); }
+            100% { transform: translate(0, 0) scale(1); }
+        }
+        .aurora-bg {
+            animation: aurora 20s ease-in-out infinite alternate;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "#fcf8fa",
+                        "on-surface": "#1b1b1d",
+                        "on-error-container": "#93000a",
+                        "on-primary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "surface-variant": "#e4e2e4",
+                        "inverse-primary": "#bec6e0",
+                        "surface-container-highest": "#e4e2e4",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed": "#00174b",
+                        "on-background": "#1b1b1d",
+                        "surface-dim": "#dcd9db",
+                        "outline": "#76777d",
+                        "primary-fixed": "#dae2fd",
+                        "on-tertiary-fixed": "#00201c",
+                        "inverse-on-surface": "#f3f0f2",
+                        "tertiary-container": "#00201c",
+                        "surface-bright": "#fcf8fa",
+                        "primary": "#000000",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "on-tertiary-fixed-variant": "#005048",
+                        "surface-container-lowest": "#ffffff",
+                        "outline-variant": "#c6c6cd",
+                        "surface-container-low": "#f6f3f5",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed-dim": "#4fdbc8",
+                        "on-secondary-fixed-variant": "#003ea8",
+                        "tertiary-fixed": "#71f8e4",
+                        "secondary-fixed-dim": "#b4c5ff",
+                        "secondary": "#0051d5",
+                        "on-error": "#ffffff",
+                        "secondary-fixed": "#dbe1ff",
+                        "secondary-container": "#316bf3",
+                        "on-primary-container": "#7c839b",
+                        "primary-container": "#131b2e",
+                        "primary-fixed-dim": "#bec6e0",
+                        "on-secondary-container": "#fefcff",
+                        "surface-container-high": "#eae7e9",
+                        "error-container": "#ffdad6",
+                        "surface-container": "#f0edef",
+                        "on-tertiary-container": "#009485",
+                        "on-surface-variant": "#45464d",
+                        "inverse-surface": "#303032",
+                        "background": "#fcf8fa",
+                        "tertiary": "#000000",
+                        "surface-tint": "#565e74",
+                        "on-primary-fixed": "#131b2e"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "3xl": "64px",
+                        "margin-desktop": "48px",
+                        "xl": "32px",
+                        "xs": "4px",
+                        "margin-mobile": "16px",
+                        "sm": "8px",
+                        "base": "4px",
+                        "lg": "24px",
+                        "md": "16px",
+                        "gutter": "24px",
+                        "2xl": "48px"
+                    },
+                    "fontFamily": {
+                        "h2": ["Sora"],
+                        "h1-mobile": ["Sora"],
+                        "h1": ["Sora"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-caps": ["Geist"],
+                        "h3": ["Sora"],
+                        "data-display": ["Geist"]
+                    },
+                    "fontSize": {
+                        "h2": ["32px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "h1-mobile": ["30px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "h1": ["40px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "h3": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "data-display": ["32px", {"lineHeight": "1.0", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background font-body-md text-on-surface overflow-x-hidden">
+<!-- Ambient Aurora Mesh Background -->
+<div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+<div class="absolute -top-[20%] -left-[10%] w-[60%] h-[60%] bg-secondary/5 blur-[120px] rounded-full aurora-bg"></div>
+<div class="absolute top-[40%] -right-[5%] w-[50%] h-[50%] bg-tertiary-fixed/10 blur-[140px] rounded-full aurora-bg" style="animation-delay: -5s;"></div>
+</div>
+<!-- Navigation Header (Suppressed as per task logic: Onboarding/Task Focused) -->
+<header class="glass-panel fixed top-0 w-full z-50 border-b border-on-surface/8 shadow-sm">
+<div class="flex justify-between items-center max-w-[1440px] mx-auto px-margin-desktop py-md">
+<span class="font-h3 text-h3 font-bold text-primary tracking-tight">Skinlytics</span>
+<div class="flex items-center gap-md">
+<div class="w-48 bg-surface-container rounded-full h-2 relative overflow-hidden">
+<div class="absolute top-0 left-0 h-full bg-secondary transition-all duration-700 ease-out" style="width: 60%;"></div>
+</div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">Step 3 of 5 • 60%</span>
+</div>
+</div>
+</header>
+<main class="max-w-[1440px] mx-auto pt-[120px] pb-[160px] px-margin-mobile md:px-margin-desktop grid grid-cols-1 lg:grid-cols-12 gap-xl">
+<!-- Left Column: Concerns Selection -->
+<section class="lg:col-span-7">
+<div class="mb-xl">
+<h1 class="font-h1 text-h1 text-primary mb-md">What are your concerns?</h1>
+<p class="font-body-lg text-on-surface-variant max-w-xl">Select any skin conditions or concerns you would like to address during this assessment. You can pick multiple.</p>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-3 gap-md">
+<!-- Concern Pills (Interactive Mock) -->
+<button class="group flex flex-col items-center justify-center p-lg diagnostic-module transition-all duration-200 hover:border-secondary hover:bg-secondary/5" onclick="toggleConcern(this, 'Acne')">
+<span class="material-symbols-outlined text-3xl mb-sm group-hover:text-secondary transition-colors" data-icon="coronavirus">coronavirus</span>
+<span class="font-label-caps text-label-caps">Acne</span>
+</button>
+<button class="group flex flex-col items-center justify-center p-lg diagnostic-module transition-all duration-200 hover:border-secondary hover:bg-secondary/5" onclick="toggleConcern(this, 'Hyperpigmentation')">
+<span class="material-symbols-outlined text-3xl mb-sm group-hover:text-secondary transition-colors" data-icon="gradient">gradient</span>
+<span class="font-label-caps text-label-caps">Pigmentation</span>
+</button>
+<button class="group flex flex-col items-center justify-center p-lg diagnostic-module transition-all duration-200 hover:border-secondary hover:bg-secondary/5" onclick="toggleConcern(this, 'Fine Lines')">
+<span class="material-symbols-outlined text-3xl mb-sm group-hover:text-secondary transition-colors" data-icon="waves">waves</span>
+<span class="font-label-caps text-label-caps">Fine Lines</span>
+</button>
+<button class="group flex flex-col items-center justify-center p-lg diagnostic-module transition-all duration-200 hover:border-secondary hover:bg-secondary/5" onclick="toggleConcern(this, 'Redness')">
+<span class="material-symbols-outlined text-3xl mb-sm group-hover:text-secondary transition-colors" data-icon="emergency_home">emergency_home</span>
+<span class="font-label-caps text-label-caps">Redness</span>
+</button>
+<button class="group flex flex-col items-center justify-center p-lg diagnostic-module transition-all duration-200 hover:border-secondary hover:bg-secondary/5" onclick="toggleConcern(this, 'Texture')">
+<span class="material-symbols-outlined text-3xl mb-sm group-hover:text-secondary transition-colors" data-icon="grain">grain</span>
+<span class="font-label-caps text-label-caps">Texture</span>
+</button>
+<button class="group flex flex-col items-center justify-center p-lg diagnostic-module transition-all duration-200 hover:border-secondary hover:bg-secondary/5" onclick="toggleConcern(this, 'Dark Circles')">
+<span class="material-symbols-outlined text-3xl mb-sm group-hover:text-secondary transition-colors" data-icon="brightness_3">brightness_3</span>
+<span class="font-label-caps text-label-caps">Dark Circles</span>
+</button>
+<button class="group flex flex-col items-center justify-center p-lg diagnostic-module transition-all duration-200 hover:border-secondary hover:bg-secondary/5" onclick="toggleConcern(this, 'Pore Size')">
+<span class="material-symbols-outlined text-3xl mb-sm group-hover:text-secondary transition-colors" data-icon="apps">apps</span>
+<span class="font-label-caps text-label-caps">Pore Size</span>
+</button>
+<button class="group flex flex-col items-center justify-center p-lg diagnostic-module transition-all duration-200 hover:border-secondary hover:bg-secondary/5" onclick="toggleConcern(this, 'Dryness')">
+<span class="material-symbols-outlined text-3xl mb-sm group-hover:text-secondary transition-colors" data-icon="water_drop">water_drop</span>
+<span class="font-label-caps text-label-caps">Dryness</span>
+</button>
+<button class="group flex flex-col items-center justify-center p-lg diagnostic-module transition-all duration-200 hover:border-secondary hover:bg-secondary/5" onclick="toggleConcern(this, 'Elasticity')">
+<span class="material-symbols-outlined text-3xl mb-sm group-hover:text-secondary transition-colors" data-icon="unfold_more">unfold_more</span>
+<span class="font-label-caps text-label-caps">Elasticity</span>
+</button>
+</div>
+</section>
+<!-- Right Column: Priorities Ranking -->
+<aside class="lg:col-span-5">
+<div class="diagnostic-module p-xl sticky top-[120px]">
+<h3 class="font-h3 text-h3 text-primary mb-sm">Your Priorities</h3>
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-lg uppercase tracking-widest">Drag to rank your top 3</p>
+<div class="space-y-md" id="priority-list">
+<!-- Placeholder for empty state -->
+<div class="border-2 border-dashed border-outline-variant rounded-xl p-3xl text-center" id="empty-priority">
+<span class="material-symbols-outlined text-4xl text-outline-variant mb-md" data-icon="format_list_bulleted">format_list_bulleted</span>
+<p class="font-body-md text-on-surface-variant">Selected concerns will appear here for ranking.</p>
+</div>
+<!-- Priority Item Template (Hidden initially) -->
+<div class="hidden" id="priority-item-template">
+<div class="flex flex-col gap-sm p-md diagnostic-module border-on-surface/8 hover:border-secondary group transition-all duration-300">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-md">
+<span class="drag-handle material-symbols-outlined text-on-surface-variant hover:text-secondary" data-icon="drag_indicator">drag_indicator</span>
+<span class="font-h3 text-h3 concern-rank-number text-secondary/40">1</span>
+<span class="font-body-md font-semibold concern-name">Acne</span>
+</div>
+<button class="text-on-surface-variant hover:text-error transition-colors" onclick="removeConcern(this)">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+</div>
+<div class="mt-sm">
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-xs">Severity Level</p>
+<div class="flex bg-surface-container rounded-full p-1 w-full gap-1">
+<input class="hidden severity-input" id="sev-mild-temp" name="sev-temp" type="radio"/>
+<label class="flex-1 text-center py-1.5 rounded-full font-label-caps text-[10px] cursor-pointer transition-all hover:bg-white/50" for="sev-mild-temp">MILD</label>
+<input checked="" class="hidden severity-input" id="sev-mod-temp" name="sev-temp" type="radio"/>
+<label class="flex-1 text-center py-1.5 rounded-full font-label-caps text-[10px] cursor-pointer transition-all hover:bg-white/50" for="sev-mod-temp">MODERATE</label>
+<input class="hidden severity-input" id="sev-sev-temp" name="sev-temp" type="radio"/>
+<label class="flex-1 text-center py-1.5 rounded-full font-label-caps text-[10px] cursor-pointer transition-all hover:bg-white/50" for="sev-sev-temp">SEVERE</label>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-xl pt-lg border-t border-on-surface/8">
+<div class="flex items-center justify-between mb-sm">
+<span class="font-label-caps text-label-caps text-on-surface-variant">Focus Intensity</span>
+<span class="font-data-display text-lg text-secondary">High</span>
+</div>
+<div class="w-full bg-surface-container rounded-full h-1.5">
+<div class="bg-secondary h-full rounded-full w-[85%]"></div>
+</div>
+</div>
+</div>
+</aside>
+</main>
+<!-- Sticky Glass Footer -->
+<footer class="glass-panel fixed bottom-0 w-full z-50 border-t border-on-surface/8 shadow-lg">
+<div class="max-w-[1440px] mx-auto px-margin-mobile md:px-margin-desktop py-lg flex justify-between items-center">
+<button class="px-xl py-md rounded-full border border-primary text-primary font-label-caps hover:bg-primary hover:text-white transition-all flex items-center gap-sm group">
+<span class="material-symbols-outlined transition-transform group-hover:-translate-x-1" data-icon="arrow_back">arrow_back</span>
+                Back
+            </button>
+<div class="hidden md:block">
+<p class="font-label-caps text-label-caps text-on-surface-variant opacity-60">Skinlytics Assessment Engine v4.2.1</p>
+</div>
+<button class="px-2xl py-md rounded-full bg-primary text-white font-label-caps hover:bg-secondary transition-all flex items-center gap-sm group shadow-xl shadow-primary/10">
+                Continue
+                <span class="material-symbols-outlined transition-transform group-hover:translate-x-1" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</footer>
+<script>
+        const selectedConcerns = new Set();
+        const listContainer = document.getElementById('priority-list');
+        const emptyState = document.getElementById('empty-priority');
+        const template = document.getElementById('priority-item-template');
+
+        function toggleConcern(btn, name) {
+            if (selectedConcerns.has(name)) {
+                removeConcernByName(name);
+                btn.classList.remove('border-secondary', 'bg-secondary/10', 'ring-2', 'ring-secondary/20');
+                btn.querySelector('.material-symbols-outlined').classList.remove('text-secondary');
+            } else {
+                if (selectedConcerns.size >= 6) {
+                    alert('Please focus on your top 6 concerns for accurate results.');
+                    return;
+                }
+                addConcern(name);
+                btn.classList.add('border-secondary', 'bg-secondary/10', 'ring-2', 'ring-secondary/20');
+                btn.querySelector('.material-symbols-outlined').classList.add('text-secondary');
+            }
+            updateRanks();
+        }
+
+        function addConcern(name) {
+            selectedConcerns.add(name);
+            emptyState.classList.add('hidden');
+            
+            const clone = template.content ? template.content.cloneNode(true) : template.cloneNode(true);
+            const item = clone.firstElementChild || clone.querySelector('div');
+            item.id = `concern-${name.replace(/\s+/g, '-')}`;
+            item.querySelector('.concern-name').textContent = name;
+            
+            // Unique IDs for radio group
+            const id = Math.random().toString(36).substr(2, 9);
+            const inputs = item.querySelectorAll('input');
+            const labels = item.querySelectorAll('label');
+            inputs.forEach((input, i) => {
+                input.name = `sev-${id}`;
+                input.id = `sev-${id}-${i}`;
+                input.classList.remove('hidden');
+                labels[i].setAttribute('for', `sev-${id}-${i}`);
+            });
+
+            listContainer.appendChild(item);
+            item.classList.remove('hidden');
+        }
+
+        function removeConcern(btn) {
+            const item = btn.closest('.diagnostic-module');
+            const name = item.querySelector('.concern-name').textContent;
+            removeConcernByName(name);
+            
+            // Unhighlight the button in the grid
+            const gridButtons = document.querySelectorAll('button[onclick*="toggleConcern"]');
+            gridButtons.forEach(b => {
+                if (b.innerText.includes(name)) {
+                    b.classList.remove('border-secondary', 'bg-secondary/10', 'ring-2', 'ring-secondary/20');
+                    b.querySelector('.material-symbols-outlined').classList.remove('text-secondary');
+                }
+            });
+        }
+
+        function removeConcernByName(name) {
+            selectedConcerns.delete(name);
+            const el = document.getElementById(`concern-${name.replace(/\s+/g, '-')}`);
+            if (el) el.remove();
+            
+            if (selectedConcerns.size === 0) {
+                emptyState.classList.remove('hidden');
+            }
+            updateRanks();
+        }
+
+        function updateRanks() {
+            const items = listContainer.querySelectorAll('.diagnostic-module:not(#priority-item-template)');
+            items.forEach((item, index) => {
+                const rankNum = index + 1;
+                const rankDisplay = item.querySelector('.concern-rank-number');
+                if (rankDisplay) {
+                    rankDisplay.textContent = rankNum;
+                    // Highlight top 3
+                    if (rankNum <= 3) {
+                        rankDisplay.classList.add('text-secondary');
+                        rankDisplay.classList.remove('text-secondary/40');
+                        item.classList.add('border-secondary/20');
+                    } else {
+                        rankDisplay.classList.remove('text-secondary');
+                        rankDisplay.classList.add('text-secondary/40');
+                        item.classList.remove('border-secondary/20');
+                    }
+                }
+            });
+        }
+
+        // Basic drag implementation placeholder logic
+        // In a real app, we'd use SortableJS or similar
+        let dragSrcEl = null;
+        function handleDragStart(e) {
+            dragSrcEl = this;
+            e.dataTransfer.effectAllowed = 'move';
+        }
+    </script>
+</body></html>

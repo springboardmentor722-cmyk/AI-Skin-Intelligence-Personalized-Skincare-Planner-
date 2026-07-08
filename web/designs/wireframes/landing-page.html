@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Skinlytics | Skincare Intelligence</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Geist:wght@400;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<!-- Load Tailwind Config -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface": "#fcf8fa",
+                    "on-surface": "#1b1b1d",
+                    "on-error-container": "#93000a",
+                    "on-primary": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "surface-variant": "#e4e2e4",
+                    "inverse-primary": "#bec6e0",
+                    "surface-container-highest": "#e4e2e4",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-fixed": "#00174b",
+                    "on-background": "#1b1b1d",
+                    "surface-dim": "#dcd9db",
+                    "outline": "#76777d",
+                    "primary-fixed": "#dae2fd",
+                    "on-tertiary-fixed": "#00201c",
+                    "inverse-on-surface": "#f3f0f2",
+                    "tertiary-container": "#00201c",
+                    "surface-bright": "#fcf8fa",
+                    "primary": "#000000",
+                    "on-primary-fixed-variant": "#3f465c",
+                    "on-tertiary-fixed-variant": "#005048",
+                    "surface-container-lowest": "#ffffff",
+                    "outline-variant": "#c6c6cd",
+                    "surface-container-low": "#f6f3f5",
+                    "error": "#ba1a1a",
+                    "tertiary-fixed-dim": "#4fdbc8",
+                    "on-secondary-fixed-variant": "#003ea8",
+                    "tertiary-fixed": "#71f8e4",
+                    "secondary-fixed-dim": "#b4c5ff",
+                    "secondary": "#0051d5",
+                    "on-error": "#ffffff",
+                    "secondary-fixed": "#dbe1ff",
+                    "secondary-container": "#316bf3",
+                    "on-primary-container": "#7c839b",
+                    "primary-container": "#131b2e",
+                    "primary-fixed-dim": "#bec6e0",
+                    "on-secondary-container": "#fefcff",
+                    "surface-container-high": "#eae7e9",
+                    "error-container": "#ffdad6",
+                    "surface-container": "#f0edef",
+                    "on-tertiary-container": "#009485",
+                    "on-surface-variant": "#45464d",
+                    "inverse-surface": "#303032",
+                    "background": "#fcf8fa",
+                    "tertiary": "#000000",
+                    "surface-tint": "#565e74",
+                    "on-primary-fixed": "#131b2e"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "3xl": "64px",
+                    "margin-desktop": "48px",
+                    "xl": "32px",
+                    "xs": "4px",
+                    "margin-mobile": "16px",
+                    "sm": "8px",
+                    "base": "4px",
+                    "lg": "24px",
+                    "md": "16px",
+                    "gutter": "24px",
+                    "2xl": "48px"
+            },
+            "fontFamily": {
+                    "h2": ["Sora"],
+                    "h1-mobile": ["Sora"],
+                    "h1": ["Sora"],
+                    "body-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "label-caps": ["Geist"],
+                    "h3": ["Sora"],
+                    "data-display": ["Geist"]
+            },
+            "fontSize": {
+                    "h2": ["32px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "h1-mobile": ["30px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "h1": ["40px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "h3": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "data-display": ["32px", {"lineHeight": "1.0", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.68);
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-ring-arc {
+            stroke-dasharray: 251.2;
+            stroke-dashoffset: calc(251.2 - (251.2 * 82) / 100);
+            transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .aurora-blur {
+            filter: blur(100px);
+            opacity: 0.4;
+        }
+    </style>
+</head>
+<body class="bg-surface font-body-md text-on-surface overflow-x-hidden">
+<!-- Ambient Background -->
+<div class="fixed inset-0 -z-50 pointer-events-none">
+<!-- STITCH_SHADER_START:ANIMATION_3 class="absolute inset-0 w-full h-full" -->
+<div class="absolute inset-0 w-full h-full" style="display:block;">
+<canvas id="shader-canvas-ANIMATION_3" style="display:block;width:100%;height:100%"></canvas>
+<script>
+(function() {
+  const canvas = document.getElementById('shader-canvas-ANIMATION_3');
+
+  // Sync the WebGL drawing-buffer size with the CSS-driven layout size.
+  // This fires on initial layout and whenever the element is resized.
+  function syncSize() {
+    const w = canvas.clientWidth  || 1280;
+    const h = canvas.clientHeight || 720;
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width  = w;
+      canvas.height = h;
+    }
+  }
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(syncSize).observe(canvas);
+  }
+  syncSize();
+
+  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  if (!gl) return;
+  const vs = `attribute vec2 a_position;
+varying vec2 v_texCoord;
+void main() {
+  v_texCoord = a_position * 0.5 + 0.5;
+  gl_Position = vec4(a_position, 0.0, 1.0);
+}`;
+  const fs = `precision highp float;
+uniform float u_time;
+uniform vec2 u_resolution;
+varying vec2 v_texCoord;
+
+void main() {
+    vec2 uv = v_texCoord;
+    
+    // Smooth drifting aurora effect using sine waves and time
+    float noise1 = sin(uv.x * 2.0 + u_time * 0.2) * 0.5 + 0.5;
+    float noise2 = sin(uv.y * 1.5 - u_time * 0.15) * 0.5 + 0.5;
+    
+    // Skinlytics Palette: Navy -> Royal Blue -> Teal
+    vec3 color1 = vec3(0.058, 0.09, 0.165); // Deep Navy (#0F172A)
+    vec3 color2 = vec3(0.145, 0.388, 0.922); // Royal Blue (#2563EB)
+    vec3 color3 = vec3(0.078, 0.722, 0.651); // Teal (#14B8A6)
+    
+    // Create a mesh-like drift
+    float t = u_time * 0.1;
+    vec2 p1 = vec2(0.5 + 0.3 * cos(t), 0.5 + 0.3 * sin(t));
+    vec2 p2 = vec2(0.5 + 0.3 * cos(t + 2.0), 0.5 + 0.3 * sin(t + 2.0));
+    vec2 p3 = vec2(0.5 + 0.3 * cos(t + 4.0), 0.5 + 0.3 * sin(t + 4.0));
+    
+    float d1 = 1.0 - smoothstep(0.0, 1.0, distance(uv, p1));
+    float d2 = 1.0 - smoothstep(0.0, 1.0, distance(uv, p2));
+    float d3 = 1.0 - smoothstep(0.0, 1.0, distance(uv, p3));
+    
+    vec3 finalColor = mix(color1, color2, d2 * 0.15);
+    finalColor = mix(finalColor, color3, d3 * 0.1);
+    
+    // Final ambient opacity (6-10% as requested)
+    gl_FragColor = vec4(finalColor, 0.08);
+}`;
+  function cs(type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    return s;
+  }
+  const prog = gl.createProgram();
+  gl.attachShader(prog, cs(gl.VERTEX_SHADER, vs));
+  gl.attachShader(prog, cs(gl.FRAGMENT_SHADER, fs));
+  gl.linkProgram(prog);
+  gl.useProgram(prog);
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+  const pos = gl.getAttribLocation(prog, 'a_position');
+  gl.enableVertexAttribArray(pos);
+  gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
+  const uTime = gl.getUniformLocation(prog, 'u_time');
+  const uRes = gl.getUniformLocation(prog, 'u_resolution');
+  const uMouse = gl.getUniformLocation(prog, 'u_mouse');
+
+  // u_mouse is in pixel coordinates matching u_resolution (ShaderToy convention).
+  // Shaders that need normalized coords should use: u_mouse / u_resolution.
+  let mouse = { x: canvas.width / 2, y: canvas.height / 2 };
+  window.addEventListener('mousemove', (event) => {
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width && rect.height) {
+      const nx = (event.clientX - rect.left) / rect.width;
+      const ny = 1.0 - (event.clientY - rect.top) / rect.height;
+      mouse.x = nx * canvas.width;
+      mouse.y = ny * canvas.height;
+    }
+  });
+
+  function render(t) {
+    if (typeof ResizeObserver === 'undefined') syncSize();
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    if (uTime) gl.uniform1f(uTime, t * 0.001);
+    if (uRes) gl.uniform2f(uRes, canvas.width, canvas.height);
+    if (uMouse) gl.uniform2f(uMouse, mouse.x, mouse.y);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    requestAnimationFrame(render);
+  }
+  render(0);
+})();
+</script>
+</div>
+<!-- STITCH_SHADER_END:ANIMATION_3 -->
+</div>
+<!-- Navigation Shell (TopNavBar) -->
+<header class="fixed top-0 w-full z-50 bg-white/68 backdrop-blur-xl border-b border-on-surface/8 shadow-sm">
+<nav class="flex justify-between items-center max-w-[1440px] mx-auto px-margin-desktop py-md">
+<div class="flex items-center gap-12">
+<a class="font-h3 text-h3 font-bold text-primary" href="#">Skinlytics</a>
+<div class="hidden md:flex items-center gap-8">
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#features">Features</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#how-it-works">How it works</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#professionals">Professionals</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#pricing">Pricing</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="px-6 py-2 rounded-full font-body-md text-on-surface-variant hover:bg-surface-container/50 transition-all duration-300">Login</button>
+<button class="bg-primary text-on-primary px-6 py-2.5 rounded-full font-body-md font-semibold transition-all duration-300 hover:opacity-90 shadow-lg">Start free assessment</button>
+</div>
+</nav>
+</header>
+<main class="pt-32 pb-24">
+<!-- Hero Section -->
+<section class="max-w-[1440px] mx-auto px-margin-desktop mb-32">
+<div class="glass-panel p-12 lg:p-20 rounded-[32px] flex flex-col lg:flex-row items-center gap-16 overflow-hidden">
+<div class="w-full lg:w-3/5 space-y-8 z-10">
+<div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-secondary/10 border border-secondary/20 text-secondary">
+<span class="material-symbols-outlined text-[18px]">auto_awesome</span>
+<span class="font-label-caps text-label-caps tracking-widest uppercase">Clinical Grade AI</span>
+</div>
+<h1 class="font-h1 text-[56px] leading-[1.1] text-primary tracking-tight">
+                        Skincare intelligence, personalized to your skin.
+                    </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-xl">
+                        Skinlytics leverages advanced neural networks to analyze your unique skin biology, lifestyle habits, sleep quality, and environmental stressors to build your optimal regimen.
+                    </p>
+<div class="flex flex-wrap gap-4">
+<button class="bg-primary text-on-primary px-8 py-4 rounded-full font-h3 text-body-md font-bold shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-transform">Get Started Free</button>
+<button class="border border-primary text-primary px-8 py-4 rounded-full font-h3 text-body-md font-bold hover:bg-primary/5 transition-all">Watch Technology</button>
+</div>
+<div class="pt-8 border-t border-on-surface/8">
+<p class="font-label-caps text-label-caps text-on-surface-variant tracking-wider uppercase mb-3">Trust Platform</p>
+<div class="flex items-center gap-4 text-on-surface">
+<div class="flex -space-x-2">
+<div class="w-8 h-8 rounded-full border-2 border-white bg-slate-200 overflow-hidden" data-alt="A macro close-up portrait of a person with clear, radiant skin in soft morning light, clinical lab aesthetic, high-end skincare photography style." style="background-image: url('source/images/landing-page/img_000_9dd255b7.jpg')"></div>
+<div class="w-8 h-8 rounded-full border-2 border-white bg-slate-200 overflow-hidden" data-alt="A portrait of a male with healthy skin texture, looking confidently into the camera, professional lighting, clean minimal background." style="background-image: url('source/images/landing-page/img_001_27e8a2ed.jpg')"></div>
+<div class="w-8 h-8 rounded-full border-2 border-white bg-slate-200 overflow-hidden" data-alt="A high-fashion beauty portrait of a person of color with glowing, hydrated skin, neutral color palette, soft focus background." style="background-image: url('source/images/landing-page/img_002_7ea95f17.jpg')"></div>
+</div>
+<span class="font-body-md font-medium">12,000+ skin profiles analyzed · <span class="text-secondary">Dermatologist-informed</span></span>
+</div>
+</div>
+</div>
+<div class="w-full lg:w-2/5 relative flex justify-center">
+<!-- Skin Score Ring Container -->
+<div class="relative w-80 h-80 flex items-center justify-center">
+<div class="absolute inset-0 rounded-full glass-panel border-white/40 shadow-inner"></div>
+<!-- Radial Gauge -->
+<svg class="w-64 h-64 -rotate-90">
+<circle class="text-on-surface/5" cx="128" cy="128" fill="transparent" r="110" stroke="currentColor" stroke-width="12"></circle>
+<circle class="active-ring-arc" cx="128" cy="128" fill="transparent" r="110" stroke="url(#tealBlueGradient)" stroke-linecap="round" stroke-width="12"></circle>
+<defs>
+<lineargradient id="tealBlueGradient" x1="0%" x2="100%" y1="0%" y2="100%">
+<stop offset="0%" style="stop-color:#4fdbc8"></stop>
+<stop offset="100%" style="stop-color:#0051d5"></stop>
+</lineargradient>
+</defs>
+</svg>
+<div class="absolute flex flex-col items-center">
+<span class="font-data-display text-[64px] text-primary">82</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-tighter">Skin Score</span>
+</div>
+<!-- Orbiting Elements -->
+<div class="absolute -top-4 -right-4 w-20 h-20 bg-white rounded-2xl shadow-xl border border-on-surface/8 p-3 flex flex-col items-center justify-center animate-bounce" style="animation-duration: 3s;">
+<span class="material-symbols-outlined text-secondary">water_drop</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant">HYDRATION</span>
+</div>
+<div class="absolute -bottom-8 -left-4 w-24 h-24 bg-white/80 backdrop-blur-md rounded-full shadow-2xl border border-white/20 overflow-hidden" data-alt="A 3D photorealistic clay render of a translucent serum droplet with microscopic bubbles suspended inside, floating in a clean clinical void." style="background-image: url('source/images/landing-page/img_003_54a62171.jpg')"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Glass Score-Explainer Band -->
+<div class="w-full max-w-[1440px] mx-auto px-margin-desktop mb-32">
+<div class="glass-panel rounded-full px-12 py-6 flex flex-wrap justify-between items-center gap-8">
+<div class="flex items-center gap-3">
+<span class="font-label-caps text-on-surface-variant">WEIGHTED FORMULA</span>
+<span class="material-symbols-outlined text-on-surface/20">info</span>
+</div>
+<div class="flex-1 flex gap-2 h-1.5">
+<div class="w-[35%] bg-secondary rounded-full" title="Hydration: 35%"></div>
+<div class="w-[20%] bg-secondary/70 rounded-full" title="Texture: 20%"></div>
+<div class="w-[20%] bg-secondary/50 rounded-full" title="Elasticity: 20%"></div>
+<div class="w-[15%] bg-secondary/30 rounded-full" title="Tone: 15%"></div>
+<div class="w-[10%] bg-secondary/10 rounded-full" title="Barrier: 10%"></div>
+</div>
+<div class="flex gap-6">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<span class="font-label-caps text-[11px] text-on-surface">35% HYDRATION</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-secondary/50"></div>
+<span class="font-label-caps text-[11px] text-on-surface">20% TEXTURE</span>
+</div>
+</div>
+</div>
+</div>
+<!-- How It Works Section -->
+<section class="max-w-[1440px] mx-auto px-margin-desktop mb-32" id="how-it-works">
+<div class="text-center mb-16">
+<h2 class="font-h2 text-h2 text-primary mb-4">Precision path to clarity.</h2>
+<p class="text-on-surface-variant max-w-2xl mx-auto">Science-driven diagnostics meets daily care. Three steps to your healthiest skin ever.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="bg-white p-8 rounded-3xl border border-on-surface/8 shadow-sm hover:-translate-y-2 transition-transform duration-300">
+<div class="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center text-primary mb-6">
+<span class="material-symbols-outlined">biotech</span>
+</div>
+<h3 class="font-h3 text-h3 text-primary mb-3">1. Assess</h3>
+<p class="text-on-surface-variant">Our AI scans your skin using high-resolution computer vision and correlates it with 50+ lifestyle data points.</p>
+</div>
+<div class="bg-white p-8 rounded-3xl border border-on-surface/8 shadow-sm hover:-translate-y-2 transition-transform duration-300">
+<div class="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center text-primary mb-6">
+<span class="material-symbols-outlined">science</span>
+</div>
+<h3 class="font-h3 text-h3 text-primary mb-3">2. AI Routine</h3>
+<p class="text-on-surface-variant">Receive a custom molecular routine matched perfectly to your skin score and environmental exposure.</p>
+</div>
+<div class="bg-white p-8 rounded-3xl border border-on-surface/8 shadow-sm hover:-translate-y-2 transition-transform duration-300">
+<div class="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center text-primary mb-6">
+<span class="material-symbols-outlined">show_chart</span>
+</div>
+<h3 class="font-h3 text-h3 text-primary mb-3">3. Track</h3>
+<p class="text-on-surface-variant">Monitor biological changes in real-time. Adjust formulas as your skin evolves with the seasons.</p>
+</div>
+</div>
+</section>
+<!-- Feature Grid (6 cards) -->
+<section class="max-w-[1440px] mx-auto px-margin-desktop mb-32" id="features">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Card 1 -->
+<div class="glass-panel p-8 rounded-3xl group cursor-pointer hover:bg-white transition-colors">
+<div class="mb-6 flex justify-between items-start">
+<span class="material-symbols-outlined text-secondary text-[32px]">face</span>
+<span class="material-symbols-outlined text-on-surface/20 group-hover:text-primary transition-colors">north_east</span>
+</div>
+<h4 class="font-h3 text-body-lg font-bold mb-2">AI Skin Assessment</h4>
+<p class="text-body-md text-on-surface-variant">Deep-learning analysis of pores, texture, and pigmentation at 10x resolution.</p>
+</div>
+<!-- Card 2 -->
+<div class="glass-panel p-8 rounded-3xl group cursor-pointer hover:bg-white transition-colors">
+<div class="mb-6 flex justify-between items-start">
+<span class="material-symbols-outlined text-secondary text-[32px]">calendar_today</span>
+<span class="material-symbols-outlined text-on-surface/20 group-hover:text-primary transition-colors">north_east</span>
+</div>
+<h4 class="font-h3 text-body-lg font-bold mb-2">Personalized Routines</h4>
+<p class="text-body-md text-on-surface-variant">Dynamic daily schedules that adapt to your morning wake-up time and local UV levels.</p>
+</div>
+<!-- Card 3 -->
+<div class="glass-panel p-8 rounded-3xl group cursor-pointer hover:bg-white transition-colors">
+<div class="mb-6 flex justify-between items-start">
+<span class="material-symbols-outlined text-secondary text-[32px]">database</span>
+<span class="material-symbols-outlined text-on-surface/20 group-hover:text-primary transition-colors">north_east</span>
+</div>
+<h4 class="font-h3 text-body-lg font-bold mb-2">Ingredient Intelligence</h4>
+<p class="text-body-md text-on-surface-variant">Cross-referencing 50,000+ cosmetic ingredients for allergens and clinical efficacy.</p>
+</div>
+<!-- Card 4 -->
+<div class="glass-panel p-8 rounded-3xl group cursor-pointer hover:bg-white transition-colors">
+<div class="mb-6 flex justify-between items-start">
+<span class="material-symbols-outlined text-secondary text-[32px]">verified</span>
+<span class="material-symbols-outlined text-on-surface/20 group-hover:text-primary transition-colors">north_east</span>
+</div>
+<h4 class="font-h3 text-body-lg font-bold mb-2">Product Match Scoring</h4>
+<p class="text-body-md text-on-surface-variant">Know exactly how a specific product will react with your skin before buying.</p>
+</div>
+<!-- Card 5 -->
+<div class="glass-panel p-8 rounded-3xl group cursor-pointer hover:bg-white transition-colors">
+<div class="mb-6 flex justify-between items-start">
+<span class="material-symbols-outlined text-secondary text-[32px]">monitoring</span>
+<span class="material-symbols-outlined text-on-surface/20 group-hover:text-primary transition-colors">north_east</span>
+</div>
+<h4 class="font-h3 text-body-lg font-bold mb-2">Progress Tracking</h4>
+<p class="text-body-md text-on-surface-variant">Visual time-lapses and data overlays showing your journey to optimal health.</p>
+</div>
+<!-- Card 6 -->
+<div class="glass-panel p-8 rounded-3xl group cursor-pointer hover:bg-white transition-colors">
+<div class="mb-6 flex justify-between items-start">
+<span class="material-symbols-outlined text-secondary text-[32px]">alarm</span>
+<span class="material-symbols-outlined text-on-surface/20 group-hover:text-primary transition-colors">north_east</span>
+</div>
+<h4 class="font-h3 text-body-lg font-bold mb-2">Smart Reminders</h4>
+<p class="text-body-md text-on-surface-variant">Intelligent notifications based on skin hydration alerts and step-by-step guidance.</p>
+</div>
+</div>
+</section>
+<!-- Built for Every Role -->
+<section class="max-w-[1440px] mx-auto px-margin-desktop mb-32" id="professionals">
+<h2 class="font-h2 text-h2 text-primary text-center mb-16">Built for the whole ecosystem.</h2>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- User -->
+<div class="relative overflow-hidden group rounded-[2rem]">
+<div class="aspect-[4/5] bg-slate-100" data-alt="A serene photo of a person checking their skin health on a sleek smartphone in a bright, modern bathroom setting with soft daylight." style="background-image: url('source/images/landing-page/img_004_a5875ee6.jpg')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-8 flex flex-col justify-end text-white">
+<h5 class="font-h3 text-h3 mb-2">For Individuals</h5>
+<p class="font-body-md opacity-80 mb-4">Total control over your skin journey with lab-grade precision at home.</p>
+<button class="w-fit px-6 py-2 bg-white text-primary rounded-full font-bold">Try the App</button>
+</div>
+</div>
+<!-- Consultant -->
+<div class="relative overflow-hidden group rounded-[2rem]">
+<div class="aspect-[4/5] bg-slate-100" data-alt="A professional skincare consultant analyzing data on a tablet in a high-end, minimalist clinic environment, soft teal accents." style="background-image: url('source/images/landing-page/img_005_25c4b00b.jpg')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-8 flex flex-col justify-end text-white">
+<h5 class="font-h3 text-h3 mb-2">For Consultants</h5>
+<p class="font-body-md opacity-80 mb-4">Enhance your practice with data-driven insights and client progress monitoring.</p>
+<button class="w-fit px-6 py-2 bg-white text-primary rounded-full font-bold">Partner Portal</button>
+</div>
+</div>
+<!-- Dermatologist -->
+<div class="relative overflow-hidden group rounded-[2rem]">
+<div class="aspect-[4/5] bg-slate-100" data-alt="A dermatologist wearing a white lab coat examining a clinical digital skin scan on a large high-resolution monitor in a bright office." style="background-image: url('source/images/landing-page/img_006_91f8d7fc.jpg')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-8 flex flex-col justify-end text-white">
+<h5 class="font-h3 text-h3 mb-2">For Dermatologists</h5>
+<p class="font-body-md opacity-80 mb-4">Prescribe routines and monitor clinical outcomes through our medical portal.</p>
+<button class="w-fit px-6 py-2 bg-white text-primary rounded-full font-bold">Medical Inquiry</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Testimonial Carousel -->
+<section class="bg-primary-container text-on-primary py-24 mb-32">
+<div class="max-w-[1440px] mx-auto px-margin-desktop">
+<div class="flex items-center justify-between mb-12">
+<h2 class="font-h2 text-h2 text-white">Real Skin. Real Data.</h2>
+<div class="flex gap-4">
+<button class="p-3 rounded-full border border-white/20 hover:bg-white/10 transition-all">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<button class="p-3 rounded-full border border-white/20 hover:bg-white/10 transition-all">
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="bg-white/5 p-12 rounded-[2rem] border border-white/10">
+<span class="material-symbols-outlined text-secondary text-4xl mb-6">format_quote</span>
+<p class="text-[24px] font-medium leading-tight mb-8">"I've spent years guessing which products work. Skinlytics showed me exactly why my barrier was compromised and how to fix it in 3 weeks."</p>
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full overflow-hidden" data-alt="Close up portrait of a woman with radiant skin, smiling, neutral modern lighting, clinical aesthetic." style="background-image: url('source/images/landing-page/img_007_72524f73.jpg')"></div>
+<div>
+<p class="font-bold">Sarah Chen</p>
+<p class="text-white/60 text-sm">Skin Score Improved +24%</p>
+</div>
+</div>
+</div>
+<div class="bg-white/5 p-12 rounded-[2rem] border border-white/10 hidden md:block">
+<span class="material-symbols-outlined text-secondary text-4xl mb-6">format_quote</span>
+<p class="text-[24px] font-medium leading-tight mb-8">"The precision is incredible. It even factors in the hard water in my neighborhood. My routine has never felt more accurate."</p>
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full overflow-hidden" data-alt="A portrait of a person with clear, balanced skin texture, professional photo studio lighting, high-end feel." style="background-image: url('source/images/landing-page/img_008_422e36c6.jpg')"></div>
+<div>
+<p class="font-bold">Marcus Reed</p>
+<p class="text-white/60 text-sm">Daily User for 8 Months</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Pricing Teaser -->
+<section class="max-w-[1440px] mx-auto px-margin-desktop mb-32" id="pricing">
+<div class="text-center mb-16">
+<h2 class="font-h2 text-h2 text-primary">Transparent by design.</h2>
+</div>
+<div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+<!-- Free -->
+<div class="bg-white p-10 rounded-[2.5rem] border border-on-surface/8 flex flex-col">
+<h4 class="font-h3 text-h3 mb-2">Standard</h4>
+<p class="text-on-surface-variant mb-6">Core diagnostic features for everyone.</p>
+<div class="mb-8">
+<span class="font-data-display text-[48px]">$0</span>
+<span class="text-on-surface-variant">/month</span>
+</div>
+<ul class="space-y-4 mb-10 flex-1">
+<li class="flex items-center gap-3"><span class="material-symbols-outlined text-secondary">check_circle</span> Weekly Skin Scan</li>
+<li class="flex items-center gap-3"><span class="material-symbols-outlined text-secondary">check_circle</span> Basic Routine Builder</li>
+<li class="flex items-center gap-3"><span class="material-symbols-outlined text-secondary">check_circle</span> Ingredient Scanner</li>
+</ul>
+<button class="w-full py-4 border border-primary rounded-full font-bold hover:bg-primary/5 transition-all">Start Free</button>
+</div>
+<!-- Pro -->
+<div class="bg-primary text-on-primary p-10 rounded-[2.5rem] shadow-2xl flex flex-col relative overflow-hidden">
+<div class="absolute top-6 right-6 bg-secondary text-white px-3 py-1 rounded-full font-label-caps text-[10px] tracking-widest uppercase">Popular</div>
+<h4 class="font-h3 text-h3 mb-2">Intelligence Pro</h4>
+<p class="text-white/60 mb-6">Full biometric tracking &amp; clinical support.</p>
+<div class="mb-8">
+<span class="font-data-display text-[48px]">$12</span>
+<span class="text-white/60">/month</span>
+</div>
+<ul class="space-y-4 mb-10 flex-1">
+<li class="flex items-center gap-3"><span class="material-symbols-outlined text-secondary">check_circle</span> Daily AI Monitoring</li>
+<li class="flex items-center gap-3"><span class="material-symbols-outlined text-secondary">check_circle</span> Environmental UV/Pollution Sync</li>
+<li class="flex items-center gap-3"><span class="material-symbols-outlined text-secondary">check_circle</span> Dermatologist Chat Access</li>
+<li class="flex items-center gap-3"><span class="material-symbols-outlined text-secondary">check_circle</span> Early Access to New Features</li>
+</ul>
+<button class="w-full py-4 bg-white text-primary rounded-full font-bold hover:scale-[1.02] transition-transform">Get Pro Now</button>
+</div>
+</div>
+</section>
+<!-- FAQ Accordion -->
+<section class="max-w-3xl mx-auto px-margin-mobile mb-32">
+<h2 class="font-h2 text-h2 text-primary text-center mb-12">Frequently Asked</h2>
+<div class="space-y-4">
+<div class="bg-white border border-on-surface/8 rounded-2xl p-6 cursor-pointer hover:bg-surface-container-low transition-colors">
+<div class="flex justify-between items-center">
+<h6 class="font-bold">How accurate is the AI scan?</h6>
+<span class="material-symbols-outlined">expand_more</span>
+</div>
+</div>
+<div class="bg-white border border-on-surface/8 rounded-2xl p-6 cursor-pointer hover:bg-surface-container-low transition-colors">
+<div class="flex justify-between items-center">
+<h6 class="font-bold">Does it replace a dermatologist?</h6>
+<span class="material-symbols-outlined">expand_more</span>
+</div>
+</div>
+<div class="bg-white border border-on-surface/8 rounded-2xl p-6 cursor-pointer hover:bg-surface-container-low transition-colors">
+<div class="flex justify-between items-center">
+<h6 class="font-bold">Is my data HIPAA compliant?</h6>
+<span class="material-symbols-outlined">expand_more</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Final CTA Band -->
+<section class="max-w-[1440px] mx-auto px-margin-desktop mb-32">
+<div class="relative rounded-[3rem] overflow-hidden p-16 text-center text-white bg-primary-container">
+<div class="absolute inset-0 opacity-30">
+<!-- STITCH_SHADER_START:ANIMATION_3 class="w-full h-full" -->
+<div class="w-full h-full" style="display:block;">
+<canvas id="shader-canvas-ANIMATION_3" style="display:block;width:100%;height:100%"></canvas>
+<script>
+(function() {
+  const canvas = document.getElementById('shader-canvas-ANIMATION_3');
+
+  // Sync the WebGL drawing-buffer size with the CSS-driven layout size.
+  // This fires on initial layout and whenever the element is resized.
+  function syncSize() {
+    const w = canvas.clientWidth  || 1280;
+    const h = canvas.clientHeight || 720;
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width  = w;
+      canvas.height = h;
+    }
+  }
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(syncSize).observe(canvas);
+  }
+  syncSize();
+
+  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  if (!gl) return;
+  const vs = `attribute vec2 a_position;
+varying vec2 v_texCoord;
+void main() {
+  v_texCoord = a_position * 0.5 + 0.5;
+  gl_Position = vec4(a_position, 0.0, 1.0);
+}`;
+  const fs = `precision highp float;
+uniform float u_time;
+uniform vec2 u_resolution;
+varying vec2 v_texCoord;
+
+void main() {
+    vec2 uv = v_texCoord;
+    
+    // Smooth drifting aurora effect using sine waves and time
+    float noise1 = sin(uv.x * 2.0 + u_time * 0.2) * 0.5 + 0.5;
+    float noise2 = sin(uv.y * 1.5 - u_time * 0.15) * 0.5 + 0.5;
+    
+    // Skinlytics Palette: Navy -> Royal Blue -> Teal
+    vec3 color1 = vec3(0.058, 0.09, 0.165); // Deep Navy (#0F172A)
+    vec3 color2 = vec3(0.145, 0.388, 0.922); // Royal Blue (#2563EB)
+    vec3 color3 = vec3(0.078, 0.722, 0.651); // Teal (#14B8A6)
+    
+    // Create a mesh-like drift
+    float t = u_time * 0.1;
+    vec2 p1 = vec2(0.5 + 0.3 * cos(t), 0.5 + 0.3 * sin(t));
+    vec2 p2 = vec2(0.5 + 0.3 * cos(t + 2.0), 0.5 + 0.3 * sin(t + 2.0));
+    vec2 p3 = vec2(0.5 + 0.3 * cos(t + 4.0), 0.5 + 0.3 * sin(t + 4.0));
+    
+    float d1 = 1.0 - smoothstep(0.0, 1.0, distance(uv, p1));
+    float d2 = 1.0 - smoothstep(0.0, 1.0, distance(uv, p2));
+    float d3 = 1.0 - smoothstep(0.0, 1.0, distance(uv, p3));
+    
+    vec3 finalColor = mix(color1, color2, d2 * 0.15);
+    finalColor = mix(finalColor, color3, d3 * 0.1);
+    
+    // Final ambient opacity (6-10% as requested)
+    gl_FragColor = vec4(finalColor, 0.08);
+}`;
+  function cs(type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    return s;
+  }
+  const prog = gl.createProgram();
+  gl.attachShader(prog, cs(gl.VERTEX_SHADER, vs));
+  gl.attachShader(prog, cs(gl.FRAGMENT_SHADER, fs));
+  gl.linkProgram(prog);
+  gl.useProgram(prog);
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+  const pos = gl.getAttribLocation(prog, 'a_position');
+  gl.enableVertexAttribArray(pos);
+  gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
+  const uTime = gl.getUniformLocation(prog, 'u_time');
+  const uRes = gl.getUniformLocation(prog, 'u_resolution');
+  const uMouse = gl.getUniformLocation(prog, 'u_mouse');
+
+  // u_mouse is in pixel coordinates matching u_resolution (ShaderToy convention).
+  // Shaders that need normalized coords should use: u_mouse / u_resolution.
+  let mouse = { x: canvas.width / 2, y: canvas.height / 2 };
+  window.addEventListener('mousemove', (event) => {
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width && rect.height) {
+      const nx = (event.clientX - rect.left) / rect.width;
+      const ny = 1.0 - (event.clientY - rect.top) / rect.height;
+      mouse.x = nx * canvas.width;
+      mouse.y = ny * canvas.height;
+    }
+  });
+
+  function render(t) {
+    if (typeof ResizeObserver === 'undefined') syncSize();
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    if (uTime) gl.uniform1f(uTime, t * 0.001);
+    if (uRes) gl.uniform2f(uRes, canvas.width, canvas.height);
+    if (uMouse) gl.uniform2f(uMouse, mouse.x, mouse.y);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    requestAnimationFrame(render);
+  }
+  render(0);
+})();
+</script>
+</div>
+<!-- STITCH_SHADER_END:ANIMATION_3 -->
+</div>
+<div class="relative z-10 max-w-2xl mx-auto">
+<h2 class="font-h1 text-[48px] mb-6 leading-tight">Begin your skin's digital transformation.</h2>
+<p class="text-lg opacity-80 mb-10">Join 12,000+ users who have optimized their skin health with clinical-grade intelligence.</p>
+<div class="flex flex-col sm:flex-row justify-center gap-4">
+<button class="bg-white text-primary px-10 py-4 rounded-full font-bold text-lg shadow-xl hover:scale-105 transition-transform">Start Assessment</button>
+<button class="bg-white/10 backdrop-blur-md text-white border border-white/20 px-10 py-4 rounded-full font-bold text-lg hover:bg-white/20 transition-all">Download App</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-white border-t border-on-surface/8 pt-16 pb-8">
+<div class="max-w-[1440px] mx-auto px-margin-desktop">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+<div class="col-span-1 md:col-span-1">
+<a class="font-h3 text-h3 font-bold text-primary mb-6 block" href="#">Skinlytics</a>
+<p class="text-on-surface-variant text-sm max-w-xs">Pioneering the future of clinical skincare through accessible AI diagnostics and biometric tracking.</p>
+</div>
+<div>
+<h5 class="font-label-caps text-label-caps uppercase tracking-widest text-primary mb-6">Product</h5>
+<ul class="space-y-4 text-on-surface-variant text-sm">
+<li><a class="hover:text-primary" href="#">AI Diagnostic</a></li>
+<li><a class="hover:text-primary" href="#">Routine Builder</a></li>
+<li><a class="hover:text-primary" href="#">Pro Portal</a></li>
+</ul>
+</div>
+<div>
+<h5 class="font-label-caps text-label-caps uppercase tracking-widest text-primary mb-6">Company</h5>
+<ul class="space-y-4 text-on-surface-variant text-sm">
+<li><a class="hover:text-primary" href="#">Our Research</a></li>
+<li><a class="hover:text-primary" href="#">Clinical Partners</a></li>
+<li><a class="hover:text-primary" href="#">Careers</a></li>
+</ul>
+</div>
+<div>
+<h5 class="font-label-caps text-label-caps uppercase tracking-widest text-primary mb-6">Legal</h5>
+<ul class="space-y-4 text-on-surface-variant text-sm">
+<li><a class="hover:text-primary" href="#">Privacy Policy</a></li>
+<li><a class="hover:text-primary" href="#">Terms of Service</a></li>
+<li><a class="hover:text-primary" href="#">HIPAA Compliance</a></li>
+</ul>
+</div>
+</div>
+<div class="pt-8 border-t border-on-surface/8 flex flex-col md:flex-row justify-between items-center gap-4">
+<p class="font-label-caps text-label-caps text-on-surface-variant">© 2024 Skinlytics Lab. Clinical Grade AI.</p>
+<div class="flex gap-6">
+<a class="text-on-surface-variant hover:text-primary" href="#"><span class="material-symbols-outlined text-[20px]">public</span></a>
+<a class="text-on-surface-variant hover:text-primary" href="#"><span class="material-symbols-outlined text-[20px]">share</span></a>
+<a class="text-on-surface-variant hover:text-primary" href="#"><span class="material-symbols-outlined text-[20px]">verified_user</span></a>
+</div>
+</div>
+</div>
+</footer>
+<script>
+        // Micro-interactions for the skin score ring
+        window.addEventListener('DOMContentLoaded', () => {
+            const circle = document.querySelector('.active-ring-arc');
+            if (circle) {
+                // Ensure initial dashoffset is set for transition
+                circle.style.strokeDashoffset = "251.2";
+                setTimeout(() => {
+                    circle.style.strokeDashoffset = "calc(251.2 - (251.2 * 82) / 100)";
+                }, 500);
+            }
+        });
+
+        // Simple smooth scroll behavior
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body></html>

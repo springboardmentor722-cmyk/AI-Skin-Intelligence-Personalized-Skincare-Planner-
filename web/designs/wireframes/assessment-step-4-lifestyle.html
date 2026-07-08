@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Skinlytics Assessment — Step 4</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;family=Geist:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.68);
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+        }
+        .diagnostic-module {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+        }
+        .aurora-bg {
+            background: radial-gradient(circle at 0% 0%, #dae2fd 0%, transparent 50%),
+                        radial-gradient(circle at 100% 100%, #fefcff 0%, transparent 50%),
+                        radial-gradient(circle at 50% 50%, #f0edef 0%, transparent 100%);
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type="range"]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            background: #e4e2e4;
+            border-radius: 2px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            background: #000000;
+            cursor: pointer;
+            margin-top: -7px;
+            border: 2px solid #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "#fcf8fa",
+                        "on-surface": "#1b1b1d",
+                        "on-error-container": "#93000a",
+                        "on-primary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "surface-variant": "#e4e2e4",
+                        "inverse-primary": "#bec6e0",
+                        "surface-container-highest": "#e4e2e4",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed": "#00174b",
+                        "on-background": "#1b1b1d",
+                        "surface-dim": "#dcd9db",
+                        "outline": "#76777d",
+                        "primary-fixed": "#dae2fd",
+                        "on-tertiary-fixed": "#00201c",
+                        "inverse-on-surface": "#f3f0f2",
+                        "tertiary-container": "#00201c",
+                        "surface-bright": "#fcf8fa",
+                        "primary": "#000000",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "on-tertiary-fixed-variant": "#005048",
+                        "surface-container-lowest": "#ffffff",
+                        "outline-variant": "#c6c6cd",
+                        "surface-container-low": "#f6f3f5",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed-dim": "#4fdbc8",
+                        "on-secondary-fixed-variant": "#003ea8",
+                        "tertiary-fixed": "#71f8e4",
+                        "secondary-fixed-dim": "#b4c5ff",
+                        "secondary": "#0051d5",
+                        "on-error": "#ffffff",
+                        "secondary-fixed": "#dbe1ff",
+                        "secondary-container": "#316bf3",
+                        "on-primary-container": "#7c839b",
+                        "primary-container": "#131b2e",
+                        "primary-fixed-dim": "#bec6e0",
+                        "on-secondary-container": "#fefcff",
+                        "surface-container-high": "#eae7e9",
+                        "error-container": "#ffdad6",
+                        "surface-container": "#f0edef",
+                        "on-tertiary-container": "#009485",
+                        "on-surface-variant": "#45464d",
+                        "inverse-surface": "#303032",
+                        "background": "#fcf8fa",
+                        "tertiary": "#000000",
+                        "surface-tint": "#565e74",
+                        "on-primary-fixed": "#131b2e"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "3xl": "64px",
+                        "margin-desktop": "48px",
+                        "xl": "32px",
+                        "xs": "4px",
+                        "margin-mobile": "16px",
+                        "sm": "8px",
+                        "base": "4px",
+                        "lg": "24px",
+                        "md": "16px",
+                        "gutter": "24px",
+                        "2xl": "48px"
+                    },
+                    "fontFamily": {
+                        "h2": ["Sora"],
+                        "h1-mobile": ["Sora"],
+                        "h1": ["Sora"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-caps": ["Geist"],
+                        "h3": ["Sora"],
+                        "data-display": ["Geist"]
+                    },
+                    "fontSize": {
+                        "h2": ["32px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "h1-mobile": ["30px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "h1": ["40px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "h3": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "data-display": ["32px", {"lineHeight": "1.0", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md aurora-bg min-h-screen">
+<!-- Header / Nav Shell -->
+<header class="fixed top-0 w-full z-50 glass-panel border-b border-on-surface/8 shadow-sm">
+<div class="flex justify-between items-center max-w-[1440px] mx-auto px-margin-desktop py-md">
+<div class="font-h3 text-h3 font-bold text-primary">Skinlytics</div>
+<div class="flex items-center gap-md">
+<div class="flex flex-col items-end">
+<span class="font-label-caps text-label-caps text-on-surface-variant mb-1 uppercase">Step 4 of 5</span>
+<div class="w-48 h-1.5 bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-secondary transition-all duration-1000 ease-out" style="width: 80%;"></div>
+</div>
+</div>
+<div class="font-data-display text-[16px] text-secondary font-semibold">80%</div>
+</div>
+</div>
+</header>
+<main class="pt-[120px] pb-[140px] max-w-4xl mx-auto px-margin-mobile md:px-lg">
+<!-- Title Section -->
+<div class="mb-xl text-center">
+<h1 class="font-h1 text-h1 mb-sm">Sensitivities &amp; Lifestyle</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-xl mx-auto">Our AI correlates environmental factors and internal stressors to build your clinical skin profile.</p>
+</div>
+<!-- Diagnostic Module Card -->
+<div class="diagnostic-module p-lg md:p-xl space-y-3xl">
+<!-- Section 1: Allergies -->
+<section>
+<div class="flex items-center gap-sm mb-lg">
+<span class="material-symbols-outlined text-secondary">science</span>
+<h2 class="font-h3 text-h3">Known Allergies</h2>
+</div>
+<p class="font-body-md text-on-surface-variant mb-md">Select any known ingredient allergies or irritants.</p>
+<div class="flex flex-wrap gap-sm">
+<button class="px-md py-sm rounded-full border border-secondary text-secondary font-medium transition-all hover:bg-secondary/5">Fragrance</button>
+<button class="px-md py-sm rounded-full border border-outline-variant text-on-surface-variant font-medium transition-all hover:border-secondary">Essential oils</button>
+<button class="px-md py-sm rounded-full border border-outline-variant text-on-surface-variant font-medium transition-all hover:border-secondary">Lanolin</button>
+<button class="px-md py-sm rounded-full border border-secondary text-secondary font-medium transition-all hover:bg-secondary/5">Sulfates</button>
+<button class="px-md py-sm rounded-full border border-outline-variant text-on-surface-variant font-medium transition-all hover:border-secondary">Nuts</button>
+<button class="px-md py-sm rounded-full border border-dashed border-outline-variant text-on-surface-variant/60 font-medium flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                        Other
+                    </button>
+</div>
+</section>
+<hr class="border-on-surface/8"/>
+<!-- Section 2: Sensitivities -->
+<section>
+<div class="flex items-center gap-sm mb-lg">
+<span class="material-symbols-outlined text-secondary">warning</span>
+<h2 class="font-h3 text-h3">Dermal Reactivity</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+<div class="p-md rounded-xl bg-surface-container-low border border-on-surface/5 flex flex-col gap-sm">
+<div class="flex justify-between items-center">
+<span class="font-body-md font-semibold">Reacts to actives</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
+</label>
+</div>
+<p class="text-[13px] text-on-surface-variant">Stinging or redness when using Retinol or Vitamin C.</p>
+</div>
+<div class="p-md rounded-xl bg-surface-container-low border border-on-surface/5 flex flex-col gap-sm">
+<div class="flex justify-between items-center">
+<span class="font-body-md font-semibold">Sun-sensitive</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
+</label>
+</div>
+<p class="text-[13px] text-on-surface-variant">Skin burns easily or reacts to direct UV exposure.</p>
+</div>
+<div class="p-md rounded-xl bg-surface-container-low border border-on-surface/5 flex flex-col gap-sm">
+<div class="flex justify-between items-center">
+<span class="font-body-md font-semibold">Redness-prone</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
+</label>
+</div>
+<p class="text-[13px] text-on-surface-variant">Chronic flushing or visible capillaries.</p>
+</div>
+</div>
+</section>
+<hr class="border-on-surface/8"/>
+<!-- Section 3: Lifestyle -->
+<section class="space-y-2xl">
+<div class="flex items-center gap-sm mb-lg">
+<span class="material-symbols-outlined text-secondary">line_style</span>
+<h2 class="font-h3 text-h3">Lifestyle &amp; Environment</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-xl">
+<!-- Sleep & Water -->
+<div class="space-y-xl">
+<!-- Sleep -->
+<div class="space-y-md">
+<div class="flex justify-between items-end">
+<label class="font-body-md font-semibold">Average Sleep</label>
+<div class="font-data-display text-[24px] text-secondary">7.5<span class="text-h3">h</span></div>
+</div>
+<input class="accent-secondary" max="12" min="4" step="0.5" type="range" value="7.5"/>
+<select class="w-full bg-surface-container-low border-none rounded-lg p-md font-body-md focus:ring-2 focus:ring-secondary/20">
+<option>Restful, uninterrupted</option>
+<option selected="">Occasional waking</option>
+<option>Frequent insomnia</option>
+</select>
+</div>
+<!-- Water -->
+<div class="space-y-md">
+<div class="flex justify-between items-center">
+<label class="font-body-md font-semibold">Daily Water Intake</label>
+<div class="font-label-caps text-on-surface-variant">Target: 8 Glasses</div>
+</div>
+<div class="flex items-center justify-between p-md bg-surface-container-low rounded-xl border border-on-surface/5">
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-white border border-on-surface/8 hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined">remove</span>
+</button>
+<div class="flex flex-col items-center">
+<span class="font-data-display text-h2">6</span>
+<span class="font-label-caps text-on-surface-variant">Glasses</span>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-secondary text-white hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Stress & Environment -->
+<div class="space-y-xl">
+<!-- Stress -->
+<div class="space-y-md">
+<div class="flex justify-between items-end">
+<label class="font-body-md font-semibold">Stress Levels</label>
+<span class="font-label-caps text-secondary px-2 py-1 bg-secondary/10 rounded">Moderate</span>
+</div>
+<input class="accent-secondary" max="10" min="1" type="range" value="6"/>
+<div class="flex justify-between text-[10px] text-on-surface-variant font-label-caps uppercase">
+<span>Low Calm</span>
+<span>High Stress</span>
+</div>
+</div>
+<!-- Sun Exposure -->
+<div class="space-y-md">
+<label class="font-body-md font-semibold">Sun Exposure</label>
+<div class="grid grid-cols-2 gap-sm">
+<button class="p-sm text-center rounded-lg border border-secondary bg-secondary/5 text-secondary text-sm font-medium">Indoor/Low</button>
+<button class="p-sm text-center rounded-lg border border-outline-variant text-on-surface-variant text-sm font-medium">Occasional</button>
+<button class="p-sm text-center rounded-lg border border-outline-variant text-on-surface-variant text-sm font-medium">High/Outdoor</button>
+<button class="p-sm text-center rounded-lg border border-outline-variant text-on-surface-variant text-sm font-medium">Intense</button>
+</div>
+</div>
+<!-- Environment -->
+<div class="space-y-md">
+<label class="font-body-md font-semibold">Primary Environment</label>
+<div class="flex flex-wrap gap-xs">
+<span class="px-md py-xs rounded-full bg-primary text-white text-[13px] font-medium flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">edit_location</span> Urban
+                                </span>
+<span class="px-md py-xs rounded-full bg-surface-container-highest text-on-surface-variant text-[13px] font-medium">Coastal</span>
+<span class="px-md py-xs rounded-full bg-secondary/10 text-secondary border border-secondary/20 text-[13px] font-medium">Dry</span>
+<span class="px-md py-xs rounded-full bg-surface-container-highest text-on-surface-variant text-[13px] font-medium">Humid</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Sticky Glass Footer -->
+<footer class="fixed bottom-0 w-full glass-panel border-t border-on-surface/8 z-50">
+<div class="max-w-[1440px] mx-auto px-margin-desktop py-md flex justify-between items-center">
+<button class="flex items-center gap-xs px-lg py-md text-on-surface font-semibold hover:bg-surface-container/50 rounded-full transition-all">
+<span class="material-symbols-outlined">arrow_back</span>
+                Back
+            </button>
+<div class="hidden md:flex flex-col items-center">
+<span class="font-label-caps text-on-surface-variant">Step 4 of 5 Complete</span>
+<span class="font-body-md text-xs text-on-surface/60">Final step: Skin Goals &amp; Focus</span>
+</div>
+<button class="bg-primary text-on-primary px-3xl py-md rounded-full font-semibold flex items-center gap-xs hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-primary/10">
+                Continue
+                <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</footer>
+<!-- Atmosphere Micro-interaction script -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sliders = document.querySelectorAll('input[type="range"]');
+            sliders.forEach(slider => {
+                slider.addEventListener('input', function() {
+                    const value = (this.value - this.min) / (this.max - this.min) * 100;
+                    this.style.background = `linear-gradient(to right, #0051d5 0%, #0051d5 ${value}%, #e4e2e4 ${value}%, #e4e2e4 100%)`;
+                });
+                // Initial trigger
+                slider.dispatchEvent(new Event('input'));
+            });
+
+            // Toggle active states for non-form elements
+            const optionButtons = document.querySelectorAll('.flex.flex-wrap button, .grid button');
+            optionButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Simple visual toggle for demo
+                    if (this.classList.contains('border-secondary')) {
+                        this.classList.remove('border-secondary', 'text-secondary', 'bg-secondary/5');
+                        this.classList.add('border-outline-variant', 'text-on-surface-variant');
+                    } else if (this.classList.contains('border-outline-variant')) {
+                        this.classList.add('border-secondary', 'text-secondary', 'bg-secondary/5');
+                        this.classList.remove('border-outline-variant', 'text-on-surface-variant');
+                    }
+                });
+            });
+        });
+    </script>
+</body></html>

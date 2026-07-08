@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Skinlytics | Assessment Step 1</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;family=Geist:wght@400;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Shared Tailwind Config -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface": "#fcf8fa",
+                    "on-surface": "#1b1b1d",
+                    "on-error-container": "#93000a",
+                    "on-primary": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "surface-variant": "#e4e2e4",
+                    "inverse-primary": "#bec6e0",
+                    "surface-container-highest": "#e4e2e4",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-fixed": "#00174b",
+                    "on-background": "#1b1b1d",
+                    "surface-dim": "#dcd9db",
+                    "outline": "#76777d",
+                    "primary-fixed": "#dae2fd",
+                    "on-tertiary-fixed": "#00201c",
+                    "inverse-on-surface": "#f3f0f2",
+                    "tertiary-container": "#00201c",
+                    "surface-bright": "#fcf8fa",
+                    "primary": "#000000",
+                    "on-primary-fixed-variant": "#3f465c",
+                    "on-tertiary-fixed-variant": "#005048",
+                    "surface-container-lowest": "#ffffff",
+                    "outline-variant": "#c6c6cd",
+                    "surface-container-low": "#f6f3f5",
+                    "error": "#ba1a1a",
+                    "tertiary-fixed-dim": "#4fdbc8",
+                    "on-secondary-fixed-variant": "#003ea8",
+                    "tertiary-fixed": "#71f8e4",
+                    "secondary-fixed-dim": "#b4c5ff",
+                    "secondary": "#0051d5",
+                    "on-error": "#ffffff",
+                    "secondary-fixed": "#dbe1ff",
+                    "secondary-container": "#316bf3",
+                    "on-primary-container": "#7c839b",
+                    "primary-container": "#131b2e",
+                    "primary-fixed-dim": "#bec6e0",
+                    "on-secondary-container": "#fefcff",
+                    "surface-container-high": "#eae7e9",
+                    "error-container": "#ffdad6",
+                    "surface-container": "#f0edef",
+                    "on-tertiary-container": "#009485",
+                    "on-surface-variant": "#45464d",
+                    "inverse-surface": "#303032",
+                    "background": "#fcf8fa",
+                    "tertiary": "#000000",
+                    "surface-tint": "#565e74",
+                    "on-primary-fixed": "#131b2e"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "8px",
+                    "xl": "12px",
+                    "2xl": "16px",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "3xl": "64px",
+                    "margin-desktop": "48px",
+                    "xl": "32px",
+                    "xs": "4px",
+                    "margin-mobile": "16px",
+                    "sm": "8px",
+                    "base": "4px",
+                    "lg": "24px",
+                    "md": "16px",
+                    "gutter": "24px",
+                    "2xl": "48px"
+            },
+            "fontFamily": {
+                    "h2": ["Sora"],
+                    "h1": ["Sora"],
+                    "body-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "label-caps": ["Geist"],
+                    "h3": ["Sora"],
+                    "data-display": ["Geist"]
+            },
+            "fontSize": {
+                    "h2": ["32px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "h1": ["40px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "h3": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "data-display": ["32px", {"lineHeight": "1.0", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #F7F9FB;
+            color: #1b1b1d;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .glass-header {
+            background: rgba(255, 255, 255, 0.68);
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+        }
+
+        .diagnostic-module {
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 16px;
+        }
+
+        .pill-select-active {
+            background-color: #000000;
+            color: #ffffff;
+        }
+
+        .card-select-active {
+            border-color: #0051d5;
+            background-color: rgba(0, 81, 213, 0.04);
+            box-shadow: 0 0 0 2px rgba(0, 81, 213, 0.1);
+        }
+
+        .step-active {
+            background-color: #0051d5;
+            color: white;
+        }
+
+        .aurora-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(0, 81, 213, 0.2);
+            border-color: #0051d5;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md min-h-screen flex flex-col">
+<!-- Ambient Aurora Mesh Background -->
+<div class="aurora-bg">
+
+</div>
+<!-- Glass Progress Header -->
+<header class="glass-header sticky top-0 z-50 border-b border-on-surface/8">
+<div class="max-w-[1440px] mx-auto px-margin-desktop py-lg">
+<div class="flex flex-col gap-md">
+<div class="flex justify-between items-center">
+<span class="font-h3 text-h3 font-bold text-primary">Skinlytics</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Step 1 of 5</span>
+</div>
+<!-- Progress Bar -->
+<div class="w-full bg-on-surface/5 h-1 rounded-full overflow-hidden">
+<div class="bg-secondary h-full transition-all duration-500" style="width: 20%;"></div>
+</div>
+<!-- Step Chips -->
+<div class="flex gap-sm overflow-x-auto no-scrollbar">
+<div class="flex-shrink-0 px-md py-xs rounded-full bg-secondary text-white font-label-caps text-label-caps flex items-center gap-xs">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+                        Basics
+                    </div>
+<div class="flex-shrink-0 px-md py-xs rounded-full bg-on-surface/5 text-on-surface-variant font-label-caps text-label-caps">Skin type</div>
+<div class="flex-shrink-0 px-md py-xs rounded-full bg-on-surface/5 text-on-surface-variant font-label-caps text-label-caps">Concerns</div>
+<div class="flex-shrink-0 px-md py-xs rounded-full bg-on-surface/5 text-on-surface-variant font-label-caps text-label-caps">Lifestyle</div>
+<div class="flex-shrink-0 px-md py-xs rounded-full bg-on-surface/5 text-on-surface-variant font-label-caps text-label-caps">Done</div>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow max-w-[800px] mx-auto w-full px-margin-mobile md:px-lg py-3xl">
+<div class="mb-2xl">
+<h1 class="font-h1 text-h1 text-primary mb-sm">Let’s get to know your skin</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-[600px]">Our clinical AI uses these basics to calibrate your skin analysis and environment-specific recommendations.</p>
+</div>
+<!-- Diagnostic Module Card -->
+<section class="diagnostic-module p-lg md:p-2xl flex flex-col gap-2xl">
+<!-- Age Group Selection -->
+<div class="flex flex-col gap-md">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">How old are you?</label>
+<div class="flex flex-wrap gap-sm">
+<button class="px-lg py-md rounded-full border border-on-surface/10 hover:border-secondary transition-colors font-body-md text-body-md text-on-surface">13–17</button>
+<button class="px-lg py-md rounded-full bg-primary text-white font-body-md text-body-md">18–24</button>
+<button class="px-lg py-md rounded-full border border-on-surface/10 hover:border-secondary transition-colors font-body-md text-body-md text-on-surface">25–34</button>
+<button class="px-lg py-md rounded-full border border-on-surface/10 hover:border-secondary transition-colors font-body-md text-body-md text-on-surface">35–44</button>
+<button class="px-lg py-md rounded-full border border-on-surface/10 hover:border-secondary transition-colors font-body-md text-body-md text-on-surface">45–54</button>
+<button class="px-lg py-md rounded-full border border-on-surface/10 hover:border-secondary transition-colors font-body-md text-body-md text-on-surface">55+</button>
+</div>
+</div>
+<!-- Primary Goals Multi-select -->
+<div class="flex flex-col gap-md">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">What are your primary goals? <span class="lowercase">(Select all that apply)</span></label>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<!-- Goal Card 1 -->
+<div class="card-select-active border-2 border-secondary rounded-xl p-lg cursor-pointer transition-all flex items-start gap-md group">
+<div class="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">spark</span>
+</div>
+<div class="flex-grow">
+<h4 class="font-h3 text-[18px] text-primary">Clearer skin</h4>
+<p class="font-body-md text-[14px] text-on-surface-variant">Reduce acne, blemishes, and congestion.</p>
+</div>
+<span class="material-symbols-outlined text-secondary">check_circle</span>
+</div>
+<!-- Goal Card 2 -->
+<div class="border border-on-surface/10 rounded-xl p-lg cursor-pointer hover:border-on-surface/20 transition-all flex items-start gap-md group">
+<div class="w-10 h-10 rounded-full bg-on-surface/5 flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">palette</span>
+</div>
+<div class="flex-grow">
+<h4 class="font-h3 text-[18px] text-primary">Even tone</h4>
+<p class="font-body-md text-[14px] text-on-surface-variant">Target dark spots and hyperpigmentation.</p>
+</div>
+</div>
+<!-- Goal Card 3 -->
+<div class="border border-on-surface/10 rounded-xl p-lg cursor-pointer hover:border-on-surface/20 transition-all flex items-start gap-md group">
+<div class="w-10 h-10 rounded-full bg-on-surface/5 flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">auto_graph</span>
+</div>
+<div class="flex-grow">
+<h4 class="font-h3 text-[18px] text-primary">Anti-aging</h4>
+<p class="font-body-md text-[14px] text-on-surface-variant">Fine lines, wrinkles, and skin elasticity.</p>
+</div>
+</div>
+<!-- Goal Card 4 -->
+<div class="border border-on-surface/10 rounded-xl p-lg cursor-pointer hover:border-on-surface/20 transition-all flex items-start gap-md group">
+<div class="w-10 h-10 rounded-full bg-on-surface/5 flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">water_drop</span>
+</div>
+<div class="flex-grow">
+<h4 class="font-h3 text-[18px] text-primary">Deep hydration</h4>
+<p class="font-body-md text-[14px] text-on-surface-variant">Relieve dryness and flaky textures.</p>
+</div>
+</div>
+</div>
+<div class="mt-xs">
+<div class="border border-on-surface/10 rounded-xl p-lg cursor-pointer hover:border-on-surface/20 transition-all flex items-start gap-md group">
+<div class="w-10 h-10 rounded-full bg-on-surface/5 flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">eco</span>
+</div>
+<div class="flex-grow">
+<h4 class="font-h3 text-[18px] text-primary">Calm sensitivity</h4>
+<p class="font-body-md text-[14px] text-on-surface-variant">Manage redness, irritation, or rosacea.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Location Input -->
+<div class="flex flex-col gap-md">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">Where do you live?</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-lg top-1/2 -translate-y-1/2 text-on-surface-variant">location_on</span>
+<input class="w-full pl-3xl pr-lg py-md bg-surface-container-low border border-on-surface/10 rounded-full font-body-md text-on-surface placeholder:text-on-surface-variant/50" placeholder="e.g. London, United Kingdom" type="text"/>
+</div>
+<div class="flex items-center gap-xs text-[13px] text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]">info</span>
+<span>Used for weather &amp; UV-based advice. Skinlytics never shares your location.</span>
+</div>
+</div>
+</section>
+<!-- Decorative Info Box -->
+<div class="mt-lg p-lg border border-secondary/10 rounded-xl bg-secondary/5 flex gap-md">
+<span class="material-symbols-outlined text-secondary">clinical_notes</span>
+<p class="text-on-surface-variant text-[14px] leading-relaxed">
+<strong>Why this matters:</strong> Biological age and environmental stressors like UV index and humidity significantly impact epidermal turnover rates and lipid barrier function.
+            </p>
+</div>
+</main>
+<!-- Sticky Glass Footer -->
+<footer class="glass-header sticky bottom-0 z-50 border-t border-on-surface/8 mt-auto">
+<div class="max-w-[800px] mx-auto px-margin-mobile md:px-lg py-lg flex justify-between items-center">
+<button class="px-xl py-md rounded-full border border-on-surface/10 text-on-surface font-label-caps text-label-caps uppercase hover:bg-on-surface/5 transition-colors">
+                Back
+            </button>
+<button class="px-3xl py-md rounded-full bg-primary text-on-primary font-label-caps text-label-caps uppercase hover:bg-secondary transition-all transform active:scale-95 flex items-center gap-sm">
+                Continue
+                <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</footer>
+<script>
+        // Micro-interactions for goal selection
+        const goalCards = document.querySelectorAll('.diagnostic-module .grid > div, .diagnostic-module .mt-xs > div');
+        
+        goalCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const isActive = card.classList.contains('card-select-active');
+                
+                if (isActive) {
+                    // Deactivate
+                    card.classList.remove('card-select-active', 'border-2', 'border-secondary');
+                    card.classList.add('border', 'border-on-surface/10');
+                    const icon = card.querySelector('.material-symbols-outlined:last-child');
+                    if (icon) icon.remove();
+                    
+                    const iconContainer = card.querySelector('div:first-child');
+                    iconContainer.classList.remove('bg-secondary/10', 'text-secondary');
+                    iconContainer.classList.add('bg-on-surface/5', 'text-on-surface-variant');
+                    iconContainer.querySelector('span').style.fontVariationSettings = "'FILL' 0";
+                } else {
+                    // Activate
+                    card.classList.add('card-select-active', 'border-2', 'border-secondary');
+                    card.classList.remove('border', 'border-on-surface/10');
+                    
+                    const checkIcon = document.createElement('span');
+                    checkIcon.className = 'material-symbols-outlined text-secondary';
+                    checkIcon.textContent = 'check_circle';
+                    card.appendChild(checkIcon);
+
+                    const iconContainer = card.querySelector('div:first-child');
+                    iconContainer.classList.add('bg-secondary/10', 'text-secondary');
+                    iconContainer.classList.remove('bg-on-surface/5', 'text-on-surface-variant');
+                    iconContainer.querySelector('span').style.fontVariationSettings = "'FILL' 1";
+                }
+            });
+        });
+
+        // Age selection
+        const ageButtons = document.querySelectorAll('.flex-wrap button');
+        ageButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                ageButtons.forEach(b => {
+                    b.classList.remove('bg-primary', 'text-white');
+                    b.classList.add('border', 'border-on-surface/10', 'text-on-surface');
+                });
+                btn.classList.remove('border', 'border-on-surface/10', 'text-on-surface');
+                btn.classList.add('bg-primary', 'text-white');
+            });
+        });
+    </script>
+</body></html>

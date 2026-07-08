@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Skinlytics | Admin Intelligence</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@600;700;800&family=Geist:wght@400;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.68);
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+        }
+        .aurora-bg {
+            background: radial-gradient(circle at 0% 0%, #dae2fd 0%, transparent 50%),
+                        radial-gradient(circle at 100% 100%, #71f8e4 0%, transparent 50%),
+                        radial-gradient(circle at 50% 50%, #fcf8fa 0%, transparent 100%);
+            animation: drift 20s ease-in-out infinite alternate;
+        }
+        @keyframes drift {
+            from { background-position: 0% 0%; }
+            to { background-position: 10% 10%; }
+        }
+        .radial-gauge {
+            transform: rotate(-90deg);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "secondary": "#0051d5",
+                      "error": "#ba1a1a",
+                      "surface-dim": "#dcd9db",
+                      "surface-container-low": "#f6f3f5",
+                      "secondary-fixed-dim": "#b4c5ff",
+                      "on-primary-container": "#7c839b",
+                      "surface-container-high": "#eae7e9",
+                      "on-primary-fixed-variant": "#3f465c",
+                      "on-error-container": "#93000a",
+                      "on-surface": "#1b1b1d",
+                      "error-container": "#ffdad6",
+                      "background": "#fcf8fa",
+                      "surface-variant": "#e4e2e4",
+                      "outline-variant": "#c6c6cd",
+                      "secondary-container": "#316bf3",
+                      "on-background": "#1b1b1d",
+                      "surface-tint": "#565e74",
+                      "on-tertiary-fixed": "#00201c",
+                      "surface-container-highest": "#e4e2e4",
+                      "on-tertiary": "#ffffff",
+                      "on-secondary-container": "#fefcff",
+                      "inverse-on-surface": "#f3f0f2",
+                      "primary": "#000000",
+                      "tertiary-fixed": "#71f8e4",
+                      "surface-bright": "#fcf8fa",
+                      "on-tertiary-container": "#009485",
+                      "on-surface-variant": "#45464d",
+                      "on-secondary-fixed-variant": "#003ea8",
+                      "on-error": "#ffffff",
+                      "on-secondary-fixed": "#00174b",
+                      "tertiary-container": "#00201c",
+                      "primary-fixed": "#dae2fd",
+                      "on-tertiary-fixed-variant": "#005048",
+                      "surface-container-lowest": "#ffffff",
+                      "outline": "#76777d",
+                      "primary-container": "#131b2e",
+                      "on-primary": "#ffffff",
+                      "primary-fixed-dim": "#bec6e0",
+                      "on-primary-fixed": "#131b2e",
+                      "inverse-surface": "#303032",
+                      "tertiary-fixed-dim": "#4fdbc8",
+                      "surface-container": "#f0edef",
+                      "inverse-primary": "#bec6e0",
+                      "on-secondary": "#ffffff",
+                      "tertiary": "#000000",
+                      "secondary-fixed": "#dbe1ff",
+                      "surface": "#fcf8fa"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "xl": "32px",
+                      "xs": "4px",
+                      "margin-desktop": "48px",
+                      "2xl": "48px",
+                      "base": "4px",
+                      "3xl": "64px",
+                      "margin-mobile": "16px",
+                      "md": "16px",
+                      "sm": "8px",
+                      "lg": "24px",
+                      "gutter": "24px"
+              },
+              "fontFamily": {
+                      "h2": ["Sora"],
+                      "body-md": ["Inter"],
+                      "label-caps": ["Geist"],
+                      "body-lg": ["Inter"],
+                      "h1": ["Sora"],
+                      "h3": ["Sora"],
+                      "h1-mobile": ["Sora"],
+                      "data-display": ["Geist"]
+              },
+              "fontSize": {
+                      "h2": ["32px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "h1": ["40px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "h3": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                      "h1-mobile": ["30px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                      "data-display": ["32px", {"lineHeight": "1.0", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="bg-background font-body-md text-on-surface aurora-bg min-h-screen overflow-x-hidden">
+<!-- App Shell (SideNavBar) -->
+<aside class="fixed left-0 top-0 h-full w-64 bg-white/68 backdrop-blur-[20px] saturate-[160%] border-r border-outline-variant/10 flex flex-col p-lg z-50">
+<div class="mb-3xl">
+<h1 class="font-h3 text-h3 font-bold text-primary">Skinlytics</h1>
+<p class="font-label-caps text-label-caps text-on-primary-container mt-xs">AI Intelligence</p>
+</div>
+<nav class="flex-1 space-y-sm">
+<a class="flex items-center gap-md px-md py-sm bg-secondary/10 text-secondary border-r-4 border-secondary transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-caps text-label-caps">Dashboard</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container-low transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-label-caps text-label-caps">Users</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container-low transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+<span class="font-label-caps text-label-caps">Content</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container-low transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="monitoring">monitoring</span>
+<span class="font-label-caps text-label-caps">Monitoring</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container-low transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-label-caps text-label-caps">Reports</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container-low transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-caps text-label-caps">Settings</span>
+</a>
+</nav>
+<div class="mt-auto space-y-sm pt-xl border-t border-outline-variant/10">
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container-low transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="font-label-caps text-label-caps">Support</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container-low transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-caps text-label-caps">Account</span>
+</a>
+</div>
+</aside>
+<!-- Top Navigation Bar (App Bar) -->
+<header class="sticky top-0 z-40 ml-64 bg-white/68 backdrop-blur-[20px] saturate-[160%] border-b border-outline-variant/8 px-lg py-sm flex justify-between items-center h-20">
+<div class="flex items-center flex-1 max-w-xl">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-full py-sm pl-3xl pr-md text-body-md focus:ring-2 focus:ring-secondary/20 transition-all" placeholder="Search system logs, users, or reports..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-lg">
+<button class="text-on-surface-variant hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined">wb_sunny</span>
+</button>
+<button class="text-on-surface-variant hover:opacity-80 transition-opacity relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-secondary rounded-full"></span>
+</button>
+<div class="flex items-center gap-sm pl-lg border-l border-outline-variant/10">
+<div class="w-10 h-10 rounded-full bg-primary-fixed-dim flex items-center justify-center font-bold text-primary">AD</div>
+<div>
+<p class="font-label-caps text-label-caps text-primary leading-none">Admin User</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest mt-xs">Super Admin</p>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-64 p-2xl">
+<!-- System Health Strip -->
+<section class="mb-2xl flex items-center gap-xl bg-white border border-outline-variant/10 rounded-xl p-md px-lg">
+<div class="flex items-center gap-sm">
+<span class="w-2 h-2 rounded-full bg-tertiary-fixed-dim animate-pulse"></span>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">API Latency: <span class="text-primary font-bold">24ms</span></span>
+</div>
+<div class="w-px h-4 bg-outline-variant/20"></div>
+<div class="flex items-center gap-sm">
+<span class="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Uptime: <span class="text-primary font-bold">99.98%</span></span>
+</div>
+<div class="w-px h-4 bg-outline-variant/20"></div>
+<div class="flex items-center gap-sm">
+<span class="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Error Rate: <span class="text-primary font-bold">0.02%</span></span>
+</div>
+<div class="ml-auto flex items-center gap-sm">
+<span class="font-label-caps text-label-caps text-on-surface-variant">V 2.4.1 (Stable)</span>
+</div>
+</section>
+<!-- KPI Grid -->
+<section class="grid grid-cols-4 gap-gutter mb-2xl">
+<!-- Total Users -->
+<div class="bg-white border border-outline-variant/10 rounded-xl p-lg flex flex-col justify-between">
+<div>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Total Users</span>
+<h2 class="font-data-display text-data-display text-primary mt-sm">12.4k</h2>
+</div>
+<div class="flex items-center gap-xs text-tertiary-container mt-md">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+<span class="text-xs font-bold">+12% vs last month</span>
+</div>
+</div>
+<!-- DAU/MAU -->
+<div class="bg-white border border-outline-variant/10 rounded-xl p-lg flex flex-col justify-between">
+<div>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">DAU/MAU Ratio</span>
+<h2 class="font-data-display text-data-display text-primary mt-sm">0.68</h2>
+</div>
+<div class="flex items-center gap-xs text-tertiary-container mt-md">
+<span class="material-symbols-outlined text-sm">check_circle</span>
+<span class="text-xs font-bold">Stable Retention</span>
+</div>
+</div>
+<!-- Recommendations -->
+<div class="bg-white border border-outline-variant/10 rounded-xl p-lg flex flex-col justify-between">
+<div>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Recommendations</span>
+<h2 class="font-data-display text-data-display text-primary mt-sm">45.2k</h2>
+</div>
+<div class="flex items-center gap-xs text-tertiary-container mt-md">
+<span class="material-symbols-outlined text-sm">auto_awesome</span>
+<span class="text-xs font-bold">89% confidence avg</span>
+</div>
+</div>
+<!-- MRR -->
+<div class="bg-white border border-outline-variant/10 rounded-xl p-lg flex flex-col justify-between">
+<div>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">MRR</span>
+<h2 class="font-data-display text-data-display text-primary mt-sm">$128.5k</h2>
+</div>
+<div class="flex items-center gap-xs text-tertiary-container mt-md">
+<span class="material-symbols-outlined text-sm">north_east</span>
+<span class="text-xs font-bold">+8.4% WoW</span>
+</div>
+</div>
+</section>
+<!-- Bento Grid Main Content -->
+<section class="grid grid-cols-12 gap-gutter mb-2xl">
+<!-- Signups Line Chart (Simulated) -->
+<div class="col-span-8 bg-white border border-outline-variant/10 rounded-xl p-lg relative overflow-hidden h-[400px]">
+<div class="flex justify-between items-center mb-xl">
+<h3 class="font-h3 text-h3">User Growth Trend</h3>
+<div class="flex gap-sm">
+<button class="px-md py-xs bg-surface-container-low text-on-surface-variant rounded-full text-xs font-bold">Daily</button>
+<button class="px-md py-xs bg-secondary text-white rounded-full text-xs font-bold shadow-lg shadow-secondary/20">Monthly</button>
+</div>
+</div>
+<div class="h-64 flex items-end gap-md px-lg">
+<!-- Simple visualization placeholder -->
+<div class="flex-1 bg-secondary/10 rounded-t-lg h-[40%] hover:bg-secondary/20 transition-all cursor-pointer"></div>
+<div class="flex-1 bg-secondary/10 rounded-t-lg h-[45%] hover:bg-secondary/20 transition-all cursor-pointer"></div>
+<div class="flex-1 bg-secondary/10 rounded-t-lg h-[35%] hover:bg-secondary/20 transition-all cursor-pointer"></div>
+<div class="flex-1 bg-secondary/10 rounded-t-lg h-[60%] hover:bg-secondary/20 transition-all cursor-pointer"></div>
+<div class="flex-1 bg-secondary/10 rounded-t-lg h-[75%] hover:bg-secondary/20 transition-all cursor-pointer"></div>
+<div class="flex-1 bg-secondary/10 rounded-t-lg h-[65%] hover:bg-secondary/20 transition-all cursor-pointer"></div>
+<div class="flex-1 bg-secondary/10 rounded-t-lg h-[80%] hover:bg-secondary/20 transition-all cursor-pointer"></div>
+<div class="flex-1 bg-secondary rounded-t-lg h-[90%] relative group">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">1,420</div>
+</div>
+</div>
+<div class="flex justify-between px-lg mt-md text-on-surface-variant font-label-caps text-[10px] uppercase">
+<span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span>
+</div>
+</div>
+<!-- Role Distribution Donut -->
+<div class="col-span-4 bg-white border border-outline-variant/10 rounded-xl p-lg flex flex-col">
+<h3 class="font-h3 text-h3 mb-xl">Role Distribution</h3>
+<div class="flex-1 flex flex-col items-center justify-center relative">
+<!-- Simple Donut Representation -->
+<div class="w-48 h-48 rounded-full border-[16px] border-surface-container-low flex items-center justify-center relative overflow-hidden">
+<!-- Visual slice representation -->
+<div class="absolute inset-0 border-[16px] border-secondary border-t-transparent border-l-transparent" style="transform: rotate(45deg);"></div>
+<div class="flex flex-col items-center">
+<span class="font-data-display text-h2 text-primary">12k+</span>
+<span class="text-[10px] text-on-surface-variant uppercase font-bold tracking-widest">Total Entities</span>
+</div>
+</div>
+<div class="w-full mt-xl grid grid-cols-2 gap-md">
+<div class="flex items-center gap-sm">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<span class="text-xs text-on-surface-variant">User (84%)</span>
+</div>
+<div class="flex items-center gap-sm">
+<div class="w-2 h-2 rounded-full bg-primary-fixed-dim"></div>
+<span class="text-xs text-on-surface-variant">Consultant (8%)</span>
+</div>
+<div class="flex items-center gap-sm">
+<div class="w-2 h-2 rounded-full bg-surface-dim"></div>
+<span class="text-xs text-on-surface-variant">Derm (5%)</span>
+</div>
+<div class="flex items-center gap-sm">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<span class="text-xs text-on-surface-variant">Admin (3%)</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Activity Feed -->
+<div class="col-span-12 lg:col-span-4 bg-white border border-outline-variant/10 rounded-xl p-lg h-full">
+<div class="flex justify-between items-center mb-lg">
+<h3 class="font-h3 text-h3">System Activity</h3>
+<button class="text-secondary text-xs font-bold hover:underline">View All</button>
+</div>
+<div class="space-y-lg">
+<div class="flex gap-md">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-sm text-secondary">security</span>
+</div>
+<div>
+<p class="text-sm font-bold text-on-surface">Login attempted from new IP</p>
+<p class="text-xs text-on-surface-variant">2 minutes ago • IP: 192.168.1.1</p>
+</div>
+</div>
+<div class="flex gap-md">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-sm text-tertiary-container">science</span>
+</div>
+<div>
+<p class="text-sm font-bold text-on-surface">New Analysis Completed</p>
+<p class="text-xs text-on-surface-variant">14 minutes ago • User: @sarah_j</p>
+</div>
+</div>
+<div class="flex gap-md">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-sm text-error">warning</span>
+</div>
+<div>
+<p class="text-sm font-bold text-on-surface">Database latency spike</p>
+<p class="text-xs text-on-surface-variant">45 minutes ago • Cluster Region: US-East</p>
+</div>
+</div>
+<div class="flex gap-md">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-sm text-secondary">verified_user</span>
+</div>
+<div>
+<p class="text-sm font-bold text-on-surface">New Dermatologist Verified</p>
+<p class="text-xs text-on-surface-variant">1 hour ago • Dr. Michael Chen</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Retention & Insights -->
+<div class="col-span-12 lg:col-span-8 grid grid-cols-2 gap-gutter">
+<div class="bg-white border border-outline-variant/10 rounded-xl p-lg flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase mb-md">Retention %</span>
+<div class="flex items-end gap-xl flex-1">
+<div class="flex flex-col items-center gap-sm">
+<div class="w-4 bg-secondary h-32 rounded-t"></div>
+<span class="text-[10px] text-on-surface-variant">W1</span>
+</div>
+<div class="flex flex-col items-center gap-sm">
+<div class="w-4 bg-secondary/60 h-24 rounded-t"></div>
+<span class="text-[10px] text-on-surface-variant">W2</span>
+</div>
+<div class="flex flex-col items-center gap-sm">
+<div class="w-4 bg-secondary/40 h-20 rounded-t"></div>
+<span class="text-[10px] text-on-surface-variant">W4</span>
+</div>
+<div class="flex flex-col items-center gap-sm">
+<div class="w-4 bg-secondary/20 h-12 rounded-t"></div>
+<span class="text-[10px] text-on-surface-variant">W8</span>
+</div>
+<div class="ml-auto text-right">
+<p class="text-h2 font-data-display text-primary">42.8%</p>
+<p class="text-xs text-on-surface-variant">Avg. User Lifespan</p>
+</div>
+</div>
+</div>
+<div class="bg-primary text-white rounded-xl p-lg flex flex-col justify-between">
+<div>
+<h3 class="font-h3 text-h3 text-tertiary-fixed mb-sm">System Insight</h3>
+<p class="text-sm opacity-80 leading-relaxed">System performance is optimal. Increased activity in 'Consultant' portal (+14% WoW). Recommend expanding concurrent DB connections for peak Asian market hours.</p>
+</div>
+<div class="flex items-center gap-sm mt-lg">
+<div class="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">lightbulb</span>
+</div>
+<span class="text-xs font-bold uppercase tracking-widest">AI Generated Advice</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="ml-64 w-auto py-xl px-margin-desktop flex flex-col md:flex-row justify-between items-center gap-md border-t border-outline-variant/8">
+<p class="font-label-caps text-label-caps text-on-surface-variant">© 2024 Skinlytics AI. HIPAA Compliant Platform.</p>
+<div class="flex gap-xl">
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-secondary transition-colors" href="#">Privacy Policy</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-secondary transition-colors" href="#">Terms of Service</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-secondary transition-colors" href="#">HIPAA Compliance</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-secondary transition-colors" href="#">Medical Disclaimer</a>
+</div>
+</footer>
+<script>
+        // Simple micro-interaction for active states or hover effects
+        document.querySelectorAll('.bg-secondary\\/10').forEach(item => {
+            item.addEventListener('mouseenter', () => {
+                item.style.transform = 'translateX(4px)';
+            });
+            item.addEventListener('mouseleave', () => {
+                item.style.transform = 'translateX(0)';
+            });
+        });
+    </script>
+</body></html>

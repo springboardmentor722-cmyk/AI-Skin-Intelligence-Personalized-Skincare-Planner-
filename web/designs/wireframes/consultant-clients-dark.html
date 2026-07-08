@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Skinlytics | Client Management</title>
+<!-- Google Fonts: Sora, Inter, Geist -->
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Geist:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed-dim": "#4fdbc8",
+                    "error": "#ba1a1a",
+                    "tertiary-fixed": "#71f8e4",
+                    "secondary-fixed-dim": "#b4c5ff",
+                    "on-secondary-fixed-variant": "#003ea8",
+                    "on-primary-container": "#7c839b",
+                    "primary-container": "#131b2e",
+                    "secondary": "#2563EB",
+                    "on-error": "#ffffff",
+                    "secondary-fixed": "#dbe1ff",
+                    "secondary-container": "#316bf3",
+                    "primary-fixed-dim": "#bec6e0",
+                    "on-secondary-container": "#fefcff",
+                    "surface-container": "#111A2E",
+                    "surface-container-high": "#1A2740",
+                    "error-container": "#450a0a",
+                    "on-tertiary-container": "#009485",
+                    "on-surface-variant": "#94A3B8",
+                    "inverse-surface": "#fcf8fa",
+                    "tertiary": "#000000",
+                    "surface-tint": "#565e74",
+                    "on-primary-fixed": "#131b2e",
+                    "background": "#0B1220",
+                    "on-error-container": "#fecaca",
+                    "on-primary": "#0B1220",
+                    "surface": "#111A2E",
+                    "on-surface": "#E6EDF7",
+                    "surface-container-highest": "#1A2740",
+                    "on-secondary": "#ffffff",
+                    "surface-variant": "#24304A",
+                    "inverse-primary": "#bec6e0",
+                    "on-background": "#E6EDF7",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-fixed": "#00174b",
+                    "surface-dim": "#0B1220",
+                    "outline": "#24304A",
+                    "primary-fixed": "#dae2fd",
+                    "on-primary-fixed-variant": "#3f465c",
+                    "on-tertiary-fixed-variant": "#005048",
+                    "on-tertiary-fixed": "#00201c",
+                    "inverse-on-surface": "#1b1b1d",
+                    "tertiary-container": "#00201c",
+                    "surface-bright": "#1A2740",
+                    "primary": "#F8FAFC",
+                    "surface-container-low": "#0d1424",
+                    "surface-container-lowest": "#0B1220",
+                    "outline-variant": "#24304A"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-desktop": "48px",
+                    "xl": "32px",
+                    "3xl": "64px",
+                    "sm": "8px",
+                    "base": "4px",
+                    "lg": "24px",
+                    "md": "16px",
+                    "gutter": "24px",
+                    "2xl": "48px",
+                    "xs": "4px",
+                    "margin-mobile": "16px"
+            },
+            "fontFamily": {
+                    "h2": ["Sora"],
+                    "h1-mobile": ["Sora"],
+                    "h1": ["Sora"],
+                    "body-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "label-caps": ["Geist"],
+                    "h3": ["Sora"],
+                    "data-display": ["Geist"]
+            },
+            "fontSize": {
+                    "h2": ["32px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "h1-mobile": ["30px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "h1": ["40px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "h3": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "data-display": ["32px", {"lineHeight": "1.0", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #0B1220;
+            color: #E6EDF7;
+            overflow-x: hidden;
+        }
+        .glass-panel {
+            background: rgba(13, 20, 36, 0.62);
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+        }
+        .diagnostic-module {
+            background: #111A2E;
+            border: 1px solid #24304A;
+            border-radius: 16px;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.2);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md bg-background text-on-surface">
+<!-- Ambient Aurora Background -->
+<div class="fixed inset-0 z-0 pointer-events-none opacity-60">
+<canvas id="shader-canvas-ANIMATION_48" style="display:block;width:100%;height:100%"></canvas>
+<script>
+    (function() {
+      const canvas = document.getElementById('shader-canvas-ANIMATION_48');
+      function syncSize() {
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        if (canvas.width !== w || canvas.height !== h) {
+          canvas.width  = w;
+          canvas.height = h;
+        }
+      }
+      window.addEventListener('resize', syncSize);
+      syncSize();
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      if (!gl) return;
+      const vs = `attribute vec2 a_position;varying vec2 v_texCoord;void main() {v_texCoord = a_position * 0.5 + 0.5;gl_Position = vec4(a_position, 0.0, 1.0);}`;
+      const fs = `precision highp float;uniform float u_time;varying vec2 v_texCoord;void main() {vec2 uv = v_texCoord;float noise1 = sin(uv.x * 1.5 + u_time * 0.1) * 0.5 + 0.5;float noise2 = sin(uv.y * 1.2 - u_time * 0.08) * 0.5 + 0.5;vec3 color1 = vec3(0.043, 0.07, 0.125);vec3 color2 = vec3(0.145, 0.388, 0.922);vec3 color3 = vec3(0.176, 0.831, 0.749);float t = u_time * 0.05;vec2 p1 = vec2(0.5 + 0.4 * cos(t), 0.5 + 0.4 * sin(t));vec2 p2 = vec2(0.5 + 0.4 * cos(t + 2.5), 0.5 + 0.4 * sin(t + 2.5));float d1 = 1.0 - smoothstep(0.0, 1.2, distance(uv, p1));float d2 = 1.0 - smoothstep(0.0, 1.2, distance(uv, p2));vec3 finalColor = mix(color1, color2, d1 * 0.2);finalColor = mix(finalColor, color3, d2 * 0.15);gl_FragColor = vec4(finalColor, 0.05);}`;
+      function cs(type, src) {
+        const s = gl.createShader(type);
+        gl.shaderSource(s, src);
+        gl.compileShader(s);
+        return s;
+      }
+      const prog = gl.createProgram();
+      gl.attachShader(prog, cs(gl.VERTEX_SHADER, vs));
+      gl.attachShader(prog, cs(gl.FRAGMENT_SHADER, fs));
+      gl.linkProgram(prog);
+      gl.useProgram(prog);
+      const buf = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+      const pos = gl.getAttribLocation(prog, 'a_position');
+      gl.enableVertexAttribArray(pos);
+      gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
+      const uTime = gl.getUniformLocation(prog, 'u_time');
+      function render(t) {
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        if (uTime) gl.uniform1f(uTime, t * 0.001);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        requestAnimationFrame(render);
+      }
+      render(0);
+    })();
+    </script>
+</div>
+<!-- Side Navigation Bar -->
+<aside class="fixed left-0 top-0 h-screen w-64 z-40 bg-[rgba(13,20,36,0.62)] backdrop-blur-xl border-r border-outline flex flex-col py-lg shadow-[inset_-1px_0_0_0_rgba(255,255,255,0.05)]">
+<div class="px-lg mb-3xl">
+<h1 class="font-h3 text-h3 font-bold text-primary">Skinlytics AI</h1>
+<p class="font-label-caps text-label-caps text-on-surface-variant">Clinical Portal</p>
+</div>
+<nav class="flex-1 space-y-1">
+<!-- Dashboard (Inactive) -->
+<a class="text-on-surface-variant hover:bg-surface-container-high/50 px-lg py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Dashboard</span>
+</a>
+<!-- Analyses (Inactive) -->
+<a class="text-on-surface-variant hover:bg-surface-container-high/50 px-lg py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">biotech</span>
+<span>Analyses</span>
+</a>
+<!-- Consultants (Active) -->
+<a class="bg-secondary/10 text-secondary border-r-4 border-secondary px-lg py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">medical_services</span>
+<span class="font-semibold">Consultants</span>
+</a>
+<!-- Settings (Inactive) -->
+<a class="text-on-surface-variant hover:bg-surface-container-high/50 px-lg py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="px-lg mt-auto pt-lg border-t border-outline">
+<button class="w-full bg-primary text-on-primary font-bold py-3 px-4 rounded-full flex items-center justify-center gap-2 mb-lg hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-[20px]">add</span>
+                New Assessment
+            </button>
+<div class="space-y-1">
+<a class="text-on-surface-variant hover:text-on-surface flex items-center gap-2 py-2 font-label-caps text-label-caps" href="#">
+<span class="material-symbols-outlined text-[18px]">help</span> Help Center
+                </a>
+<a class="text-on-surface-variant hover:text-on-surface flex items-center gap-2 py-2 font-label-caps text-label-caps" href="#">
+<span class="material-symbols-outlined text-[18px]">logout</span> Sign Out
+                </a>
+</div>
+</div>
+</aside>
+<!-- Top App Bar -->
+<header class="sticky top-0 ml-64 z-30 bg-[rgba(13,20,36,0.62)] backdrop-blur-xl border-b border-outline px-lg py-sm flex justify-between items-center shadow-[inset_0_-1px_0_0_rgba(255,255,255,0.05)]">
+<div class="flex items-center gap-md w-1/3">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full bg-surface-container-low border-outline rounded-full py-2 pl-10 pr-4 text-body-md text-on-surface placeholder:text-on-surface-variant/60 focus:ring-2 focus:ring-secondary/20 transition-all border" placeholder="Search patients or ID..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-lg">
+<div class="flex items-center gap-sm">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-transform active:scale-90"><span class="material-symbols-outlined">wb_sunny</span></button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-transform active:scale-90 relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-transform active:scale-90"><span class="material-symbols-outlined">contrast</span></button>
+</div>
+<div class="h-8 w-px bg-outline"></div>
+<div class="flex items-center gap-sm">
+<div class="text-right hidden sm:block">
+<p class="font-semibold text-body-md leading-none text-on-surface">Dr. Aris Thorne</p>
+<p class="text-label-caps text-on-surface-variant text-[10px]">Senior Dermatologist</p>
+</div>
+<img class="h-10 w-10 rounded-full border border-outline object-cover" data-alt="A professional headshot of a dermatologist in a clean clinic setting. The lighting is soft and natural, emphasizing a trustworthy and expert persona. The background is a blurred minimalist medical lab with subtle blue and white accents, maintaining the clinical-human balance of the Skinlytics brand." src="source/images/consultant-clients/img_000_0d4d3851.jpg"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-64 p-2xl relative z-10">
+<div class="max-w-[1440px] mx-auto">
+<!-- Page Header & Filters -->
+<div class="flex flex-col md:flex-row justify-between items-end gap-lg mb-2xl">
+<div class="space-y-base">
+<h2 class="font-h2 text-h2 text-on-surface">Patient Roster</h2>
+<p class="text-on-surface-variant">Managing 124 active clinical observations.</p>
+</div>
+<div class="flex flex-wrap gap-md">
+<!-- Filter Pill: Score -->
+<div class="group relative">
+<button class="px-md py-2 border border-outline rounded-full bg-surface-container flex items-center gap-2 hover:bg-surface-container-high transition-colors">
+<span class="text-label-caps text-on-surface">Score</span>
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant">expand_more</span>
+</button>
+</div>
+<!-- Filter Pill: Adherence -->
+<div class="group relative">
+<button class="px-md py-2 border border-outline rounded-full bg-surface-container flex items-center gap-2 hover:bg-surface-container-high transition-colors">
+<span class="text-label-caps text-on-surface">Adherence</span>
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant">expand_more</span>
+</button>
+</div>
+<!-- Filter Pill: Concern -->
+<div class="group relative">
+<button class="px-md py-2 border border-outline rounded-full bg-surface-container flex items-center gap-2 hover:bg-surface-container-high transition-colors">
+<span class="text-label-caps text-on-surface">Concern</span>
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant">expand_more</span>
+</button>
+</div>
+<!-- Export Action -->
+<button class="px-md py-2 bg-secondary/10 text-secondary border border-secondary/20 rounded-full flex items-center gap-2 hover:bg-secondary/20 transition-colors">
+<span class="material-symbols-outlined text-[18px]">download</span>
+<span class="font-semibold text-label-caps">Export CSV</span>
+</button>
+</div>
+</div>
+<!-- High-Density Data Table Card -->
+<div class="diagnostic-module overflow-hidden">
+<div class="overflow-x-auto custom-scrollbar">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline">
+<th class="px-lg py-md font-label-caps text-on-surface-variant uppercase tracking-wider">Patient Details</th>
+<th class="px-lg py-md font-label-caps text-on-surface-variant uppercase tracking-wider">Skin Type</th>
+<th class="px-lg py-md font-label-caps text-on-surface-variant uppercase tracking-wider text-center">Skin Score</th>
+<th class="px-lg py-md font-label-caps text-on-surface-variant uppercase tracking-wider">Primary Concern</th>
+<th class="px-lg py-md font-label-caps text-on-surface-variant uppercase tracking-wider">Adherence</th>
+<th class="px-lg py-md font-label-caps text-on-surface-variant uppercase tracking-wider">Trend</th>
+<th class="px-lg py-md font-label-caps text-on-surface-variant uppercase tracking-wider">Last Sync</th>
+<th class="px-lg py-md"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-high transition-colors cursor-pointer group">
+<td class="px-lg py-lg">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-primary-fixed-dim/20 flex items-center justify-center font-bold text-secondary">EK</div>
+<div>
+<p class="font-semibold text-on-surface">Elena Kostic</p>
+<p class="text-label-caps text-on-surface-variant">28 • Female</p>
+</div>
+</div>
+</td>
+<td class="px-lg py-lg">
+<span class="px-sm py-1 bg-surface-container-high rounded text-label-caps text-on-surface">Combination</span>
+</td>
+<td class="px-lg py-lg">
+<div class="flex justify-center">
+<div class="relative w-12 h-12">
+<svg class="w-full h-full transform -rotate-90">
+<circle class="text-outline" cx="24" cy="24" fill="transparent" r="20" stroke="currentColor" stroke-width="4"></circle>
+<circle class="text-secondary" cx="24" cy="24" fill="transparent" r="20" stroke="currentColor" stroke-dasharray="125.6" stroke-dashoffset="18.8" stroke-width="4"></circle>
+</svg>
+<span class="absolute inset-0 flex items-center justify-center font-data-display text-[14px] font-bold text-on-surface">85</span>
+</div>
+</div>
+</td>
+<td class="px-lg py-lg">
+<span class="px-md py-1 bg-secondary/10 text-secondary rounded-full text-label-caps font-semibold">Hyperpigmentation</span>
+</td>
+<td class="px-lg py-lg">
+<div class="flex items-center gap-sm">
+<div class="flex-1 h-1.5 bg-outline rounded-full overflow-hidden">
+<div class="h-full bg-tertiary-fixed-dim w-[92%]"></div>
+</div>
+<span class="font-label-caps text-[12px] font-bold text-on-surface">92%</span>
+</div>
+</td>
+<td class="px-lg py-lg">
+<span class="material-symbols-outlined text-tertiary-fixed-dim">trending_up</span>
+</td>
+<td class="px-lg py-lg">
+<p class="text-label-caps text-on-surface-variant">2 hours ago</p>
+</td>
+<td class="px-lg py-lg text-right">
+<button class="p-2 opacity-0 group-hover:opacity-100 transition-opacity text-on-surface-variant"><span class="material-symbols-outlined">chevron_right</span></button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-high transition-colors cursor-pointer group">
+<td class="px-lg py-lg">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-on-tertiary-fixed-variant/20 flex items-center justify-center font-bold text-secondary">MR</div>
+<div>
+<p class="font-semibold text-on-surface">Marcus Reed</p>
+<p class="text-label-caps text-on-surface-variant">42 • Male</p>
+</div>
+</div>
+</td>
+<td class="px-lg py-lg">
+<span class="px-sm py-1 bg-surface-container-high rounded text-label-caps text-on-surface">Oily</span>
+</td>
+<td class="px-lg py-lg">
+<div class="flex justify-center">
+<div class="relative w-12 h-12">
+<svg class="w-full h-full transform -rotate-90">
+<circle class="text-outline" cx="24" cy="24" fill="transparent" r="20" stroke="currentColor" stroke-width="4"></circle>
+<circle class="text-secondary/60" cx="24" cy="24" fill="transparent" r="20" stroke="currentColor" stroke-dasharray="125.6" stroke-dashoffset="44" stroke-width="4"></circle>
+</svg>
+<span class="absolute inset-0 flex items-center justify-center font-data-display text-[14px] font-bold text-on-surface">65</span>
+</div>
+</div>
+</td>
+<td class="px-lg py-lg">
+<span class="px-md py-1 bg-error-container text-on-error-container rounded-full text-label-caps font-semibold">Active Acne</span>
+</td>
+<td class="px-lg py-lg">
+<div class="flex items-center gap-sm">
+<div class="flex-1 h-1.5 bg-outline rounded-full overflow-hidden">
+<div class="h-full bg-error w-[45%]"></div>
+</div>
+<span class="font-label-caps text-[12px] font-bold text-on-surface">45%</span>
+</div>
+</td>
+<td class="px-lg py-lg">
+<span class="material-symbols-outlined text-error">trending_down</span>
+</td>
+<td class="px-lg py-lg">
+<p class="text-label-caps text-on-surface-variant">Yesterday</p>
+</td>
+<td class="px-lg py-lg text-right">
+<button class="p-2 opacity-0 group-hover:opacity-100 transition-opacity text-on-surface-variant"><span class="material-symbols-outlined">chevron_right</span></button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-high transition-colors cursor-pointer group">
+<td class="px-lg py-lg">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-secondary-fixed-dim/20 flex items-center justify-center font-bold text-secondary">SC</div>
+<div>
+<p class="font-semibold text-on-surface">Sarah Chen</p>
+<p class="text-label-caps text-on-surface-variant">35 • Female</p>
+</div>
+</div>
+</td>
+<td class="px-lg py-lg">
+<span class="px-sm py-1 bg-surface-container-high rounded text-label-caps text-on-surface">Dry</span>
+</td>
+<td class="px-lg py-lg">
+<div class="flex justify-center">
+<div class="relative w-12 h-12">
+<svg class="w-full h-full transform -rotate-90">
+<circle class="text-outline" cx="24" cy="24" fill="transparent" r="20" stroke="currentColor" stroke-width="4"></circle>
+<circle class="text-secondary" cx="24" cy="24" fill="transparent" r="20" stroke="currentColor" stroke-dasharray="125.6" stroke-dashoffset="12.5" stroke-width="4"></circle>
+</svg>
+<span class="absolute inset-0 flex items-center justify-center font-data-display text-[14px] font-bold text-on-surface">90</span>
+</div>
+</div>
+</td>
+<td class="px-lg py-lg">
+<span class="px-md py-1 bg-tertiary-fixed/20 text-tertiary-fixed rounded-full text-label-caps font-semibold">Fine Lines</span>
+</td>
+<td class="px-lg py-lg">
+<div class="flex items-center gap-sm">
+<div class="flex-1 h-1.5 bg-outline rounded-full overflow-hidden">
+<div class="h-full bg-tertiary-fixed-dim w-[88%]"></div>
+</div>
+<span class="font-label-caps text-[12px] font-bold text-on-surface">88%</span>
+</div>
+</td>
+<td class="px-lg py-lg">
+<span class="material-symbols-outlined text-on-surface-variant">trending_flat</span>
+</td>
+<td class="px-lg py-lg">
+<p class="text-label-caps text-on-surface-variant">3 days ago</p>
+</td>
+<td class="px-lg py-lg text-right">
+<button class="p-2 opacity-0 group-hover:opacity-100 transition-opacity text-on-surface-variant"><span class="material-symbols-outlined">chevron_right</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination Footer -->
+<div class="px-lg py-md border-t border-outline flex items-center justify-between">
+<p class="text-label-caps text-on-surface-variant">Showing 1-10 of 124 patients</p>
+<div class="flex gap-sm">
+<button class="w-8 h-8 rounded-full border border-outline flex items-center justify-center hover:bg-surface-container transition-colors disabled:opacity-30 text-on-surface" disabled="">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<button class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center text-label-caps font-bold">1</button>
+<button class="w-8 h-8 rounded-full border border-outline flex items-center justify-center hover:bg-surface-container transition-colors text-label-caps text-on-surface">2</button>
+<button class="w-8 h-8 rounded-full border border-outline flex items-center justify-center hover:bg-surface-container transition-colors text-label-caps text-on-surface">3</button>
+<button class="w-8 h-8 rounded-full border border-outline flex items-center justify-center hover:bg-surface-container transition-colors text-on-surface">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Dashboard Bottom Layout (Bento Grid Style) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-lg mt-2xl">
+<!-- Quick Insight 1 -->
+<div class="diagnostic-module p-lg flex flex-col justify-between">
+<div>
+<h4 class="font-h3 text-[18px] text-on-surface mb-xs">Critical Alerts</h4>
+<p class="text-label-caps text-on-surface-variant mb-lg">7 patients requiring immediate review</p>
+</div>
+<div class="flex -space-x-2">
+<img class="w-10 h-10 rounded-full border-2 border-surface object-cover" src="source/images/consultant-clients/img_001_a4530727.jpg"/>
+<img class="w-10 h-10 rounded-full border-2 border-surface object-cover" src="source/images/consultant-clients/img_002_ddf66a0a.jpg"/>
+<img class="w-10 h-10 rounded-full border-2 border-surface object-cover" src="source/images/consultant-clients/img_003_37c1fb44.jpg"/>
+<div class="w-10 h-10 rounded-full bg-error-container text-on-error-container flex items-center justify-center font-bold text-[12px] border-2 border-surface">+4</div>
+</div>
+</div>
+<!-- Quick Insight 2 -->
+<div class="diagnostic-module p-lg">
+<h4 class="font-h3 text-[18px] text-on-surface mb-xs">Cohort Adherence</h4>
+<p class="text-label-caps text-on-surface-variant mb-lg">Last 30 Days Average</p>
+<div class="flex items-end gap-sm h-12">
+<div class="w-full bg-secondary/10 rounded-t h-[40%]"></div>
+<div class="w-full bg-secondary/10 rounded-t h-[60%]"></div>
+<div class="w-full bg-secondary/10 rounded-t h-[80%]"></div>
+<div class="w-full bg-secondary/10 rounded-t h-[50%]"></div>
+<div class="w-full bg-secondary/10 rounded-t h-[70%]"></div>
+<div class="w-full bg-secondary h-[95%] shadow-[0_0_12px_rgba(37,99,235,0.3)]"></div>
+</div>
+</div>
+<!-- Quick Insight 3 -->
+<div class="diagnostic-module p-lg group cursor-pointer hover:border-secondary transition-all">
+<div class="flex justify-between items-start mb-md">
+<h4 class="font-h3 text-[18px] text-on-surface">System Health</h4>
+<span class="material-symbols-outlined text-tertiary-fixed-dim" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="space-y-sm">
+<div class="flex justify-between text-label-caps">
+<span class="text-on-surface-variant">Sync Latency</span>
+<span class="font-bold text-on-surface">12ms</span>
+</div>
+<div class="flex justify-between text-label-caps">
+<span class="text-on-surface-variant">AI Confidence</span>
+<span class="font-bold text-on-surface">99.4%</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Global Footer -->
+<footer class="fixed bottom-0 ml-64 right-0 z-50 bg-[rgba(13,20,36,0.62)] backdrop-blur-xl border-t border-outline flex justify-between items-center px-lg py-sm shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
+<p class="font-label-caps text-label-caps text-on-surface-variant">© 2024 Skinlytics Lab. Clinical Grade AI.</p>
+<div class="flex gap-lg">
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-on-surface transition-opacity duration-200" href="#">Privacy Policy</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-on-surface transition-opacity duration-200" href="#">Terms of Service</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-on-surface transition-opacity duration-200" href="#">HIPAA Compliance</a>
+</div>
+</footer>
+<!-- Floating Micro-interactions Script -->
+<script>
+        // Simple hover animation for table rows
+        document.querySelectorAll('tr').forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                if (row.parentElement.tagName === 'TBODY') {
+                    row.style.transform = 'translateY(-1px)';
+                    row.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+                }
+            });
+            row.addEventListener('mouseleave', () => {
+                row.style.transform = 'translateY(0)';
+                row.style.boxShadow = 'none';
+            });
+        });
+
+        // Search Bar Focus Effect
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput.addEventListener('focus', () => {
+            searchInput.parentElement.classList.add('scale-[1.02]');
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.parentElement.classList.remove('scale-[1.02]');
+        });
+    </script>
+</body></html>

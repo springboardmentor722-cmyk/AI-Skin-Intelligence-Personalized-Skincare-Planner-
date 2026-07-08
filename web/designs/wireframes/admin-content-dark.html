@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Knowledge &amp; Assets | Skinlytics Admin (Dark)</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-low": "#1b1b1d",
+                    "inverse-surface": "#e4e2e4",
+                    "surface": "#131315",
+                    "on-primary-fixed": "#131b2e",
+                    "secondary-container": "#0566d9",
+                    "secondary": "#adc6ff",
+                    "primary-fixed": "#dae2fd",
+                    "background": "#0B1220",
+                    "secondary-fixed-dim": "#adc6ff",
+                    "error": "#ffb4ab",
+                    "outline": "#909097",
+                    "on-background": "#E6EDF7",
+                    "surface-container-high": "#2a2a2b",
+                    "on-secondary-fixed": "#001a42",
+                    "on-error": "#690005",
+                    "inverse-primary": "#565e74",
+                    "primary": "#bec6e0",
+                    "surface-dim": "#131315",
+                    "surface-container-highest": "#353436",
+                    "on-tertiary-fixed-variant": "#005047",
+                    "on-surface": "#e4e2e4",
+                    "on-secondary-container": "#e6ecff",
+                    "surface-variant": "#353436",
+                    "on-primary-fixed-variant": "#3f465c",
+                    "surface-container": "#111A2E",
+                    "primary-container": "#0f172a",
+                    "error-container": "#93000a",
+                    "surface-tint": "#bec6e0",
+                    "tertiary-fixed-dim": "#3cddc7",
+                    "on-tertiary-fixed": "#00201c",
+                    "on-primary": "#283044",
+                    "on-secondary": "#002e6a",
+                    "tertiary": "#2DD4BF",
+                    "surface-bright": "#39393b",
+                    "on-surface-variant": "#c6c6cd",
+                    "on-secondary-fixed-variant": "#004395",
+                    "on-tertiary-container": "#009182",
+                    "secondary-fixed": "#d8e2ff",
+                    "on-primary-container": "#798098",
+                    "on-error-container": "#ffdad6",
+                    "on-tertiary": "#003731",
+                    "tertiary-fixed": "#62fae3",
+                    "surface-container-lowest": "#0e0e10",
+                    "outline-variant": "#24304A",
+                    "tertiary-container": "#001c18",
+                    "primary-fixed-dim": "#bec6e0",
+                    "inverse-on-surface": "#303032"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "max-width": "1280px",
+                    "margin-mobile": "16px",
+                    "gutter": "24px",
+                    "unit": "4px",
+                    "margin-desktop": "48px"
+            },
+            "fontFamily": {
+                    "headline-lg-mobile": ["Manrope"],
+                    "body-md": ["Inter"],
+                    "label-md": ["JetBrains Mono"],
+                    "body-lg": ["Inter"],
+                    "label-sm": ["JetBrains Mono"],
+                    "headline-md": ["Manrope"],
+                    "headline-lg": ["Manrope"],
+                    "display-lg": ["Manrope"]
+            },
+            "fontSize": {
+                    "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #0B1220;
+            color: #E6EDF7;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        .glass {
+            background: rgba(17, 26, 46, 0.68);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+        }
+        .teal-glow {
+            box-shadow: 0 0 20px rgba(45, 212, 191, 0.15);
+        }
+        .teal-glow-intense {
+            box-shadow: 0 0 30px rgba(45, 212, 191, 0.3);
+        }
+        .sidebar-active {
+            background: rgba(173, 198, 255, 0.1);
+            color: #adc6ff;
+            border-right: 4px solid #adc6ff;
+        }
+        .nav-indicator {
+            position: absolute;
+            bottom: 0;
+            height: 2px;
+            background: #2DD4BF;
+            transition: all 0.3s ease;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #0B1220;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #24304A;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="dark selection:bg-tertiary/30">
+<!-- Sidebar Navigation -->
+<aside class="fixed left-0 top-0 h-full w-64 glass border-r border-outline-variant/10 z-50 flex flex-col p-6">
+<div class="mb-10 flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-gradient-to-br from-tertiary to-secondary-container flex items-center justify-center teal-glow">
+<span class="material-symbols-outlined text-background font-bold">biotech</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md font-bold text-primary leading-none">Skinlytics</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant">AI Intelligence</p>
+</div>
+</div>
+<nav class="flex-1 flex flex-col gap-2 overflow-y-auto custom-scrollbar pr-2">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all duration-200" href="#">
+<span class="material-symbols-outlined">science</span>
+<span class="font-label-md text-label-md">Analyses</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all duration-200" href="#">
+<span class="material-symbols-outlined">clinical_notes</span>
+<span class="font-label-md text-label-md">Consultants</span>
+</a>
+<a class="sidebar-active flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 scale-[0.98]" href="#">
+<span class="material-symbols-outlined">category</span>
+<span class="font-label-md text-label-md">Products</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all duration-200" href="#">
+<span class="material-symbols-outlined">biotech</span>
+<span class="font-label-md text-label-md">Ingredients</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all duration-200" href="#">
+<span class="material-symbols-outlined">trending_up</span>
+<span class="font-label-md text-label-md">Progress</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all duration-200" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-md text-label-md">Insights</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all duration-200" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="font-label-md text-label-md">Reports</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</nav>
+<div class="mt-auto pt-6 border-t border-outline-variant/10 flex flex-col gap-2">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all duration-200" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-md text-label-md">Support</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all duration-200" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-md text-label-md">Account</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 min-h-screen flex flex-col">
+<!-- Top App Bar -->
+<header class="sticky top-0 z-40 flex justify-between items-center px-8 py-4 glass border-b border-outline-variant/8">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-body-md">search</span>
+<input class="w-full bg-surface-container-low border border-outline-variant/20 rounded-lg py-2 pl-10 pr-4 text-on-surface font-body-md focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all" placeholder="Search knowledge assets..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<button class="p-2 text-on-surface-variant hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined">wb_sunny</span>
+</button>
+<button class="p-2 text-primary font-bold">
+<span class="material-symbols-outlined">dark_mode</span>
+</button>
+<button class="p-2 text-on-surface-variant relative hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-tertiary rounded-full"></span>
+</button>
+</div>
+<div class="flex items-center gap-3 border-l border-outline-variant/20 pl-6">
+<div class="text-right">
+<p class="font-label-md text-label-md text-on-surface">Dr. Aris Thorne</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Systems Admin</p>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-container-highest border border-outline-variant/30 flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a sophisticated medical researcher with clinical lighting, wearing a minimalist dark navy uniform, set against a blurred high-tech laboratory background with soft teal highlights. The aesthetic is clean, sharp, and authoritative, matching the Skinlytics dark mode theme." src="source/images/admin-content/img_000_31393e4f.jpg"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="p-8 max-w-max-width mx-auto w-full">
+<!-- Page Header & Global Sync Status -->
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-6">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-background mb-2">Knowledge &amp; Assets</h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">Manage the clinical backbone of the Skinlytics AI. Real-time synchronization with global medical databases and ingredient taxonomies.</p>
+</div>
+<div class="glass p-4 rounded-xl flex items-center gap-6 border-outline-variant/20">
+<div class="flex items-center gap-3">
+<div class="w-3 h-3 rounded-full bg-tertiary animate-pulse shadow-[0_0_10px_#2DD4BF]"></div>
+<div class="text-xs uppercase tracking-widest font-label-sm text-on-surface-variant">Sync Status</div>
+</div>
+<div class="h-8 w-px bg-outline-variant/20"></div>
+<div class="flex flex-col">
+<span class="text-[10px] text-on-surface-variant font-label-sm">LAST GLOBAL SYNC</span>
+<span class="font-label-md text-label-md text-tertiary">02:45:12 UTC</span>
+</div>
+<button class="bg-primary-container text-on-primary-container hover:bg-secondary/20 hover:text-secondary px-4 py-2 rounded-lg font-label-md text-label-md transition-all flex items-center gap-2 border border-outline-variant/20">
+<span class="material-symbols-outlined text-sm">sync</span>
+                        Force Sync
+                    </button>
+</div>
+</div>
+<!-- Dashboard Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+<!-- Data Source Card -->
+<div class="md:col-span-1 glass p-6 rounded-xl border-outline-variant/10 relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl">database</span>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-1 uppercase tracking-widest">Active Sources</p>
+<h3 class="font-display-lg text-headline-lg text-on-background mb-4">12</h3>
+<div class="flex flex-col gap-2">
+<div class="flex justify-between items-center text-xs">
+<span class="text-on-surface-variant">PubMed API</span>
+<span class="text-tertiary flex items-center gap-1"><span class="w-1 h-1 bg-tertiary rounded-full"></span> Healthy</span>
+</div>
+<div class="flex justify-between items-center text-xs">
+<span class="text-on-surface-variant">EWG Skindeep</span>
+<span class="text-tertiary flex items-center gap-1"><span class="w-1 h-1 bg-tertiary rounded-full"></span> Healthy</span>
+</div>
+</div>
+</div>
+<!-- Products Stats -->
+<div class="md:col-span-1 glass p-6 rounded-xl border-outline-variant/10 group">
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-1 uppercase tracking-widest">Total Products</p>
+<h3 class="font-display-lg text-headline-lg text-primary mb-4">48.2k</h3>
+<div class="w-full bg-outline-variant/20 h-1.5 rounded-full overflow-hidden mb-2">
+<div class="bg-secondary h-full" style="width: 78%"></div>
+</div>
+<p class="text-[10px] text-on-surface-variant font-label-sm uppercase">78% Verified by Clinical Staff</p>
+</div>
+<!-- Ingredients Stats -->
+<div class="md:col-span-1 glass p-6 rounded-xl border-outline-variant/10 group">
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-1 uppercase tracking-widest">Core Ingredients</p>
+<h3 class="font-display-lg text-headline-lg text-tertiary mb-4">12,054</h3>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded bg-tertiary/10 text-tertiary text-[10px] font-label-md">+124 this week</span>
+</div>
+</div>
+<!-- Knowledge Base Health -->
+<div class="md:col-span-1 bg-primary-container p-6 rounded-xl border border-secondary/20 teal-glow">
+<div class="flex justify-between items-start mb-4">
+<p class="font-label-sm text-label-sm text-on-primary-container uppercase tracking-widest">AI Context Health</p>
+<span class="material-symbols-outlined text-secondary">verified_user</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative w-16 h-16">
+<svg class="w-full h-full" viewbox="0 0 36 36">
+<path class="stroke-outline-variant/30 fill-none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" stroke-width="3"></path>
+<path class="stroke-tertiary fill-none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" stroke-dasharray="94, 100" stroke-width="3"></path>
+</svg>
+<span class="absolute inset-0 flex items-center justify-center font-label-md text-label-md text-on-background">94%</span>
+</div>
+<div>
+<p class="text-xs text-on-surface-variant">Context relevance score within optimal bounds.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Tabs Section -->
+<div class="mb-1">
+<div class="flex items-center gap-8 relative pb-4 border-b border-outline-variant/10">
+<button class="font-label-md text-label-md text-tertiary relative group" id="tab-products">
+                        Products DB
+                        <span class="absolute -bottom-[17px] left-0 w-full h-0.5 bg-tertiary"></span>
+</button>
+<button class="font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors" id="tab-ingredients">Ingredients DB</button>
+<button class="font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors" id="tab-kb">Knowledge Base</button>
+<button class="font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors" id="tab-external">External Sources</button>
+</div>
+</div>
+<!-- Content Area - Products Table View -->
+<div class="glass rounded-xl overflow-hidden border-outline-variant/10">
+<div class="p-4 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low/30">
+<div class="flex items-center gap-4">
+<button class="flex items-center gap-2 bg-surface-container border border-outline-variant/20 px-3 py-1.5 rounded-lg text-xs font-label-md hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-sm">filter_list</span> Filter
+                        </button>
+<button class="flex items-center gap-2 bg-surface-container border border-outline-variant/20 px-3 py-1.5 rounded-lg text-xs font-label-md hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-sm">sort</span> Sort
+                        </button>
+</div>
+<div class="flex items-center gap-3">
+<p class="text-xs text-on-surface-variant font-label-sm">Showing 1-10 of 48,201</p>
+<div class="flex gap-1">
+<button class="p-1.5 glass rounded-lg hover:bg-surface-container-high transition-colors disabled:opacity-30" disabled="">
+<span class="material-symbols-outlined text-sm">chevron_left</span>
+</button>
+<button class="p-1.5 glass rounded-lg hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low/50">
+<th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Product Name</th>
+<th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Brand</th>
+<th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Category</th>
+<th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Clinical Score</th>
+<th class="px-6 py-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Status</th>
+<th class="px-6 py-4"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<tr class="hover:bg-surface-container-low/20 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded bg-surface-container border border-outline-variant/20 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Close-up studio photography of a premium minimalist glass bottle of skincare serum. The lighting is low-key with a soft teal rim light catching the edge of the glass. The background is a deep navy gradient, evoking a nocturnal, professional laboratory aesthetic." src="source/images/admin-content/img_001_79bf763f.jpg"/>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Hyaluronic Intense 4D</p>
+<p class="text-[10px] text-on-surface-variant font-label-sm">SKU: SK-4091-HY</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 font-body-md text-body-md text-on-surface-variant">BioLumina Labs</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full bg-surface-container-high text-[10px] font-label-md text-on-surface">SERUM</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-tertiary">92/100</span>
+<div class="w-16 bg-outline-variant/10 h-1 rounded-full">
+<div class="bg-tertiary h-full rounded-full" style="width: 92%"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2 text-tertiary">
+<span class="material-symbols-outlined text-sm">verified</span>
+<span class="text-xs font-label-md">VERIFIED</span>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-2 hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/20 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded bg-surface-container border border-outline-variant/20 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A clinical photograph of a minimalist white cosmetic tube with black sans-serif typography, positioned against a dark slate background. Sophisticated lighting highlights the texture of the matte plastic, maintaining the clean, medical-grade aesthetic of a high-end wellness sanctuary." src="source/images/admin-content/img_002_366532cb.jpg"/>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Niacinamide Clarifying Balm</p>
+<p class="text-[10px] text-on-surface-variant font-label-sm">SKU: SK-1122-NC</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 font-body-md text-body-md text-on-surface-variant">DermaLogic</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full bg-surface-container-high text-[10px] font-label-md text-on-surface">MOISTURIZER</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-on-primary-container">84/100</span>
+<div class="w-16 bg-outline-variant/10 h-1 rounded-full">
+<div class="bg-secondary h-full rounded-full" style="width: 84%"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">pending</span>
+<span class="text-xs font-label-md">PENDING</span>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-2 hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/20 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded bg-surface-container border border-outline-variant/20 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Macro photography of a luxurious blue glass jar of night cream, reflecting soft indigo and teal light. The scene is deeply shadowed, conveying a premium nocturnal wellness vibe. The jar is set on a dark reflective surface with microscopic water droplets to emphasize scientific purity." src="source/images/admin-content/img_003_81bf4b5d.jpg"/>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Retinol Overnight Reset</p>
+<p class="text-[10px] text-on-surface-variant font-label-sm">SKU: SK-8832-RT</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 font-body-md text-body-md text-on-surface-variant">Nocturnal Care</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full bg-surface-container-high text-[10px] font-label-md text-on-surface">NIGHT CREAM</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-tertiary">96/100</span>
+<div class="w-16 bg-outline-variant/10 h-1 rounded-full">
+<div class="bg-tertiary h-full rounded-full" style="width: 96%"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2 text-tertiary">
+<span class="material-symbols-outlined text-sm">verified</span>
+<span class="text-xs font-label-md">VERIFIED</span>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-2 hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+<!-- Sync Footer Overlay -->
+<div class="p-4 bg-tertiary/5 border-t border-tertiary/10 flex justify-between items-center">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-tertiary animate-spin text-sm" style="animation-duration: 3s">autorenew</span>
+<p class="text-xs text-tertiary/80 font-label-md">Syncing metadata for 1,200 new entries from EWG Skindeep...</p>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-32 bg-outline-variant/20 h-1.5 rounded-full overflow-hidden">
+<div class="bg-tertiary h-full" style="width: 45%"></div>
+</div>
+<span class="text-[10px] text-tertiary font-bold">45%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Floating Action Button (Admin Actions) -->
+<button class="fixed bottom-10 right-10 w-14 h-14 rounded-full bg-tertiary text-background flex items-center justify-center teal-glow-intense hover:scale-110 active:scale-95 transition-all z-50">
+<span class="material-symbols-outlined font-bold text-2xl">add</span>
+</button>
+<!-- Footer -->
+<footer class="mt-auto w-full py-10 px-8 flex flex-col md:flex-row justify-between items-center gap-6 border-t border-outline-variant/8 bg-background">
+<div class="flex flex-col gap-1">
+<h3 class="font-h3 text-h3 text-primary font-bold">Skinlytics</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">© 2024 Skinlytics AI. HIPAA Compliant Platform.</p>
+</div>
+<div class="flex flex-wrap justify-center gap-8">
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-secondary transition-colors" href="#">Privacy Policy</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-secondary transition-colors" href="#">Terms of Service</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-secondary transition-colors" href="#">HIPAA Compliance</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-secondary transition-colors" href="#">Medical Disclaimer</a>
+</div>
+</footer>
+</main>
+<!-- Micro-interaction Script -->
+<script>
+        document.querySelectorAll('button[id^="tab-"]').forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Reset all tabs
+                document.querySelectorAll('button[id^="tab-"]').forEach(t => {
+                    t.classList.remove('text-tertiary');
+                    t.classList.add('text-on-surface-variant');
+                    const indicator = t.querySelector('span.absolute');
+                    if(indicator) indicator.remove();
+                });
+                
+                // Set active tab
+                this.classList.add('text-tertiary');
+                this.classList.remove('text-on-surface-variant');
+                
+                const indicator = document.createElement('span');
+                indicator.className = "absolute -bottom-[17px] left-0 w-full h-0.5 bg-tertiary";
+                this.appendChild(indicator);
+            });
+        });
+
+        // Simple row hover effect reinforcement
+        const rows = document.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                row.classList.add('bg-surface-container-low/30');
+            });
+            row.addEventListener('mouseleave', () => {
+                row.classList.remove('bg-surface-container-low/30');
+            });
+        });
+    </script>
+</body></html>

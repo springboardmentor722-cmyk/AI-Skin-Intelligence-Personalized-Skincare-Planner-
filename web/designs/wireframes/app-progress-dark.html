@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Skinlytics | Progress Tracking</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Sora:wght@600;700&amp;family=Geist:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .glass-bg {
+            background: rgba(255, 255, 255, 0.68);
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+        }
+        .diagnostic-module {
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 16px;
+        }
+        .dot-grid {
+            background-image: radial-gradient(circle, rgba(15, 23, 42, 0.08) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        .comparison-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 4px;
+            height: 400px;
+            background: white;
+            cursor: ew-resize;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 150, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #F7F9FB;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-surface-variant": "#45464d",
+                      "on-tertiary-fixed": "#00201c",
+                      "inverse-surface": "#303032",
+                      "on-primary": "#ffffff",
+                      "inverse-on-surface": "#f3f0f2",
+                      "error": "#ba1a1a",
+                      "on-tertiary-fixed-variant": "#005048",
+                      "on-secondary-fixed": "#00174b",
+                      "primary": "#000000",
+                      "secondary-fixed": "#dbe1ff",
+                      "surface-dim": "#dcd9db",
+                      "surface": "#fcf8fa",
+                      "secondary-container": "#316bf3",
+                      "surface-container-low": "#f6f3f5",
+                      "on-tertiary-container": "#009485",
+                      "on-primary-fixed": "#131b2e",
+                      "on-background": "#1b1b1d",
+                      "surface-variant": "#e4e2e4",
+                      "on-primary-container": "#7c839b",
+                      "inverse-primary": "#bec6e0",
+                      "on-secondary-container": "#fefcff",
+                      "on-secondary-fixed-variant": "#003ea8",
+                      "on-error-container": "#93000a",
+                      "tertiary-fixed-dim": "#4fdbc8",
+                      "surface-container": "#f0edef",
+                      "primary-fixed-dim": "#bec6e0",
+                      "outline-variant": "#c6c6cd",
+                      "tertiary": "#000000",
+                      "surface-bright": "#fcf8fa",
+                      "surface-container-high": "#eae7e9",
+                      "primary-container": "#131b2e",
+                      "error-container": "#ffdad6",
+                      "background": "#fcf8fa",
+                      "surface-tint": "#565e74",
+                      "primary-fixed": "#dae2fd",
+                      "on-tertiary": "#ffffff",
+                      "surface-container-highest": "#e4e2e4",
+                      "outline": "#76777d",
+                      "secondary": "#0051d5",
+                      "surface-container-lowest": "#ffffff",
+                      "on-error": "#ffffff",
+                      "tertiary-container": "#00201c",
+                      "on-secondary": "#ffffff",
+                      "on-primary-fixed-variant": "#3f465c",
+                      "secondary-fixed-dim": "#b4c5ff",
+                      "tertiary-fixed": "#71f8e4",
+                      "on-surface": "#1b1b1d"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "base": "4px",
+                      "xs": "4px",
+                      "sm": "8px",
+                      "xl": "32px",
+                      "margin-mobile": "16px",
+                      "lg": "24px",
+                      "3xl": "64px",
+                      "2xl": "48px",
+                      "md": "16px",
+                      "margin-desktop": "48px",
+                      "gutter": "24px"
+              },
+              "fontFamily": {
+                      "h2": ["Sora"],
+                      "h1": ["Sora"],
+                      "body-md": ["Inter"],
+                      "data-display": ["Geist"],
+                      "h1-mobile": ["Sora"],
+                      "body-lg": ["Inter"],
+                      "label-caps": ["Geist"],
+                      "h3": ["Sora"]
+              },
+              "fontSize": {
+                      "h2": ["32px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "h1": ["40px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "data-display": ["32px", {"lineHeight": "1.0", "fontWeight": "600"}],
+                      "h1-mobile": ["30px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                      "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "h3": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+      </script>
+</head>
+<body class="font-body-md text-on-surface">
+<!-- WebGL Background -->
+
+<!-- SideNavBar (Shared Component Shell) -->
+<aside class="fixed left-0 top-0 h-screen w-64 z-40 bg-white/68 backdrop-blur-xl border-r border-on-surface/8 flex flex-col py-lg">
+<div class="px-lg mb-xl">
+<h1 class="font-h3 text-h3 font-bold text-primary">Skinlytics AI</h1>
+<p class="text-on-surface-variant font-label-caps opacity-60">Clinical Portal</p>
+</div>
+<nav class="flex-grow">
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span> Dashboard
+            </a>
+<a class="bg-secondary/10 text-secondary border-r-4 border-secondary px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">biotech</span> Analyses
+            </a>
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">medical_services</span> Consultants
+            </a>
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">settings</span> Settings
+            </a>
+</nav>
+<div class="px-lg mb-md">
+<button class="w-full bg-primary text-on-primary py-3 rounded-full font-semibold flex items-center justify-center gap-2 transition-transform active:scale-95">
+<span class="material-symbols-outlined">add_circle</span> New Assessment
+            </button>
+</div>
+<div class="mt-auto border-t border-on-surface/8 pt-md">
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">help</span> Help Center
+            </a>
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">logout</span> Sign Out
+            </a>
+</div>
+</aside>
+<!-- TopAppBar (Shared Component Shell) -->
+<header class="sticky top-0 w-full z-30 bg-white/68 backdrop-blur-xl border-b border-on-surface/8 flex justify-between items-center px-lg py-sm ml-64 w-[calc(100%-16rem)]">
+<div class="flex items-center gap-4 flex-grow">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container rounded-full border-none focus:ring-2 focus:ring-secondary text-body-md" placeholder="Search clinical data..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 text-on-surface-variant">
+<button class="material-symbols-outlined hover:text-secondary transition-transform active:scale-90">wb_sunny</button>
+<button class="material-symbols-outlined hover:text-secondary transition-transform active:scale-90">notifications</button>
+<button class="material-symbols-outlined hover:text-secondary transition-transform active:scale-90">contrast</button>
+</div>
+<div class="w-10 h-10 rounded-full overflow-hidden border border-on-surface/8">
+<img class="w-full h-full object-cover" data-alt="A professional medical researcher headshot with soft studio lighting. The individual has a neutral expression, wearing a clean white lab coat against a minimalist, high-key background. The overall aesthetic is clinical, bright, and trustworthy, with high-definition clarity." src="source/images/app-progress/img_000_7af9b7ba.jpg"/>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="ml-64 p-lg max-w-[1440px] mx-auto">
+<!-- Progress Header & Time Range Tabs -->
+<section class="flex flex-col md:flex-row justify-between items-end mb-2xl">
+<div>
+<h2 class="font-h1 text-h1 text-primary">Progress Tracking</h2>
+<p class="text-body-lg text-on-surface-variant mt-2">Quantitative analysis of your skin's longitudinal evolution.</p>
+</div>
+<div class="flex bg-surface-container-high p-1 rounded-full mt-lg md:mt-0">
+<button class="px-6 py-2 rounded-full font-label-caps text-on-surface-variant hover:text-primary transition-colors">7D</button>
+<button class="px-6 py-2 rounded-full bg-white shadow-sm font-label-caps text-secondary">30D</button>
+<button class="px-6 py-2 rounded-full font-label-caps text-on-surface-variant hover:text-primary transition-colors">90D</button>
+<button class="px-6 py-2 rounded-full font-label-caps text-on-surface-variant hover:text-primary transition-colors">ALL</button>
+</div>
+</section>
+<!-- Main Bento Grid -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Comparison Card -->
+<div class="col-span-12 lg:col-span-7 diagnostic-module p-lg relative overflow-hidden group">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-h3 text-h3 text-primary">Visual Evolution</h3>
+<button class="flex items-center gap-2 bg-secondary text-on-primary px-4 py-2 rounded-full font-body-md hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined">add_a_photo</span> Add today's photo
+                    </button>
+</div>
+<div class="relative w-full h-[400px] rounded-xl overflow-hidden group/slider">
+<!-- Before Image -->
+<div class="absolute inset-0">
+<img class="w-full h-full object-cover" data-alt="A high-resolution clinical close-up of facial skin texture under polarized medical lighting, showing subtle imperfections and hydration levels. Professional dermatologist perspective, sharp focus, clean clinical aesthetic with soft blue and white tones." src="source/images/app-progress/img_001_3ebf4abc.jpg"/>
+<div class="absolute top-4 left-4 bg-primary/80 text-on-primary px-3 py-1 rounded-lg backdrop-blur-md text-label-caps">OCT 12, 2023</div>
+</div>
+<!-- After Image (Clipped by slider) -->
+<div class="absolute inset-0" id="after-image" style="clip-path: inset(0 0 0 50%);">
+<img class="w-full h-full object-cover" data-alt="A high-resolution clinical close-up of the same facial skin area after treatment, showing improved clarity, smoother texture, and enhanced glow. Bright, balanced medical-grade lighting. Modern wellness vibe with pristine white and teal accents." src="source/images/app-progress/img_002_6dbe6e23.jpg"/>
+<div class="absolute top-4 right-4 bg-secondary/80 text-on-primary px-3 py-1 rounded-lg backdrop-blur-md text-label-caps">TODAY</div>
+</div>
+<!-- Slider Handle -->
+<input class="absolute inset-0 w-full h-full opacity-0 cursor-ew-resize z-20" max="100" min="0" oninput="document.getElementById('after-image').style.clipPath = `inset(0 0 0 ${this.value}%)`; document.getElementById('slider-line').style.left = `${this.value}%`" type="range" value="50"/>
+<div class="absolute top-0 bottom-0 w-1 bg-white shadow-xl pointer-events-none z-10" id="slider-line" style="left: 50%;">
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined text-primary">unfold_more</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Score Trend Line Chart -->
+<div class="col-span-12 lg:col-span-5 diagnostic-module p-lg dot-grid relative">
+<div class="flex justify-between items-start mb-xl">
+<div>
+<h3 class="font-h3 text-h3 text-primary">Aggregate Score</h3>
+<p class="text-label-caps text-on-surface-variant opacity-60">Composite Health Index</p>
+</div>
+<div class="text-right">
+<span class="font-data-display text-data-display text-secondary">88</span>
+<span class="text-label-caps text-secondary block">+12.4%</span>
+</div>
+</div>
+<!-- SVG Trend Chart -->
+<div class="h-64 w-full relative">
+<svg class="w-full h-full overflow-visible" viewbox="0 0 400 150">
+<defs>
+<lineargradient id="chartGradient" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="var(--secondary)" stop-opacity="0.2"></stop>
+<stop offset="100%" stop-color="var(--secondary)" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<!-- Area -->
+<path d="M0,120 Q50,110 100,130 T200,80 T300,50 T400,20 V150 H0 Z" fill="url(#chartGradient)"></path>
+<!-- Line -->
+<path d="M0,120 Q50,110 100,130 T200,80 T300,50 T400,20" fill="none" stroke="#0051d5" stroke-width="2.5"></path>
+<!-- Event Annotations -->
+<circle cx="200" cy="80" fill="#0051d5" r="5"></circle>
+<text class="text-[10px] fill-on-surface-variant font-label-caps" x="180" y="65">ADDED RETINOID</text>
+</svg>
+</div>
+<div class="flex justify-between mt-md">
+<span class="text-label-caps text-on-surface-variant">OCT 01</span>
+<span class="text-label-caps text-on-surface-variant">OCT 15</span>
+<span class="text-label-caps text-on-surface-variant">TODAY</span>
+</div>
+</div>
+<!-- Adherence Heatmap -->
+<div class="col-span-12 lg:col-span-4 diagnostic-module p-lg">
+<h3 class="font-h3 text-h3 text-primary mb-md">Routine Adherence</h3>
+<div class="grid grid-cols-7 gap-2">
+<!-- Simple Loop for Heatmap -->
+<script>
+                        for(let i=0; i<28; i++) {
+                            const opacity = Math.random() > 0.2 ? (0.2 + Math.random() * 0.8) : 0.05;
+                            document.write(`<div class="aspect-square rounded-sm bg-secondary" style="opacity: ${opacity}"></div>`);
+                        }
+                    </script>
+</div>
+<div class="flex justify-between items-center mt-md text-label-caps text-on-surface-variant">
+<span>LOWER ADHERENCE</span>
+<div class="flex gap-1">
+<div class="w-3 h-3 bg-secondary opacity-20"></div>
+<div class="w-3 h-3 bg-secondary opacity-50"></div>
+<div class="w-3 h-3 bg-secondary opacity-100"></div>
+</div>
+</div>
+</div>
+<!-- Weighted Small Multiples -->
+<div class="col-span-12 lg:col-span-8 diagnostic-module p-lg">
+<h3 class="font-h3 text-h3 text-primary mb-xl">Biometric Sub-factors</h3>
+<div class="grid grid-cols-2 md:grid-cols-5 gap-6">
+<div class="text-center">
+<div class="h-16 w-full bg-surface-container flex items-end rounded-lg overflow-hidden mb-2">
+<div class="bg-secondary w-full" style="height: 65%"></div>
+</div>
+<p class="text-label-caps text-on-surface-variant">Hydration</p>
+<span class="font-data-display text-body-md">65%</span>
+</div>
+<div class="text-center">
+<div class="h-16 w-full bg-surface-container flex items-end rounded-lg overflow-hidden mb-2">
+<div class="bg-secondary w-full" style="height: 82%"></div>
+</div>
+<p class="text-label-caps text-on-surface-variant">Sleep</p>
+<span class="font-data-display text-body-md">82%</span>
+</div>
+<div class="text-center">
+<div class="h-16 w-full bg-surface-container flex items-end rounded-lg overflow-hidden mb-2">
+<div class="bg-secondary w-full" style="height: 45%"></div>
+</div>
+<p class="text-label-caps text-on-surface-variant">Inflammation</p>
+<span class="font-data-display text-body-md">45%</span>
+</div>
+<div class="text-center">
+<div class="h-16 w-full bg-surface-container flex items-end rounded-lg overflow-hidden mb-2">
+<div class="bg-secondary w-full" style="height: 94%"></div>
+</div>
+<p class="text-label-caps text-on-surface-variant">Elasticity</p>
+<span class="font-data-display text-body-md">94%</span>
+</div>
+<div class="text-center">
+<div class="h-16 w-full bg-surface-container flex items-end rounded-lg overflow-hidden mb-2">
+<div class="bg-secondary w-full" style="height: 70%"></div>
+</div>
+<p class="text-label-caps text-on-surface-variant">UV Exposure</p>
+<span class="font-data-display text-body-md">70%</span>
+</div>
+</div>
+</div>
+<!-- Milestone Badges -->
+<div class="col-span-12 diagnostic-module p-lg">
+<div class="flex items-center gap-3 mb-lg">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">military_tech</span>
+<h3 class="font-h3 text-h3 text-primary">Milestones &amp; Achievements</h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<div class="flex items-center gap-4 bg-surface-container-low p-md rounded-xl border border-secondary/10">
+<div class="text-3xl">🏅</div>
+<div>
+<p class="font-body-md font-semibold text-primary">First 30-day streak</p>
+<p class="text-label-caps text-on-surface-variant">COMPLETED NOV 12</p>
+</div>
+</div>
+<div class="flex items-center gap-4 bg-surface-container-low p-md rounded-xl border border-secondary/10">
+<div class="text-3xl">🎉</div>
+<div>
+<p class="font-body-md font-semibold text-primary">Score +10 Improvement</p>
+<p class="text-label-caps text-on-surface-variant">UNLOCKED TODAY</p>
+</div>
+</div>
+<div class="flex items-center gap-4 opacity-40 grayscale bg-surface-container-low p-md rounded-xl">
+<div class="text-3xl">🛡️</div>
+<div>
+<p class="font-body-md font-semibold text-primary">Consistent Hydration</p>
+<p class="text-label-caps text-on-surface-variant">IN PROGRESS (12/20)</p>
+</div>
+</div>
+<div class="flex items-center gap-4 opacity-40 grayscale bg-surface-container-low p-md rounded-xl">
+<div class="text-3xl">🧬</div>
+<div>
+<p class="font-body-md font-semibold text-primary">Texture Specialist</p>
+<p class="text-label-caps text-on-surface-variant">90 DAYS TO UNLOCK</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer (Shared Component Shell) -->
+<footer class="fixed bottom-0 w-full z-50 bg-white/68 backdrop-blur-xl border-t border-on-surface/8 flex justify-between items-center px-margin-desktop py-md">
+<p class="font-label-caps text-on-surface-variant">© 2024 Skinlytics Lab. Clinical Grade AI.</p>
+<div class="flex gap-lg">
+<a class="font-label-caps text-on-surface-variant hover:underline transition-opacity duration-200" href="#">Privacy Policy</a>
+<a class="font-label-caps text-on-surface-variant hover:underline transition-opacity duration-200" href="#">Terms of Service</a>
+<a class="font-label-caps text-on-surface-variant hover:underline transition-opacity duration-200" href="#">HIPAA Compliance</a>
+</div>
+</footer>
+<script>
+        // Micro-interactions for dashboard elements
+        document.querySelectorAll('.diagnostic-module').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-2px)';
+                card.style.borderColor = 'rgba(0, 81, 213, 0.2)';
+                card.style.transition = 'all 0.3s ease';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+                card.style.borderColor = 'rgba(15, 23, 42, 0.08)';
+            });
+        });
+
+        // Simple scale interaction for milestones
+        document.querySelectorAll('.bg-surface-container-low').forEach(badge => {
+            badge.addEventListener('click', () => {
+                badge.classList.add('scale-95');
+                setTimeout(() => badge.classList.remove('scale-95'), 100);
+            });
+        });
+    </script>
+</body></html>

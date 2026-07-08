@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sign Up | Skinlytics</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error": "#690005",
+                        "inverse-primary": "#565e74",
+                        "on-tertiary-container": "#009182",
+                        "secondary-container": "#0566d9",
+                        "primary-fixed": "#dae2fd",
+                        "on-tertiary-fixed": "#00201c",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "surface-bright": "#39393b",
+                        "inverse-on-surface": "#303032",
+                        "surface-dim": "#131315",
+                        "on-secondary-container": "#e6ecff",
+                        "on-tertiary-fixed-variant": "#005047",
+                        "background": "#131315",
+                        "on-tertiary": "#003731",
+                        "primary": "#bec6e0",
+                        "surface-container-lowest": "#0e0e10",
+                        "error-container": "#93000a",
+                        "error": "#ffb4ab",
+                        "inverse-surface": "#e4e2e4",
+                        "on-primary": "#283044",
+                        "surface-container-high": "#2a2a2b",
+                        "tertiary-fixed-dim": "#3cddc7",
+                        "tertiary-container": "#001c18",
+                        "surface-container-low": "#1b1b1d",
+                        "primary-container": "#0f172a",
+                        "surface-tint": "#bec6e0",
+                        "on-surface-variant": "#c6c6cd",
+                        "on-surface": "#e4e2e4",
+                        "secondary-fixed": "#d8e2ff",
+                        "on-background": "#e4e2e4",
+                        "surface-container-highest": "#353436",
+                        "secondary": "#adc6ff",
+                        "surface": "#131315",
+                        "tertiary-fixed": "#62fae3",
+                        "on-secondary-fixed": "#001a42",
+                        "outline-variant": "#45464d",
+                        "on-error-container": "#ffdad6",
+                        "secondary-fixed-dim": "#adc6ff",
+                        "on-primary-fixed": "#131b2e",
+                        "surface-container": "#1f1f21",
+                        "surface-variant": "#353436",
+                        "on-secondary": "#002e6a",
+                        "on-primary-container": "#798098",
+                        "primary-fixed-dim": "#bec6e0",
+                        "on-secondary-fixed-variant": "#004395",
+                        "outline": "#909097",
+                        "tertiary": "#3cddc7"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "max-width": "1280px",
+                        "margin-mobile": "16px",
+                        "gutter": "24px",
+                        "margin-desktop": "48px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Manrope"],
+                        "headline-md": ["Manrope"],
+                        "body-lg": ["Inter"],
+                        "headline-lg-mobile": ["Manrope"],
+                        "label-md": ["JetBrains Mono"],
+                        "display-lg": ["Manrope"],
+                        "label-sm": ["JetBrains Mono"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(17, 26, 46, 0.4);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+        }
+        .step-transition {
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .hidden-step {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(20px);
+            position: absolute;
+        }
+        .role-card.selected {
+            border-color: #3cddc7;
+            background-color: rgba(60, 221, 199, 0.05);
+            box-shadow: 0 0 20px rgba(60, 221, 199, 0.1);
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen selection:bg-tertiary/30">
+<main class="flex min-h-screen overflow-hidden">
+<!-- Left Side: Aurora & Branding -->
+<section class="hidden lg:flex lg:w-1/2 relative glass-panel items-center justify-center p-margin-desktop overflow-hidden">
+<!-- Background Aurora Shader -->
+
+<div class="relative z-10 w-full max-w-md space-y-12">
+<!-- Branding Anchor -->
+<div class="flex items-center gap-3">
+<span class="font-headline-md text-headline-md font-bold text-primary tracking-tight">Skinlytics</span>
+</div>
+<!-- 3D Droplet Visualization -->
+<div class="relative flex justify-center py-8">
+<div class="absolute inset-0 bg-tertiary/10 blur-3xl rounded-full scale-150"></div>
+<img class="w-64 h-64 object-contain animate-float drop-shadow-[0_0_30px_rgba(45,212,191,0.2)]" data-alt="A highly detailed, 3D hyper-realistic translucent skin serum droplet suspended in mid-air. The droplet catches the teal and blue light from an aurora-like background, with intricate internal reflections and microscopic bubbles. The lighting is soft and clinical, evoking a premium medical-grade laboratory aesthetic with sharp focus and deep shadows." src="source/images/signup/img_000_cfd8e36b.jpg"/>
+</div>
+<!-- Rotating Value Props -->
+<div class="space-y-6" id="value-props">
+<div class="prop-item opacity-100 transition-opacity duration-1000">
+<h2 class="font-headline-lg text-headline-lg text-white mb-3">Biometric Precision</h2>
+<p class="text-on-surface-variant text-body-lg">Unlock medical-grade skin analysis using computer vision and clinical dermatological datasets.</p>
+</div>
+</div>
+<div class="flex gap-2">
+<div class="h-1 w-8 rounded-full bg-tertiary"></div>
+<div class="h-1 w-4 rounded-full bg-outline-variant"></div>
+<div class="h-1 w-4 rounded-full bg-outline-variant"></div>
+</div>
+</div>
+</section>
+<!-- Right Side: Auth Card -->
+<section class="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-surface">
+<div class="w-full max-w-[480px] bg-surface-container-low border border-white/5 rounded-3xl p-8 md:p-12 shadow-2xl relative overflow-hidden">
+<form id="signup-form" onsubmit="return false;">
+<!-- Step A: Role Selection -->
+<div class="step-transition" id="step-a">
+<div class="mb-10">
+<h1 class="font-headline-lg text-headline-lg text-white mb-2">Who are you?</h1>
+<p class="text-on-surface-variant font-body-md">Tell us your role to customize your diagnostic dashboard.</p>
+</div>
+<div class="space-y-4 mb-10">
+<!-- User Role -->
+<button class="role-card w-full text-left p-5 rounded-2xl border border-outline-variant bg-surface-container transition-all hover:border-tertiary group" onclick="selectRole('user')" type="button">
+<div class="flex justify-between items-start">
+<div class="flex gap-4">
+<div class="w-12 h-12 rounded-xl bg-tertiary/10 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined">person</span>
+</div>
+<div>
+<p class="font-headline-md text-headline-md text-white group-hover:text-tertiary transition-colors">User</p>
+<p class="text-on-surface-variant font-body-md">Improve my own skin</p>
+</div>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-outline-variant flex items-center justify-center" id="radio-user"></div>
+</div>
+</button>
+<!-- Consultant Role -->
+<button class="role-card w-full text-left p-5 rounded-2xl border border-outline-variant bg-surface-container transition-all hover:border-tertiary group" onclick="selectRole('consultant')" type="button">
+<div class="flex justify-between items-start">
+<div class="flex gap-4">
+<div class="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">spa</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<p class="font-headline-md text-headline-md text-white group-hover:text-secondary transition-colors">Skincare Consultant</p>
+<span class="bg-surface-container-highest px-2 py-0.5 rounded text-[10px] font-label-sm text-outline uppercase tracking-wider">Verification Required</span>
+</div>
+<p class="text-on-surface-variant font-body-md">Guide my clients</p>
+</div>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-outline-variant flex items-center justify-center" id="radio-consultant"></div>
+</div>
+</button>
+<!-- Dermatologist Role -->
+<button class="role-card w-full text-left p-5 rounded-2xl border border-outline-variant bg-surface-container transition-all hover:border-tertiary group" onclick="selectRole('dermatologist')" type="button">
+<div class="flex justify-between items-start">
+<div class="flex gap-4">
+<div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">medical_services</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<p class="font-headline-md text-headline-md text-white group-hover:text-primary transition-colors">Dermatologist</p>
+<span class="bg-surface-container-highest px-2 py-0.5 rounded text-[10px] font-label-sm text-outline uppercase tracking-wider">Verification Required</span>
+</div>
+<p class="text-on-surface-variant font-body-md">Manage patients clinically</p>
+</div>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-outline-variant flex items-center justify-center" id="radio-dermatologist"></div>
+</div>
+</button>
+</div>
+<button class="w-full h-14 bg-outline-variant text-on-surface-variant font-bold rounded-full transition-all flex items-center justify-center gap-2 cursor-not-allowed" disabled="" id="next-btn" onclick="goToStepB()">
+                            Continue
+                            <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</button>
+</div>
+<!-- Step B: Account Details -->
+<div class="step-transition hidden-step" id="step-b">
+<button class="mb-6 flex items-center gap-2 text-on-surface-variant hover:text-white transition-colors" onclick="goToStepA()">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+<span class="font-label-md">Back</span>
+</button>
+<div class="mb-8">
+<h2 class="font-headline-lg text-headline-lg text-white mb-2">Create Account</h2>
+<p class="text-on-surface-variant font-body-md">Join the frontier of algorithmic skincare.</p>
+</div>
+<div class="space-y-5 mb-8">
+<div>
+<label class="font-label-sm text-outline block mb-2 px-1">FULL NAME</label>
+<input class="w-full bg-surface-container border border-outline-variant rounded-xl px-4 py-3.5 focus:border-tertiary focus:ring-1 focus:ring-tertiary outline-none text-white transition-all" placeholder="John Doe" type="text"/>
+</div>
+<div>
+<label class="font-label-sm text-outline block mb-2 px-1">EMAIL ADDRESS</label>
+<input class="w-full bg-surface-container border border-outline-variant rounded-xl px-4 py-3.5 focus:border-tertiary focus:ring-1 focus:ring-tertiary outline-none text-white transition-all" placeholder="name@example.com" type="email"/>
+</div>
+<div>
+<label class="font-label-sm text-outline block mb-2 px-1">PASSWORD</label>
+<div class="relative">
+<input class="w-full bg-surface-container border border-outline-variant rounded-xl px-4 py-3.5 focus:border-tertiary focus:ring-1 focus:ring-tertiary outline-none text-white transition-all" id="password-input" placeholder="••••••••" type="password"/>
+<button class="absolute right-4 top-1/2 -translate-y-1/2 text-outline" type="button">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+</div>
+<!-- Password Strength Meter -->
+<div class="mt-3 flex gap-1.5 h-1">
+<div class="flex-1 rounded-full bg-tertiary shadow-[0_0_8px_rgba(60,221,199,0.3)]"></div>
+<div class="flex-1 rounded-full bg-tertiary"></div>
+<div class="flex-1 rounded-full bg-surface-container-highest"></div>
+<div class="flex-1 rounded-full bg-surface-container-highest"></div>
+</div>
+<p class="text-[11px] font-label-sm text-on-tertiary-container mt-2">Moderate security</p>
+</div>
+</div>
+<!-- Consent -->
+<div class="space-y-4 mb-8">
+<label class="flex items-start gap-3 cursor-pointer group">
+<div class="mt-1">
+<input class="w-5 h-5 rounded border-outline-variant bg-surface-container text-tertiary focus:ring-tertiary focus:ring-offset-background transition-all" required="" type="checkbox"/>
+</div>
+<span class="text-on-surface-variant font-label-md leading-tight group-hover:text-on-surface transition-colors">
+                                    I agree to the <a class="text-tertiary underline underline-offset-4" href="#">Terms of Service</a> and permit clinical processing of my biometric skin data.
+                                </span>
+</label>
+</div>
+<button class="w-full h-14 bg-on-background text-background font-bold rounded-full transition-all hover:bg-tertiary hover:shadow-[0_0_25px_rgba(60,221,199,0.2)] active:scale-[0.98] mb-6">
+                            Create account
+                        </button>
+<div class="relative flex items-center justify-center mb-6">
+<div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/5"></div></div>
+<span class="relative bg-surface-container-low px-4 text-outline font-label-sm">OR CONTINUE WITH</span>
+</div>
+<button class="w-full h-14 border border-outline-variant rounded-full flex items-center justify-center gap-3 font-label-md text-white hover:bg-white/5 transition-all" type="button">
+<svg class="w-5 h-5" viewbox="0 0 24 24">
+<path d="M12 5.04c1.94 0 3.68.67 5.05 1.97l3.77-3.77C18.52 1.09 15.48 0 12 0 7.31 0 3.25 2.69 1.19 6.6l4.41 3.42C6.64 7.02 9.1 5.04 12 5.04z" fill="#EA4335"></path>
+<path d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58l3.7 2.87c2.16-2 3.72-4.94 3.72-8.69z" fill="#4285F4"></path>
+<path d="M5.61 14.78l-4.41 3.42c2.06 3.91 6.12 6.6 10.8 6.6 3.48 0 6.44-1.15 8.59-3.11l-3.7-2.87c-1.02.68-2.33 1.09-3.89 1.09-3.1 0-5.73-2.1-6.67-4.92l-.72.03z" fill="#FBBC05"></path>
+<path d="M12 18.91c-2.9 0-5.36-1.98-6.39-4.7l-4.41 3.42C3.25 21.31 7.31 24 12 24c3.48 0 6.44-1.15 8.59-3.11l-3.7-2.87c-1.02.68-2.33 1.09-3.89 1.09z" fill="#34A853"></path>
+</svg>
+                            Google
+                        </button>
+<p class="mt-8 text-center text-on-surface-variant font-label-md">
+                            Already have an account? <a class="text-tertiary font-bold ml-1" href="#">Log In</a>
+</p>
+</div>
+</form>
+</div>
+</section>
+</main>
+<script>
+        let selectedRoleType = null;
+
+        function selectRole(role) {
+            selectedRoleType = role;
+            
+            // UI Update for Cards
+            document.querySelectorAll('.role-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+
+            // UI Update for Radio Circles
+            document.querySelectorAll('[id^="radio-"]').forEach(radio => {
+                radio.innerHTML = '';
+                radio.classList.remove('border-tertiary');
+            });
+            const activeRadio = document.getElementById(`radio-${role}`);
+            activeRadio.classList.add('border-tertiary');
+            activeRadio.innerHTML = '<div class="w-3 h-3 rounded-full bg-tertiary"></div>';
+
+            // Enable Next Button
+            const nextBtn = document.getElementById('next-btn');
+            nextBtn.disabled = false;
+            nextBtn.classList.remove('bg-outline-variant', 'text-on-surface-variant', 'cursor-not-allowed');
+            nextBtn.classList.add('bg-tertiary', 'text-on-tertiary', 'hover:opacity-90', 'active:scale-95');
+        }
+
+        function goToStepB() {
+            const stepA = document.getElementById('step-a');
+            const stepB = document.getElementById('step-b');
+
+            stepA.classList.add('hidden-step');
+            setTimeout(() => {
+                stepA.classList.add('hidden');
+                stepB.classList.remove('hidden');
+                setTimeout(() => {
+                    stepB.classList.remove('hidden-step');
+                }, 50);
+            }, 500);
+        }
+
+        function goToStepA() {
+            const stepA = document.getElementById('step-a');
+            const stepB = document.getElementById('step-b');
+
+            stepB.classList.add('hidden-step');
+            setTimeout(() => {
+                stepB.classList.add('hidden');
+                stepA.classList.remove('hidden');
+                setTimeout(() => {
+                    stepA.classList.remove('hidden-step');
+                }, 50);
+            }, 500);
+        }
+
+        // Atmospheric value prop rotation
+        const props = [
+            { h: "Biometric Precision", p: "Unlock medical-grade skin analysis using computer vision and clinical dermatological datasets." },
+            { h: "AI-Driven Routines", p: "Your biology dictates the plan. Smart algorithms evolve with your skin changes every single day." },
+            { h: "Clinical Trust", p: "Designed by dermatologists to provide professional-grade insights without the clinic wait times." }
+        ];
+        let currentProp = 0;
+        const propContainer = document.getElementById('value-props');
+
+        setInterval(() => {
+            currentProp = (currentProp + 1) % props.length;
+            const item = propContainer.querySelector('.prop-item');
+            item.style.opacity = '0';
+            
+            setTimeout(() => {
+                item.querySelector('h2').innerText = props[currentProp].h;
+                item.querySelector('p').innerText = props[currentProp].p;
+                item.style.opacity = '1';
+            }, 1000);
+        }, 6000);
+    </script>
+</body></html>

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Skinlytics — Analysis Step 4</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;family=Inter:wght@400;500&amp;family=JetBrains+Mono:wght@400;500&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;family=JetBrains+Mono:wght@100..900&amp;family=Manrope:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(17, 26, 46, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+        }
+        .glow-teal {
+            box-shadow: 0 0 20px rgba(45, 212, 191, 0.15);
+        }
+        .tap-highlight-transparent {
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* Custom range slider styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            background: #24304A;
+            border-radius: 2px;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            background: #3cddc7;
+            cursor: pointer;
+            margin-top: -7px;
+            box-shadow: 0 0 10px rgba(60, 221, 199, 0.5);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error": "#690005",
+                        "inverse-primary": "#565e74",
+                        "on-tertiary-container": "#009182",
+                        "secondary-container": "#0566d9",
+                        "primary-fixed": "#dae2fd",
+                        "on-tertiary-fixed": "#00201c",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "surface-bright": "#39393b",
+                        "inverse-on-surface": "#303032",
+                        "surface-dim": "#131315",
+                        "on-secondary-container": "#e6ecff",
+                        "on-tertiary-fixed-variant": "#005047",
+                        "background": "#131315",
+                        "on-tertiary": "#003731",
+                        "primary": "#bec6e0",
+                        "surface-container-lowest": "#0e0e10",
+                        "error-container": "#93000a",
+                        "error": "#ffb4ab",
+                        "inverse-surface": "#e4e2e4",
+                        "on-primary": "#283044",
+                        "surface-container-high": "#2a2a2b",
+                        "tertiary-fixed-dim": "#3cddc7",
+                        "tertiary-container": "#001c18",
+                        "surface-container-low": "#1b1b1d",
+                        "primary-container": "#0f172a",
+                        "surface-tint": "#bec6e0",
+                        "on-surface-variant": "#c6c6cd",
+                        "on-surface": "#e4e2e4",
+                        "secondary-fixed": "#d8e2ff",
+                        "on-background": "#e4e2e4",
+                        "surface-container-highest": "#353436",
+                        "secondary": "#adc6ff",
+                        "surface": "#131315",
+                        "tertiary-fixed": "#62fae3",
+                        "on-secondary-fixed": "#001a42",
+                        "outline-variant": "#45464d",
+                        "on-error-container": "#ffdad6",
+                        "secondary-fixed-dim": "#adc6ff",
+                        "on-primary-fixed": "#131b2e",
+                        "surface-container": "#1f1f21",
+                        "surface-variant": "#353436",
+                        "on-secondary": "#002e6a",
+                        "on-primary-container": "#798098",
+                        "primary-fixed-dim": "#bec6e0",
+                        "on-secondary-fixed-variant": "#004395",
+                        "outline": "#909097",
+                        "tertiary": "#3cddc7"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "max-width": "1280px",
+                        "margin-mobile": "16px",
+                        "gutter": "24px",
+                        "margin-desktop": "48px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Manrope"],
+                        "headline-md": ["Manrope"],
+                        "body-lg": ["Inter"],
+                        "headline-lg-mobile": ["Manrope"],
+                        "label-md": ["JetBrains Mono"],
+                        "display-lg": ["Manrope"],
+                        "label-sm": ["JetBrains Mono"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background font-body-md selection:bg-tertiary/30">
+<!-- Background Animation -->
+
+<!-- Top Navigation (Shell Implementation) -->
+<header class="fixed top-0 w-full z-50 bg-background/60 backdrop-blur-xl border-b border-white/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)]">
+<div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 w-full max-w-max-width mx-auto">
+<div class="font-headline-md text-headline-md font-bold text-primary">Skinlytics</div>
+<div class="hidden md:flex gap-8 items-center">
+<span class="font-label-md text-label-md text-on-surface-variant hover:text-tertiary transition-colors cursor-pointer">Science</span>
+<span class="font-label-md text-label-md text-on-surface-variant hover:text-tertiary transition-colors cursor-pointer">Treatment</span>
+<span class="font-label-md text-label-md text-on-surface-variant hover:text-tertiary transition-colors cursor-pointer">Results</span>
+<span class="font-label-md text-label-md text-on-surface-variant hover:text-tertiary transition-colors cursor-pointer">Journal</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden sm:flex flex-col items-end">
+<span class="font-label-sm text-label-sm text-on-surface-variant">STEP 4 OF 5</span>
+<div class="w-24 h-1 bg-surface-container rounded-full overflow-hidden mt-1">
+<div class="w-[80%] h-full bg-tertiary"></div>
+</div>
+</div>
+<button class="bg-primary-container text-primary font-label-md text-label-md px-4 py-2 rounded-lg border border-white/5 hover:border-tertiary/30 transition-all active:scale-95">Save Exit</button>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-32 px-margin-mobile md:px-margin-desktop max-w-max-width mx-auto">
+<!-- Progress Header -->
+<section class="mb-12">
+<h1 class="font-headline-lg text-headline-lg md:text-display-lg text-white mb-2">Sensitivities &amp; Lifestyle</h1>
+<p class="font-body-lg text-on-surface-variant max-w-2xl">Refine your profile with environmental and biometric data for medical-grade precision.</p>
+</section>
+<!-- Main Content Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Allergies Section -->
+<div class="md:col-span-7 glass-card p-8 rounded-xl">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-error" data-icon="emergency_home">emergency_home</span>
+<h2 class="font-headline-md text-headline-md">Known Allergies</h2>
+</div>
+<p class="text-on-surface-variant mb-6 font-body-md">Select any known ingredients that cause adverse reactions.</p>
+<div class="flex flex-wrap gap-3">
+<!-- Allergy Tags -->
+<label class="group relative cursor-pointer">
+<input checked="" class="peer hidden" type="checkbox"/>
+<div class="px-4 py-2 rounded-full border border-outline-variant bg-surface-container-low text-on-surface-variant peer-checked:bg-tertiary peer-checked:text-on-tertiary peer-checked:border-tertiary transition-all font-label-md text-label-md">Fragrance</div>
+</label>
+<label class="group relative cursor-pointer">
+<input class="peer hidden" type="checkbox"/>
+<div class="px-4 py-2 rounded-full border border-outline-variant bg-surface-container-low text-on-surface-variant peer-checked:bg-tertiary peer-checked:text-on-tertiary peer-checked:border-tertiary transition-all font-label-md text-label-md">Essential oils</div>
+</label>
+<label class="group relative cursor-pointer">
+<input class="peer hidden" type="checkbox"/>
+<div class="px-4 py-2 rounded-full border border-outline-variant bg-surface-container-low text-on-surface-variant peer-checked:bg-tertiary peer-checked:text-on-tertiary peer-checked:border-tertiary transition-all font-label-md text-label-md">Lanolin</div>
+</label>
+<label class="group relative cursor-pointer">
+<input checked="" class="peer hidden" type="checkbox"/>
+<div class="px-4 py-2 rounded-full border border-outline-variant bg-surface-container-low text-on-surface-variant peer-checked:bg-tertiary peer-checked:text-on-tertiary peer-checked:border-tertiary transition-all font-label-md text-label-md">Sulfates</div>
+</label>
+<label class="group relative cursor-pointer">
+<input class="peer hidden" type="checkbox"/>
+<div class="px-4 py-2 rounded-full border border-outline-variant bg-surface-container-low text-on-surface-variant peer-checked:bg-tertiary peer-checked:text-on-tertiary peer-checked:border-tertiary transition-all font-label-md text-label-md">Nuts</div>
+</label>
+<button class="px-4 py-2 rounded-full border border-dashed border-outline-variant text-on-surface-variant flex items-center gap-2 hover:border-tertiary hover:text-tertiary transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="add">add</span>
+<span class="font-label-md text-label-md">Add other</span>
+</button>
+</div>
+</div>
+<!-- Sensitivities Toggles -->
+<div class="md:col-span-5 glass-card p-8 rounded-xl flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-secondary" data-icon="medical_mask">medical_mask</span>
+<h2 class="font-headline-md text-headline-md">Sensitivities</h2>
+</div>
+<div class="space-y-6">
+<div class="flex items-center justify-between group">
+<span class="font-body-md text-on-surface">Reacts to actives</span>
+<button class="w-12 h-6 rounded-full bg-surface-container-highest relative transition-colors" onclick="this.classList.toggle('bg-tertiary')">
+<div class="absolute left-1 top-1 w-4 h-4 rounded-full bg-white transition-transform transform translate-x-0 group-active:scale-90" id="toggle-1"></div>
+</button>
+</div>
+<div class="flex items-center justify-between group">
+<span class="font-body-md text-on-surface">Sun-sensitive</span>
+<button class="w-12 h-6 rounded-full bg-tertiary relative transition-colors" onclick="this.classList.toggle('bg-tertiary')">
+<div class="absolute left-1 top-1 w-4 h-4 rounded-full bg-white transition-transform transform translate-x-6 group-active:scale-90"></div>
+</button>
+</div>
+<div class="flex items-center justify-between group">
+<span class="font-body-md text-on-surface">Redness-prone</span>
+<button class="w-12 h-6 rounded-full bg-surface-container-highest relative transition-colors" onclick="this.classList.toggle('bg-tertiary')">
+<div class="absolute left-1 top-1 w-4 h-4 rounded-full bg-white transition-transform transform translate-x-0 group-active:scale-90"></div>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Lifestyle - Sleep & Stress -->
+<div class="md:col-span-6 glass-card p-8 rounded-xl">
+<div class="flex items-center gap-3 mb-8">
+<span class="material-symbols-outlined text-tertiary" data-icon="bedtime">bedtime</span>
+<h2 class="font-headline-md text-headline-md">Rest &amp; Stress</h2>
+</div>
+<div class="space-y-10">
+<!-- Sleep Hours -->
+<div>
+<div class="flex justify-between mb-4">
+<label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Sleep Hours</label>
+<span class="font-label-md text-label-md text-tertiary" id="sleep-val">7.5 hrs</span>
+</div>
+<input class="w-full" max="12" min="4" oninput="document.getElementById('sleep-val').innerText = this.value + ' hrs'" step="0.5" type="range" value="7.5"/>
+</div>
+<!-- Stress Slider -->
+<div>
+<div class="flex justify-between mb-4">
+<label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Stress Levels</label>
+<span class="font-label-md text-label-md text-secondary" id="stress-label">Moderate</span>
+</div>
+<input class="w-full" max="5" min="1" oninput="const labels=['Low','Mild','Moderate','High','Critical']; document.getElementById('stress-label').innerText = labels[this.value-1]" step="1" type="range" value="3"/>
+</div>
+<!-- Quality Select -->
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-2">
+<label class="font-label-sm text-label-sm text-on-surface-variant">Sleep Quality</label>
+<select class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 text-on-surface font-body-md focus:outline-none focus:border-tertiary">
+<option>Restorative</option>
+<option selected="">Fragmented</option>
+<option>Insomnia</option>
+</select>
+</div>
+<div class="space-y-2">
+<label class="font-label-sm text-label-sm text-on-surface-variant">Sun Exposure</label>
+<select class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 text-on-surface font-body-md focus:outline-none focus:border-tertiary">
+<option>Low (Indoor)</option>
+<option selected="">Moderate</option>
+<option>High (Outdoor)</option>
+</select>
+</div>
+</div>
+</div>
+</div>
+<!-- Lifestyle - Hydration & Environment -->
+<div class="md:col-span-6 glass-card p-8 rounded-xl flex flex-col">
+<div class="flex items-center gap-3 mb-8">
+<span class="material-symbols-outlined text-secondary" data-icon="water_drop">water_drop</span>
+<h2 class="font-headline-md text-headline-md">Hydration &amp; Environment</h2>
+</div>
+<div class="flex-grow space-y-10">
+<!-- Water Stepper -->
+<div class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-xl border border-white/5">
+<div>
+<span class="block font-label-md text-label-md text-on-surface-variant">Daily Water Intake</span>
+<span class="text-headline-md font-headline-md text-white"><span id="water-count">6</span> / 8 <span class="text-label-sm text-on-surface-variant">glasses</span></span>
+</div>
+<div class="flex items-center gap-3">
+<button class="w-10 h-10 rounded-full border border-outline-variant flex items-center justify-center text-on-surface hover:bg-white/5" onclick="val=parseInt(document.getElementById('water-count').innerText); if(val&gt;0) document.getElementById('water-count').innerText=val-1">-</button>
+<button class="w-10 h-10 rounded-full bg-secondary/20 border border-secondary/50 flex items-center justify-center text-secondary hover:bg-secondary/30" onclick="val=parseInt(document.getElementById('water-count').innerText); document.getElementById('water-count').innerText=val+1">+</button>
+</div>
+</div>
+<!-- Environment Pills -->
+<div>
+<label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider block mb-4">Daily Environment</label>
+<div class="grid grid-cols-2 gap-3">
+<button class="flex items-center gap-3 p-3 rounded-xl border border-tertiary bg-tertiary/10 text-tertiary font-label-md">
+<span class="material-symbols-outlined text-[20px]" data-icon="apartment">apartment</span> Urban
+                            </button>
+<button class="flex items-center gap-3 p-3 rounded-xl border border-outline-variant hover:border-on-surface-variant transition-colors text-on-surface-variant font-label-md">
+<span class="material-symbols-outlined text-[20px]" data-icon="waves">waves</span> Coastal
+                            </button>
+<button class="flex items-center gap-3 p-3 rounded-xl border border-outline-variant hover:border-on-surface-variant transition-colors text-on-surface-variant font-label-md">
+<span class="material-symbols-outlined text-[20px]" data-icon="wb_sunny">wb_sunny</span> Dry
+                            </button>
+<button class="flex items-center gap-3 p-3 rounded-xl border border-outline-variant hover:border-on-surface-variant transition-colors text-on-surface-variant font-label-md">
+<span class="material-symbols-outlined text-[20px]" data-icon="cloud">cloud</span> Humid
+                            </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Detail Imagery Placeholder -->
+<div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6 h-64">
+<div class="rounded-xl overflow-hidden relative group">
+<img class="w-full h-full object-cover" data-alt="A macro close-up of high-quality, glowing human skin with a subtle teal lighting effect, emphasizing a healthy and hydrated dermal texture. The style is clinical yet luxurious, set against a dark, deep navy studio background with soft-focus bokeh elements that mimic microscopic biological structures. The overall mood is futuristic, medical, and high-precision." src="source/images/assessment-step-4-lifestyle/img_000_ebd7ac9c.jpg"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background to-transparent opacity-60"></div>
+<div class="absolute bottom-6 left-6">
+<span class="font-label-sm text-label-sm text-tertiary uppercase mb-1 block">Texture Analysis</span>
+<span class="font-headline-md text-headline-md text-white">Biological Focus</span>
+</div>
+</div>
+<div class="rounded-xl overflow-hidden relative group">
+<img class="w-full h-full object-cover" data-alt="A sophisticated glass-beaker filled with clear serum, surrounded by soft teal neon lighting and floating air bubbles. The aesthetic is ultra-modern laboratory at night, featuring deep blacks and luminescent accents of blue and turquoise. The scene suggests high-end scientific research and botanical extraction, maintaining a minimal and professional clinical atmosphere." src="source/images/assessment-step-4-lifestyle/img_001_88ad4d0a.jpg"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background to-transparent opacity-60"></div>
+<div class="absolute bottom-6 left-6">
+<span class="font-label-sm text-label-sm text-secondary uppercase mb-1 block">Ingredient Safety</span>
+<span class="font-headline-md text-headline-md text-white">Molecular Screening</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Sticky Glass Footer -->
+<footer class="fixed bottom-0 left-0 w-full z-50 bg-background/80 backdrop-blur-2xl border-t border-white/10 shadow-2xl h-20 flex items-center">
+<div class="max-w-max-width mx-auto w-full px-margin-mobile md:px-margin-desktop flex justify-between items-center">
+<button class="flex items-center gap-2 text-on-surface-variant hover:text-white transition-colors group">
+<span class="material-symbols-outlined group-active:-translate-x-1 transition-transform" data-icon="arrow_back">arrow_back</span>
+<span class="font-label-md text-label-md">Previous Step</span>
+</button>
+<div class="flex items-center gap-6">
+<div class="hidden sm:flex items-center gap-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Step 4/5</span>
+<div class="flex gap-1">
+<div class="w-1.5 h-1.5 rounded-full bg-tertiary"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-tertiary"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-tertiary"></div>
+<div class="w-4 h-1.5 rounded-full bg-tertiary"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-surface-container-highest"></div>
+</div>
+</div>
+<button class="bg-tertiary text-on-tertiary font-label-md text-label-md px-8 h-12 rounded-lg font-bold glow-teal flex items-center gap-2 hover:brightness-110 active:scale-95 transition-all">
+                    Final Analysis
+                    <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+</footer>
+<!-- Bottom Nav for Mobile Context (Shared Component Implementation) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 bg-background/80 backdrop-blur-2xl flex justify-around items-center h-20 px-4 pb-safe border-t border-white/10 shadow-2xl">
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all tap-highlight-transparent active:scale-95">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-sm text-label-sm">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center text-tertiary drop-shadow-[0_0_10px_rgba(60,221,199,0.4)] tap-highlight-transparent active:scale-95">
+<span class="material-symbols-outlined" data-icon="biometric_omni" style="font-variation-settings: 'FILL' 1;">book_ribbon</span>
+<span class="font-label-sm text-label-sm">Analysis</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all tap-highlight-transparent active:scale-95">
+<span class="material-symbols-outlined" data-icon="spa">spa</span>
+<span class="font-label-sm text-label-sm">Routine</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all tap-highlight-transparent active:scale-95">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</div>
+</nav>
+<script>
+        // Simple micro-interaction for toggle switches
+        document.querySelectorAll('button[onclick*="toggle"]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const dot = btn.querySelector('div');
+                if (btn.classList.contains('bg-tertiary')) {
+                    dot.style.transform = 'translateX(24px)';
+                } else {
+                    dot.style.transform = 'translateX(0px)';
+                }
+            });
+        });
+    </script>
+</body></html>

@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>User Management | Skinlytics Admin (Dark)</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=JetBrains+Mono:wght@100..900&family=Manrope:wght@100..900&display=swap" rel="stylesheet"/>
+<style>
+        .glass-surface {
+            background: rgba(17, 26, 46, 0.68);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+        }
+        .glow-teal {
+            box-shadow: 0 0 20px rgba(45, 212, 191, 0.1);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #131315;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #353436;
+            border-radius: 10px;
+        }
+        .side-drawer {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .drawer-hidden {
+            transform: translateX(100%);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-low": "#1b1b1d",
+                        "inverse-surface": "#e4e2e4",
+                        "surface": "#131315",
+                        "on-primary-fixed": "#131b2e",
+                        "secondary-container": "#0566d9",
+                        "secondary": "#adc6ff",
+                        "primary-fixed": "#dae2fd",
+                        "background": "#131315",
+                        "secondary-fixed-dim": "#adc6ff",
+                        "error": "#ffb4ab",
+                        "outline": "#909097",
+                        "on-background": "#e4e2e4",
+                        "surface-container-high": "#2a2a2b",
+                        "on-secondary-fixed": "#001a42",
+                        "on-error": "#690005",
+                        "inverse-primary": "#565e74",
+                        "primary": "#bec6e0",
+                        "surface-dim": "#131315",
+                        "surface-container-highest": "#353436",
+                        "on-tertiary-fixed-variant": "#005047",
+                        "on-surface": "#e4e2e4",
+                        "on-secondary-container": "#e6ecff",
+                        "surface-variant": "#353436",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "surface-container": "#1f1f21",
+                        "primary-container": "#0f172a",
+                        "error-container": "#93000a",
+                        "surface-tint": "#bec6e0",
+                        "tertiary-fixed-dim": "#3cddc7",
+                        "on-tertiary-fixed": "#00201c",
+                        "on-primary": "#283044",
+                        "on-secondary": "#002e6a",
+                        "tertiary": "#3cddc7",
+                        "surface-bright": "#39393b",
+                        "on-surface-variant": "#c6c6cd",
+                        "on-secondary-fixed-variant": "#004395",
+                        "on-tertiary-container": "#009182",
+                        "secondary-fixed": "#d8e2ff",
+                        "on-primary-container": "#798098",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary": "#003731",
+                        "tertiary-fixed": "#62fae3",
+                        "surface-container-lowest": "#0e0e10",
+                        "outline-variant": "#45464d",
+                        "tertiary-container": "#001c18",
+                        "primary-fixed-dim": "#bec6e0",
+                        "inverse-on-surface": "#303032"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "max-width": "1280px",
+                        "margin-mobile": "16px",
+                        "gutter": "24px",
+                        "unit": "4px",
+                        "margin-desktop": "48px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Manrope"],
+                        "body-md": ["Inter"],
+                        "label-md": ["JetBrains Mono"]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen overflow-x-hidden">
+<!-- Sidebar Navigation Shell -->
+<aside class="fixed left-0 top-0 h-full w-64 bg-white/68 backdrop-blur-[20px] saturate-[160%] border-r border-outline-variant/10 flex flex-col p-6 z-50">
+<div class="mb-10">
+<h1 class="font-headline-lg text-headline-lg font-bold text-primary tracking-tight">Skinlytics</h1>
+<p class="text-[10px] uppercase tracking-widest text-on-primary-container font-semibold mt-1">AI Intelligence</p>
+</div>
+<nav class="flex-1 space-y-2">
+<div class="group flex items-center px-4 py-3 text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-lg cursor-pointer">
+<span class="material-symbols-outlined mr-3">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</div>
+<div class="group flex items-center px-4 py-3 bg-secondary/10 text-secondary border-r-4 border-secondary transition-colors rounded-lg cursor-pointer">
+<span class="material-symbols-outlined mr-3">person</span>
+<span class="font-label-md text-label-md">Users</span>
+</div>
+<div class="group flex items-center px-4 py-3 text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-lg cursor-pointer">
+<span class="material-symbols-outlined mr-3">clinical_notes</span>
+<span class="font-label-md text-label-md">Consultants</span>
+</div>
+<div class="group flex items-center px-4 py-3 text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-lg cursor-pointer">
+<span class="material-symbols-outlined mr-3">science</span>
+<span class="font-label-md text-label-md">Analyses</span>
+</div>
+<div class="group flex items-center px-4 py-3 text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-lg cursor-pointer">
+<span class="material-symbols-outlined mr-3">analytics</span>
+<span class="font-label-md text-label-md">Insights</span>
+</div>
+<div class="group flex items-center px-4 py-3 text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-lg cursor-pointer">
+<span class="material-symbols-outlined mr-3">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</div>
+</nav>
+<div class="mt-auto pt-6 border-t border-outline-variant/10 space-y-2">
+<div class="group flex items-center px-4 py-2 text-on-surface-variant hover:text-secondary transition-colors cursor-pointer">
+<span class="material-symbols-outlined mr-3 text-[20px]">help</span>
+<span class="font-label-md text-label-md">Support</span>
+</div>
+<div class="flex items-center px-4 py-2 mt-4">
+<div class="w-8 h-8 rounded-full bg-primary-container border border-outline-variant/20 flex items-center justify-center text-primary font-bold text-xs">AD</div>
+<div class="ml-3 overflow-hidden">
+<p class="text-xs font-bold truncate">Admin User</p>
+<p class="text-[10px] text-on-surface-variant">System Master</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 flex-1">
+<!-- Top App Bar -->
+<header class="sticky top-0 z-40 bg-white/68 backdrop-blur-[20px] saturate-[160%] border-b border-outline-variant/8 flex justify-between items-center px-10 py-4 h-20">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full bg-surface-container border border-outline-variant/20 rounded-xl py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-secondary/20 focus:outline-none focus:border-secondary/40 transition-all text-on-surface" placeholder="Search by name, email, or role..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-on-surface-variant hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined">wb_sunny</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:opacity-80 transition-opacity relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-tertiary rounded-full ring-2 ring-background"></span>
+</button>
+<button class="ml-4 bg-primary text-on-primary px-6 py-2 rounded-lg font-bold text-sm hover:opacity-90 transition-all shadow-lg glow-teal">
+                    Add New User
+                </button>
+</div>
+</header>
+<!-- Content Canvas -->
+<section class="p-10 space-y-8">
+<!-- Header & Stats Grid -->
+<div class="flex justify-between items-end">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">User Management</h2>
+<p class="text-on-surface-variant mt-1">Review, manage, and verify clinical professionals in your ecosystem.</p>
+</div>
+<div class="flex gap-4">
+<button class="flex items-center gap-2 px-4 py-2 border border-outline-variant/20 rounded-lg text-sm font-medium hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+                        Filter
+                    </button>
+<button class="flex items-center gap-2 px-4 py-2 border border-outline-variant/20 rounded-lg text-sm font-medium hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[18px]">file_download</span>
+                        Export
+                    </button>
+</div>
+</div>
+<!-- Dashboard Stats Bento -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+<div class="glass-surface p-6 rounded-2xl">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-secondary bg-secondary/10 p-2 rounded-lg">group</span>
+<span class="text-tertiary font-label-md text-[10px] px-2 py-1 bg-tertiary/10 rounded-full">+12%</span>
+</div>
+<p class="text-on-surface-variant font-label-md text-xs uppercase tracking-wider">Total Users</p>
+<h3 class="text-3xl font-bold mt-1">12,842</h3>
+</div>
+<div class="glass-surface p-6 rounded-2xl">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-tertiary bg-tertiary/10 p-2 rounded-lg">verified</span>
+<span class="text-tertiary font-label-md text-[10px] px-2 py-1 bg-tertiary/10 rounded-full">New</span>
+</div>
+<p class="text-on-surface-variant font-label-md text-xs uppercase tracking-wider">Pending Verification</p>
+<h3 class="text-3xl font-bold mt-1">142</h3>
+</div>
+<div class="glass-surface p-6 rounded-2xl">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-secondary bg-secondary/10 p-2 rounded-lg">bolt</span>
+<span class="text-on-surface-variant font-label-md text-[10px] px-2 py-1 bg-surface-container rounded-full">Avg</span>
+</div>
+<p class="text-on-surface-variant font-label-md text-xs uppercase tracking-wider">Active Today</p>
+<h3 class="text-3xl font-bold mt-1">3,201</h3>
+</div>
+<div class="glass-surface p-6 rounded-2xl border-error/20">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-error bg-error/10 p-2 rounded-lg">warning</span>
+</div>
+<p class="text-on-surface-variant font-label-md text-xs uppercase tracking-wider">Suspended Accounts</p>
+<h3 class="text-3xl font-bold mt-1">28</h3>
+</div>
+</div>
+<!-- Table Section -->
+<div class="glass-surface rounded-2xl overflow-hidden">
+<!-- Bulk Actions Toolbar -->
+<div class="px-6 py-4 border-b border-outline-variant/10 flex items-center justify-between bg-surface-container-low/50">
+<div class="flex items-center gap-4">
+<input class="rounded border-outline-variant/30 bg-transparent text-secondary focus:ring-secondary" type="checkbox"/>
+<span class="text-xs font-semibold text-on-surface-variant">2 Users Selected</span>
+<div class="h-4 w-px bg-outline-variant/20 mx-2"></div>
+<button class="text-xs font-bold text-error flex items-center gap-1 hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined text-[16px]">block</span> Suspend
+                        </button>
+<button class="text-xs font-bold text-on-surface-variant flex items-center gap-1 hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined text-[16px]">mail</span> Message
+                        </button>
+</div>
+<div class="text-xs text-on-surface-variant font-label-md">
+                        Showing 1-10 of 12,842
+                    </div>
+</div>
+<!-- Main Data Table -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="text-on-surface-variant font-label-md text-[11px] uppercase tracking-widest border-b border-outline-variant/10">
+<th class="px-6 py-4 w-12"></th>
+<th class="px-6 py-4">User Profile</th>
+<th class="px-6 py-4">Role</th>
+<th class="px-6 py-4">Status</th>
+<th class="px-6 py-4">Last Activity</th>
+<th class="px-6 py-4 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-low/40 transition-colors group">
+<td class="px-6 py-4"><input class="rounded border-outline-variant/30 bg-transparent text-secondary focus:ring-secondary" type="checkbox"/></td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full border border-secondary/20 bg-cover bg-center" data-alt="Close-up professional headshot of a female clinical researcher in her late 30s wearing a crisp white laboratory coat and glasses. She has a warm, confident smile against a minimalist, softly blurred medical clinic background with cool teal lighting. The portrait is high-resolution, evoking professional trust and medical-grade precision." style="background-image: url('source/images/admin-users/img_000_67c7ca10.jpg')"></div>
+<div>
+<p class="font-bold text-sm text-on-surface">Dr. Elena Rodriguez</p>
+<p class="text-[11px] text-on-surface-variant font-label-md">elena.r@dermatol.com</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="bg-primary-container text-primary text-[10px] font-bold px-2 py-0.5 rounded-full border border-primary/20">Dermatologist</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary shadow-[0_0_8px_rgba(60,221,199,0.5)]"></span>
+<span class="text-xs font-medium text-tertiary">Active</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<p class="text-xs text-on-surface-variant">14 mins ago</p>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-2 text-on-surface-variant hover:text-secondary hover:bg-secondary/10 rounded-lg transition-all" onclick="toggleDrawer()">
+<span class="material-symbols-outlined">description</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-on-surface rounded-lg transition-all">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low/40 transition-colors group">
+<td class="px-6 py-4"><input checked="" class="rounded border-outline-variant/30 bg-transparent text-secondary focus:ring-secondary" type="checkbox"/></td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full border border-secondary/20 bg-cover bg-center" data-alt="Studio portrait of a male skincare specialist in his 40s. He is wearing a minimalist dark navy professional tunic. The lighting is dramatic but clean, highlighting a thoughtful expression. The background is a sleek, dark grey textured wall that complements the Skinlytics dark mode aesthetic. High-end lifestyle photography style." style="background-image: url('source/images/admin-users/img_001_f4085034.jpg')"></div>
+<div>
+<p class="font-bold text-sm text-on-surface">Julian Vance</p>
+<p class="text-[11px] text-on-surface-variant font-label-md">j.vance@skinlytics.io</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="bg-surface-container-highest text-on-surface-variant text-[10px] font-bold px-2 py-0.5 rounded-full border border-outline-variant/20">Researcher</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-error shadow-[0_0_8px_rgba(255,180,171,0.5)]"></span>
+<span class="text-xs font-medium text-error">Suspended</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<p class="text-xs text-on-surface-variant">3 days ago</p>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-2 text-on-surface-variant hover:text-secondary hover:bg-secondary/10 rounded-lg transition-all">
+<span class="material-symbols-outlined">description</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-on-surface rounded-lg transition-all">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low/40 transition-colors group">
+<td class="px-6 py-4"><input checked="" class="rounded border-outline-variant/30 bg-transparent text-secondary focus:ring-secondary" type="checkbox"/></td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full border border-secondary/20 bg-cover bg-center" data-alt="Professional headshot of a younger female lab technician with dark hair tied back. She is wearing blue surgical scrubs and a stethoscope is visible around her neck. The setting is a brightly lit, high-tech laboratory with stainless steel surfaces and glass partitions reflecting soft teal and blue light. Clinical and authoritative atmosphere." style="background-image: url('source/images/admin-users/img_002_5b874465.jpg')"></div>
+<div>
+<p class="font-bold text-sm text-on-surface">Sarah Chen</p>
+<p class="text-[11px] text-on-surface-variant font-label-md">schen@healthhub.org</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="bg-secondary-container/20 text-secondary text-[10px] font-bold px-2 py-0.5 rounded-full border border-secondary/20">Nurse Practitioner</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-1.5 text-on-primary-container">
+<span class="material-symbols-outlined text-[14px]">pending</span>
+<span class="text-xs font-medium">Pending Verification</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<p class="text-xs text-on-surface-variant">2 hours ago</p>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-2 text-secondary hover:bg-secondary/10 rounded-lg transition-all animate-pulse" onclick="toggleDrawer()">
+<span class="material-symbols-outlined">verified_user</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-on-surface rounded-lg transition-all">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-low/40 transition-colors group">
+<td class="px-6 py-4"><input class="rounded border-outline-variant/30 bg-transparent text-secondary focus:ring-secondary" type="checkbox"/></td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full border border-secondary/20 bg-cover bg-center" data-alt="Portrait of an older male doctor in his 60s with grey hair and a friendly, wise expression. He is wearing a professional suit with a medical white coat over it. He is standing in a luxury clinic corridor with warm wooden accents and modern art on the walls. The lighting is soft and flattering, emphasizing his experience and trustworthiness." style="background-image: url('source/images/admin-users/img_003_91bb05e8.jpg')"></div>
+<div>
+<p class="font-bold text-sm text-on-surface">Dr. Michael Thorne</p>
+<p class="text-[11px] text-on-surface-variant font-label-md">m.thorne@mayoclinic.pro</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="bg-primary-container text-primary text-[10px] font-bold px-2 py-0.5 rounded-full border border-primary/20">Dermatologist</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary shadow-[0_0_8px_rgba(60,221,199,0.5)]"></span>
+<span class="text-xs font-medium text-tertiary">Active</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<p class="text-xs text-on-surface-variant">Just now</p>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-2 text-on-surface-variant hover:text-secondary hover:bg-secondary/10 rounded-lg transition-all">
+<span class="material-symbols-outlined">description</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-on-surface rounded-lg transition-all">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="px-6 py-4 flex items-center justify-between border-t border-outline-variant/10">
+<button class="text-xs font-bold text-on-surface-variant hover:text-on-surface disabled:opacity-30 flex items-center gap-2" disabled="">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span> Previous
+                    </button>
+<div class="flex gap-2">
+<button class="w-8 h-8 rounded bg-secondary/20 text-secondary font-bold text-xs border border-secondary/30">1</button>
+<button class="w-8 h-8 rounded hover:bg-surface-container-high text-on-surface-variant font-bold text-xs">2</button>
+<button class="w-8 h-8 rounded hover:bg-surface-container-high text-on-surface-variant font-bold text-xs">3</button>
+<span class="flex items-end px-1 text-on-surface-variant">...</span>
+<button class="w-8 h-8 rounded hover:bg-surface-container-high text-on-surface-variant font-bold text-xs">1,284</button>
+</div>
+<button class="text-xs font-bold text-on-surface-variant hover:text-on-surface flex items-center gap-2">
+                        Next <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Footer Shell -->
+<footer class="w-full py-12 px-10 border-t border-outline-variant/8 flex flex-col md:flex-row justify-between items-center gap-6 mt-12 bg-background">
+<div class="flex flex-col items-center md:items-start">
+<span class="font-headline-lg text-headline-lg font-bold text-primary mb-2">Skinlytics</span>
+<p class="font-label-md text-label-md text-on-surface-variant">© 2024 Skinlytics AI. HIPAA Compliant Platform.</p>
+</div>
+<div class="flex gap-8 text-on-surface-variant font-label-md text-label-md">
+<a class="hover:text-secondary transition-colors" href="#">Privacy Policy</a>
+<a class="hover:text-secondary transition-colors" href="#">Terms of Service</a>
+<a class="hover:text-secondary transition-colors" href="#">HIPAA Compliance</a>
+<a class="hover:text-secondary transition-colors" href="#">Medical Disclaimer</a>
+</div>
+</footer>
+</main>
+<!-- Professional Verification Side Drawer -->
+<div class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] hidden" id="overlay" onclick="toggleDrawer()"></div>
+<aside class="side-drawer drawer-hidden fixed right-0 top-0 h-full w-[450px] glass-surface z-[70] p-8 flex flex-col shadow-2xl" id="drawer">
+<div class="flex justify-between items-center mb-8">
+<h3 class="font-headline-lg text-2xl font-bold">Verification Request</h3>
+<button class="p-2 text-on-surface-variant hover:text-on-surface transition-colors" onclick="toggleDrawer()">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="flex-1 overflow-y-auto space-y-8 pr-2">
+<!-- Professional Identity -->
+<div class="space-y-4">
+<div class="flex items-center gap-4">
+<div class="w-20 h-20 rounded-2xl border-2 border-secondary/30 bg-cover bg-center" data-alt="Professional profile photo of a nurse practitioner candidate, Sarah Chen. She has a confident and welcoming smile, wearing blue medical scrubs. High-resolution studio lighting with a clean, neutral background that fits the professional clinical verification theme." style="background-image: url('source/images/admin-users/img_004_65804763.jpg')"></div>
+<div>
+<h4 class="text-xl font-bold">Sarah Chen</h4>
+<p class="text-secondary font-medium">Nurse Practitioner (Pending)</p>
+<p class="text-xs text-on-surface-variant font-label-md mt-1">Applied: Oct 12, 2024</p>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="p-4 bg-surface-container rounded-xl border border-outline-variant/10">
+<p class="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold mb-1">License ID</p>
+<p class="font-label-md text-sm">NP-883921-X</p>
+</div>
+<div class="p-4 bg-surface-container rounded-xl border border-outline-variant/10">
+<p class="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold mb-1">Institution</p>
+<p class="font-label-md text-sm">HealthHub Org</p>
+</div>
+</div>
+</div>
+<!-- Documents -->
+<div class="space-y-4">
+<h5 class="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Submitted Credentials</h5>
+<div class="group relative rounded-xl border border-outline-variant/20 overflow-hidden cursor-pointer">
+<div class="h-48 bg-surface-container-highest/50 flex flex-col items-center justify-center p-4">
+<span class="material-symbols-outlined text-4xl text-on-surface-variant mb-2">assignment_ind</span>
+<p class="text-xs font-medium text-on-surface-variant">Medical License Document.pdf</p>
+<div class="absolute inset-0 bg-secondary/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-secondary">visibility</span>
+</div>
+</div>
+</div>
+<div class="group relative rounded-xl border border-outline-variant/20 overflow-hidden cursor-pointer">
+<div class="h-48 bg-surface-container-highest/50 flex flex-col items-center justify-center p-4">
+<span class="material-symbols-outlined text-4xl text-on-surface-variant mb-2">badge</span>
+<p class="text-xs font-medium text-on-surface-variant">Government_ID_Verification.png</p>
+<div class="absolute inset-0 bg-secondary/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-secondary">visibility</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Verification History -->
+<div class="space-y-3">
+<h5 class="text-sm font-bold uppercase tracking-widest text-on-surface-variant">System Integrity Checks</h5>
+<div class="flex items-center justify-between p-3 bg-surface-container-low rounded-lg border border-outline-variant/10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-tertiary">check_circle</span>
+<span class="text-xs">Database Cross-Reference</span>
+</div>
+<span class="text-[10px] font-label-md text-tertiary">MATCHED</span>
+</div>
+<div class="flex items-center justify-between p-3 bg-surface-container-low rounded-lg border border-outline-variant/10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-tertiary">check_circle</span>
+<span class="text-xs">Identity Spoofing Scan</span>
+</div>
+<span class="text-[10px] font-label-md text-tertiary">CLEAR</span>
+</div>
+<div class="flex items-center justify-between p-3 bg-surface-container-low rounded-lg border border-error/20">
+<div class="flex items-center gap-3 text-on-surface">
+<span class="material-symbols-outlined text-error">info</span>
+<span class="text-xs">Physical Signature Check</span>
+</div>
+<span class="text-[10px] font-label-md text-error">PENDING</span>
+</div>
+</div>
+</div>
+<div class="mt-8 pt-6 border-t border-outline-variant/10 flex gap-4">
+<button class="flex-1 px-4 py-3 border border-error/20 text-error font-bold rounded-xl hover:bg-error/5 transition-colors">
+                Reject Access
+            </button>
+<button class="flex-1 px-4 py-3 bg-tertiary text-on-tertiary font-bold rounded-xl shadow-lg glow-teal hover:opacity-90 transition-opacity">
+                Verify Professional
+            </button>
+</div>
+</aside>
+<script>
+        function toggleDrawer() {
+            const drawer = document.getElementById('drawer');
+            const overlay = document.getElementById('overlay');
+            drawer.classList.toggle('drawer-hidden');
+            overlay.classList.toggle('hidden');
+        }
+
+        // Add some subtle hover effects to table rows via JS for extra polish
+        document.querySelectorAll('tbody tr').forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                row.querySelector('td:last-child').classList.add('opacity-100');
+            });
+        });
+
+        // Simulating the "Search" micro-interaction
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput.addEventListener('focus', () => {
+            searchInput.parentElement.classList.add('scale-[1.02]');
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.parentElement.classList.remove('scale-[1.02]');
+        });
+    </script>
+</body></html>

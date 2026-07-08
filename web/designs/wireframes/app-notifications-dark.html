@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Notifications &amp; Reminders | Skinlytics AI</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: Sora, Inter, Geist -->
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Geist:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(13, 20, 36, 0.62);
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+        }
+        .diagnostic-module {
+            background: #111A2E;
+            border: 1px solid #24304A;
+            border-radius: 16px;
+            transition: all 0.2s ease-out;
+        }
+        .diagnostic-module:hover {
+            background: #1A2740;
+            transform: translateY(-2px);
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #F8FAFC;
+        }
+        .toggle-checkbox:checked + .toggle-label .toggle-dot {
+            transform: translateX(100%);
+            background-color: #0B1220;
+        }
+        /* Custom Scrollbar for Dark Mode */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0B1220;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #24304A;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #1A2740;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#4fdbc8",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed": "#2DD4BF",
+                        "secondary-fixed-dim": "#b4c5ff",
+                        "on-secondary-fixed-variant": "#003ea8",
+                        "on-primary-container": "#94A3B8",
+                        "primary-container": "#111A2E",
+                        "secondary": "#2563EB",
+                        "on-error": "#ffffff",
+                        "secondary-fixed": "#2563EB",
+                        "secondary-container": "#1E40AF",
+                        "primary-fixed-dim": "#bec6e0",
+                        "on-secondary-container": "#fefcff",
+                        "surface-container": "#1A2740",
+                        "surface-container-high": "#24304A",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-container": "#2DD4BF",
+                        "on-surface-variant": "#94A3B8",
+                        "inverse-surface": "#fcf8fa",
+                        "tertiary": "#2DD4BF",
+                        "surface-tint": "#2563EB",
+                        "on-primary-fixed": "#E6EDF7",
+                        "background": "#0B1220",
+                        "on-error-container": "#93000a",
+                        "on-primary": "#0B1220",
+                        "surface": "#111A2E",
+                        "on-surface": "#E6EDF7",
+                        "surface-container-highest": "#24304A",
+                        "on-secondary": "#ffffff",
+                        "surface-variant": "#1A2740",
+                        "inverse-primary": "#bec6e0",
+                        "on-background": "#E6EDF7",
+                        "on-tertiary": "#0B1220",
+                        "on-secondary-fixed": "#E6EDF7",
+                        "surface-dim": "#0B1220",
+                        "outline": "#24304A",
+                        "primary-fixed": "#F8FAFC",
+                        "on-primary-fixed-variant": "#94A3B8",
+                        "on-tertiary-fixed-variant": "#2DD4BF",
+                        "on-tertiary-fixed": "#E6EDF7",
+                        "inverse-on-surface": "#0B1220",
+                        "tertiary-container": "#111A2E",
+                        "surface-bright": "#1A2740",
+                        "primary": "#F8FAFC",
+                        "surface-container-low": "#111A2E",
+                        "surface-container-lowest": "#0B1220",
+                        "outline-variant": "#24304A"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "48px",
+                        "xl": "32px",
+                        "3xl": "64px",
+                        "sm": "8px",
+                        "base": "4px",
+                        "lg": "24px",
+                        "md": "16px",
+                        "gutter": "24px",
+                        "2xl": "48px",
+                        "xs": "4px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "h2": ["Sora"],
+                        "h1": ["Sora"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-caps": ["Geist"],
+                        "h3": ["Sora"],
+                        "data-display": ["Geist"]
+                    },
+                    "fontSize": {
+                        "h2": ["32px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "h1": ["40px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "h3": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "data-display": ["32px", {"lineHeight": "1.0", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md overflow-x-hidden">
+<!-- Ambient Background -->
+<div class="fixed inset-0 w-full h-full pointer-events-none z-0">
+    {{DATA:SCREEN:SCREEN_42}}
+</div>
+<!-- Side Navigation Shell -->
+<aside class="fixed left-0 top-0 h-screen w-64 z-40 bg-[rgba(13,20,36,0.62)] backdrop-blur-xl border-r border-outline flex flex-col py-lg">
+<div class="px-lg mb-3xl">
+<h1 class="font-h3 text-h3 font-bold text-primary">Skinlytics AI</h1>
+<p class="font-label-caps text-on-primary-container tracking-wider">CLINICAL PORTAL</p>
+</div>
+<nav class="flex-1 flex flex-col gap-1">
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">biotech</span>
+<span>Analyses</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">medical_services</span>
+<span>Consultants</span>
+</a>
+<!-- Active Tab -->
+<a class="bg-secondary/10 text-secondary border-r-4 border-secondary px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="px-lg mb-md">
+<button class="w-full py-md bg-primary text-on-primary rounded-full font-semibold flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-lg shadow-primary/10">
+<span class="material-symbols-outlined">add</span>
+            New Assessment
+        </button>
+</div>
+<div class="mt-auto border-t border-outline pt-md">
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">help</span>
+<span>Help Center</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span>Sign Out</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 min-h-screen pb-3xl relative z-10">
+<!-- Top App Bar -->
+<header class="sticky top-0 w-full z-30 bg-[rgba(13,20,36,0.62)] backdrop-blur-xl border-b border-outline flex justify-between items-center px-lg py-sm">
+<div class="flex items-center gap-md">
+<div class="relative">
+<span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-on-surface-variant text-body-md">search</span>
+</span>
+<input class="pl-10 pr-4 py-2 bg-surface-container/50 border-none rounded-full w-64 focus:ring-2 focus:ring-secondary/50 text-body-md text-on-surface placeholder-on-surface-variant transition-all" placeholder="Search data..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-lg">
+<div class="flex gap-md">
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-all">wb_sunny</button>
+<button class="material-symbols-outlined text-secondary transition-all">notifications</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-all">contrast</button>
+</div>
+<div class="h-8 w-8 rounded-full overflow-hidden bg-surface-container border border-outline">
+<img alt="User Profile" class="w-full h-full object-cover" src="source/images/app-notifications/img_000_8ead2d1a.jpg"/>
+</div>
+</div>
+</header>
+<!-- Notification Hub Content -->
+<div class="max-w-5xl mx-auto px-lg py-2xl">
+<div class="mb-xl">
+<h2 class="font-h2 text-h2 text-primary mb-xs">Notifications</h2>
+<p class="text-on-surface-variant">Stay updated on your skin health journey and routine consistency.</p>
+</div>
+<!-- Tabs Navigation -->
+<div class="flex gap-xl border-b border-outline mb-2xl">
+<button class="pb-md font-semibold text-secondary border-b-2 border-secondary transition-all" id="tab-inbox" onclick="switchTab('inbox')">
+                Inbox <span class="ml-2 px-2 py-0.5 bg-secondary/20 text-label-caps rounded-full text-secondary">4</span>
+</button>
+<button class="pb-md font-semibold text-on-surface-variant hover:text-primary transition-all border-b-2 border-transparent" id="tab-settings" onclick="switchTab('settings')">
+                Reminder Settings
+            </button>
+</div>
+<!-- Tab Content: Inbox -->
+<section class="space-y-xl" id="content-inbox">
+<!-- Today Group -->
+<div>
+<h3 class="font-label-caps text-on-surface-variant mb-md tracking-widest uppercase">Today</h3>
+<div class="space-y-md">
+<!-- Progress Alert -->
+<div class="diagnostic-module p-lg flex gap-md items-start group">
+<div class="p-2 rounded-xl bg-tertiary/20 text-tertiary">
+<span class="material-symbols-outlined">trending_up</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<h4 class="font-semibold text-primary">Analysis Improvement Detected</h4>
+<span class="text-label-caps text-on-surface-variant">10:24 AM</span>
+</div>
+<p class="text-on-surface-variant mt-1">Your latest scan shows a 12% improvement in hydration levels. Great work with the Ceramide routine!</p>
+</div>
+<div class="w-2 h-2 rounded-full bg-secondary mt-2 opacity-100 group-hover:scale-125 transition-transform"></div>
+</div>
+<!-- Replenishment Notice -->
+<div class="diagnostic-module p-lg flex gap-md items-start group">
+<div class="p-2 rounded-xl bg-secondary/20 text-secondary">
+<span class="material-symbols-outlined">shopping_cart</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<h4 class="font-semibold text-primary">Replenishment Alert</h4>
+<span class="text-label-caps text-on-surface-variant">08:15 AM</span>
+</div>
+<p class="text-on-surface-variant mt-1"><span class="font-semibold text-on-surface">SolarShield SPF</span> ~5 days left. Would you like to order a refill or explore alternatives?</p>
+<div class="mt-md flex gap-sm">
+<button class="px-md py-1.5 bg-primary text-on-primary rounded-full text-label-caps font-semibold shadow-sm">Order Refill</button>
+<button class="px-md py-1.5 border border-outline text-on-surface rounded-full text-label-caps font-semibold hover:bg-surface-container transition-colors">View Details</button>
+</div>
+</div>
+<div class="w-2 h-2 rounded-full bg-secondary mt-2"></div>
+</div>
+</div>
+</div>
+<!-- Earlier Group -->
+<div>
+<h3 class="font-label-caps text-on-surface-variant mb-md tracking-widest uppercase">Yesterday</h3>
+<div class="space-y-md">
+<!-- Hydration Nudge -->
+<div class="diagnostic-module p-lg flex gap-md items-start opacity-75 hover:opacity-100 transition-opacity">
+<div class="p-2 rounded-xl bg-surface-container text-on-surface-variant">
+<span class="material-symbols-outlined">water_drop</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<h4 class="font-semibold text-primary">Hydration Nudge</h4>
+<span class="text-label-caps text-on-surface-variant">4:30 PM</span>
+</div>
+<p class="text-on-surface-variant mt-1">Mid-day check-in: Remember to drink 500ml of water to support your skin barrier recovery.</p>
+</div>
+</div>
+<!-- Routine Reminder -->
+<div class="diagnostic-module p-lg flex gap-md items-start opacity-75 hover:opacity-100 transition-opacity">
+<div class="p-2 rounded-xl bg-surface-container text-on-surface-variant">
+<span class="material-symbols-outlined">routine</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<h4 class="font-semibold text-primary">Evening Routine Logged</h4>
+<span class="text-label-caps text-on-surface-variant">9:45 PM</span>
+</div>
+<p class="text-on-surface-variant mt-1">You completed all 5 steps of your PM routine. 7-day streak maintained!</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Tab Content: Reminder Settings (Hidden by Default) -->
+<section class="hidden animate-in fade-in slide-in-from-bottom-4 duration-300" id="content-settings">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-xl">
+<!-- Morning Routine Card -->
+<div class="diagnostic-module p-lg flex flex-col gap-lg">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-secondary">light_mode</span>
+<h4 class="font-semibold text-primary">Morning Routine</h4>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only toggle-checkbox" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest rounded-full toggle-label transition-colors">
+<div class="toggle-dot absolute left-1 top-1 bg-on-surface-variant w-4 h-4 rounded-full transition-transform"></div>
+</div>
+</label>
+</div>
+<div class="space-y-md">
+<div class="flex justify-between items-center text-on-surface-variant">
+<span class="text-body-md">Scheduled Time</span>
+<input class="bg-surface-container border-none rounded-lg font-data-display text-primary px-3 py-1 focus:ring-1 focus:ring-secondary/50" type="time" value="08:00"/>
+</div>
+<div class="flex justify-between items-center text-on-surface-variant">
+<span class="text-body-md">Channels</span>
+<div class="flex gap-2">
+<span class="px-3 py-1 bg-secondary/20 text-secondary rounded-full text-label-caps font-semibold cursor-pointer">Push</span>
+<span class="px-3 py-1 bg-surface-container text-on-surface-variant rounded-full text-label-caps font-semibold cursor-pointer hover:bg-surface-container-highest">Email</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Evening Routine Card -->
+<div class="diagnostic-module p-lg flex flex-col gap-lg">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary">dark_mode</span>
+<h4 class="font-semibold text-primary">Evening Routine</h4>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only toggle-checkbox" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest rounded-full toggle-label transition-colors">
+<div class="toggle-dot absolute left-1 top-1 bg-on-surface-variant w-4 h-4 rounded-full transition-transform"></div>
+</div>
+</label>
+</div>
+<div class="space-y-md">
+<div class="flex justify-between items-center text-on-surface-variant">
+<span class="text-body-md">Scheduled Time</span>
+<input class="bg-surface-container border-none rounded-lg font-data-display text-primary px-3 py-1 focus:ring-1 focus:ring-secondary/50" type="time" value="21:30"/>
+</div>
+<div class="flex justify-between items-center text-on-surface-variant">
+<div class="flex gap-2 ml-auto">
+<span class="px-3 py-1 bg-secondary/20 text-secondary rounded-full text-label-caps font-semibold cursor-pointer">Push</span>
+<span class="px-3 py-1 bg-secondary/20 text-secondary rounded-full text-label-caps font-semibold cursor-pointer">Email</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Hydration Card -->
+<div class="diagnostic-module p-lg flex flex-col gap-lg">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-secondary">water_drop</span>
+<h4 class="font-semibold text-primary">Hydration Nudges</h4>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only toggle-checkbox" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest rounded-full toggle-label transition-colors">
+<div class="toggle-dot absolute left-1 top-1 bg-on-surface-variant w-4 h-4 rounded-full transition-transform"></div>
+</div>
+</label>
+</div>
+<div class="space-y-md">
+<div class="flex justify-between items-center text-on-surface-variant">
+<span class="text-body-md">Interval</span>
+<select class="bg-surface-container border-none rounded-lg font-body-md text-primary px-3 py-1 focus:ring-1 focus:ring-secondary/50">
+<option>Every 2 hours</option>
+<option>Every 3 hours</option>
+<option>Every 4 hours</option>
+</select>
+</div>
+</div>
+</div>
+<!-- Replenishment Card -->
+<div class="diagnostic-module p-lg flex flex-col gap-lg border-secondary/30">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-tertiary">inventory_2</span>
+<h4 class="font-semibold text-primary">Product Replenishment</h4>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only toggle-checkbox" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest rounded-full toggle-label transition-colors">
+<div class="toggle-dot absolute left-1 top-1 bg-on-surface-variant w-4 h-4 rounded-full transition-transform"></div>
+</div>
+</label>
+</div>
+<p class="text-label-caps text-on-surface-variant leading-relaxed">Auto-calculated based on your logged usage and formula concentration.</p>
+<div class="flex gap-2">
+<span class="px-3 py-1 bg-secondary/20 text-secondary rounded-full text-label-caps font-semibold">Push</span>
+<span class="px-3 py-1 bg-secondary/20 text-secondary rounded-full text-label-caps font-semibold">Email</span>
+</div>
+</div>
+<!-- Sleep Quality Card -->
+<div class="diagnostic-module p-lg flex flex-col gap-lg col-span-1 md:col-span-2">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary">bedtime</span>
+<h4 class="font-semibold text-primary">Sleep &amp; Recovery Sync</h4>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only toggle-checkbox" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest rounded-full toggle-label transition-colors">
+<div class="toggle-dot absolute left-1 top-1 bg-on-surface-variant w-4 h-4 rounded-full transition-transform"></div>
+</div>
+</label>
+</div>
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-md">
+<p class="text-on-surface-variant max-w-lg">Remind you to start your nighttime wind-down 30 minutes before sleep for optimal cellular skin repair.</p>
+<div class="flex gap-sm">
+<button class="px-xl py-2 bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors rounded-full font-semibold border border-outline">Sync Apple Health</button>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-2xl flex justify-end gap-md">
+<button class="px-xl py-md border border-outline rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container transition-all">Cancel Changes</button>
+<button class="px-xl py-md bg-primary text-on-primary rounded-full font-bold shadow-lg shadow-primary/10 hover:scale-[1.02] transition-transform">Save Settings</button>
+</div>
+</section>
+</div>
+</main>
+<!-- Global Footer -->
+<footer class="fixed bottom-0 w-full z-50 bg-[rgba(13,20,36,0.62)] backdrop-blur-xl border-t border-outline flex justify-between items-center px-margin-desktop py-md">
+<div class="font-label-caps text-on-surface-variant tracking-wider">
+        © 2024 SKINLYTICS LAB. CLINICAL GRADE AI.
+    </div>
+<div class="flex gap-xl">
+<a class="font-label-caps text-on-surface-variant hover:text-primary transition-opacity duration-200" href="#">PRIVACY POLICY</a>
+<a class="font-label-caps text-on-surface-variant hover:text-primary transition-opacity duration-200" href="#">TERMS OF SERVICE</a>
+<a class="font-label-caps text-on-surface-variant hover:text-primary transition-opacity duration-200" href="#">HIPAA COMPLIANCE</a>
+</div>
+</footer>
+<script>
+    function switchTab(tab) {
+        const inboxBtn = document.getElementById('tab-inbox');
+        const settingsBtn = document.getElementById('tab-settings');
+        const inboxContent = document.getElementById('content-inbox');
+        const settingsContent = document.getElementById('content-settings');
+
+        if (tab === 'inbox') {
+            // UI States
+            inboxBtn.classList.add('text-secondary', 'border-secondary');
+            inboxBtn.classList.remove('text-on-surface-variant', 'border-transparent');
+            settingsBtn.classList.add('text-on-surface-variant', 'border-transparent');
+            settingsBtn.classList.remove('text-secondary', 'border-secondary');
+            
+            // Visibility
+            inboxContent.classList.remove('hidden');
+            settingsContent.classList.add('hidden');
+        } else {
+            // UI States
+            settingsBtn.classList.add('text-secondary', 'border-secondary');
+            settingsBtn.classList.remove('text-on-surface-variant', 'border-transparent');
+            inboxBtn.classList.add('text-on-surface-variant', 'border-transparent');
+            inboxBtn.classList.remove('text-secondary', 'border-secondary');
+            
+            // Visibility
+            settingsContent.classList.remove('hidden');
+            inboxContent.classList.add('hidden');
+        }
+    }
+</script>
+</body></html>

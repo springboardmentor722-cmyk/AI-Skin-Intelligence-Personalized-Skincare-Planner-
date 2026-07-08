@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>System Overview | Skinlytics Admin (Dark)</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=JetBrains+Mono:wght@100..900&family=Manrope:wght@100..900&display=swap" rel="stylesheet"/>
+<style>
+        @font-face {
+            font-family: 'Material Symbols Outlined';
+            font-style: normal;
+        }
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        body {
+            background-color: #0B1220;
+            color: #e4e2e4;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .glass-card {
+            background: rgba(17, 26, 46, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .aurora-bg {
+            background: radial-gradient(circle at 50% -20%, rgba(60, 221, 199, 0.05), transparent 70%),
+                        radial-gradient(circle at 0% 100%, rgba(5, 102, 217, 0.05), transparent 50%);
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .skin-score-glow {
+            box-shadow: 0 0 20px rgba(45, 212, 191, 0.15);
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #24304A;
+            border-radius: 10px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-low": "#1b1b1d",
+                        "inverse-surface": "#e4e2e4",
+                        "surface": "#131315",
+                        "on-primary-fixed": "#131b2e",
+                        "secondary-container": "#0566d9",
+                        "secondary": "#adc6ff",
+                        "primary-fixed": "#dae2fd",
+                        "background": "#131315",
+                        "secondary-fixed-dim": "#adc6ff",
+                        "error": "#ffb4ab",
+                        "outline": "#909097",
+                        "on-background": "#e4e2e4",
+                        "surface-container-high": "#2a2a2b",
+                        "on-secondary-fixed": "#001a42",
+                        "on-error": "#690005",
+                        "inverse-primary": "#565e74",
+                        "primary": "#bec6e0",
+                        "surface-dim": "#131315",
+                        "surface-container-highest": "#353436",
+                        "on-tertiary-fixed-variant": "#005047",
+                        "on-surface": "#e4e2e4",
+                        "on-secondary-container": "#e6ecff",
+                        "surface-variant": "#353436",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "surface-container": "#1f1f21",
+                        "primary-container": "#0f172a",
+                        "error-container": "#93000a",
+                        "surface-tint": "#bec6e0",
+                        "tertiary-fixed-dim": "#3cddc7",
+                        "on-tertiary-fixed": "#00201c",
+                        "on-primary": "#283044",
+                        "on-secondary": "#002e6a",
+                        "tertiary": "#3cddc7",
+                        "surface-bright": "#39393b",
+                        "on-surface-variant": "#c6c6cd",
+                        "on-secondary-fixed-variant": "#004395",
+                        "on-tertiary-container": "#009182",
+                        "secondary-fixed": "#d8e2ff",
+                        "on-primary-container": "#798098",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary": "#003731",
+                        "tertiary-fixed": "#62fae3",
+                        "surface-container-lowest": "#0e0e10",
+                        "outline-variant": "#45464d",
+                        "tertiary-container": "#001c18",
+                        "primary-fixed-dim": "#bec6e0",
+                        "inverse-on-surface": "#303032"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "max-width": "1280px",
+                        "margin-mobile": "16px",
+                        "gutter": "24px",
+                        "unit": "4px",
+                        "margin-desktop": "48px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Manrope"],
+                        "body-md": ["Inter"],
+                        "label-md": ["JetBrains Mono"],
+                        "display-lg": ["Manrope"]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background selection:bg-tertiary selection:text-on-tertiary">
+<div class="aurora-bg"></div>
+<!-- SideNavBar Anchor -->
+<nav class="fixed left-0 top-0 h-full w-64 bg-white/5 backdrop-blur-[20px] saturate-[160%] border-r border-outline-variant/10 z-50 flex flex-col p-6">
+<div class="mb-10">
+<h1 class="text-h3 font-h3 font-bold text-primary text-2xl tracking-tight">Skinlytics</h1>
+<p class="text-xs text-on-surface-variant/60 font-label-md uppercase tracking-widest mt-1">AI Intelligence</p>
+</div>
+<div class="flex-1 space-y-2">
+<!-- Active Tab: Dashboard -->
+<a class="flex items-center gap-3 px-4 py-3 bg-secondary/10 text-secondary border-r-4 border-secondary transition-all duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-label-md text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-low transition-all duration-200" href="#">
+<span class="material-symbols-outlined">science</span>
+<span class="font-label-md text-sm font-medium">Analyses</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-low transition-all duration-200" href="#">
+<span class="material-symbols-outlined">clinical_notes</span>
+<span class="font-label-md text-sm font-medium">Consultants</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-low transition-all duration-200" href="#">
+<span class="material-symbols-outlined">category</span>
+<span class="font-label-md text-sm font-medium">Products</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-low transition-all duration-200" href="#">
+<span class="material-symbols-outlined">biotech</span>
+<span class="font-label-md text-sm font-medium">Ingredients</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-low transition-all duration-200" href="#">
+<span class="material-symbols-outlined">trending_up</span>
+<span class="font-label-md text-sm font-medium">Progress</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-low transition-all duration-200" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-md text-sm font-medium">Insights</span>
+</a>
+</div>
+<div class="mt-auto pt-6 border-t border-outline-variant/10 space-y-2">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-secondary transition-all duration-200" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-md text-sm font-medium uppercase">Support</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-secondary transition-all duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-sm font-medium uppercase">Settings</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="ml-64 min-h-screen">
+<!-- TopAppBar Anchor -->
+<header class="sticky top-0 z-40 bg-white/5 backdrop-blur-[20px] saturate-[160%] border-b border-outline-variant/8 flex justify-between items-center px-10 py-4">
+<div class="flex items-center gap-6 flex-1">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl">search</span>
+<input class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg pl-10 pr-4 py-2 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/20 transition-all" placeholder="Search system logs, users, or analyses..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-on-surface-variant hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined">wb_sunny</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:opacity-80 transition-opacity relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-tertiary rounded-full skin-score-glow"></span>
+</button>
+<div class="h-8 w-8 rounded-full bg-primary-container flex items-center justify-center text-xs font-bold text-primary border border-primary/20">
+                    AD
+                </div>
+</div>
+</header>
+<!-- Dashboard Content -->
+<div class="p-10 space-y-8 max-w-[1440px] mx-auto">
+<!-- Header Section -->
+<div class="flex justify-between items-end">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">System Overview</h2>
+<p class="text-on-surface-variant font-body-md mt-1">Real-time infrastructure and user analytics monitor.</p>
+</div>
+<div class="flex gap-3">
+<button class="px-6 py-2.5 bg-surface-container-high text-on-surface font-label-md text-sm rounded-lg border border-outline-variant/20 hover:bg-surface-container-highest transition-colors">
+                        Export Report
+                    </button>
+<button class="px-6 py-2.5 bg-primary-container text-primary font-label-md text-sm rounded-lg border border-primary/20 hover:shadow-[0_0_20px_rgba(45,212,191,0.1)] transition-all">
+                        New Analysis
+                    </button>
+</div>
+</div>
+<!-- System Health Monitoring Strip -->
+<div class="glass-card rounded-xl p-4 flex items-center justify-between gap-8">
+<div class="flex items-center gap-12 overflow-x-auto no-scrollbar">
+<div class="flex items-center gap-3 min-w-max">
+<div class="w-2 h-2 rounded-full bg-tertiary skin-score-glow animate-pulse"></div>
+<span class="font-label-md text-xs text-on-surface-variant uppercase tracking-widest">Main Cluster:</span>
+<span class="font-label-md text-sm text-tertiary">Operational</span>
+</div>
+<div class="flex items-center gap-3 min-w-max">
+<span class="font-label-md text-xs text-on-surface-variant uppercase tracking-widest">API Latency:</span>
+<span class="font-label-md text-sm text-on-surface">24ms</span>
+<div class="w-16 h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-tertiary w-1/4"></div>
+</div>
+</div>
+<div class="flex items-center gap-3 min-w-max">
+<span class="font-label-md text-xs text-on-surface-variant uppercase tracking-widest">Uptime (30d):</span>
+<span class="font-label-md text-sm text-on-surface">99.98%</span>
+</div>
+<div class="flex items-center gap-3 min-w-max">
+<span class="font-label-md text-xs text-on-surface-variant uppercase tracking-widest">AI Load:</span>
+<span class="font-label-md text-sm text-on-surface">12.4%</span>
+</div>
+</div>
+<div class="text-xs font-label-md text-on-surface-variant/40 italic">
+                    Updated 2s ago
+                </div>
+</div>
+<!-- Bento Grid - KPIs & Charts -->
+<div class="grid grid-cols-12 gap-6">
+<!-- KPI: Total Users -->
+<div class="col-span-12 md:col-span-4 glass-card rounded-2xl p-6 group hover:border-primary/30 transition-all">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 rounded-xl bg-primary/10 text-primary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">group</span>
+</div>
+<span class="text-tertiary text-xs font-label-md flex items-center bg-tertiary/10 px-2 py-1 rounded-full">
+<span class="material-symbols-outlined text-sm">trending_up</span> +12.5%
+                        </span>
+</div>
+<h4 class="text-on-surface-variant font-label-md text-xs uppercase tracking-widest mb-1">Total Active Users</h4>
+<div class="text-3xl font-display-lg text-on-surface leading-tight">1.24M</div>
+<div class="mt-4 pt-4 border-t border-outline-variant/10">
+<p class="text-on-surface-variant text-xs">84.2k new users this month</p>
+</div>
+</div>
+<!-- KPI: DAU/MAU Ratio -->
+<div class="col-span-12 md:col-span-4 glass-card rounded-2xl p-6 group hover:border-secondary/30 transition-all">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 rounded-xl bg-secondary/10 text-secondary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">monitoring</span>
+</div>
+<span class="text-on-surface-variant text-xs font-label-md flex items-center bg-surface-container-highest px-2 py-1 rounded-full">
+                            Stable
+                        </span>
+</div>
+<h4 class="text-on-surface-variant font-label-md text-xs uppercase tracking-widest mb-1">DAU / MAU Ratio</h4>
+<div class="text-3xl font-display-lg text-on-surface leading-tight">64.8%</div>
+<div class="mt-4 pt-4 border-t border-outline-variant/10">
+<div class="flex gap-1 h-1">
+<div class="h-full bg-secondary w-2/3 rounded-full"></div>
+<div class="h-full bg-surface-container-highest flex-1 rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- KPI: MRR -->
+<div class="col-span-12 md:col-span-4 glass-card rounded-2xl p-6 group hover:border-tertiary/30 transition-all">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 rounded-xl bg-tertiary/10 text-tertiary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<span class="text-tertiary text-xs font-label-md flex items-center bg-tertiary/10 px-2 py-1 rounded-full">
+<span class="material-symbols-outlined text-sm">trending_up</span> +8.2%
+                        </span>
+</div>
+<h4 class="text-on-surface-variant font-label-md text-xs uppercase tracking-widest mb-1">Monthly Recurring Rev</h4>
+<div class="text-3xl font-display-lg text-on-surface leading-tight">$4.82M</div>
+<div class="mt-4 pt-4 border-t border-outline-variant/10">
+<p class="text-on-surface-variant text-xs">Projection: $5M by Q4</p>
+</div>
+</div>
+<!-- Main Analysis Chart Area -->
+<div class="col-span-12 lg:col-span-8 glass-card rounded-2xl p-8 h-[400px] relative overflow-hidden">
+<div class="flex justify-between items-center mb-8">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Analysis Velocity</h3>
+<p class="text-on-surface-variant font-body-md text-sm">Daily volume of AI skin scans processed</p>
+</div>
+<select class="bg-surface-container-high border-none text-xs font-label-md rounded-lg text-on-surface focus:ring-0">
+<option>Last 7 Days</option>
+<option>Last 30 Days</option>
+</select>
+</div>
+<!-- Simulated Chart Visualization -->
+<div class="absolute inset-x-8 bottom-8 h-48 flex items-end justify-between gap-2">
+<div class="w-full bg-secondary/20 rounded-t-lg transition-all hover:bg-secondary/40" style="height: 40%"></div>
+<div class="w-full bg-secondary/20 rounded-t-lg transition-all hover:bg-secondary/40" style="height: 55%"></div>
+<div class="w-full bg-secondary/20 rounded-t-lg transition-all hover:bg-secondary/40" style="height: 45%"></div>
+<div class="w-full bg-secondary/20 rounded-t-lg transition-all hover:bg-secondary/40" style="height: 70%"></div>
+<div class="w-full bg-secondary/20 rounded-t-lg transition-all hover:bg-secondary/40" style="height: 85%"></div>
+<div class="w-full bg-secondary/20 rounded-t-lg transition-all hover:bg-secondary/40" style="height: 60%"></div>
+<div class="w-full bg-secondary/40 rounded-t-lg border-t-2 border-secondary skin-score-glow" style="height: 95%"></div>
+</div>
+<div class="absolute left-8 bottom-8 flex justify-between w-[calc(100%-64px)] text-[10px] font-label-md text-on-surface-variant uppercase pt-4 border-t border-outline-variant/10">
+<span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span class="text-secondary">Today</span>
+</div>
+</div>
+<!-- Role Distribution Donut -->
+<div class="col-span-12 lg:col-span-4 glass-card rounded-2xl p-8 flex flex-col items-center justify-center">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2 self-start w-full">User Roles</h3>
+<p class="text-on-surface-variant font-body-md text-sm mb-8 self-start w-full">Current active distribution</p>
+<div class="relative w-48 h-48 flex items-center justify-center">
+<svg class="w-full h-full -rotate-90">
+<circle cx="96" cy="96" fill="transparent" r="80" stroke="#1A2740" stroke-width="12"></circle>
+<circle class="transition-all duration-1000" cx="96" cy="96" fill="transparent" r="80" stroke="#bec6e0" stroke-dasharray="502.4" stroke-dashoffset="150" stroke-width="12"></circle>
+<circle cx="96" cy="96" fill="transparent" r="80" stroke="#3cddc7" stroke-dasharray="502.4" stroke-dashoffset="400" stroke-width="12"></circle>
+</svg>
+<div class="absolute flex flex-col items-center">
+<span class="text-3xl font-display-lg text-on-surface">1.2M</span>
+<span class="text-[10px] font-label-md text-on-surface-variant uppercase tracking-widest">Total</span>
+</div>
+</div>
+<div class="mt-8 w-full space-y-3">
+<div class="flex justify-between items-center text-sm">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<span class="text-on-surface-variant">Patients</span>
+</div>
+<span class="text-on-surface font-label-md">72%</span>
+</div>
+<div class="flex justify-between items-center text-sm">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-tertiary"></div>
+<span class="text-on-surface-variant">Dermatologists</span>
+</div>
+<span class="text-on-surface font-label-md">18%</span>
+</div>
+<div class="flex justify-between items-center text-sm">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-outline"></div>
+<span class="text-on-surface-variant">Researchers</span>
+</div>
+<span class="text-on-surface font-label-md">10%</span>
+</div>
+</div>
+</div>
+<!-- Live Activity Feed -->
+<div class="col-span-12 glass-card rounded-2xl overflow-hidden">
+<div class="px-8 py-6 border-b border-outline-variant/10 flex justify-between items-center">
+<h3 class="font-headline-md text-headline-md text-on-surface">Live System Feed</h3>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
+<span class="text-xs font-label-md text-on-surface-variant uppercase tracking-widest">Live Updates</span>
+</div>
+</div>
+<div class="divide-y divide-outline-variant/10">
+<!-- Activity Item 1 -->
+<div class="px-8 py-4 flex items-center justify-between hover:bg-white/5 transition-colors group">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-high overflow-hidden border border-outline-variant/20">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a dermatologist in a modern, dark-themed medical office, high-end laboratory lighting, sophisticated teal accents, 8k resolution." src="source/images/admin-dashboard/img_000_06b38648.jpg"/>
+</div>
+<div>
+<p class="text-sm text-on-surface"><span class="font-bold">Dr. Elena Vance</span> verified a clinical analysis for Patient #8821</p>
+<p class="text-xs text-on-surface-variant/60 font-label-md">2 minutes ago • Clinical Portal</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="px-3 py-1 bg-tertiary/10 text-tertiary text-[10px] font-label-md rounded-full uppercase tracking-wider">Verification</span>
+<button class="text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Activity Item 2 -->
+<div class="px-8 py-4 flex items-center justify-between hover:bg-white/5 transition-colors group">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
+<span class="material-symbols-outlined text-xl">biotech</span>
+</div>
+<div>
+<p class="text-sm text-on-surface"><span class="font-bold">System Kernel</span> successfully deployed AI model v4.2.1-beta</p>
+<p class="text-xs text-on-surface-variant/60 font-label-md">14 minutes ago • Core Services</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="px-3 py-1 bg-secondary/10 text-secondary text-[10px] font-label-md rounded-full uppercase tracking-wider">System</span>
+<button class="text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Activity Item 3 -->
+<div class="px-8 py-4 flex items-center justify-between hover:bg-white/5 transition-colors group">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-high overflow-hidden border border-outline-variant/20">
+<img class="w-full h-full object-cover" data-alt="Close up of high-resolution digital skin imaging interface, glowing biometric data overlays, translucent teal and deep navy color scheme, scientific laboratory aesthetic." src="source/images/admin-dashboard/img_001_f5fa0b17.jpg"/>
+</div>
+<div>
+<p class="text-sm text-on-surface"><span class="font-bold">New Assessment</span> triggered from Sydney, AU cluster</p>
+<p class="text-xs text-on-surface-variant/60 font-label-md">28 minutes ago • Global API</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="px-3 py-1 bg-surface-container-highest text-on-surface-variant text-[10px] font-label-md rounded-full uppercase tracking-wider">Detection</span>
+<button class="text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<div class="p-4 bg-surface-container-low/50 text-center">
+<button class="text-xs font-label-md text-secondary uppercase tracking-widest hover:text-secondary-fixed transition-colors">View All Activity</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Anchor -->
+<footer class="w-full py-12 px-10 flex flex-col md:flex-row justify-between items-center gap-6 border-t border-outline-variant/8 mt-12">
+<div class="flex flex-col items-center md:items-start">
+<span class="font-h3 text-h3 text-primary text-xl font-bold">Skinlytics</span>
+<p class="text-on-surface-variant font-label-md text-[10px] uppercase tracking-widest mt-1">© 2024 Skinlytics AI. HIPAA Compliant Platform.</p>
+</div>
+<div class="flex gap-8">
+<a class="text-on-surface-variant font-label-md text-xs uppercase tracking-widest hover:text-secondary transition-colors" href="#">Privacy Policy</a>
+<a class="text-on-surface-variant font-label-md text-xs uppercase tracking-widest hover:text-secondary transition-colors" href="#">Terms of Service</a>
+<a class="text-on-surface-variant font-label-md text-xs uppercase tracking-widest hover:text-secondary transition-colors" href="#">Medical Disclaimer</a>
+</div>
+<div class="flex items-center gap-2 px-3 py-1 bg-tertiary/5 border border-tertiary/10 rounded-full">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span class="text-[10px] font-label-md text-tertiary uppercase tracking-widest">Service Status: Normal</span>
+</div>
+</footer>
+</main>
+<script>
+        // Micro-interaction for activity feed
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+
+        // Add small simulated updates to the KPIs
+        setInterval(() => {
+            const lat = Math.floor(Math.random() * 5) + 20;
+            const latencyEl = document.querySelector('.flex.items-center.gap-3.min-w-max:nth-child(2) .font-label-md.text-sm');
+            if(latencyEl) latencyEl.innerText = lat + 'ms';
+        }, 5000);
+    </script>
+</body></html>

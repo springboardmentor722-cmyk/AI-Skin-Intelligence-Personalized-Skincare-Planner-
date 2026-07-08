@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skinlytics | Wireframes Gallery</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+        }
+        .section {
+            margin-bottom: 40px;
+        }
+        .section h2 {
+            color: #555;
+            margin-bottom: 20px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .card-img-wrapper {
+            height: 180px;
+            overflow: hidden;
+            background: #eee;
+            position: relative;
+        }
+        .card-img-wrapper img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .card-content {
+            padding: 15px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .card-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        .card-actions {
+            margin-top: auto;
+            display: flex;
+            gap: 10px;
+        }
+        .card-actions a {
+            flex: 1;
+            text-align: center;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        .card-actions a.dark-btn {
+            background: #333;
+        }
+        .card-actions a:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <h1>Skinlytics UI Wireframes</h1>
+
+    <div class="section">
+        <h2>Public & Auth</h2>
+        <div class="grid">
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/landing-page.png" alt="Landing Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Landing</div>
+                    <div class="card-actions">
+                        <a href="landing-page.html">Light</a>
+                        <a href="landing-page-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/signup.png" alt="Sign Up Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Sign Up</div>
+                    <div class="card-actions">
+                        <a href="signup.html">Light</a>
+                        <a href="signup-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/login.png" alt="Login Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Login</div>
+                    <div class="card-actions">
+                        <a href="login.html">Light</a>
+                        <a href="login-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/forgot-password.png" alt="Forgot Password Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Forgot Password</div>
+                    <div class="card-actions">
+                        <a href="forgot-password.html">Light</a>
+                        <a href="forgot-password-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="section">
+        <h2>Assessment</h2>
+        <div class="grid">
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/assessment-intro.png" alt="Assessment Intro Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Assessment Intro</div>
+                    <div class="card-actions">
+                        <a href="assessment-intro.html">Light</a>
+                        <a href="assessment-intro-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/assessment-step-1-basics.png" alt="Assessment Step 1: Basics Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Assessment Step 1: Basics</div>
+                    <div class="card-actions">
+                        <a href="assessment-step-1-basics.html">Light</a>
+                        <a href="assessment-step-1-basics-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/assessment-step-2-skin-type.png" alt="Assessment Step 2: Skin Type Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Assessment Step 2: Skin Type</div>
+                    <div class="card-actions">
+                        <a href="assessment-step-2-skin-type.html">Light</a>
+                        <a href="assessment-step-2-skin-type-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/assessment-step-3-concerns.png" alt="Assessment Step 3: Concerns Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Assessment Step 3: Concerns</div>
+                    <div class="card-actions">
+                        <a href="assessment-step-3-concerns.html">Light</a>
+                        <a href="assessment-step-3-concerns-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/assessment-step-4-lifestyle.png" alt="Assessment Step 4: Lifestyle Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Assessment Step 4: Lifestyle</div>
+                    <div class="card-actions">
+                        <a href="assessment-step-4-lifestyle.html">Light</a>
+                        <a href="assessment-step-4-lifestyle-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/assessment-results.png" alt="Assessment Results Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Assessment Results</div>
+                    <div class="card-actions">
+                        <a href="assessment-results.html">Light</a>
+                        <a href="assessment-results-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="section">
+        <h2>User App</h2>
+        <div class="grid">
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/app-dashboard.png" alt="User Dashboard Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">User Dashboard</div>
+                    <div class="card-actions">
+                        <a href="app-dashboard.html">Light</a>
+                        <a href="app-dashboard-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/app-routine.png" alt="My Routine Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">My Routine</div>
+                    <div class="card-actions">
+                        <a href="app-routine.html">Light</a>
+                        <a href="app-routine-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/app-routine-edit.png" alt="Edit Routine Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Edit Routine</div>
+                    <div class="card-actions">
+                        <a href="app-routine-edit.html">Light</a>
+                        <a href="app-routine-edit-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/app-checkin.png" alt="Daily Check-in Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Daily Check-in</div>
+                    <div class="card-actions">
+                        <a href="app-checkin.html">Light</a>
+                        <a href="app-checkin-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/app-products.png" alt="Products Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Products</div>
+                    <div class="card-actions">
+                        <a href="app-products.html">Light</a>
+                        <a href="app-products-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/app-product-detail.png" alt="Product Details Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Product Details</div>
+                    <div class="card-actions">
+                        <a href="app-product-detail.html">Light</a>
+                        <a href="app-product-detail-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/app-products-compare.png" alt="Compare Products Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Compare Products</div>
+                    <div class="card-actions">
+                        <a href="app-products-compare.html">Light</a>
+                        <a href="app-products-compare-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/app-ingredients.png" alt="Ingredient Library Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Ingredient Library</div>
+                    <div class="card-actions">
+                        <a href="app-ingredients.html">Light</a>
+                        <a href="app-ingredients-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/app-ingredient-detail.png" alt="Ingredient Details Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Ingredient Details</div>
+                    <div class="card-actions">
+                        <a href="app-ingredient-detail.html">Light</a>
+                        <a href="app-ingredient-detail-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/app-progress.png" alt="Progress Tracking Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Progress Tracking</div>
+                    <div class="card-actions">
+                        <a href="app-progress.html">Light</a>
+                        <a href="app-progress-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/app-insights.png" alt="Insights & Analytics Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Insights & Analytics</div>
+                    <div class="card-actions">
+                        <a href="app-insights.html">Light</a>
+                        <a href="app-insights-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/app-reports.png" alt="Reports & Export Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Reports & Export</div>
+                    <div class="card-actions">
+                        <a href="app-reports.html">Light</a>
+                        <a href="app-reports-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/app-notifications.png" alt="Notifications & Reminders Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Notifications & Reminders</div>
+                    <div class="card-actions">
+                        <a href="app-notifications.html">Light</a>
+                        <a href="app-notifications-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/app-settings.png" alt="Profile & Settings Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Profile & Settings</div>
+                    <div class="card-actions">
+                        <a href="app-settings.html">Light</a>
+                        <a href="app-settings-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/app-billing.png" alt="Plans & Billing Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Plans & Billing</div>
+                    <div class="card-actions">
+                        <a href="app-billing.html">Light</a>
+                        <a href="app-billing-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/app-billing.png" alt="Pricing Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Pricing</div>
+                    <div class="card-actions">
+                        <a href="pricing.html">Light</a>
+                        <a href="pricing-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="section">
+        <h2>Consultant</h2>
+        <div class="grid">
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/consultant-dashboard.png" alt="Consultant Dashboard Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Consultant Dashboard</div>
+                    <div class="card-actions">
+                        <a href="consultant-dashboard.html">Light</a>
+                        <a href="consultant-dashboard-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/consultant-clients.png" alt="Clients List Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Clients List</div>
+                    <div class="card-actions">
+                        <a href="consultant-clients.html">Light</a>
+                        <a href="consultant-clients-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/consultant-client-detail.png" alt="Client Detail Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Client Detail</div>
+                    <div class="card-actions">
+                        <a href="consultant-client-detail.html">Light</a>
+                        <a href="consultant-client-detail-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/consultant-recommendations.png" alt="Recommendation Management Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Recommendation Management</div>
+                    <div class="card-actions">
+                        <a href="consultant-recommendations.html">Light</a>
+                        <a href="consultant-recommendations-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="section">
+        <h2>Dermatologist</h2>
+        <div class="grid">
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/derm-dashboard.png" alt="Dermatologist Dashboard Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Dermatologist Dashboard</div>
+                    <div class="card-actions">
+                        <a href="derm-dashboard.html">Light</a>
+                        <a href="derm-dashboard-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/derm-patients.png" alt="Patients List Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Patients List</div>
+                    <div class="card-actions">
+                        <a href="derm-patients.html">Light</a>
+                        <a href="derm-patients-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/derm-patient-detail.png" alt="Patient Detail & Condition Report Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Patient Detail & Condition Report</div>
+                    <div class="card-actions">
+                        <a href="derm-patient-detail.html">Light</a>
+                        <a href="derm-patient-detail-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/derm-treatments.png" alt="Treatment Plan Builder Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Treatment Plan Builder</div>
+                    <div class="card-actions">
+                        <a href="derm-treatments.html">Light</a>
+                        <a href="derm-treatments-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/derm-analytics.png" alt="Dermatologist Analytics Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Dermatologist Analytics</div>
+                    <div class="card-actions">
+                        <a href="derm-analytics.html">Light</a>
+                        <a href="derm-analytics-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="section">
+        <h2>Admin</h2>
+        <div class="grid">
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/admin-dashboard.png" alt="Admin Dashboard Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Admin Dashboard</div>
+                    <div class="card-actions">
+                        <a href="admin-dashboard.html">Light</a>
+                        <a href="admin-dashboard-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/admin-users.png" alt="Admin — User Management Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Admin — User Management</div>
+                    <div class="card-actions">
+                        <a href="admin-users.html">Light</a>
+                        <a href="admin-users-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/admin-content.png" alt="Admin — Content & Data Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Admin — Content & Data</div>
+                    <div class="card-actions">
+                        <a href="admin-content.html">Light</a>
+                        <a href="admin-content-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/admin-monitoring.png" alt="Admin — Monitoring & System Reports Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Admin — Monitoring & System Reports</div>
+                    <div class="card-actions">
+                        <a href="admin-monitoring.html">Light</a>
+                        <a href="admin-monitoring-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/admin-settings.png" alt="Admin — Platform Settings Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Admin — Platform Settings</div>
+                    <div class="card-actions">
+                        <a href="admin-settings.html">Light</a>
+                        <a href="admin-settings-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="section">
+        <h2>System States</h2>
+        <div class="grid">
+
+            <div class="card">
+                <div class="card-img-wrapper">
+                    <img src="source/reference-screenshots/system-states.png" alt="System & Edge States Thumbnail">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">System & Edge States</div>
+                    <div class="card-actions">
+                        <a href="system-states.html">Light</a>
+                        <a href="system-states-dark.html" class="dark-btn">Dark</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

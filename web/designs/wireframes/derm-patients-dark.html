@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Patient Roster | Skinlytics AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-low": "#1b1b1d",
+                    "inverse-surface": "#e4e2e4",
+                    "surface": "#131315",
+                    "on-primary-fixed": "#131b2e",
+                    "secondary-container": "#0566d9",
+                    "secondary": "#adc6ff",
+                    "primary-fixed": "#dae2fd",
+                    "background": "#0B1220",
+                    "secondary-fixed-dim": "#adc6ff",
+                    "error": "#ffb4ab",
+                    "outline": "#909097",
+                    "on-background": "#e4e2e4",
+                    "surface-container-high": "#2a2a2b",
+                    "on-secondary-fixed": "#001a42",
+                    "on-error": "#690005",
+                    "inverse-primary": "#565e74",
+                    "primary": "#bec6e0",
+                    "surface-dim": "#131315",
+                    "surface-container-highest": "#353436",
+                    "on-tertiary-fixed-variant": "#005047",
+                    "on-surface": "#e4e2e4",
+                    "on-secondary-container": "#e6ecff",
+                    "surface-variant": "#353436",
+                    "on-primary-fixed-variant": "#3f465c",
+                    "surface-container": "#1f1f21",
+                    "primary-container": "#0f172a",
+                    "error-container": "#93000a",
+                    "surface-tint": "#bec6e0",
+                    "tertiary-fixed-dim": "#3cddc7",
+                    "on-tertiary-fixed": "#00201c",
+                    "on-primary": "#283044",
+                    "on-secondary": "#002e6a",
+                    "tertiary": "#3cddc7",
+                    "surface-bright": "#39393b",
+                    "on-surface-variant": "#c6c6cd",
+                    "on-secondary-fixed-variant": "#004395",
+                    "on-tertiary-container": "#009182",
+                    "secondary-fixed": "#d8e2ff",
+                    "on-primary-container": "#798098",
+                    "on-error-container": "#ffdad6",
+                    "on-tertiary": "#003731",
+                    "tertiary-fixed": "#62fae3",
+                    "surface-container-lowest": "#0e0e10",
+                    "outline-variant": "#45464d",
+                    "tertiary-container": "#001c18",
+                    "primary-fixed-dim": "#bec6e0",
+                    "inverse-on-surface": "#303032"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "max-width": "1280px",
+                    "margin-mobile": "16px",
+                    "gutter": "24px",
+                    "unit": "4px",
+                    "margin-desktop": "48px"
+            },
+            "fontFamily": {
+                    "headline-lg-mobile": ["Manrope"],
+                    "body-md": ["Inter"],
+                    "label-md": ["JetBrains Mono"],
+                    "body-lg": ["Inter"],
+                    "label-sm": ["JetBrains Mono"],
+                    "headline-md": ["Manrope"],
+                    "headline-lg": ["Manrope"],
+                    "display-lg": ["Manrope"]
+            },
+            "fontSize": {
+                    "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #0B1220;
+            color: #e4e2e4;
+        }
+        .glass-panel {
+            background: rgba(13, 20, 36, 0.62);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.05);
+        }
+        .teal-glow {
+            box-shadow: 0 0 20px rgba(45, 212, 191, 0.15);
+        }
+        .sidebar-active {
+            background: rgba(173, 198, 255, 0.1);
+            color: #adc6ff;
+            border-right: 4px solid #adc6ff;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0B1220;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1A2740;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #24304A;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md min-h-screen">
+<!-- Sidebar (Shared Component Anchor) -->
+<aside class="fixed left-0 top-0 h-full w-64 bg-white/68 backdrop-blur-[20px] saturate-[160%] border-r border-outline-variant/10 flex flex-col p-lg z-50">
+<div class="mb-10 px-4">
+<h1 class="font-h3 text-h3 font-bold text-primary text-3xl tracking-tight">Skinlytics</h1>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-medium mt-1">AI Intelligence</p>
+</div>
+<nav class="flex-1 space-y-1">
+<!-- Dashboard -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-caps text-label-caps">Dashboard</span>
+</a>
+<!-- Analyses (Active for this view) -->
+<a class="flex items-center gap-3 px-4 py-3 sidebar-active transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined">science</span>
+<span class="font-label-caps text-label-caps">Analyses</span>
+</a>
+<!-- Consultants -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined">clinical_notes</span>
+<span class="font-label-caps text-label-caps">Consultants</span>
+</a>
+<!-- Products -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined">category</span>
+<span class="font-label-caps text-label-caps">Products</span>
+</a>
+<!-- Ingredients -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined">biotech</span>
+<span class="font-label-caps text-label-caps">Ingredients</span>
+</a>
+<!-- Progress -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined">trending_up</span>
+<span class="font-label-caps text-label-caps">Progress</span>
+</a>
+<!-- Insights -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-caps text-label-caps">Insights</span>
+</a>
+<!-- Reports -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="font-label-caps text-label-caps">Reports</span>
+</a>
+<!-- Settings -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-caps text-label-caps">Settings</span>
+</a>
+</nav>
+<div class="mt-auto border-t border-outline-variant/10 pt-6 space-y-1">
+<button class="w-full bg-secondary text-on-secondary px-4 py-3 rounded-xl font-bold teal-glow mb-4 hover:opacity-90 active:scale-[0.98] transition-all">
+                New Analysis
+            </button>
+<a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:text-secondary transition-colors text-sm" href="#">
+<span class="material-symbols-outlined text-xl">help</span>
+<span>Support</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:text-secondary transition-colors text-sm" href="#">
+<span class="material-symbols-outlined text-xl">person</span>
+<span>Account</span>
+</a>
+</div>
+</aside>
+<!-- Top App Bar -->
+<header class="sticky top-0 z-40 flex justify-between items-center px-lg py-sm ml-64 bg-white/68 backdrop-blur-[20px] saturate-[160%] border-b border-outline-variant/8 h-16">
+<div class="flex items-center bg-surface-container-lowest rounded-full px-4 py-2 w-96 border border-outline-variant/10">
+<span class="material-symbols-outlined text-on-surface-variant mr-2">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-md w-full text-on-surface" placeholder="Search patient IDs or records..." type="text"/>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-on-surface-variant hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined">wb_sunny</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:opacity-80 transition-opacity relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-tertiary rounded-full"></span>
+</button>
+<div class="h-8 w-8 rounded-full bg-primary-container flex items-center justify-center border border-primary/20">
+<span class="text-[10px] font-bold text-primary">DR</span>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="ml-64 p-8 min-h-screen">
+<div class="max-w-[1280px] mx-auto">
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Patient Roster</h2>
+<p class="text-on-surface-variant mt-1 flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+                        1,248 Total Managed Profiles | Skinlytics AI Clinical Portal
+                    </p>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 px-5 py-2.5 glass-panel rounded-xl text-on-surface-variant font-medium hover:text-on-surface transition-all">
+<span class="material-symbols-outlined text-xl">upload</span>
+                        Bulk Export
+                    </button>
+<button class="flex items-center gap-2 px-6 py-2.5 bg-secondary text-on-secondary-fixed font-bold rounded-xl teal-glow hover:brightness-110 transition-all">
+<span class="material-symbols-outlined text-xl">add</span>
+                        Admit Patient
+                    </button>
+</div>
+</div>
+<!-- Filters & Stats Bento -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+<div class="md:col-span-3 glass-panel rounded-2xl p-6 flex flex-wrap items-center gap-6">
+<div class="flex flex-col gap-1.5">
+<label class="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold">Severity Filter</label>
+<div class="flex bg-surface-container-lowest rounded-lg p-1 border border-outline-variant/10">
+<button class="px-4 py-1.5 rounded-md text-sm font-medium bg-tertiary/10 text-tertiary">All Levels</button>
+<button class="px-4 py-1.5 rounded-md text-sm font-medium text-on-surface-variant hover:text-on-surface">Critical</button>
+<button class="px-4 py-1.5 rounded-md text-sm font-medium text-on-surface-variant hover:text-on-surface">Moderate</button>
+</div>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold">Risk Profile</label>
+<div class="flex gap-2">
+<button class="flex items-center gap-2 px-3 py-1.5 glass-panel rounded-lg text-xs font-label-md border-red-500/20 text-red-400">
+<span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> High
+                            </button>
+<button class="flex items-center gap-2 px-3 py-1.5 glass-panel rounded-lg text-xs font-label-md border-yellow-500/20 text-yellow-400">
+<span class="w-1.5 h-1.5 rounded-full bg-yellow-500"></span> Med
+                            </button>
+<button class="flex items-center gap-2 px-3 py-1.5 glass-panel rounded-lg text-xs font-label-md border-green-500/20 text-green-400">
+<span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Low
+                            </button>
+</div>
+</div>
+<div class="flex-1 flex flex-col gap-1.5 min-w-[200px]">
+<label class="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold">Quick Tag Search</label>
+<div class="relative">
+<input class="w-full bg-surface-container-lowest border border-outline-variant/10 rounded-lg py-1.5 pl-3 pr-10 text-sm focus:ring-1 focus:ring-tertiary" placeholder="e.g. Melasma, Cystic..." type="text"/>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">sell</span>
+</div>
+</div>
+</div>
+<div class="glass-panel rounded-2xl p-6 flex flex-col justify-center">
+<span class="text-on-surface-variant text-sm font-medium">Critical Reviews Due</span>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="text-4xl font-display-lg text-tertiary">14</span>
+<span class="text-red-400 text-xs font-label-md">+3 this morning</span>
+</div>
+</div>
+</div>
+<!-- High Density Data Table -->
+<div class="glass-panel rounded-3xl overflow-hidden mb-12">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low/40 border-b border-outline-variant/10">
+<th class="px-6 py-5 text-[11px] uppercase tracking-widest text-on-surface-variant font-bold">Patient / ID</th>
+<th class="px-6 py-5 text-[11px] uppercase tracking-widest text-on-surface-variant font-bold">Metrics</th>
+<th class="px-6 py-5 text-[11px] uppercase tracking-widest text-on-surface-variant font-bold">Primary Condition</th>
+<th class="px-6 py-5 text-[11px] uppercase tracking-widest text-on-surface-variant font-bold">Risk Level</th>
+<th class="px-6 py-5 text-[11px] uppercase tracking-widest text-on-surface-variant font-bold">Severity</th>
+<th class="px-6 py-5 text-[11px] uppercase tracking-widest text-on-surface-variant font-bold">Status</th>
+<th class="px-6 py-5 text-[11px] uppercase tracking-widest text-on-surface-variant font-bold text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/5">
+<!-- Row 1 -->
+<tr class="hover:bg-white/5 transition-colors group cursor-pointer">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-high border border-outline-variant/20 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A clinical close-up portrait of an elderly man with silver hair and warm brown eyes, professional medical lighting, high-end dermatologist office atmosphere, blurred medical equipment in background, dark mode color grade." src="source/images/derm-patients/img_000_10b3aa63.jpg"/>
+</div>
+<div>
+<p class="font-bold text-on-surface group-hover:text-secondary transition-colors">Arthur P. Jenkins</p>
+<p class="font-label-sm text-on-surface-variant text-[10px]">#SKN-00452-B</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2 text-xs">
+<span class="text-on-surface-variant">Age:</span>
+<span class="text-on-surface font-label-md">68y</span>
+</div>
+<div class="flex items-center gap-2 text-xs">
+<span class="text-on-surface-variant">Type:</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-[10px] text-on-surface-variant border border-outline-variant/10">V-Oily</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 rounded-full glass-panel text-[11px] font-medium text-tertiary border-tertiary/20">Basal Cell Carcinoma</span>
+<span class="px-3 py-1 rounded-full glass-panel text-[11px] font-medium text-on-surface-variant">Sun Damaged</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+<span class="text-sm font-label-md text-red-400">HIGH RISK</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-4">
+<div class="w-24 h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-red-500 w-[85%]"></div>
+</div>
+<span class="text-xs font-bold text-on-surface">85%</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 text-xs font-bold border border-red-500/20">Review Due</span>
+</td>
+<td class="px-6 py-5 text-right">
+<button class="text-on-surface-variant hover:text-secondary transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-white/5 transition-colors group cursor-pointer">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-high border border-outline-variant/20 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a young adult female with radiant skin, focused look, medical laboratory background, sleek surgical lighting, clean minimalist composition, Skinlytics brand colors integrated into the scene lighting." src="source/images/derm-patients/img_001_22bd67df.jpg"/>
+</div>
+<div>
+<p class="font-bold text-on-surface group-hover:text-secondary transition-colors">Elena Rodriguez</p>
+<p class="font-label-sm text-on-surface-variant text-[10px]">#SKN-00891-C</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2 text-xs">
+<span class="text-on-surface-variant">Age:</span>
+<span class="text-on-surface font-label-md">24y</span>
+</div>
+<div class="flex items-center gap-2 text-xs">
+<span class="text-on-surface-variant">Type:</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-[10px] text-on-surface-variant border border-outline-variant/10">II-Sensitive</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 rounded-full glass-panel text-[11px] font-medium text-tertiary border-tertiary/20">Cystic Acne</span>
+<span class="px-3 py-1 rounded-full glass-panel text-[11px] font-medium text-on-surface-variant">Hormonal</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-yellow-500"></div>
+<span class="text-sm font-label-md text-yellow-400">MEDIUM</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-4">
+<div class="w-24 h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-yellow-500 w-[42%]"></div>
+</div>
+<span class="text-xs font-bold text-on-surface">42%</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="px-3 py-1.5 rounded-lg bg-tertiary/10 text-tertiary text-xs font-bold border border-tertiary/20">On Plan</span>
+</td>
+<td class="px-6 py-5 text-right">
+<button class="text-on-surface-variant hover:text-secondary transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-white/5 transition-colors group cursor-pointer">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-high border border-outline-variant/20 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A mature woman with glowing, well-maintained skin smiling softly, clinical office setting, soft teal and navy blue ambient lighting, high resolution, pharmaceutical advertisement style aesthetic." src="source/images/derm-patients/img_002_d6af5521.jpg"/>
+</div>
+<div>
+<p class="font-bold text-on-surface group-hover:text-secondary transition-colors">Sarah McAllister</p>
+<p class="font-label-sm text-on-surface-variant text-[10px]">#SKN-00122-A</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2 text-xs">
+<span class="text-on-surface-variant">Age:</span>
+<span class="text-on-surface font-label-md">45y</span>
+</div>
+<div class="flex items-center gap-2 text-xs">
+<span class="text-on-surface-variant">Type:</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-[10px] text-on-surface-variant border border-outline-variant/10">III-Dry</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 rounded-full glass-panel text-[11px] font-medium text-tertiary border-tertiary/20">Psoriasis Flare</span>
+<span class="px-3 py-1 rounded-full glass-panel text-[11px] font-medium text-on-surface-variant">Chronic</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-green-500"></div>
+<span class="text-sm font-label-md text-green-400">LOW RISK</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-4">
+<div class="w-24 h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-green-500 w-[12%]"></div>
+</div>
+<span class="text-xs font-bold text-on-surface">12%</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="px-3 py-1.5 rounded-lg bg-tertiary/10 text-tertiary text-xs font-bold border border-tertiary/20">On Plan</span>
+</td>
+<td class="px-6 py-5 text-right">
+<button class="text-on-surface-variant hover:text-secondary transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-white/5 transition-colors group cursor-pointer">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-high border border-outline-variant/20 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A close up of a middle aged man with slight stubble, clinical focus on skin texture, hospital background blurred with soft blue bokeh, realistic medical photographic style, cinematic lighting." src="source/images/derm-patients/img_003_70ed4107.jpg"/>
+</div>
+<div>
+<p class="font-bold text-on-surface group-hover:text-secondary transition-colors">James T. Vance</p>
+<p class="font-label-sm text-on-surface-variant text-[10px]">#SKN-01044-K</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2 text-xs">
+<span class="text-on-surface-variant">Age:</span>
+<span class="text-on-surface font-label-md">52y</span>
+</div>
+<div class="flex items-center gap-2 text-xs">
+<span class="text-on-surface-variant">Type:</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-[10px] text-on-surface-variant border border-outline-variant/10">IV-Normal</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 rounded-full glass-panel text-[11px] font-medium text-tertiary border-tertiary/20">Actinic Keratosis</span>
+<span class="px-3 py-1 rounded-full glass-panel text-[11px] font-medium text-on-surface-variant">Pre-Cancer</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-yellow-500"></div>
+<span class="text-sm font-label-md text-yellow-400">MEDIUM</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-4">
+<div class="w-24 h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-yellow-500 w-[55%]"></div>
+</div>
+<span class="text-xs font-bold text-on-surface">55%</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 text-xs font-bold border border-red-500/20">Review Due</span>
+</td>
+<td class="px-6 py-5 text-right">
+<button class="text-on-surface-variant hover:text-secondary transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Footer/Pagination -->
+<div class="bg-surface-container-low/20 px-6 py-4 flex items-center justify-between border-t border-outline-variant/10">
+<p class="text-xs text-on-surface-variant font-label-md">Showing 4 of 1,248 patients</p>
+<div class="flex items-center gap-4">
+<button class="p-2 text-on-surface-variant hover:text-on-surface disabled:opacity-30" disabled="">
+<span class="material-symbols-outlined">keyboard_arrow_left</span>
+</button>
+<div class="flex gap-1">
+<button class="w-8 h-8 rounded-lg bg-secondary/20 text-secondary font-bold text-xs">1</button>
+<button class="w-8 h-8 rounded-lg hover:bg-white/5 text-on-surface-variant text-xs">2</button>
+<button class="w-8 h-8 rounded-lg hover:bg-white/5 text-on-surface-variant text-xs">3</button>
+<span class="text-on-surface-variant px-1">...</span>
+<button class="w-8 h-8 rounded-lg hover:bg-white/5 text-on-surface-variant text-xs">125</button>
+</div>
+<button class="p-2 text-on-surface-variant hover:text-on-surface">
+<span class="material-symbols-outlined">keyboard_arrow_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer (Shared Component Anchor) -->
+<footer class="ml-64 w-auto py-xl px-margin-desktop flex flex-col md:flex-row justify-between items-center gap-md border-t border-outline-variant/8 bg-background">
+<p class="font-label-caps text-label-caps text-on-surface-variant">© 2024 Skinlytics AI. HIPAA Compliant Platform.</p>
+<div class="flex gap-6">
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-secondary transition-colors" href="#">Privacy Policy</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-secondary transition-colors" href="#">Terms of Service</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-secondary transition-colors" href="#">HIPAA Compliance</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-secondary transition-colors" href="#">Medical Disclaimer</a>
+</div>
+</footer>
+<script>
+        // Micro-interactions
+        document.querySelectorAll('tr').forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                row.style.transform = 'translateX(4px)';
+                row.style.transition = 'all 0.2s ease-out';
+            });
+            row.addEventListener('mouseleave', () => {
+                row.style.transform = 'translateX(0)';
+            });
+        });
+
+        // Search Bar Focus Effect
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput.addEventListener('focus', () => {
+            searchInput.parentElement.classList.add('border-secondary/40', 'ring-2', 'ring-secondary/10');
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.parentElement.classList.remove('border-secondary/40', 'ring-2', 'ring-secondary/10');
+        });
+    </script>
+</body></html>

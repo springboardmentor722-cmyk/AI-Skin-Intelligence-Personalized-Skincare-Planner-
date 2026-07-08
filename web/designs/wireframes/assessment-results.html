@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Skinlytics | Assessment Results</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Geist:wght@400;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-module {
+            background: rgba(255, 255, 255, 0.68);
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+        }
+        .solid-module {
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+        }
+        .reveal-anim {
+            animation: revealContent 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes revealContent {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .score-ring {
+            transform: rotate(-90deg);
+            transition: stroke-dashoffset 2s ease-out;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "#fcf8fa",
+                        "on-surface": "#1b1b1d",
+                        "on-error-container": "#93000a",
+                        "on-primary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "surface-variant": "#e4e2e4",
+                        "inverse-primary": "#bec6e0",
+                        "surface-container-highest": "#e4e2e4",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed": "#00174b",
+                        "on-background": "#1b1b1d",
+                        "surface-dim": "#dcd9db",
+                        "outline": "#76777d",
+                        "primary-fixed": "#dae2fd",
+                        "on-tertiary-fixed": "#00201c",
+                        "inverse-on-surface": "#f3f0f2",
+                        "tertiary-container": "#00201c",
+                        "surface-bright": "#fcf8fa",
+                        "primary": "#000000",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "on-tertiary-fixed-variant": "#005048",
+                        "surface-container-lowest": "#ffffff",
+                        "outline-variant": "#c6c6cd",
+                        "surface-container-low": "#f6f3f5",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed-dim": "#4fdbc8",
+                        "on-secondary-fixed-variant": "#003ea8",
+                        "tertiary-fixed": "#71f8e4",
+                        "secondary-fixed-dim": "#b4c5ff",
+                        "secondary": "#0051d5",
+                        "on-error": "#ffffff",
+                        "secondary-fixed": "#dbe1ff",
+                        "secondary-container": "#316bf3",
+                        "on-primary-container": "#7c839b",
+                        "primary-container": "#131b2e",
+                        "primary-fixed-dim": "#bec6e0",
+                        "on-secondary-container": "#fefcff",
+                        "surface-container-high": "#eae7e9",
+                        "error-container": "#ffdad6",
+                        "surface-container": "#f0edef",
+                        "on-tertiary-container": "#009485",
+                        "on-surface-variant": "#45464d",
+                        "inverse-surface": "#303032",
+                        "background": "#fcf8fa",
+                        "tertiary": "#000000",
+                        "surface-tint": "#565e74",
+                        "on-primary-fixed": "#131b2e"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "3xl": "64px",
+                        "margin-desktop": "48px",
+                        "xl": "32px",
+                        "xs": "4px",
+                        "margin-mobile": "16px",
+                        "sm": "8px",
+                        "base": "4px",
+                        "lg": "24px",
+                        "md": "16px",
+                        "gutter": "24px",
+                        "2xl": "48px"
+                    },
+                    "fontFamily": {
+                        "h2": ["Sora"],
+                        "h1-mobile": ["Sora"],
+                        "h1": ["Sora"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-caps": ["Geist"],
+                        "h3": ["Sora"],
+                        "data-display": ["Geist"]
+                    },
+                    "fontSize": {
+                        "h2": ["32px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "h1-mobile": ["30px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "h1": ["40px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "h3": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "data-display": ["32px", {"lineHeight": "1.0", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md overflow-x-hidden">
+<!-- Background Shader Layer -->
+<div class="fixed inset-0 z-0">
+<!-- STITCH_SHADER_START:ANIMATION_3 class="absolute inset-0 w-full h-full" -->
+<div class="absolute inset-0 w-full h-full" style="display:block;">
+<canvas id="shader-canvas-ANIMATION_3" style="display:block;width:100%;height:100%"></canvas>
+<script>
+(function() {
+  const canvas = document.getElementById('shader-canvas-ANIMATION_3');
+
+  // Sync the WebGL drawing-buffer size with the CSS-driven layout size.
+  // This fires on initial layout and whenever the element is resized.
+  function syncSize() {
+    const w = canvas.clientWidth  || 1280;
+    const h = canvas.clientHeight || 720;
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width  = w;
+      canvas.height = h;
+    }
+  }
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(syncSize).observe(canvas);
+  }
+  syncSize();
+
+  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  if (!gl) return;
+  const vs = `attribute vec2 a_position;
+varying vec2 v_texCoord;
+void main() {
+  v_texCoord = a_position * 0.5 + 0.5;
+  gl_Position = vec4(a_position, 0.0, 1.0);
+}`;
+  const fs = `precision highp float;
+uniform float u_time;
+uniform vec2 u_resolution;
+varying vec2 v_texCoord;
+
+void main() {
+    vec2 uv = v_texCoord;
+    
+    // Smooth drifting aurora effect using sine waves and time
+    float noise1 = sin(uv.x * 2.0 + u_time * 0.2) * 0.5 + 0.5;
+    float noise2 = sin(uv.y * 1.5 - u_time * 0.15) * 0.5 + 0.5;
+    
+    // Skinlytics Palette: Navy -> Royal Blue -> Teal
+    vec3 color1 = vec3(0.058, 0.09, 0.165); // Deep Navy (#0F172A)
+    vec3 color2 = vec3(0.145, 0.388, 0.922); // Royal Blue (#2563EB)
+    vec3 color3 = vec3(0.078, 0.722, 0.651); // Teal (#14B8A6)
+    
+    // Create a mesh-like drift
+    float t = u_time * 0.1;
+    vec2 p1 = vec2(0.5 + 0.3 * cos(t), 0.5 + 0.3 * sin(t));
+    vec2 p2 = vec2(0.5 + 0.3 * cos(t + 2.0), 0.5 + 0.3 * sin(t + 2.0));
+    vec2 p3 = vec2(0.5 + 0.3 * cos(t + 4.0), 0.5 + 0.3 * sin(t + 4.0));
+    
+    float d1 = 1.0 - smoothstep(0.0, 1.0, distance(uv, p1));
+    float d2 = 1.0 - smoothstep(0.0, 1.0, distance(uv, p2));
+    float d3 = 1.0 - smoothstep(0.0, 1.0, distance(uv, p3));
+    
+    vec3 finalColor = mix(color1, color2, d2 * 0.15);
+    finalColor = mix(finalColor, color3, d3 * 0.1);
+    
+    // Final ambient opacity (6-10% as requested)
+    gl_FragColor = vec4(finalColor, 0.08);
+}`;
+  function cs(type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    return s;
+  }
+  const prog = gl.createProgram();
+  gl.attachShader(prog, cs(gl.VERTEX_SHADER, vs));
+  gl.attachShader(prog, cs(gl.FRAGMENT_SHADER, fs));
+  gl.linkProgram(prog);
+  gl.useProgram(prog);
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+  const pos = gl.getAttribLocation(prog, 'a_position');
+  gl.enableVertexAttribArray(pos);
+  gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
+  const uTime = gl.getUniformLocation(prog, 'u_time');
+  const uRes = gl.getUniformLocation(prog, 'u_resolution');
+  const uMouse = gl.getUniformLocation(prog, 'u_mouse');
+
+  // u_mouse is in pixel coordinates matching u_resolution (ShaderToy convention).
+  // Shaders that need normalized coords should use: u_mouse / u_resolution.
+  let mouse = { x: canvas.width / 2, y: canvas.height / 2 };
+  window.addEventListener('mousemove', (event) => {
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width && rect.height) {
+      const nx = (event.clientX - rect.left) / rect.width;
+      const ny = 1.0 - (event.clientY - rect.top) / rect.height;
+      mouse.x = nx * canvas.width;
+      mouse.y = ny * canvas.height;
+    }
+  });
+
+  function render(t) {
+    if (typeof ResizeObserver === 'undefined') syncSize();
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    if (uTime) gl.uniform1f(uTime, t * 0.001);
+    if (uRes) gl.uniform2f(uRes, canvas.width, canvas.height);
+    if (uMouse) gl.uniform2f(uMouse, mouse.x, mouse.y);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    requestAnimationFrame(render);
+  }
+  render(0);
+})();
+</script>
+</div>
+<!-- STITCH_SHADER_END:ANIMATION_3 -->
+<div class="absolute inset-0 bg-background/40 backdrop-blur-[2px]"></div>
+</div>
+<!-- Navigation (Suppressed for focused results experience but keeping minimal logo) -->
+<header class="fixed top-0 w-full z-50 glass-module border-b border-on-surface/8 flex justify-between items-center px-margin-desktop py-md">
+<div class="flex items-center gap-2">
+<span class="font-h3 text-h3 font-bold text-primary">Skinlytics</span>
+</div>
+<div class="flex gap-4">
+<button class="px-6 py-2 rounded-full border border-primary text-primary font-body-md hover:bg-surface-container/50 transition-all">Download report (PDF)</button>
+<button class="px-6 py-2 rounded-full bg-primary text-on-primary font-body-md hover:opacity-90 transition-all">Open my dashboard</button>
+</div>
+</header>
+<main class="relative z-10 max-w-[1440px] mx-auto pt-32 pb-24 px-margin-desktop">
+<!-- Hero: Score Reveal -->
+<section class="reveal-anim mb-3xl grid grid-cols-12 gap-gutter items-center">
+<div class="col-span-12 lg:col-span-5 flex justify-center">
+<div class="glass-module rounded-[32px] p-12 relative flex flex-col items-center justify-center aspect-square w-full max-w-[400px]">
+<!-- Score Ring -->
+<div class="relative w-full h-full flex items-center justify-center">
+<svg class="w-full h-full max-w-[280px] score-ring" viewbox="0 0 100 100">
+<circle class="text-on-surface/5 stroke-current" cx="50" cy="50" fill="transparent" r="42" stroke-width="8"></circle>
+<circle class="text-secondary stroke-current" cx="50" cy="50" fill="transparent" r="42" stroke-dasharray="263.89" stroke-dashoffset="84.44" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="font-data-display text-[64px] text-primary">68</span>
+<span class="font-label-caps text-on-surface-variant uppercase tracking-widest">Score / 100</span>
+</div>
+</div>
+<div class="mt-6 text-center">
+<h2 class="font-h2 text-h2 text-primary">Fair, improving</h2>
+<p class="text-on-surface-variant mt-2">Analysis complete: +4.2% from last baseline</p>
+</div>
+</div>
+</div>
+<div class="col-span-12 lg:col-span-7">
+<div class="space-y-6">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">verified</span>
+<h1 class="font-h1 text-h1 text-primary">Diagnostic Overview</h1>
+</div>
+<!-- Sub-metrics Weighted Bars -->
+<div class="grid gap-6">
+<div class="space-y-2">
+<div class="flex justify-between items-end">
+<span class="font-label-caps text-on-surface-variant">CONDITION (35%)</span>
+<span class="font-data-display text-body-md text-primary">High Precision</span>
+</div>
+<div class="h-2 w-full bg-on-surface/5 rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[35%] rounded-full"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-end">
+<span class="font-label-caps text-on-surface-variant">LIFESTYLE (20%)</span>
+<span class="font-data-display text-body-md text-primary">Moderate Impact</span>
+</div>
+<div class="h-2 w-full bg-on-surface/5 rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[20%] rounded-full"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-end">
+<span class="font-label-caps text-on-surface-variant">ROUTINE (20%)</span>
+<span class="font-data-display text-body-md text-primary">Consistent</span>
+</div>
+<div class="h-2 w-full bg-on-surface/5 rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[20%] rounded-full"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-end">
+<span class="font-label-caps text-on-surface-variant">SLEEP (15%)</span>
+<span class="font-data-display text-body-md text-primary">Needs Optimization</span>
+</div>
+<div class="h-2 w-full bg-on-surface/5 rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[15%] rounded-full"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-end">
+<span class="font-label-caps text-on-surface-variant">HYDRATION (10%)</span>
+<span class="font-data-display text-body-md text-primary">Optimal</span>
+</div>
+<div class="h-2 w-full bg-on-surface/5 rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[10%] rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Insights Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter reveal-anim" style="animation-delay: 0.2s;">
+<!-- AI Summary Card -->
+<div class="lg:col-span-2 solid-module rounded-xl p-lg flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-secondary">auto_awesome</span>
+<span class="font-label-caps text-secondary uppercase">Clinical AI Summary</span>
+</div>
+<p class="font-body-lg text-primary leading-relaxed">
+                        Your skin currently presents with mild transepidermal water loss (TEWL) and localized erythema around the nasolabial folds. The AI model has detected a positive trend in texture smoothness, likely attributed to your consistent use of retinoids. However, there is a visible disruption in the lipid barrier which suggests a need for increased ceramide integration in your PM routine.
+                    </p>
+</div>
+<div class="mt-8 flex gap-4 border-t border-on-surface/8 pt-6">
+<div class="flex flex-col">
+<span class="font-label-caps text-on-surface-variant">ANALYSIS TIME</span>
+<span class="font-body-md font-semibold">1.4 seconds</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-caps text-on-surface-variant">DATA POINTS</span>
+<span class="font-body-md font-semibold">4,290 nodes</span>
+</div>
+</div>
+</div>
+<!-- Risk Factors -->
+<div class="solid-module rounded-xl p-lg">
+<div class="flex items-center gap-2 mb-6">
+<span class="material-symbols-outlined text-error">warning</span>
+<span class="font-label-caps text-error uppercase">Top 3 Risk Factors</span>
+</div>
+<ul class="space-y-6">
+<li class="flex items-start justify-between">
+<div>
+<p class="font-body-md font-semibold text-primary">UV Exposure</p>
+<p class="text-xs text-on-surface-variant mt-1">Accumulated photo-damage</p>
+</div>
+<span class="font-label-caps bg-on-surface/5 px-2 py-1 rounded text-primary">92% CONF</span>
+</li>
+<li class="flex items-start justify-between">
+<div>
+<p class="font-body-md font-semibold text-primary">Pollution Stress</p>
+<p class="text-xs text-on-surface-variant mt-1">Environmental oxidation</p>
+</div>
+<span class="font-label-caps bg-on-surface/5 px-2 py-1 rounded text-primary">87% CONF</span>
+</li>
+<li class="flex items-start justify-between">
+<div>
+<p class="font-body-md font-semibold text-primary">Barrier Fatigue</p>
+<p class="text-xs text-on-surface-variant mt-1">Surface lipid depletion</p>
+</div>
+<span class="font-label-caps bg-on-surface/5 px-2 py-1 rounded text-primary">74% CONF</span>
+</li>
+</ul>
+</div>
+</div>
+<!-- Concern Chips -->
+<section class="mt-xl reveal-anim" style="animation-delay: 0.4s;">
+<h3 class="font-h3 text-h3 text-primary mb-6">Identified Concerns</h3>
+<div class="flex flex-wrap gap-4">
+<div class="px-5 py-3 rounded-full bg-error/10 border border-error/20 flex items-center gap-3">
+<span class="w-2 h-2 rounded-full bg-error"></span>
+<span class="font-body-md font-semibold text-error">Dehydration</span>
+<span class="text-xs bg-error text-white px-2 py-0.5 rounded-full font-label-caps">Critical</span>
+</div>
+<div class="px-5 py-3 rounded-full bg-secondary/10 border border-secondary/20 flex items-center gap-3">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="font-body-md font-semibold text-secondary">Fine Lines</span>
+<span class="text-xs bg-secondary text-white px-2 py-0.5 rounded-full font-label-caps">Moderate</span>
+</div>
+<div class="px-5 py-3 rounded-full bg-tertiary-fixed-dim/10 border border-tertiary-fixed-dim/40 flex items-center gap-3">
+<span class="w-2 h-2 rounded-full bg-on-tertiary-container"></span>
+<span class="font-body-md font-semibold text-on-tertiary-container">Dullness</span>
+<span class="text-xs bg-on-tertiary-container text-white px-2 py-0.5 rounded-full font-label-caps">Mild</span>
+</div>
+<div class="px-5 py-3 rounded-full bg-surface-container-high border border-on-surface/8 flex items-center gap-3">
+<span class="w-2 h-2 rounded-full bg-outline"></span>
+<span class="font-body-md font-semibold text-on-surface">Sebum Control</span>
+<span class="text-xs bg-outline text-white px-2 py-0.5 rounded-full font-label-caps">Stable</span>
+</div>
+</div>
+</section>
+<!-- Routine Preview -->
+<section class="mt-3xl reveal-anim" style="animation-delay: 0.6s;">
+<div class="flex items-center justify-between mb-8">
+<h3 class="font-h3 text-h3 text-primary">Your Optimized Routine</h3>
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span class="font-label-caps">24-HOUR ADAPTIVE CYCLE</span>
+</div>
+</div>
+<div class="relative">
+<!-- Timeline Line -->
+<div class="absolute left-1/2 top-0 bottom-0 w-px bg-on-surface/8 hidden lg:block"></div>
+<div class="space-y-12">
+<!-- AM Section -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-gutter items-center">
+<div class="flex items-center gap-4 lg:justify-end">
+<div class="text-right">
+<span class="font-label-caps text-secondary">PHASE 01</span>
+<h4 class="font-h3 text-h3 text-primary">Morning Ritual</h4>
+</div>
+<span class="material-symbols-outlined text-4xl text-secondary" style="font-variation-settings: 'FILL' 1;">light_mode</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="solid-module p-4 rounded-xl">
+<span class="font-label-caps text-on-surface-variant">STEP 01</span>
+<p class="font-body-md font-semibold mt-1">Gentle Cleanser</p>
+<p class="text-xs text-on-surface-variant mt-2 italic">Low pH Formula</p>
+</div>
+<div class="solid-module p-4 rounded-xl">
+<span class="font-label-caps text-on-surface-variant">STEP 02</span>
+<p class="font-body-md font-semibold mt-1">Vitamin C Serum</p>
+<p class="text-xs text-on-surface-variant mt-2 italic">15% L-Ascorbic Acid</p>
+</div>
+<div class="solid-module p-4 rounded-xl">
+<span class="font-label-caps text-on-surface-variant">STEP 03</span>
+<p class="font-body-md font-semibold mt-1">SPF 50+ PA++++</p>
+<p class="text-xs text-on-surface-variant mt-2 italic">Mineral Shield</p>
+</div>
+</div>
+</div>
+<!-- PM Section -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-gutter items-center">
+<div class="lg:order-2 flex items-center gap-4">
+<span class="material-symbols-outlined text-4xl text-primary-container" style="font-variation-settings: 'FILL' 1;">dark_mode</span>
+<div>
+<span class="font-label-caps text-primary-container">PHASE 02</span>
+<h4 class="font-h3 text-h3 text-primary">Evening Recovery</h4>
+</div>
+</div>
+<div class="lg:order-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="solid-module p-4 rounded-xl">
+<span class="font-label-caps text-on-surface-variant">STEP 01</span>
+<p class="font-body-md font-semibold mt-1">Oil Cleanser</p>
+<p class="text-xs text-on-surface-variant mt-2 italic">Double Cleanse Method</p>
+</div>
+<div class="solid-module p-4 rounded-xl">
+<span class="font-label-caps text-on-surface-variant">STEP 02</span>
+<p class="font-body-md font-semibold mt-1">Barrier Balm</p>
+<p class="text-xs text-on-surface-variant mt-2 italic">Ceramide Complex</p>
+</div>
+<div class="solid-module p-4 rounded-xl">
+<span class="font-label-caps text-on-surface-variant">STEP 03</span>
+<p class="font-body-md font-semibold mt-1">Sleep Mask</p>
+<p class="text-xs text-on-surface-variant mt-2 italic">Hydration Lock</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Final CTAs -->
+<section class="mt-3xl reveal-anim flex flex-col items-center gap-6" style="animation-delay: 0.8s;">
+<div class="text-center max-w-2xl">
+<h3 class="font-h2 text-h2 text-primary">Ready to begin your journey?</h3>
+<p class="text-on-surface-variant mt-4">Your full dashboard includes weekly tracking, professional consultations, and ingredient transparency reports.</p>
+</div>
+<div class="flex flex-col sm:flex-row gap-4">
+<button class="px-10 py-4 rounded-full bg-primary text-on-primary font-h3 hover:scale-105 transition-all shadow-xl shadow-primary/10">Open my dashboard</button>
+<button class="px-10 py-4 rounded-full border-2 border-primary text-primary font-h3 hover:bg-surface-container-high transition-all">Download Full PDF</button>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="relative z-10 glass-module border-t border-on-surface/8 py-lg px-margin-desktop mt-2xl">
+<div class="flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="flex flex-col gap-2">
+<span class="font-h3 text-h3 font-bold text-primary">Skinlytics</span>
+<p class="font-label-caps text-on-surface-variant tracking-wider">© 2024 SKINLYTICS LAB. CLINICAL GRADE AI.</p>
+</div>
+<div class="flex gap-8">
+<a class="font-label-caps text-on-surface-variant hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="font-label-caps text-on-surface-variant hover:text-primary transition-colors" href="#">Terms of Service</a>
+<a class="font-label-caps text-on-surface-variant hover:text-primary transition-colors" href="#">HIPAA Compliance</a>
+</div>
+<div class="flex items-center gap-2 bg-surface-container-high px-4 py-2 rounded-full border border-on-surface/5">
+<span class="material-symbols-outlined text-sm text-on-surface-variant">info</span>
+<span class="text-[10px] font-label-caps text-on-surface-variant opacity-80">This analysis is for educational purposes and does not constitute medical advice.</span>
+</div>
+</div>
+</footer>
+<script>
+        // Micro-interactions for score ring
+        document.addEventListener('DOMContentLoaded', () => {
+            const ring = document.querySelector('.score-ring circle:last-child');
+            // Animate ring fill
+            setTimeout(() => {
+                ring.style.strokeDashoffset = "84.44"; // Value calculated based on 68/100 (263.89 * (1 - 0.68))
+            }, 500);
+
+            // Simple parallax effect for shader context
+            window.addEventListener('scroll', () => {
+                const scrolled = window.pageYOffset;
+                const hero = document.querySelector('.reveal-anim');
+                if (hero) {
+                    hero.style.transform = `translateY(${scrolled * 0.05}px)`;
+                }
+            });
+        });
+    </script>
+</body></html>

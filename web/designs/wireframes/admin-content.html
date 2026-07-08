@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Skinlytics | Admin Data Console</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@600;700;800&family=Geist:wght@400;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary": "#0051d5",
+                        "error": "#ba1a1a",
+                        "surface-dim": "#dcd9db",
+                        "surface-container-low": "#f6f3f5",
+                        "secondary-fixed-dim": "#b4c5ff",
+                        "on-primary-container": "#7c839b",
+                        "surface-container-high": "#eae7e9",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "on-error-container": "#93000a",
+                        "on-surface": "#1b1b1d",
+                        "error-container": "#ffdad6",
+                        "background": "#fcf8fa",
+                        "surface-variant": "#e4e2e4",
+                        "outline-variant": "#c6c6cd",
+                        "secondary-container": "#316bf3",
+                        "on-background": "#1b1b1d",
+                        "surface-tint": "#565e74",
+                        "on-tertiary-fixed": "#00201c",
+                        "surface-container-highest": "#e4e2e4",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-container": "#fefcff",
+                        "inverse-on-surface": "#f3f0f2",
+                        "primary": "#000000",
+                        "tertiary-fixed": "#71f8e4",
+                        "surface-bright": "#fcf8fa",
+                        "on-tertiary-container": "#009485",
+                        "on-surface-variant": "#45464d",
+                        "on-secondary-fixed-variant": "#003ea8",
+                        "on-error": "#ffffff",
+                        "on-secondary-fixed": "#00174b",
+                        "tertiary-container": "#00201c",
+                        "primary-fixed": "#dae2fd",
+                        "on-tertiary-fixed-variant": "#005048",
+                        "surface-container-lowest": "#ffffff",
+                        "outline": "#76777d",
+                        "primary-container": "#131b2e",
+                        "on-primary": "#ffffff",
+                        "primary-fixed-dim": "#bec6e0",
+                        "on-primary-fixed": "#131b2e",
+                        "inverse-surface": "#303032",
+                        "tertiary-fixed-dim": "#4fdbc8",
+                        "surface-container": "#f0edef",
+                        "inverse-primary": "#bec6e0",
+                        "on-secondary": "#ffffff",
+                        "tertiary": "#000000",
+                        "secondary-fixed": "#dbe1ff",
+                        "surface": "#fcf8fa"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xl": "32px",
+                        "xs": "4px",
+                        "margin-desktop": "48px",
+                        "2xl": "48px",
+                        "base": "4px",
+                        "3xl": "64px",
+                        "margin-mobile": "16px",
+                        "md": "16px",
+                        "sm": "8px",
+                        "lg": "24px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "h2": ["Sora"],
+                        "body-md": ["Inter"],
+                        "label-caps": ["Geist"],
+                        "body-lg": ["Inter"],
+                        "h1": ["Sora"],
+                        "h3": ["Sora"],
+                        "h1-mobile": ["Sora"],
+                        "data-display": ["Geist"]
+                    },
+                    "fontSize": {
+                        "h2": ["32px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "h1": ["40px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "h3": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "h1-mobile": ["30px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "data-display": ["32px", {"lineHeight": "1.0", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.68);
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+        }
+        .diagnostic-module {
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 16px;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #e4e2e4;
+            border-radius: 10px;
+        }
+        .aurora-mesh {
+            background-color: #f7f9fb;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(210,100%,95%,1) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(220,100%,92%,1) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(180,100%,94%,1) 0, transparent 50%);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md overflow-hidden h-screen flex aurora-mesh">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full w-64 glass-panel border-r border-outline-variant/10 z-50 flex flex-col p-lg">
+<div class="mb-3xl">
+<h1 class="font-h3 text-h3 font-bold text-primary">Skinlytics</h1>
+<p class="font-label-caps text-label-caps text-on-surface-variant opacity-60">AI INTELLIGENCE</p>
+</div>
+<nav class="flex-1 space-y-sm overflow-y-auto custom-scrollbar">
+<a class="flex items-center gap-md p-md rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-caps text-label-caps">Dashboard</span>
+</a>
+<a class="flex items-center gap-md p-md rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all" href="#">
+<span class="material-symbols-outlined">science</span>
+<span class="font-label-caps text-label-caps">Analyses</span>
+</a>
+<a class="flex items-center gap-md p-md rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all" href="#">
+<span class="material-symbols-outlined">clinical_notes</span>
+<span class="font-label-caps text-label-caps">Consultants</span>
+</a>
+<a class="flex items-center gap-md p-md rounded-lg bg-secondary/10 text-secondary border-r-4 border-secondary transition-all" href="#">
+<span class="material-symbols-outlined">category</span>
+<span class="font-label-caps text-label-caps">Products</span>
+</a>
+<a class="flex items-center gap-md p-md rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all" href="#">
+<span class="material-symbols-outlined">biotech</span>
+<span class="font-label-caps text-label-caps">Ingredients</span>
+</a>
+<a class="flex items-center gap-md p-md rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all" href="#">
+<span class="material-symbols-outlined">trending_up</span>
+<span class="font-label-caps text-label-caps">Progress</span>
+</a>
+<a class="flex items-center gap-md p-md rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-caps text-label-caps">Insights</span>
+</a>
+<a class="flex items-center gap-md p-md rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="font-label-caps text-label-caps">Reports</span>
+</a>
+<a class="flex items-center gap-md p-md rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-caps text-label-caps">Settings</span>
+</a>
+</nav>
+<div class="mt-xl pt-xl border-t border-outline-variant/10 space-y-sm">
+<a class="flex items-center gap-md p-md rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-caps text-label-caps">Support</span>
+</a>
+<a class="flex items-center gap-md p-md rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-caps text-label-caps">Account</span>
+</a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="ml-64 flex-1 flex flex-col h-screen overflow-hidden relative">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-40 flex justify-between items-center px-lg py-sm glass-panel border-b border-outline-variant/8 h-20">
+<div class="flex items-center gap-xl flex-1">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-full pl-10 pr-lg py-2 text-body-md focus:ring-2 focus:ring-secondary/20 transition-all" placeholder="Search database entries..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined">wb_sunny</span>
+</button>
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">person</span>
+</div>
+</div>
+</header>
+<!-- Content Area -->
+<section class="flex-1 overflow-y-auto p-xl custom-scrollbar space-y-xl">
+<!-- Header Section -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-md">
+<div>
+<h2 class="font-h2 text-h2 text-primary">Admin Content & Data</h2>
+<p class="text-on-surface-variant">Central intelligence management for skin science models.</p>
+</div>
+<div class="flex gap-md">
+<button class="px-xl py-md bg-primary text-on-primary rounded-full font-label-caps text-label-caps hover:opacity-90 transition-all flex items-center gap-sm" id="add-product-btn">
+<span class="material-symbols-outlined">add</span>
+                        New Analysis Entry
+                    </button>
+</div>
+</div>
+<!-- Custom Tabs -->
+<div class="flex gap-xl border-b border-outline-variant/10 pb-base">
+<button class="font-label-caps text-label-caps text-secondary border-b-2 border-secondary pb-md px-base transition-all">Products DB</button>
+<button class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary pb-md px-base transition-all">Ingredients DB</button>
+<button class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary pb-md px-base transition-all">Knowledge Base</button>
+<button class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary pb-md px-base transition-all">Data Sources</button>
+</div>
+<!-- Main Layout Grid -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Products DB Section -->
+<div class="col-span-12 lg:col-span-8 diagnostic-module p-lg overflow-hidden flex flex-col h-[600px]">
+<div class="flex justify-between items-center mb-xl">
+<h3 class="font-h3 text-h3 flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary">inventory_2</span>
+                            Products Database
+                        </h3>
+<div class="flex gap-sm">
+<button class="p-sm text-outline hover:text-primary transition-all"><span class="material-symbols-outlined">filter_list</span></button>
+<button class="p-sm text-outline hover:text-primary transition-all"><span class="material-symbols-outlined">download</span></button>
+</div>
+</div>
+<div class="flex-1 overflow-auto custom-scrollbar">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="text-on-surface-variant/60 font-label-caps text-label-caps uppercase border-b border-outline-variant/8">
+<th class="py-md pr-md">Product Name</th>
+<th class="py-md px-md">Category</th>
+<th class="py-md px-md">Active Agents</th>
+<th class="py-md px-md text-right">MSRP</th>
+<th class="py-md pl-md text-right">Status</th>
+</tr>
+</thead>
+<tbody class="text-body-md">
+<tr class="border-b border-outline-variant/5 hover:bg-surface-container-low transition-colors group">
+<td class="py-md pr-md font-semibold text-primary">HydraGen Serum 2.0</td>
+<td class="py-md px-md text-on-surface-variant">Serum</td>
+<td class="py-md px-md">
+<div class="flex gap-xs">
+<span class="px-sm py-xs bg-secondary/10 text-secondary text-[10px] rounded uppercase font-bold">HA</span>
+<span class="px-sm py-xs bg-secondary/10 text-secondary text-[10px] rounded uppercase font-bold">B5</span>
+</div>
+</td>
+<td class="py-md px-md text-right font-data-display text-sm">$48.00</td>
+<td class="py-md pl-md text-right">
+<span class="inline-flex items-center px-sm py-xs rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant text-[10px] font-bold">VERIFIED</span>
+</td>
+</tr>
+<tr class="border-b border-outline-variant/5 hover:bg-surface-container-low transition-colors">
+<td class="py-md pr-md font-semibold text-primary">Retinol Advanced Cell Rep.</td>
+<td class="py-md px-md text-on-surface-variant">Night Cream</td>
+<td class="py-md px-md">
+<div class="flex gap-xs">
+<span class="px-sm py-xs bg-secondary/10 text-secondary text-[10px] rounded uppercase font-bold">Retinol</span>
+</div>
+</td>
+<td class="py-md px-md text-right font-data-display text-sm">$72.00</td>
+<td class="py-md pl-md text-right">
+<span class="inline-flex items-center px-sm py-xs rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant text-[10px] font-bold">VERIFIED</span>
+</td>
+</tr>
+<tr class="border-b border-outline-variant/5 hover:bg-surface-container-low transition-colors">
+<td class="py-md pr-md font-semibold text-primary">Lumina Vitamin C 15%</td>
+<td class="py-md px-md text-on-surface-variant">Brightener</td>
+<td class="py-md px-md">
+<div class="flex gap-xs">
+<span class="px-sm py-xs bg-secondary/10 text-secondary text-[10px] rounded uppercase font-bold">Vit C</span>
+<span class="px-sm py-xs bg-secondary/10 text-secondary text-[10px] rounded uppercase font-bold">Vit E</span>
+</div>
+</td>
+<td class="py-md px-md text-right font-data-display text-sm">$54.00</td>
+<td class="py-md pl-md text-right">
+<span class="inline-flex items-center px-sm py-xs rounded-full bg-error-container text-on-error-container text-[10px] font-bold">FLAGGED</span>
+</td>
+</tr>
+<!-- More rows... -->
+</tbody>
+</table>
+</div>
+</div>
+<!-- Interaction Matrix Module -->
+<div class="col-span-12 lg:col-span-4 diagnostic-module p-lg h-[600px] flex flex-col">
+<h3 class="font-h3 text-h3 mb-xl flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary">rebase_edit</span>
+                        Interaction Logic
+                    </h3>
+<div class="space-y-md flex-1 overflow-y-auto custom-scrollbar pr-sm">
+<div class="p-md rounded-lg bg-surface-container-low border border-outline-variant/10">
+<div class="flex justify-between items-start mb-sm">
+<span class="font-label-caps text-label-caps text-secondary uppercase">Positive Pair</span>
+<span class="text-[10px] text-on-surface-variant">ID: INT-892</span>
+</div>
+<p class="font-semibold text-primary mb-xs">Retinol + Peptides</p>
+<p class="text-[13px] text-on-surface-variant leading-relaxed">Enhanced collagen synthesis and improved skin elasticity. Safe for all skin types when buffered.</p>
+</div>
+<div class="p-md rounded-lg bg-error-container/20 border border-error/10">
+<div class="flex justify-between items-start mb-sm">
+<span class="font-label-caps text-label-caps text-error uppercase">Conflict Detected</span>
+<span class="text-[10px] text-on-surface-variant">ID: INT-412</span>
+</div>
+<p class="font-semibold text-primary mb-xs">Vitamin C + Benzoyl Peroxide</p>
+<p class="text-[13px] text-on-surface-variant leading-relaxed">Oxidization of Vitamin C. Renders the treatment ineffective and may cause acute irritation.</p>
+</div>
+<div class="p-md rounded-lg bg-surface-container-low border border-outline-variant/10">
+<div class="flex justify-between items-start mb-sm">
+<span class="font-label-caps text-label-caps text-secondary uppercase">Positive Pair</span>
+<span class="text-[10px] text-on-surface-variant">ID: INT-221</span>
+</div>
+<p class="font-semibold text-primary mb-xs">Niacinamide + Salicylic Acid</p>
+<p class="text-[13px] text-on-surface-variant leading-relaxed">Synergistic pore-clearing and sebum regulation. Ideal for acne-prone oily skin types.</p>
+</div>
+</div>
+<button class="w-full mt-xl py-md border border-secondary text-secondary rounded-full font-label-caps text-label-caps hover:bg-secondary/5 transition-all">
+                        Map New Interaction
+                    </button>
+</div>
+<!-- Data Sources Grid -->
+<div class="col-span-12">
+<h3 class="font-h3 text-h3 mb-lg">Connected Data Sources</h3>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Source Card 1 -->
+<div class="diagnostic-module p-lg flex flex-col justify-between group hover:border-secondary/30 transition-all cursor-pointer">
+<div class="flex items-center gap-md mb-xl">
+<div class="w-12 h-12 rounded-xl bg-surface-container-highest flex items-center justify-center text-secondary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[28px]">database</span>
+</div>
+<div>
+<h4 class="font-semibold text-primary">Global Skincare DB</h4>
+<p class="text-[12px] text-on-surface-variant">REST API v4.2</p>
+</div>
+</div>
+<div class="flex justify-between items-end">
+<div>
+<p class="text-[10px] text-on-surface-variant uppercase font-bold mb-xs">Last Synced</p>
+<p class="font-data-display text-sm">2h 14m ago</p>
+</div>
+<button class="px-md py-sm bg-surface-container-low text-primary rounded-full font-label-caps text-[10px] hover:bg-secondary/10 hover:text-secondary transition-all">SYNC NOW</button>
+</div>
+</div>
+<!-- Source Card 2 -->
+<div class="diagnostic-module p-lg flex flex-col justify-between group hover:border-secondary/30 transition-all cursor-pointer">
+<div class="flex items-center gap-md mb-xl">
+<div class="w-12 h-12 rounded-xl bg-surface-container-highest flex items-center justify-center text-secondary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[28px]">biotech</span>
+</div>
+<div>
+<h4 class="font-semibold text-primary">Ingredient Analytics</h4>
+<p class="text-[12px] text-on-surface-variant">GraphQL Federated</p>
+</div>
+</div>
+<div class="flex justify-between items-end">
+<div>
+<p class="text-[10px] text-on-surface-variant uppercase font-bold mb-xs">Last Synced</p>
+<p class="font-data-display text-sm">Just now</p>
+</div>
+<div class="flex items-center gap-sm text-on-tertiary-container">
+<span class="material-symbols-outlined text-sm animate-spin">sync</span>
+<span class="text-[10px] font-bold uppercase">Syncing...</span>
+</div>
+</div>
+</div>
+<!-- Source Card 3 -->
+<div class="diagnostic-module p-lg flex flex-col justify-between group hover:border-secondary/30 transition-all cursor-pointer">
+<div class="flex items-center gap-md mb-xl">
+<div class="w-12 h-12 rounded-xl bg-surface-container-highest flex items-center justify-center text-secondary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[28px]">library_books</span>
+</div>
+<div>
+<h4 class="font-semibold text-primary">Research Pubs (NCBI)</h4>
+<p class="text-[12px] text-on-surface-variant">Semantic Web</p>
+</div>
+</div>
+<div class="flex justify-between items-end">
+<div>
+<p class="text-[10px] text-on-surface-variant uppercase font-bold mb-xs">Last Synced</p>
+<p class="font-data-display text-sm">12 Oct 2023</p>
+</div>
+<button class="px-md py-sm bg-surface-container-low text-primary rounded-full font-label-caps text-[10px] hover:bg-secondary/10 hover:text-secondary transition-all">SYNC NOW</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Knowledge Base Section -->
+<div class="col-span-12 diagnostic-module p-lg">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-xl">
+<!-- List of Articles -->
+<div class="md:col-span-4 border-r border-outline-variant/10 pr-xl">
+<h3 class="font-h3 text-h3 mb-lg flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary">auto_stories</span>
+                                Articles
+                            </h3>
+<div class="space-y-sm">
+<div class="p-md rounded-lg bg-surface-container-low border-l-4 border-secondary cursor-pointer">
+<h4 class="font-semibold text-primary text-sm">The Microbiome of Oily Skin</h4>
+<p class="text-[11px] text-on-surface-variant mt-xs italic">Revised 2 days ago</p>
+</div>
+<div class="p-md rounded-lg hover:bg-surface-container-low transition-all cursor-pointer">
+<h4 class="font-semibold text-on-surface-variant text-sm">Sunscreen Filters & Marine Life</h4>
+<p class="text-[11px] text-on-surface-variant/60 mt-xs">Draft State</p>
+</div>
+<div class="p-md rounded-lg hover:bg-surface-container-low transition-all cursor-pointer">
+<h4 class="font-semibold text-on-surface-variant text-sm">Ceramides: The Barrier Heroes</h4>
+<p class="text-[11px] text-on-surface-variant/60 mt-xs">Published Jun 2023</p>
+</div>
+<button class="w-full flex items-center justify-center gap-sm p-md text-secondary font-label-caps text-label-caps border border-dashed border-secondary/30 rounded-lg hover:bg-secondary/5 transition-all">
+<span class="material-symbols-outlined text-sm">add</span>
+                                    Create New Article
+                                </button>
+</div>
+</div>
+<!-- Text Editor Simulation -->
+<div class="md:col-span-8">
+<div class="flex justify-between items-center mb-md">
+<h4 class="font-h3 text-h3">Editing: The Microbiome of Oily Skin</h4>
+<div class="flex gap-sm">
+<button class="px-md py-sm rounded-lg hover:bg-surface-container-low transition-all"><span class="material-symbols-outlined">save</span></button>
+<button class="px-md py-sm bg-primary text-on-primary rounded-full font-label-caps text-[10px]">PUBLISH</button>
+</div>
+</div>
+<div class="border border-outline-variant/20 rounded-xl overflow-hidden bg-white">
+<div class="bg-surface-container-low px-md py-sm border-b border-outline-variant/10 flex gap-md text-on-surface-variant">
+<button class="hover:text-primary"><span class="material-symbols-outlined text-[20px]">format_bold</span></button>
+<button class="hover:text-primary"><span class="material-symbols-outlined text-[20px]">format_italic</span></button>
+<button class="hover:text-primary"><span class="material-symbols-outlined text-[20px]">link</span></button>
+<div class="w-[1px] bg-outline-variant/30 h-5 my-auto mx-sm"></div>
+<button class="hover:text-primary"><span class="material-symbols-outlined text-[20px]">format_list_bulleted</span></button>
+<button class="hover:text-primary"><span class="material-symbols-outlined text-[20px]">image</span></button>
+</div>
+<textarea class="w-full h-64 p-lg border-none focus:ring-0 text-body-md leading-relaxed resize-none custom-scrollbar" placeholder="Start typing the scientific findings here...">Recent studies suggest that Propionibacterium acnes, while common on all skin types, behaves differently in oily environments. 
+
+Excess sebum production provides an anaerobic environment that triggers inflammatory responses. This research explores the specific metabolic pathways involved...</textarea>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="w-full py-xl px-margin-desktop flex flex-col md:flex-row justify-between items-center gap-md border-t border-outline-variant/8 glass-panel z-10">
+<div class="flex flex-col items-center md:items-start">
+<p class="font-label-caps text-label-caps text-on-surface-variant">© 2024 SKINLYTICS AI. HIPAA COMPLIANT PLATFORM.</p>
+</div>
+<div class="flex gap-xl">
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-secondary transition-all" href="#">Privacy Policy</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-secondary transition-all" href="#">Terms of Service</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-secondary transition-all" href="#">Medical Disclaimer</a>
+</div>
+</footer>
+<!-- Glass Sheet Overlay Form (Hidden by default) -->
+<div class="fixed inset-0 z-[100] flex justify-end bg-black/5 bg-opacity-10 backdrop-blur-sm pointer-events-none opacity-0 transition-all duration-300" id="add-product-overlay">
+<div class="w-full max-w-lg glass-panel h-full border-l border-outline-variant/20 p-xl translate-x-full transition-transform duration-500 flex flex-col" id="add-product-sheet">
+<div class="flex justify-between items-center mb-3xl">
+<h2 class="font-h2 text-h2">New Analysis Entry</h2>
+<button class="w-12 h-12 rounded-full flex items-center justify-center hover:bg-surface-container-low transition-all" id="close-sheet">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<form class="flex-1 space-y-xl overflow-y-auto pr-sm custom-scrollbar">
+<div class="space-y-sm">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase">Product Name</label>
+<input class="w-full p-md border-b-2 border-outline-variant focus:border-secondary bg-transparent outline-none transition-colors" placeholder="e.g. Advanced Night Repair" type="text"/>
+</div>
+<div class="space-y-sm">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase">Category</label>
+<select class="w-full p-md border-b-2 border-outline-variant focus:border-secondary bg-transparent outline-none transition-colors appearance-none">
+<option>Serum</option>
+<option>Moisturizer</option>
+<option>Cleanser</option>
+<option>Treatment</option>
+</select>
+</div>
+<div class="space-y-sm">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase">Key Ingredients (Comma Separated)</label>
+<textarea class="w-full p-md border-2 border-outline-variant/30 rounded-xl focus:border-secondary bg-transparent outline-none transition-colors h-32" placeholder="Niacinamide, Zinc PCA, Hyaluronic Acid..."></textarea>
+</div>
+<div class="grid grid-cols-2 gap-lg">
+<div class="space-y-sm">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase">Price (USD)</label>
+<input class="w-full p-md border-b-2 border-outline-variant focus:border-secondary bg-transparent outline-none transition-colors" placeholder="0.00" type="number"/>
+</div>
+<div class="space-y-sm">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase">Skin Type Focus</label>
+<div class="flex flex-wrap gap-xs pt-xs">
+<span class="px-sm py-xs bg-surface-container-low border border-outline-variant/20 rounded-full text-[10px] cursor-pointer hover:bg-secondary/10">OILY</span>
+<span class="px-sm py-xs bg-surface-container-low border border-outline-variant/20 rounded-full text-[10px] cursor-pointer hover:bg-secondary/10">DRY</span>
+<span class="px-sm py-xs bg-secondary text-on-secondary rounded-full text-[10px] cursor-pointer">COMBINATION</span>
+</div>
+</div>
+</div>
+</form>
+<div class="pt-xl mt-auto border-t border-outline-variant/10 flex gap-md">
+<button class="flex-1 py-md rounded-full border border-outline-variant text-on-surface-variant font-label-caps text-label-caps hover:bg-surface-container-low transition-all" id="cancel-sheet">DISCARD</button>
+<button class="flex-[2] py-md rounded-full bg-secondary text-on-secondary font-label-caps text-label-caps shadow-lg shadow-secondary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">SAVE ENTRY</button>
+</div>
+</div>
+</div>
+</main>
+<script>
+        const addBtn = document.getElementById('add-product-btn');
+        const overlay = document.getElementById('add-product-overlay');
+        const sheet = document.getElementById('add-product-sheet');
+        const closeBtn = document.getElementById('close-sheet');
+        const cancelBtn = document.getElementById('cancel-sheet');
+
+        function openSheet() {
+            overlay.classList.remove('pointer-events-none', 'opacity-0');
+            overlay.classList.add('pointer-events-auto', 'opacity-100');
+            sheet.classList.remove('translate-x-full');
+            sheet.classList.add('translate-x-0');
+        }
+
+        function closeSheet() {
+            sheet.classList.remove('translate-x-0');
+            sheet.classList.add('translate-x-full');
+            overlay.classList.remove('pointer-events-auto', 'opacity-100');
+            overlay.classList.add('pointer-events-none', 'opacity-0');
+        }
+
+        addBtn.addEventListener('click', openSheet);
+        closeBtn.addEventListener('click', closeSheet);
+        cancelBtn.addEventListener('click', closeSheet);
+
+        // Close on clicking overlay background
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeSheet();
+        });
+
+        // Simple sync interaction
+        document.querySelectorAll('button:contains("SYNC NOW")').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const parent = this.parentElement;
+                this.style.display = 'none';
+                const status = document.createElement('div');
+                status.className = 'flex items-center gap-sm text-on-tertiary-container';
+                status.innerHTML = `<span class="material-symbols-outlined text-sm animate-spin">sync</span><span class="text-[10px] font-bold uppercase">Syncing...</span>`;
+                parent.appendChild(status);
+                
+                setTimeout(() => {
+                    status.remove();
+                    this.style.display = 'block';
+                    this.innerText = 'SYNCED';
+                    this.classList.add('bg-tertiary-fixed', 'text-on-tertiary-fixed-variant');
+                }, 2000);
+            });
+        });
+
+        // Helper for contains selector since it's not native
+        function initSyncButtons() {
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(btn => {
+                if (btn.textContent.includes('SYNC NOW')) {
+                     btn.addEventListener('click', function() {
+                        const originalContent = this.innerHTML;
+                        this.disabled = true;
+                        this.innerHTML = `<span class="material-symbols-outlined text-sm animate-spin">sync</span>`;
+                        setTimeout(() => {
+                            this.innerHTML = `<span class="material-symbols-outlined text-sm">check_circle</span>`;
+                            this.classList.add('bg-tertiary-fixed', 'text-on-tertiary-fixed-variant');
+                        }, 1500);
+                     });
+                }
+            });
+        }
+        initSyncButtons();
+    </script>
+</body></html>

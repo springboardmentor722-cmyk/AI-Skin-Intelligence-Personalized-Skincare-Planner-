@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Skinlytics | Product Comparison</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Inter:wght@400;500;600&family=Geist:wght@400;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.68);
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+        }
+        .diagnostic-border {
+            border: 1px solid rgba(15, 23, 42, 0.08);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        .highlight-glow {
+            box-shadow: 0 0 20px rgba(0, 81, 213, 0.15);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface-variant": "#45464d",
+                        "on-tertiary-fixed": "#00201c",
+                        "inverse-surface": "#303032",
+                        "on-primary": "#ffffff",
+                        "inverse-on-surface": "#f3f0f2",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed-variant": "#005048",
+                        "on-secondary-fixed": "#00174b",
+                        "primary": "#000000",
+                        "secondary-fixed": "#dbe1ff",
+                        "surface-dim": "#dcd9db",
+                        "surface": "#fcf8fa",
+                        "secondary-container": "#316bf3",
+                        "surface-container-low": "#f6f3f5",
+                        "on-tertiary-container": "#009485",
+                        "on-primary-fixed": "#131b2e",
+                        "on-background": "#1b1b1d",
+                        "surface-variant": "#e4e2e4",
+                        "on-primary-container": "#7c839b",
+                        "inverse-primary": "#bec6e0",
+                        "on-secondary-container": "#fefcff",
+                        "on-secondary-fixed-variant": "#003ea8",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed-dim": "#4fdbc8",
+                        "surface-container": "#f0edef",
+                        "primary-fixed-dim": "#bec6e0",
+                        "outline-variant": "#c6c6cd",
+                        "tertiary": "#000000",
+                        "surface-bright": "#fcf8fa",
+                        "surface-container-high": "#eae7e9",
+                        "primary-container": "#131b2e",
+                        "error-container": "#ffdad6",
+                        "background": "#fcf8fa",
+                        "surface-tint": "#565e74",
+                        "primary-fixed": "#dae2fd",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-highest": "#e4e2e4",
+                        "outline": "#76777d",
+                        "secondary": "#0051d5",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error": "#ffffff",
+                        "tertiary-container": "#00201c",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "secondary-fixed-dim": "#b4c5ff",
+                        "tertiary-fixed": "#71f8e4",
+                        "on-surface": "#1b1b1d"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "base": "4px",
+                        "xs": "4px",
+                        "sm": "8px",
+                        "xl": "32px",
+                        "margin-mobile": "16px",
+                        "lg": "24px",
+                        "3xl": "64px",
+                        "2xl": "48px",
+                        "md": "16px",
+                        "margin-desktop": "48px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "h2": ["Sora"],
+                        "h1": ["Sora"],
+                        "body-md": ["Inter"],
+                        "data-display": ["Geist"],
+                        "h1-mobile": ["Sora"],
+                        "body-lg": ["Inter"],
+                        "label-caps": ["Geist"],
+                        "h3": ["Sora"]
+                    },
+                    "fontSize": {
+                        "h2": ["32px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "h1": ["40px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "data-display": ["32px", {"lineHeight": "1.0", "fontWeight": "600"}],
+                        "h1-mobile": ["30px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "h3": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background font-body-md text-on-surface custom-scrollbar">
+<!-- App Shell: SideNavBar -->
+<aside class="fixed left-0 top-0 h-screen w-64 z-40 bg-white/68 backdrop-blur-xl flex flex-col py-lg border-r border-on-surface/8">
+<div class="px-lg mb-xl">
+<h1 class="font-h3 text-h3 font-bold text-primary">Skinlytics AI</h1>
+<p class="text-on-surface-variant text-xs font-label-caps tracking-widest mt-1">Clinical Portal</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="bg-secondary/10 text-secondary border-r-4 border-secondary px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">biotech</span>
+<span>Analyses</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">medical_services</span>
+<span>Consultants</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="mt-auto px-lg pt-lg border-t border-on-surface/8">
+<button class="w-full bg-primary text-on-primary font-semibold py-3 rounded-xl mb-6 hover:opacity-90 transition-opacity">
+                New Assessment
+            </button>
+<div class="space-y-1">
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-2 flex items-center gap-3 text-sm rounded-lg" href="#">
+<span class="material-symbols-outlined text-sm">help</span>
+<span>Help Center</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-container/50 px-4 py-2 flex items-center gap-3 text-sm rounded-lg" href="#">
+<span class="material-symbols-outlined text-sm">logout</span>
+<span>Sign Out</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- App Shell: TopAppBar -->
+<header class="sticky top-0 w-full z-30 bg-white/68 backdrop-blur-xl border-b border-on-surface/8 flex justify-between items-center px-lg py-sm ml-64">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-full focus:ring-2 focus:ring-secondary/20 transition-all text-sm" placeholder="Search formulations..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4 ml-auto pr-64">
+<button class="p-2 text-on-surface-variant hover:text-secondary transition-transform active:scale-90"><span class="material-symbols-outlined">wb_sunny</span></button>
+<button class="p-2 text-on-surface-variant hover:text-secondary transition-transform active:scale-90 relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-secondary transition-transform active:scale-90"><span class="material-symbols-outlined">contrast</span></button>
+<div class="h-8 w-8 rounded-full bg-surface-container-highest border border-on-surface/10 overflow-hidden">
+<img class="h-full w-full object-cover" data-alt="A professional close-up headshot of a dermatologist in a clean white coat against a soft-focus clinical background. The image has high-key lighting, emphasizing a modern healthcare aesthetic with subtle teal and blue accents. The professional appears calm and authoritative, fitting the medical precision of the Skinlytics brand." src="source/images/app-products-compare/img_000_adc0465c.jpg"/>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="ml-64 p-lg pb-32">
+<!-- Header & Toggle Section -->
+<div class="max-w-6xl mx-auto mb-lg flex justify-between items-end">
+<div>
+<nav class="flex items-center gap-2 text-on-surface-variant text-xs font-label-caps mb-2">
+<a class="hover:text-primary" href="#">Products</a>
+<span class="material-symbols-outlined text-[10px]">chevron_right</span>
+<span class="text-primary">Comparison Tool</span>
+</nav>
+<h2 class="font-h2 text-h2 text-primary">Advanced Product Comparison</h2>
+</div>
+<div class="flex items-center gap-3 bg-surface-container rounded-full p-1 diagnostic-border">
+<span class="text-xs font-label-caps px-3 text-on-surface-variant">Highlight Best Value</span>
+<button class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-surface-variant" id="valueToggle" onclick="toggleHighlight()">
+<span aria-hidden="true" class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0" id="toggleKnob"></span>
+</button>
+</div>
+</div>
+<!-- Comparison Table Container -->
+<div class="max-w-6xl mx-auto overflow-hidden diagnostic-border rounded-xl bg-surface-container-lowest">
+<div class="overflow-x-auto custom-scrollbar">
+<table class="w-full border-collapse">
+<thead>
+<!-- Product Headers (Sticky) -->
+<tr class="bg-white/90 backdrop-blur-md sticky top-0 z-20">
+<th class="p-lg text-left w-64 bg-surface-container-low diagnostic-border">
+<span class="font-label-caps text-on-surface-variant">Metric</span>
+</th>
+<!-- Column 1 -->
+<th class="p-lg text-left min-w-[300px] diagnostic-border group" id="col-1">
+<div class="flex flex-col gap-4">
+<div class="h-40 w-full rounded-lg bg-surface-container overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A minimalist studio photograph of a premium glass serum bottle with a metallic dropper on a reflective white surface. Soft blue and teal atmospheric lighting creates a sophisticated, clinical-grade beauty aesthetic. The composition is centered and clean, highlighting the product's high-tech wellness vibe." src="source/images/app-products-compare/img_001_d70cc417.jpg"/>
+</div>
+<div>
+<h4 class="font-h3 text-xl text-primary mb-1">Luminary Vita-C</h4>
+<p class="text-on-surface-variant text-sm">Advanced Brightening Serum</p>
+</div>
+<div class="flex items-center gap-3 pt-2 border-t border-on-surface/4">
+<div class="relative w-12 h-12">
+<svg class="w-full h-full -rotate-90" viewbox="0 0 36 36">
+<circle class="stroke-surface-variant" cx="18" cy="18" fill="none" r="16" stroke-width="3"></circle>
+<circle class="stroke-secondary" cx="18" cy="18" fill="none" r="16" stroke-dasharray="92, 100" stroke-width="3"></circle>
+</svg>
+<span class="absolute inset-0 flex items-center justify-center font-data-display text-xs">92</span>
+</div>
+<span class="text-xs font-label-caps text-secondary">Match Score</span>
+</div>
+</div>
+</th>
+<!-- Column 2 -->
+<th class="p-lg text-left min-w-[300px] diagnostic-border group" id="col-2">
+<div class="flex flex-col gap-4">
+<div class="h-40 w-full rounded-lg bg-surface-container overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A macro photograph of a white cosmetic cream jar with a matte finish. The background is a soft Aurora mesh gradient of pale blues and whites, echoing a futuristic lab environment. The lighting is diffused and high-end, focusing on the texture and purity of the product packaging." src="source/images/app-products-compare/img_002_432bb61b.jpg"/>
+</div>
+<div>
+<h4 class="font-h3 text-xl text-primary mb-1">Derma-Shield Pro</h4>
+<p class="text-on-surface-variant text-sm">Ceramide Barrier Cream</p>
+</div>
+<div class="flex items-center gap-3 pt-2 border-t border-on-surface/4">
+<div class="relative w-12 h-12">
+<svg class="w-full h-full -rotate-90" viewbox="0 0 36 36">
+<circle class="stroke-surface-variant" cx="18" cy="18" fill="none" r="16" stroke-width="3"></circle>
+<circle class="stroke-secondary" cx="18" cy="18" fill="none" r="16" stroke-dasharray="85, 100" stroke-width="3"></circle>
+</svg>
+<span class="absolute inset-0 flex items-center justify-center font-data-display text-xs">85</span>
+</div>
+<span class="text-xs font-label-caps text-secondary">Match Score</span>
+</div>
+</div>
+</th>
+<!-- Column 3 -->
+<th class="p-lg text-left min-w-[300px] diagnostic-border group" id="col-3">
+<div class="flex flex-col gap-4">
+<div class="h-40 w-full rounded-lg bg-surface-container overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A technical shot of a blue skincare tube placed on a cool-toned marble surface. The lighting is crisp and medical, suggesting clinical precision and effectiveness. Subtle refractive lens flare adds a sense of light and transparency, matching the glassmorphism aesthetic of the brand." src="source/images/app-products-compare/img_003_67b9f13f.jpg"/>
+</div>
+<div>
+<h4 class="font-h3 text-xl text-primary mb-1">Aqua-Logic Gel</h4>
+<p class="text-on-surface-variant text-sm">Hyaluronic Intense Hydrator</p>
+</div>
+<div class="flex items-center gap-3 pt-2 border-t border-on-surface/4">
+<div class="relative w-12 h-12">
+<svg class="w-full h-full -rotate-90" viewbox="0 0 36 36">
+<circle class="stroke-surface-variant" cx="18" cy="18" fill="none" r="16" stroke-width="3"></circle>
+<circle class="stroke-secondary" cx="18" cy="18" fill="none" r="16" stroke-dasharray="78, 100" stroke-width="3"></circle>
+</svg>
+<span class="absolute inset-0 flex items-center justify-center font-data-display text-xs">78</span>
+</div>
+<span class="text-xs font-label-caps text-secondary">Match Score</span>
+</div>
+</div>
+</th>
+</tr>
+</thead>
+<tbody>
+<!-- Price Row -->
+<tr class="hover:bg-surface-container/30 transition-colors">
+<td class="p-lg font-semibold bg-surface-container-low diagnostic-border">Price</td>
+<td class="p-lg diagnostic-border font-data-display text-2xl text-primary">$84.00</td>
+<td class="p-lg diagnostic-border font-data-display text-2xl text-primary">$62.00</td>
+<td class="p-lg diagnostic-border font-data-display text-2xl text-primary" id="bestValueCell">$45.00</td>
+</tr>
+<!-- Category Row -->
+<tr class="hover:bg-surface-container/30 transition-colors">
+<td class="p-lg font-semibold bg-surface-container-low diagnostic-border">Category</td>
+<td class="p-lg diagnostic-border text-on-surface-variant">Serum / Treatment</td>
+<td class="p-lg diagnostic-border text-on-surface-variant">Moisturizer</td>
+<td class="p-lg diagnostic-border text-on-surface-variant">Hydrating Gel</td>
+</tr>
+<!-- Suitability Row -->
+<tr class="hover:bg-surface-container/30 transition-colors">
+<td class="p-lg font-semibold bg-surface-container-low diagnostic-border">Suitability</td>
+<td class="p-lg diagnostic-border">
+<span class="bg-secondary/10 text-secondary text-xs font-label-caps px-2 py-1 rounded-full">Oily/Normal</span>
+</td>
+<td class="p-lg diagnostic-border">
+<span class="bg-secondary/10 text-secondary text-xs font-label-caps px-2 py-1 rounded-full">Dry/Sensitive</span>
+</td>
+<td class="p-lg diagnostic-border">
+<span class="bg-secondary/10 text-secondary text-xs font-label-caps px-2 py-1 rounded-full">All Skin Types</span>
+</td>
+</tr>
+<!-- Key Ingredients Row -->
+<tr class="hover:bg-surface-container/30 transition-colors">
+<td class="p-lg font-semibold bg-surface-container-low diagnostic-border">Key Ingredients</td>
+<td class="p-lg diagnostic-border text-sm leading-relaxed">15% L-Ascorbic Acid, Ferulic Acid, Vitamin E</td>
+<td class="p-lg diagnostic-border text-sm leading-relaxed">Ceramide NP, Squalane, Colloidal Oatmeal</td>
+<td class="p-lg diagnostic-border text-sm leading-relaxed">Multi-weight Hyaluronic Acid, B5, Mineral Ions</td>
+</tr>
+<!-- Concerns Targeted Row -->
+<tr class="hover:bg-surface-container/30 transition-colors">
+<td class="p-lg font-semibold bg-surface-container-low diagnostic-border">Concerns</td>
+<td class="p-lg diagnostic-border">
+<div class="flex flex-wrap gap-2">
+<span class="text-xs border border-on-surface/10 px-2 py-1 rounded">Dullness</span>
+<span class="text-xs border border-on-surface/10 px-2 py-1 rounded">Fine Lines</span>
+</div>
+</td>
+<td class="p-lg diagnostic-border">
+<div class="flex flex-wrap gap-2">
+<span class="text-xs border border-on-surface/10 px-2 py-1 rounded">Redness</span>
+<span class="text-xs border border-on-surface/10 px-2 py-1 rounded">Dehydration</span>
+</div>
+</td>
+<td class="p-lg diagnostic-border">
+<div class="flex flex-wrap gap-2">
+<span class="text-xs border border-on-surface/10 px-2 py-1 rounded">Texture</span>
+<span class="text-xs border border-on-surface/10 px-2 py-1 rounded">Hydration</span>
+</div>
+</td>
+</tr>
+<!-- Texture Row -->
+<tr class="hover:bg-surface-container/30 transition-colors">
+<td class="p-lg font-semibold bg-surface-container-low diagnostic-border">Texture</td>
+<td class="p-lg diagnostic-border text-on-surface-variant italic">Lightweight fluid</td>
+<td class="p-lg diagnostic-border text-on-surface-variant italic">Rich, velvety cream</td>
+<td class="p-lg diagnostic-border text-on-surface-variant italic">Cooling water-gel</td>
+</tr>
+<!-- Allergy Flags Row -->
+<tr class="hover:bg-surface-container/30 transition-colors">
+<td class="p-lg font-semibold bg-surface-container-low diagnostic-border">Allergy Flags</td>
+<td class="p-lg diagnostic-border">
+<div class="flex items-center gap-2 text-error text-xs font-semibold">
+<span class="material-symbols-outlined text-sm">warning</span>
+<span>Synthetic Fragrance</span>
+</div>
+</td>
+<td class="p-lg diagnostic-border">
+<div class="flex items-center gap-2 text-on-tertiary-container text-xs font-semibold">
+<span class="material-symbols-outlined text-sm">check_circle</span>
+<span>Hypoallergenic</span>
+</div>
+</td>
+<td class="p-lg diagnostic-border">
+<div class="flex items-center gap-2 text-on-tertiary-container text-xs font-semibold">
+<span class="material-symbols-outlined text-sm">check_circle</span>
+<span>Paraben Free</span>
+</div>
+</td>
+</tr>
+<!-- AI Analysis Row -->
+<tr class="bg-surface-container/20">
+<td class="p-lg font-semibold bg-surface-container-low diagnostic-border align-top">
+<div class="flex items-center gap-2 text-secondary">
+<span class="material-symbols-outlined text-sm">auto_awesome</span>
+<span>AI Summary</span>
+</div>
+</td>
+<td class="p-lg diagnostic-border align-top">
+<div class="space-y-3">
+<div class="flex gap-2">
+<span class="text-on-tertiary-container text-xs">PRO:</span>
+<p class="text-xs text-on-surface-variant">Highly effective brightening with stable Vitamin C formulation.</p>
+</div>
+<div class="flex gap-2">
+<span class="text-error text-xs">CON:</span>
+<p class="text-xs text-on-surface-variant">May cause tingling on extremely sensitive barriers.</p>
+</div>
+</div>
+</td>
+<td class="p-lg diagnostic-border align-top">
+<div class="space-y-3">
+<div class="flex gap-2">
+<span class="text-on-tertiary-container text-xs">PRO:</span>
+<p class="text-xs text-on-surface-variant">Exceptional for restoring lipid barrier post-treatment.</p>
+</div>
+<div class="flex gap-2">
+<span class="text-error text-xs">CON:</span>
+<p class="text-xs text-on-surface-variant">Slightly heavy for midday application on oily skin.</p>
+</div>
+</div>
+</td>
+<td class="p-lg diagnostic-border align-top">
+<div class="space-y-3">
+<div class="flex gap-2">
+<span class="text-on-tertiary-container text-xs">PRO:</span>
+<p class="text-xs text-on-surface-variant">Immediate absorption with no residue; excellent value.</p>
+</div>
+<div class="flex gap-2">
+<span class="text-error text-xs">CON:</span>
+<p class="text-xs text-on-surface-variant">Requires occlusive layer in very dry climates.</p>
+</div>
+</div>
+</td>
+</tr>
+</tbody>
+<!-- Action Row -->
+<tfoot>
+<tr>
+<td class="p-lg bg-surface-container-low diagnostic-border"></td>
+<td class="p-lg diagnostic-border">
+<button class="w-full py-3 px-4 border border-primary text-primary font-semibold rounded-xl hover:bg-primary hover:text-white transition-all duration-300">Choose this</button>
+</td>
+<td class="p-lg diagnostic-border">
+<button class="w-full py-3 px-4 border border-primary text-primary font-semibold rounded-xl hover:bg-primary hover:text-white transition-all duration-300">Choose this</button>
+</td>
+<td class="p-lg diagnostic-border">
+<button class="w-full py-3 px-4 bg-primary text-on-primary font-semibold rounded-xl hover:opacity-90 transition-all duration-300 shadow-lg">Choose this</button>
+</td>
+</tr>
+</tfoot>
+</table>
+</div>
+</div>
+<!-- Footer Shell -->
+<footer class="fixed bottom-0 left-64 right-0 z-50 bg-white/68 backdrop-blur-xl border-t border-on-surface/8 flex justify-between items-center px-margin-desktop py-md">
+<span class="font-label-caps text-on-surface-variant">© 2024 Skinlytics Lab. Clinical Grade AI.</span>
+<div class="flex gap-lg">
+<a class="font-label-caps text-on-surface-variant hover:text-primary hover:underline transition-opacity duration-200" href="#">Privacy Policy</a>
+<a class="font-label-caps text-on-surface-variant hover:text-primary hover:underline transition-opacity duration-200" href="#">Terms of Service</a>
+<a class="font-label-caps text-on-surface-variant hover:text-primary hover:underline transition-opacity duration-200" href="#">HIPAA Compliance</a>
+</div>
+</footer>
+</main>
+<script>
+        function toggleHighlight() {
+            const toggleKnob = document.getElementById('toggleKnob');
+            const toggleBg = document.getElementById('valueToggle');
+            const col3 = document.getElementById('bestValueCell').parentElement; // Just for conceptual visual anchor
+            const valueCells = document.querySelectorAll('td:nth-child(4), th:nth-child(4)');
+
+            const isActive = toggleKnob.classList.contains('translate-x-5');
+
+            if (isActive) {
+                // Deactivate
+                toggleKnob.classList.remove('translate-x-5');
+                toggleKnob.classList.add('translate-x-0');
+                toggleBg.classList.remove('bg-secondary');
+                toggleBg.classList.add('bg-surface-variant');
+                
+                valueCells.forEach(cell => {
+                    cell.classList.remove('bg-secondary/5');
+                    if (cell.tagName === 'TH') cell.classList.remove('highlight-glow');
+                });
+            } else {
+                // Activate
+                toggleKnob.classList.remove('translate-x-0');
+                toggleKnob.classList.add('translate-x-5');
+                toggleBg.classList.remove('bg-surface-variant');
+                toggleBg.classList.add('bg-secondary');
+
+                valueCells.forEach(cell => {
+                    cell.classList.add('bg-secondary/5');
+                    if (cell.tagName === 'TH') cell.classList.add('highlight-glow');
+                });
+            }
+        }
+
+        // Tooltip or interaction simulation for "Clinical" feel
+        document.querySelectorAll('td').forEach(cell => {
+            cell.addEventListener('mouseenter', () => {
+                if(!cell.classList.contains('bg-surface-container-low')) {
+                    cell.classList.add('cursor-crosshair');
+                }
+            });
+        });
+    </script>
+</body></html>

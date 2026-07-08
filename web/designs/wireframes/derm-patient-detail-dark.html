@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Clinical Case Review | Skinlytics AI (Dark)</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=JetBrains+Mono:wght@100..900&family=Manrope:wght@100..900&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-low": "#1b1b1d",
+                    "inverse-surface": "#e4e2e4",
+                    "surface": "#131315",
+                    "on-primary-fixed": "#131b2e",
+                    "secondary-container": "#0566d9",
+                    "secondary": "#adc6ff",
+                    "primary-fixed": "#dae2fd",
+                    "background": "#0B1220",
+                    "secondary-fixed-dim": "#adc6ff",
+                    "error": "#ffb4ab",
+                    "outline": "#909097",
+                    "on-background": "#e4e2e4",
+                    "surface-container-high": "#2a2a2b",
+                    "on-secondary-fixed": "#001a42",
+                    "on-error": "#690005",
+                    "inverse-primary": "#565e74",
+                    "primary": "#bec6e0",
+                    "surface-dim": "#131315",
+                    "surface-container-highest": "#353436",
+                    "on-tertiary-fixed-variant": "#005047",
+                    "on-surface": "#e4e2e4",
+                    "on-secondary-container": "#e6ecff",
+                    "surface-variant": "#353436",
+                    "on-primary-fixed-variant": "#3f465c",
+                    "surface-container": "#1f1f21",
+                    "primary-container": "#0f172a",
+                    "error-container": "#93000a",
+                    "surface-tint": "#bec6e0",
+                    "tertiary-fixed-dim": "#3cddc7",
+                    "on-tertiary-fixed": "#00201c",
+                    "on-primary": "#283044",
+                    "on-secondary": "#002e6a",
+                    "tertiary": "#3cddc7",
+                    "surface-bright": "#39393b",
+                    "on-surface-variant": "#c6c6cd",
+                    "on-secondary-fixed-variant": "#004395",
+                    "on-tertiary-container": "#009182",
+                    "secondary-fixed": "#d8e2ff",
+                    "on-primary-container": "#798098",
+                    "on-error-container": "#ffdad6",
+                    "on-tertiary": "#003731",
+                    "tertiary-fixed": "#62fae3",
+                    "surface-container-lowest": "#0e0e10",
+                    "outline-variant": "#45464d",
+                    "tertiary-container": "#001c18",
+                    "primary-fixed-dim": "#bec6e0",
+                    "inverse-on-surface": "#303032",
+                    "card-bg": "#111A2E",
+                    "elevated-bg": "#1A2740"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "max-width": "1280px",
+                    "margin-mobile": "16px",
+                    "gutter": "24px",
+                    "unit": "4px",
+                    "margin-desktop": "48px"
+            },
+            "fontFamily": {
+                    "headline-lg-mobile": ["Manrope"],
+                    "body-md": ["Inter"],
+                    "label-md": ["JetBrains Mono"],
+                    "body-lg": ["Inter"],
+                    "label-sm": ["JetBrains Mono"],
+                    "headline-md": ["Manrope"],
+                    "headline-lg": ["Manrope"],
+                    "display-lg": ["Manrope"]
+            },
+            "fontSize": {
+                    "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #0B1220;
+            color: #e4e2e4;
+            overflow-x: hidden;
+        }
+        .glass-panel {
+            background: rgba(27, 27, 29, 0.68);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+        }
+        .skin-score-glow {
+            filter: drop-shadow(0 0 10px rgba(45, 212, 191, 0.3));
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #0B1220;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #45464d;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md custom-scrollbar">
+<!-- Top Navigation Shell -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-desktop h-20 glass-panel border-b border-outline-variant/10">
+<div class="flex items-center gap-6">
+<span class="font-h3 text-h3 font-bold text-primary tracking-tight">Skinlytics</span>
+<div class="h-6 w-px bg-outline-variant/20 hidden md:block"></div>
+<nav class="hidden md:flex gap-8">
+<a class="font-body-md text-body-md text-secondary border-b-2 border-secondary pb-1" href="#">Dashboard</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Analyses</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Consultants</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Insights</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 px-3 py-1 bg-error-container/20 border border-error/30 rounded-full">
+<span class="material-symbols-outlined text-error text-[18px]">warning</span>
+<span class="font-label-sm text-label-sm text-error uppercase tracking-wider">High Risk Alert</span>
+</div>
+<div class="flex gap-2">
+<button class="p-2 rounded-full hover:bg-surface-container-low/50 transition-all">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+</button>
+<div class="w-10 h-10 rounded-full border border-outline-variant/30 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a dermatologist in a modern clinic environment, soft laboratory lighting, blue and charcoal tones, clinical but warm aesthetic." src="source/images/derm-patient-detail/img_000_c4e0c7c3.jpg"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Side Navigation Shell -->
+<aside class="fixed left-0 top-0 h-full w-64 bg-white/68 backdrop-blur-[20px] saturate-[160%] border-r border-outline-variant/10 flex flex-col p-lg pt-24 z-40 hidden lg:flex">
+<div class="flex flex-col gap-1">
+<button class="flex items-center gap-3 px-4 py-3 rounded-lg bg-secondary/10 text-secondary border-r-4 border-secondary transition-all">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-caps text-label-caps font-bold">Dashboard</span>
+</button>
+<button class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined">science</span>
+<span class="font-label-caps text-label-caps">Analyses</span>
+</button>
+<button class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined">clinical_notes</span>
+<span class="font-label-caps text-label-caps">Consultants</span>
+</button>
+<button class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined">biotech</span>
+<span class="font-label-caps text-label-caps">Ingredients</span>
+</button>
+</div>
+<div class="mt-auto pt-8 border-t border-outline-variant/10">
+<button class="flex items-center gap-3 px-4 py-3 w-full rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-caps text-label-caps">Support</span>
+</button>
+<button class="flex items-center gap-3 px-4 py-3 w-full rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-caps text-label-caps">Settings</span>
+</button>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="lg:ml-64 pt-24 pb-12 px-6 md:px-margin-desktop min-h-screen">
+<div class="max-w-max-width mx-auto">
+<!-- Header Section with Bento Elements -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+<div class="lg:col-span-8 flex flex-col justify-center">
+<div class="flex items-center gap-3 mb-2">
+<span class="font-label-sm text-label-sm text-secondary bg-secondary/10 px-2 py-0.5 rounded">CASE #4492-B</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm">Updated 2h ago</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface mb-2">Clinical Case Review | Skinlytics AI (Dark)</h1>
+<p class="text-on-surface-variant font-body-md text-body-md max-w-2xl">Patient: Elena Rodriguez, 34 • Fitzpatrick Type III • History of atypical nevi. Presenting with evolving pigmented lesion on right dorsal scapula.</p>
+</div>
+<div class="lg:col-span-4 flex justify-end items-center">
+<div class="relative group cursor-pointer">
+<div class="absolute inset-0 bg-tertiary/20 rounded-full blur-xl group-hover:bg-tertiary/30 transition-all"></div>
+<div class="relative w-32 h-32 rounded-full border-4 border-outline-variant/30 flex flex-col items-center justify-center bg-card-bg z-10 skin-score-glow">
+<svg class="absolute inset-0 w-full h-full -rotate-90">
+<circle cx="64" cy="64" fill="none" r="58" stroke="#24304A" stroke-width="4"></circle>
+<circle cx="64" cy="64" fill="none" r="58" stroke="#3cddc7" stroke-dasharray="364" stroke-dashoffset="80" stroke-linecap="round" stroke-width="4"></circle>
+</svg>
+<span class="font-display-lg text-[32px] text-tertiary font-bold">78</span>
+<span class="font-label-sm text-[10px] text-tertiary uppercase tracking-tighter">Severity Score</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Tab Navigation -->
+<div class="flex overflow-x-auto gap-1 border-b border-outline-variant/10 mb-8 pb-px no-scrollbar">
+<button class="flex items-center gap-2 px-6 py-3 border-b-2 border-secondary text-secondary font-label-md text-label-md">
+<span class="material-symbols-outlined text-[20px]">assignment</span> Condition Report
+                </button>
+<button class="flex items-center gap-2 px-6 py-3 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface transition-all font-label-md text-label-md">
+<span class="material-symbols-outlined text-[20px]">history</span> History
+                </button>
+<button class="flex items-center gap-2 px-6 py-3 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface transition-all font-label-md text-label-md">
+<span class="material-symbols-outlined text-[20px]">photo_library</span> Photos
+                </button>
+<button class="flex items-center gap-2 px-6 py-3 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface transition-all font-label-md text-label-md">
+<span class="material-symbols-outlined text-[20px]">folder_open</span> Documents
+                </button>
+</div>
+<!-- Main Layout Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- Left Column: Visual Mapping & Photos -->
+<div class="lg:col-span-4 space-y-6">
+<!-- Affected Area Mapping Tool -->
+<div class="bg-card-bg border border-outline-variant/10 rounded-xl p-6 relative overflow-hidden group">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-headline-md text-headline-md text-on-surface">Area Mapping</h3>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary">zoom_in</span>
+</div>
+<div class="relative aspect-[3/4] w-full flex items-center justify-center">
+<img class="w-full h-full object-contain opacity-60" data-alt="A minimalist, neutral line-art medical illustration of a human torso on a deep charcoal background. The right shoulder blade area is highlighted with a glowing blue biometric zone indicator, suggesting medical precision and focused analysis." src="source/images/derm-patient-detail/img_001_9732aa8f.jpg"/>
+<!-- Glowing Markers -->
+<div class="absolute top-1/4 right-1/4 w-8 h-8 rounded-full bg-secondary/20 border border-secondary flex items-center justify-center animate-pulse">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+</div>
+</div>
+<div class="mt-4 grid grid-cols-2 gap-2">
+<div class="bg-elevated-bg p-3 rounded-lg border border-outline-variant/10">
+<p class="font-label-sm text-on-surface-variant text-[10px] uppercase">Primary Site</p>
+<p class="font-label-md text-on-surface">Dorsal Scapula (R)</p>
+</div>
+<div class="bg-elevated-bg p-3 rounded-lg border border-outline-variant/10">
+<p class="font-label-sm text-on-surface-variant text-[10px] uppercase">Zone Area</p>
+<p class="font-label-md text-on-surface">14.2 mm²</p>
+</div>
+</div>
+</div>
+<!-- Clinical Photo Evidence -->
+<div class="bg-card-bg border border-outline-variant/10 rounded-xl p-6">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-6">Clinical Imaging</h3>
+<div class="grid grid-cols-1 gap-4">
+<div class="relative aspect-square rounded-lg overflow-hidden border border-outline-variant/20">
+<img class="w-full h-full object-cover" data-alt="High-resolution dermatoscopic image of a suspicious skin lesion, showing irregular borders and multi-chromatic pigment distribution. Dark mode laboratory aesthetic, professional medical photography with crisp detail and microscopic focus." src="source/images/derm-patient-detail/img_002_6a2f606e.jpg"/>
+<div class="absolute bottom-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-[10px] text-white font-label-md border border-white/10">DERMATOSCOPY V.1</div>
+</div>
+<div class="flex gap-4">
+<div class="w-1/2 aspect-square rounded-lg overflow-hidden border border-outline-variant/20 opacity-70 hover:opacity-100 transition-opacity cursor-pointer">
+<img class="w-full h-full object-cover" data-alt="Clinical overview photograph of a patient's back area, showing a single lesion in context. Professional medical lighting, desaturated tones, dark blue background." src="source/images/derm-patient-detail/img_003_a6e8dbb1.jpg"/>
+</div>
+<div class="w-1/2 aspect-square rounded-lg border border-dashed border-outline-variant/30 flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-all cursor-pointer">
+<span class="material-symbols-outlined">add_a_photo</span>
+<span class="text-[10px] mt-1 font-label-sm uppercase">Add Image</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: AI Analysis & Clinical Data -->
+<div class="lg:col-span-8 space-y-6">
+<!-- Clinical Severity Matrix (Bento style) -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="bg-card-bg border border-outline-variant/10 rounded-xl p-6">
+<h4 class="font-label-sm text-on-surface-variant uppercase mb-4 tracking-widest flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-error"></span> 
+                                Risk Assessment
+                            </h4>
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<span class="font-body-md text-on-surface">Asymmetry</span>
+<span class="font-label-md text-error bg-error/10 px-2 py-0.5 rounded">High (Grade 3)</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-body-md text-on-surface">Borders</span>
+<span class="font-label-md text-tertiary bg-tertiary/10 px-2 py-0.5 rounded">Regular</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-body-md text-on-surface">Color Variegation</span>
+<span class="font-label-md text-secondary bg-secondary/10 px-2 py-0.5 rounded">Moderate</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-body-md text-on-surface">Diameter (>6mm)</span>
+<span class="font-label-md text-error bg-error/10 px-2 py-0.5 rounded">Positive (8.4mm)</span>
+</div>
+</div>
+</div>
+<div class="bg-card-bg border border-outline-variant/10 rounded-xl p-6">
+<h4 class="font-label-sm text-on-surface-variant uppercase mb-4 tracking-widest flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-secondary"></span> 
+                                AI Recommendations
+                            </h4>
+<div class="space-y-4">
+<div class="p-3 bg-elevated-bg rounded-lg border-l-4 border-secondary">
+<p class="font-label-md text-on-surface">Punch Biopsy Recommended</p>
+<p class="text-[11px] text-on-surface-variant mt-1 italic">Based on evolution history and diameter</p>
+</div>
+<div class="p-3 bg-elevated-bg rounded-lg border-l-4 border-outline-variant">
+<p class="font-label-md text-on-surface">Schedule 3-Month Follow-up</p>
+<p class="text-[11px] text-on-surface-variant mt-1 italic">Compare with baseline images</p>
+</div>
+</div>
+</div>
+</div>
+<!-- AI Observations with Confidence Labels -->
+<div class="bg-card-bg border border-outline-variant/10 rounded-xl p-6 relative">
+<div class="absolute top-6 right-6 flex gap-2">
+<div class="px-2 py-1 bg-surface-container-low rounded border border-outline-variant/20 flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span class="font-label-sm text-[10px] text-on-surface">AI ACTIVE</span>
+</div>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-6">Automated Observations</h3>
+<div class="space-y-6">
+<div class="group">
+<div class="flex justify-between items-start mb-2">
+<div>
+<h5 class="font-label-md text-on-surface font-bold">Pigment Network Reticulation</h5>
+<p class="text-on-surface-variant font-body-md text-body-md leading-relaxed">Prominent atypical reticular pattern identified in the periphery of the lesion. Structural disruption observed in the superior quadrant.</p>
+</div>
+<div class="text-right">
+<span class="font-label-md text-secondary block">94%</span>
+<span class="font-label-sm text-[10px] text-on-surface-variant uppercase">Confidence</span>
+</div>
+</div>
+<div class="w-full bg-surface-container-low h-1 rounded-full overflow-hidden">
+<div class="bg-secondary h-full" style="width: 94%"></div>
+</div>
+</div>
+<div class="group">
+<div class="flex justify-between items-start mb-2">
+<div>
+<h5 class="font-label-md text-on-surface font-bold">Vascular Structures</h5>
+<p class="text-on-surface-variant font-body-md text-body-md leading-relaxed">No arborizing telangiectasia or milky-red globule patterns detected. Low vascular activity correlated with standard benign nevi profiles.</p>
+</div>
+<div class="text-right">
+<span class="font-label-md text-tertiary block">82%</span>
+<span class="font-label-sm text-[10px] text-on-surface-variant uppercase">Confidence</span>
+</div>
+</div>
+<div class="w-full bg-surface-container-low h-1 rounded-full overflow-hidden">
+<div class="bg-tertiary h-full" style="width: 82%"></div>
+</div>
+</div>
+<div class="group">
+<div class="flex justify-between items-start mb-2">
+<div>
+<h5 class="font-label-md text-on-surface font-bold">Regression Zones</h5>
+<p class="text-on-surface-variant font-body-md text-body-md leading-relaxed">Presence of peppering (gray-blue granules) in the central area suggesting possible partial regression activity.</p>
+</div>
+<div class="text-right">
+<span class="font-label-md text-error block">61%</span>
+<span class="font-label-sm text-[10px] text-on-surface-variant uppercase">Confidence</span>
+</div>
+</div>
+<div class="w-full bg-surface-container-low h-1 rounded-full overflow-hidden">
+<div class="bg-error h-full" style="width: 61%"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Clinical Findings / Notes -->
+<div class="bg-card-bg border border-outline-variant/10 rounded-xl p-6">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-6">Physician Notes</h3>
+<div class="bg-surface-container-low border border-outline-variant/20 rounded-lg p-4 font-body-md text-on-surface-variant leading-relaxed">
+<p class="mb-4">Lesion was first noticed by patient 6 months ago. Reports occasional pruritus but no bleeding. Comparison with 2023 imaging (not available in portal) suggests slight expansion of the radial border.</p>
+<p>Plan: Excisional biopsy with 2mm margins scheduled for 10/24. Differential diagnosis: Atypical Melanocytic Proliferation vs. Superficial Spreading Melanoma.</p>
+</div>
+<div class="mt-6 flex justify-end gap-3">
+<button class="px-6 py-2 rounded-lg font-label-md text-label-md text-on-surface-variant border border-outline-variant/30 hover:bg-surface-container-low transition-all">Export Report</button>
+<button class="px-6 py-2 rounded-lg font-label-md text-label-md text-on-primary bg-secondary border border-secondary/20 hover:shadow-[0_0_20px_rgba(45,212,191,0.15)] transition-all">Submit Evaluation</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer Shell -->
+<footer class="lg:ml-64 w-full py-xl px-6 md:px-margin-desktop flex flex-col md:flex-row justify-between items-center gap-md border-t border-outline-variant/8 bg-background relative z-10">
+<div class="flex flex-col items-center md:items-start gap-2">
+<span class="font-h3 text-[20px] text-primary font-bold">Skinlytics AI</span>
+<span class="font-label-caps text-label-sm text-on-surface-variant">© 2024 Skinlytics AI. HIPAA Compliant Platform.</span>
+</div>
+<div class="flex gap-6">
+<a class="font-label-caps text-label-sm text-on-surface-variant hover:text-secondary transition-colors" href="#">Privacy Policy</a>
+<a class="font-label-caps text-label-sm text-on-surface-variant hover:text-secondary transition-colors" href="#">Terms of Service</a>
+<a class="font-label-caps text-label-sm text-on-surface-variant hover:text-secondary transition-colors" href="#">HIPAA Compliance</a>
+<a class="font-label-caps text-label-sm text-on-surface-variant hover:text-secondary transition-colors" href="#">Medical Disclaimer</a>
+</div>
+</footer>
+<script>
+        // Micro-interactions for the skin score ring
+        document.addEventListener('DOMContentLoaded', () => {
+            const scoreElement = document.querySelector('.font-display-lg');
+            let currentScore = 0;
+            const targetScore = 78;
+            
+            const animateScore = () => {
+                if(currentScore < targetScore) {
+                    currentScore++;
+                    scoreElement.textContent = currentScore;
+                    setTimeout(animateScore, 20);
+                }
+            };
+            
+            setTimeout(animateScore, 500);
+        });
+    </script>
+</body></html>
