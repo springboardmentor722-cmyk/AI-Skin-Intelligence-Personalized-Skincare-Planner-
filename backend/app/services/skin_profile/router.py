@@ -3,7 +3,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.security import require_user
+from app.core.security import require_role
 from app.db.postgres import get_db
 from app.services.skin_profile import service
 from app.services.skin_profile.schemas import (
@@ -37,7 +37,9 @@ async def get_skin_concerns(
 
 @router.get("/skin-profiles/me")
 async def get_my_skin_profile(
-    user: Annotated[dict[str, Any], Depends(require_user)],
+    # Skin profile management is a `user`-role feature (ARCHITECTURE.md §2) — consultant/
+    # dermatologist/admin accounts have no skin profile of their own.
+    user: Annotated[dict[str, Any], Depends(require_role("user"))],
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> SkinProfileRead:
     profile = await service.get_current_profile(db, user["id"])
@@ -49,7 +51,7 @@ async def get_my_skin_profile(
 @router.post("/skin-profiles", status_code=status.HTTP_201_CREATED)
 async def create_my_skin_profile(
     data: SkinProfileCreate,
-    user: Annotated[dict[str, Any], Depends(require_user)],
+    user: Annotated[dict[str, Any], Depends(require_role("user"))],
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> SkinProfileRead:
     return await service.create_profile(db, user["id"], data)
@@ -58,14 +60,14 @@ async def create_my_skin_profile(
 @lifestyle_router.post("/lifestyle-logs")
 async def upsert_my_lifestyle_log(
     data: LifestyleLogCreate,
-    user: Annotated[dict[str, Any], Depends(require_user)],
+    user: Annotated[dict[str, Any], Depends(require_role("user"))],
 ) -> LifestyleLogRead:
     return await service.upsert_lifestyle_log(user["id"], data)
 
 
 @lifestyle_router.get("/lifestyle-logs/me")
 async def get_my_lifestyle_logs(
-    user: Annotated[dict[str, Any], Depends(require_user)],
+    user: Annotated[dict[str, Any], Depends(require_role("user"))],
 ) -> list[dict[str, Any]]:
     logs = await service.list_recent_lifestyle_logs(user["id"])
     for log in logs:
