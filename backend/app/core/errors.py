@@ -1,11 +1,14 @@
 """One error envelope everywhere (docs/CONVENTIONS.md): { "error": { "code",
 "message", "details", "request_id" } }. Codes are stable snake_case strings."""
 
+import structlog
 from fastapi import FastAPI, Request, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
+
+logger = structlog.get_logger()
 
 _STATUS_CODE_NAMES = {
     status.HTTP_400_BAD_REQUEST: "bad_request",
@@ -58,4 +61,15 @@ def register_exception_handlers(app: FastAPI) -> None:
                 "Request validation failed",
                 jsonable_encoder(exc.errors()),
             ),
+        )
+
+    # Catch-all — without this, an unexpected exception (e.g. Mongo unreachable) falls
+    # through to Starlette's default plain-text 500, bypassing the envelope entirely.
+    # Found by actually triggering one (Mongo down) while testing, not by inspection.
+    @app.exception_handler(Exception)
+    async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+        logger.error("unhandled_exception", error=str(exc), exc_info=exc)
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content=_envelope(request, "internal_error", "Something went wrong"),
         )

@@ -1,5 +1,6 @@
 from collections.abc import AsyncGenerator
 
+from sqlalchemy import Column, Table, Text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
@@ -12,6 +13,17 @@ async_session_factory = async_sessionmaker(engine, expire_on_commit=False)
 class Base(DeclarativeBase):
     """Shared declarative base. Each service owns its own tables (ADR-005) — a service
     never imports another service's models, only this base and its own module."""
+
+
+# Stub for Better Auth's "user" table — owned by the Better Auth CLI's migration
+# stream, never Alembic's (CONVENTIONS.md). Just enough columns for SQLAlchemy to
+# resolve FK references from our tables to it; env.py's `include_object` excludes it
+# from autogenerate so Alembic never tries to create/alter it.
+external_user_table = Table(
+    "user",
+    Base.metadata,
+    Column("id", Text, primary_key=True),
+)
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:

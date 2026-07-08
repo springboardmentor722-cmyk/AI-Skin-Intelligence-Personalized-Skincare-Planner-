@@ -1,5 +1,6 @@
 import asyncio
 from logging.config import fileConfig
+from typing import Any
 
 from alembic import context
 from sqlalchemy import pool
@@ -8,6 +9,13 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from app.core.config import settings
 from app.db.postgres import Base
+
+# Each service owns its models under app/services/<name>/models.py (ADR-005). Import
+# side-effect only (registers each model's Table on Base.metadata) — required for
+# `alembic revision --autogenerate` to see them; add new services' models here as they
+# land.
+from app.services.skin_profile import models as _skin_profile_models  # noqa: F401
+from app.services.user import models as _user_models  # noqa: F401
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -22,17 +30,32 @@ config.set_main_option("sqlalchemy.url", settings.sqlalchemy_database_url)
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Each service owns its models under app/services/<name>/models.py (ADR-005); importing
-# app.db.postgres.Base here only picks up autogenerate targets for models that have
-# actually been imported somewhere by the time this runs. As services land, import their
-# models module here (or from an app/services/__init__.py aggregator) so `alembic
-# revision --autogenerate` sees them.
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
+
+
+def include_object(
+    object: Any, name: str | None, type_: str, reflected: bool, compare_to: Any
+) -> bool:
+    if type_ == "table":
+        # app.db.postgres.external_user_table exists only so SQLAlchemy can resolve FK
+        # references to Better Auth's "user" table — never let Alembic create/alter
+        # it, that table belongs to the Better Auth CLI's own migration stream.
+        if name == "user":
+            return False
+        # Tables that exist in the DB but have no SQLAlchemy model yet belong to a
+        # service that hasn't adopted Alembic management for its tables yet (see the
+        # import block above) — never propose dropping them just because they're not
+        # in our metadata. This is the incremental per-service adoption env.py
+        # documents; without this, autogenerate treats every not-yet-modeled table as
+        # "should be removed."
+        if reflected and compare_to is None:
+            return False
+    return True
 
 
 def run_migrations_offline() -> None:
@@ -53,6 +76,7 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        include_object=include_object,
     )
 
     with context.begin_transaction():
@@ -60,7 +84,11 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection: Connection) -> None:
-    context.configure(connection=connection, target_metadata=target_metadata)
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        include_object=include_object,
+    )
 
     with context.begin_transaction():
         context.run_migrations()
