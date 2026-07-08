@@ -344,6 +344,65 @@ Better Auth + RBAC, profile & lifestyle modules, seed data. No AI (ADR-007).
     more port ambiguity. **Nothing was actually lost**, but this cost significant time —
     worth remembering that `localhost:<port>` can silently resolve to a non-Docker
     listener on this machine.
+- ✔ Public landing page (`web/app/page.tsx`) — `web/designs/wireframes/landing-page.html`
+  (light) chosen as the copy/structure source; the light and dark wireframes turned out
+  to be **different Stitch drafts with diverged copy**, not a re-skin of each other
+  (product-owner decision: use light's copy, re-skinned for both themes via the app's
+  real token system, not the wireframe's own bespoke Tailwind config). Sections: sticky
+  glass navbar, hero (with the new shared `SkinScoreRing` — see below), score-explainer
+  band, "how it works" (3 steps), 6-card feature grid, 3 role cards, testimonials,
+  pricing, FAQ (shadcn `Accordion`), final CTA, solid footer. No WebGL shader canvas
+  from the wireframe — `docs/DESIGN.md` §3's real ambient-aurora spec is CSS radial
+  gradients (already implemented, rendered once globally in `app/layout.tsx`), so the
+  page just sits over that, consistent with every other screen.
+  - **Two content reconciliations against more-authoritative docs, not the wireframe:**
+    (1) the "weighted formula" band showed fictional labels/numbers in both wireframes
+    (light: Hydration/Texture/Elasticity/Tone/Barrier; dark: different labels again) —
+    replaced with the real Skin Health Score breakdown (`docs/AGENTS.md` §4: Skin
+    Condition 35% · Lifestyle 20% · Routine Consistency 20% · Sleep 15% · Hydration
+    10%). (2) the pricing teaser showed an invented "$12/month" — replaced with the
+    real, documented figure (`Skinlytics_Stitch_UI_Prompt_Pack_v2.md`'s Billing spec,
+    "Pro ₹499/mo", which explicitly says "reuse for /pricing").
+  - **New shared component: `SkinScoreRing`** (`web/components/skin-score-ring.tsx`) —
+    docs/AGENTS.md calls this "the signature element... identical treatment everywhere
+    it appears"; built once now (circular gauge, frosted glass housing, teal→royal-blue
+    gradient stroke, animated fill, Geist numeral) so the future Dashboard screen task
+    reuses it with real data instead of building its own. Deliberately doesn't include
+    the 5 weighted mini-bars — `docs/WIREFRAMES.md` screen 3 describes those as
+    "beside it", a sibling composition concern for whoever builds that screen.
+  - **New shared component: `ThemeToggle`** (`web/components/theme-toggle.tsx`) — the
+    app-shell topbar already had a working theme toggle inline (`glass-topbar.tsx`,
+    missed on an initial grep with a bad regex — it did exist), so rather than build a
+    second one for the landing navbar, extracted it into a shared component both now
+    use. Also drops an `eslint-disable-next-line react-hooks/set-state-in-effect` the
+    inline version needed (the `mounted`-state hydration guard, standard with
+    `next-themes`) — the extracted version renders both icons always and swaps via a
+    `dark:` CSS variant instead, so there's no synchronous `setState`-in-effect and no
+    hydration-mismatch flash either.
+  - Added shadcn `Card` and `Accordion` (`npx shadcn add`) — first use of either in this
+    codebase.
+  - Copied the wireframe's 9 localized Stitch-generated photos into `web/public/images/
+    landing/` for actual use in the built page. **Flagging clearly:** these are
+    placeholder photography from the Stitch extraction, not licensed production
+    imagery — real photography sourcing is a content/legal task, not a coding one.
+  - **Three real bugs found and fixed during live browser verification** (Playwright,
+    both themes, console/network inspection — not just a visual glance): (1) Base UI's
+    `Button` logged a runtime error on every `render={<Link>...}` usage (6 places) —
+    needs an explicit `nativeButton={false}` when the rendered element isn't a native
+    `<button>`, undocumented in the generated component but required. (2) the
+    `ThemeToggle`'s natural `mounted`-state hydration-guard pattern (common with
+    `next-themes`) triggered this repo's React Compiler ESLint rule against synchronous
+    `setState` in an effect — rewritten as a CSS-only dual-icon toggle (`dark:hidden` /
+    `dark:block`) instead, which also has no hydration-mismatch flash. (3) the
+    testimonials section, final CTA band, and pricing "Pro" card all used `bg-primary`
+    intending a fixed dark-navy accent band (matching the wireframe's literal navy) —
+    but the app's real `--primary` token *inverts* per theme (by design, for buttons),
+    so these sections flipped to a light background in dark mode. Fixed to
+    `bg-primary-container`, which — unlike `primary` — is genuinely fixed-dark in both
+    `docs/DESIGN.md` themes.
+  - `npm run lint`/`typecheck` clean (only 2 pre-existing, unrelated warnings on
+    `(auth)/login` and `(auth)/register` remain). Verified visually end-to-end in both
+    themes via Playwright screenshots across the full page — not just typecheck/lint.
 
 ## Partially Completed
 
@@ -397,9 +456,12 @@ real Postgres + Mongo + Redis this session.
 
 Scaffold + app shell + Authentication + typed API client complete (`web/` — Next.js 16 /
 React 19 / Tailwind v4 / shadcn/ui / Better Auth / TanStack Query / `openapi-fetch`).
-`app/page.tsx` is still a scaffold smoke test. Login/register/forgot-password/skin
-profile & lifestyle are real, wired, live-verified screens; every other M1 screen is
-still just a stub `dashboard/page.tsx` per role proving the shell. `lib/api.ts` +
+`app/page.tsx` is now the real public landing page (see "Completed"), replacing the
+scaffold smoke test. Login/register/forgot-password/skin profile & lifestyle are real,
+wired, live-verified screens; every M1 *app* screen (dashboard, assessment,
+recommendations, progress) is still just a stub `dashboard/page.tsx` per role proving
+the shell — their backends now exist (scores/routines/recommendations/progress
+services) but no frontend has been built against them yet. `lib/api.ts` +
 `lib/api-types.ts` now exist and are proven against the live backend. No visible
 role-switching (role is hardcoded per route-group layout until real sessions replace the
 stub `userName` in each layout). Design assets remain in `web/designs/wireframes/`

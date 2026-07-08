@@ -2,17 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { useTheme } from "next-themes";
-import {
-  Bell,
-  LogOut,
-  Moon,
-  Search,
-  Settings,
-  Sun,
-  SunMedium,
-} from "lucide-react";
+import { Bell, LogOut, Search, Settings, SunMedium } from "lucide-react";
 
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -44,20 +36,13 @@ interface GlassTopbarProps {
 // count are stubs (no adapter/service wired yet, ADR-007-style placeholder) — never
 // invented data, just an explicit "—" until the real endpoint exists.
 export function GlassTopbar({ role, userName, title }: GlassTopbarProps) {
-  const { resolvedTheme, setTheme } = useTheme();
   const pathname = usePathname();
-  const [mounted, setMounted] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
   const pageTitle =
     title ??
     NAV_ITEMS[role].find((item) => pathname.startsWith(item.href))?.label ??
     "";
-
-  // Standard next-themes hydration guard: resolvedTheme is unknown on the server, so
-  // the theme icon can't render correctly until after the client mounts.
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -105,20 +90,7 @@ export function GlassTopbar({ role, userName, title }: GlassTopbarProps) {
             <span className="bg-destructive absolute top-2 right-2 size-2 rounded-full" />
           </button>
 
-          <button
-            type="button"
-            aria-label="Toggle theme"
-            onClick={() =>
-              setTheme(resolvedTheme === "dark" ? "light" : "dark")
-            }
-            className="text-on-surface-variant hover:bg-muted hover:text-on-surface flex size-9 items-center justify-center rounded-full transition-colors"
-          >
-            {mounted && resolvedTheme === "dark" ? (
-              <Sun className="size-[18px]" strokeWidth={1.5} />
-            ) : (
-              <Moon className="size-[18px]" strokeWidth={1.5} />
-            )}
-          </button>
+          <ThemeToggle />
 
           <DropdownMenu>
             <DropdownMenuTrigger
