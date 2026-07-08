@@ -163,6 +163,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/scores/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Score */
+        get: operations["get_my_score_api_v1_scores_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/routines/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Routines */
+        get: operations["get_my_routines_api_v1_routines_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/recommendations/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Recommendations */
+        get: operations["get_my_recommendations_api_v1_recommendations_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/progress/me/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Progress Summary */
+        get: operations["get_my_progress_summary_api_v1_progress_me_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -235,6 +303,115 @@ export interface components {
              * Format: date-time
              */
             logged_at: string;
+        };
+        /** ProductRead */
+        ProductRead: {
+            /** Product Id */
+            product_id: number;
+            /** Brand Name */
+            brand_name: string | null;
+            /** Product Name */
+            product_name: string | null;
+            /** Category */
+            category: string | null;
+            /** Image Url */
+            image_url: string | null;
+            /** Price */
+            price: number | null;
+            /** Currency */
+            currency: string | null;
+            /** Spf Rating */
+            spf_rating: number | null;
+        };
+        /** ProgressSummaryRead */
+        ProgressSummaryRead: {
+            /** Points */
+            points: components["schemas"]["ScoreTrendPoint"][];
+        };
+        /** RecommendationRead */
+        RecommendationRead: {
+            product: components["schemas"]["ProductRead"];
+            /** Match Score */
+            match_score: number;
+            /** Reasons */
+            reasons: string[];
+        };
+        /** RoutineProductRead */
+        RoutineProductRead: {
+            product: components["schemas"]["ProductRead"];
+            /** Usage Notes */
+            usage_notes: string | null;
+        };
+        /** RoutineRead */
+        RoutineRead: {
+            /** Routine Id */
+            routine_id: number;
+            /** Routine Name */
+            routine_name: string | null;
+            /** Routine Type */
+            routine_type: string | null;
+            /** Description */
+            description: string | null;
+            /** Steps */
+            steps: components["schemas"]["RoutineStepRead"][];
+        };
+        /** RoutineStepRead */
+        RoutineStepRead: {
+            /** Step Id */
+            step_id: number;
+            /** Step Order */
+            step_order: number | null;
+            /** Step Name */
+            step_name: string | null;
+            /** Instruction */
+            instruction: string | null;
+            /** Duration Minutes */
+            duration_minutes: number | null;
+            /** Products */
+            products: components["schemas"]["RoutineProductRead"][];
+        };
+        /** ScoreRead */
+        ScoreRead: {
+            /** Score Id */
+            score_id: number;
+            /** Skin Condition Score */
+            skin_condition_score: number | null;
+            /** Lifestyle Score */
+            lifestyle_score: number | null;
+            /** Sleep Quality Score */
+            sleep_quality_score: number | null;
+            /** Hydration Score */
+            hydration_score: number | null;
+            /** Routine Adherence Score */
+            routine_adherence_score: number | null;
+            /** Overall Score */
+            overall_score: number | null;
+            weights: components["schemas"]["ScoreWeightsRead"];
+            /** Calculated At */
+            calculated_at: string | null;
+        };
+        /** ScoreTrendPoint */
+        ScoreTrendPoint: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Overall Score */
+            overall_score: number | null;
+        };
+        /** ScoreWeightsRead */
+        ScoreWeightsRead: {
+            /** Skin Condition Weight */
+            skin_condition_weight: number;
+            /** Lifestyle Weight */
+            lifestyle_weight: number;
+            /** Sleep Quality Weight */
+            sleep_quality_weight: number;
+            /** Routine Adherence Weight */
+            routine_adherence_weight: number;
+            /** Hydration Weight */
+            hydration_weight: number;
         };
         /** SkinConcernRead */
         SkinConcernRead: {
@@ -613,6 +790,97 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     }[];
+                };
+            };
+        };
+    };
+    get_my_score_api_v1_scores_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScoreRead"];
+                };
+            };
+        };
+    };
+    get_my_routines_api_v1_routines_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoutineRead"][];
+                };
+            };
+        };
+    };
+    get_my_recommendations_api_v1_recommendations_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecommendationRead"][];
+                };
+            };
+        };
+    };
+    get_my_progress_summary_api_v1_progress_me_summary_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgressSummaryRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

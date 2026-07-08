@@ -11,3 +11,18 @@ export function cn(...inputs: ClassValue[]) {
 export function selectItems(options: readonly string[]): Record<string, string> {
   return Object.fromEntries(options.map((o) => [o, o]));
 }
+
+// Products are seeded/priced in INR (AGENTS.md §4: "₹ primary, $ secondary") but the API
+// returns whatever `currency` the row carries — never hard-code the symbol.
+export function formatPrice(price: number | null, currency: string | null): string {
+  if (price == null) return "—";
+  try {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: currency ?? "INR",
+      maximumFractionDigits: 0,
+    }).format(price);
+  } catch {
+    return `${currency ?? ""} ${price}`.trim();
+  }
+}
