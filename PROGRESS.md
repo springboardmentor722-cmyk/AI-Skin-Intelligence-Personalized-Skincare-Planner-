@@ -618,6 +618,25 @@ scoring/recs) is the natural next milestone.
   technique, not something to patch around — doing so risks breaking the anti-flash
   behavior for a cosmetic dev-mode-only warning. Left as-is; noted here rather than
   silently ignored.
+- ✔ **Bug fix** (`fix/skin-profile-select-controlled`) — Base UI's Select warned "changing
+  the uncontrolled value state ... to be controlled" on the Skin profile screen's Skin
+  type dropdown. Root cause, traced through the installed `@base-ui/react` source
+  (`@base-ui/utils/useControlled.mjs`): whether a Select is controlled is decided **once**,
+  on its first render, purely by whether `value` is `undefined` — never re-evaluated
+  after. `form.skin_type_id ? String(form.skin_type_id) : undefined` mounted the Select
+  uncontrolled on first-time setup (`skin_type_id` starts at the `0` sentinel), then
+  flipped it to controlled the instant a skin type was picked. Fixed by passing `null`
+  instead of `undefined` for "nothing selected" — Base UI's own `Select.Root`'s
+  `defaultValue` is `null`, confirming `null` (not `undefined`) is the library's
+  intended empty-selection sentinel; a Select mounted with `value={null}` is controlled
+  from render one and never switches. Same latent bug (not yet reported, same root
+  cause) also existed on Age group + Gender (`skin-profile-form.tsx`, both always start
+  `undefined` for a first-time profile) and Alcohol consumption + Pollution level
+  (`lifestyle-form.tsx`, `emptyForm` sets both `undefined` always) — fixed all four the
+  same way while in the file. Verified live (Playwright, mocked 404 skin-profile
+  response simulating the exact first-time-setup scenario reported): picking "Oily"
+  produces zero controlled/uncontrolled console warnings and the Select correctly
+  displays the picked value. `npm run {lint,typecheck,build}` clean.
 
 ## Partially Completed
 

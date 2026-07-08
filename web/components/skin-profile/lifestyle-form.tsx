@@ -184,7 +184,12 @@ export function LifestyleForm() {
           <Label>Alcohol consumption</Label>
           <Select
             items={ALCOHOL_ITEMS}
-            value={form.alcohol_consumption}
+            // `null`, never `undefined` — Base UI's Select decides controlled vs.
+            // uncontrolled from the *first* render only and warns on any later switch
+            // (@base-ui/utils/useControlled.mjs); `alcohol_consumption` always starts
+            // `undefined` (emptyForm), which would otherwise mount this uncontrolled and
+            // flip it controlled the instant a value is picked.
+            value={form.alcohol_consumption ?? null}
             onValueChange={(v) =>
               setForm((f) => ({
                 ...f,
@@ -238,7 +243,9 @@ export function LifestyleForm() {
             <Label className="font-normal text-on-surface-variant">Pollution level</Label>
             <Select
               items={POLLUTION_ITEMS}
-              value={form.pollution_level}
+              // Same fix as "Alcohol consumption" above — `pollution_level` always
+              // starts `undefined` (emptyForm).
+              value={form.pollution_level ?? null}
               onValueChange={(v) =>
                 setForm((f) => ({
                   ...f,

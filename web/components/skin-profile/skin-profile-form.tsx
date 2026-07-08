@@ -220,7 +220,15 @@ function SkinProfileFormInner({
         <div className="space-y-1.5">
           <Label>Skin type</Label>
           <Select
-            value={form.skin_type_id ? String(form.skin_type_id) : undefined}
+            // `null`, never `undefined` — Base UI's useControlled decides controlled vs.
+            // uncontrolled from whether `value` is `undefined` on the *first* render only
+            // (@base-ui/utils/useControlled.mjs) and warns/desyncs on any later switch.
+            // `form.skin_type_id` starts at the `0` "unset" sentinel on first-time setup,
+            // so `... ? String(...) : undefined` used to mount this uncontrolled, then
+            // flip to controlled the instant a skin type was picked. `null` is Base UI's
+            // own "nothing selected" value (Select's `defaultValue` default) — passing it
+            // instead keeps this controlled from mount onward, no transition, ever.
+            value={form.skin_type_id ? String(form.skin_type_id) : null}
             onValueChange={(v) => setForm((f) => ({ ...f, skin_type_id: Number(v) }))}
           >
             <SelectTrigger className="w-full">
@@ -245,7 +253,10 @@ function SkinProfileFormInner({
           <Label>Age group</Label>
           <Select
             items={AGE_GROUP_ITEMS}
-            value={form.age_group}
+            // Same fix as the skin type Select above — `age_group` starts `undefined`
+            // on first-time setup, which would otherwise mount this uncontrolled and
+            // flip it controlled the instant a value is picked.
+            value={form.age_group ?? null}
             onValueChange={(v) => setForm((f) => ({ ...f, age_group: v ?? undefined }))}
           >
             <SelectTrigger className="w-full">
@@ -265,7 +276,9 @@ function SkinProfileFormInner({
           <Label>Gender (optional)</Label>
           <Select
             items={GENDER_ITEMS}
-            value={form.gender}
+            // Same fix as above — `gender` is never stored on skin_profiles (see
+            // formFromProfile), so it always starts `undefined`, every time.
+            value={form.gender ?? null}
             onValueChange={(v) => setForm((f) => ({ ...f, gender: v ?? undefined }))}
           >
             <SelectTrigger className="w-full">
