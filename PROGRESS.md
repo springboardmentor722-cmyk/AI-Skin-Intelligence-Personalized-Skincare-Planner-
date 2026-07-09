@@ -12,10 +12,45 @@ against the live Docker Postgres/Mongo/Redis and the running backend/frontend ra
 than trusting this file's own prior "functionally complete" claim, found 21 real gaps
 (the fresh-DB migration crash and MongoDB verification this file used to list as
 merely "pending" turned out to be genuine bugs, not just unverified), and fixed and
-re-verified all 21 live. Remaining items are either genuinely blocked on external
-credentials (Kaggle, OpenWeather/OpenUV) or explicit scope/tradeoff decisions, not
-unverified claims — see Pending. M2 (skin assessment engine, routine generation
-refinement, real scoring/recs) is the natural next milestone.
+re-verified all 21 live.
+
+**Since that audit, M1 was substantially expanded beyond its original User-role-only
+scope** (`.claude/plans/validated-questing-firefly.md`, "Milestone 1 — Production-Grade
+Foundation Expansion") — the plan's own framing: M1's exit criteria only ever covered
+the User role, but a real SaaS foundation needs the other three roles' identity layer,
+an admin platform to operate it, and hardened auth, not just seven screens. Delivered
+across 9 sequential feature branches, each merged to `dev` only after its own
+`ruff`/`mypy --strict`/`pytest` (backend) and `tsc`/`eslint`/`next build` (frontend)
+passed and its own live/e2e verification ran — see Completed for the per-branch detail:
+
+1. `feature/database` — `consultant_profiles`, `dermatologist_profiles`,
+   `verification_documents`, `audit_logs` tables + a real MinIO/S3 storage adapter.
+2. `feature/authentication` — real (optional) email verification, Redis-backed
+   account lockout, refresh-token/MFA posture documented.
+3. `feature/rbac` — `require_verified_professional`, admin verification endpoints,
+   audit-logged role assignment.
+4. `feature/consultant-module` — onboarding wizard → pending → admin-review →
+   approved/rejected lifecycle, real backend service.
+5. `feature/dermatologist-module` — same shape, medical-specific fields.
+6. `feature/admin-panel` — Dashboard/Users/Content & Data/Monitoring/System
+   Reports/Settings all real, mapped onto the fixed 6-item admin nav.
+7. `feature/ui-improvements` — targeted light-theme color rebalance (slate→zinc
+   neutrals, on-surface split from primary, desaturated secondary/semantic colors)
+   + `Field`/`FieldGroup` adoption on every new form.
+8. `feature/testing` — real-DB backend tests for every new endpoint, full
+   cross-role Playwright e2e journey, suite-wide rate-limit-sharing fix
+   (`workers: 1` + `tests/e2e/helpers.ts`).
+9. `feature/documentation` — this sweep.
+
+Remaining items are either genuinely blocked on external credentials (Kaggle,
+OpenWeather/OpenUV), explicit scope/tradeoff decisions, or one standalone known bug
+(scores/service.py's day-boundary duplicate-score issue) — not unverified claims, see
+Pending and Known issues. M2 (real skin assessment engine replacing the ADR-007 stub,
+routine-generation refinement, real scoring/recommendation models) is the natural next
+feature milestone; the Consultant/Dermatologist *clinical* review workflow (the tables
+exist, `consultant_clients`/`consultant_notes`, but need real assessment data to review
+against) is a natural M2+ companion now that the identity/verification layer it sits
+behind is real.
 
 ---
 
@@ -883,12 +918,110 @@ refinement, real scoring/recs) is the natural next milestone.
   - Full report: see the audit artifact linked in the conversation that ran this.
     `ruff`/`mypy --strict`/`pytest` (backend) and `tsc`/`eslint`/`next build`
     (frontend) all clean throughout.
+- ✔ **Milestone 1 foundation expansion — professional verification, admin platform,
+  auth hardening, color rebalance** (`.claude/plans/validated-questing-firefly.md`),
+  9 sequential feature branches, each `--ff-only`-merged to `dev` only after its own
+  full verification pass:
+  - **Branch 1 (`feature/database`)**: new `consultant_profiles`/
+    `dermatologist_profiles` tables (1:1 with `"user"`, `ON DELETE CASCADE`,
+    `verification_status` enum `pending|approved|rejected|more_info_requested|
+    suspended|deactivated`), a polymorphic `verification_documents` table, and a
+    general-purpose `audit_logs` table (the one place this schema uses `JSONB` —
+    genuinely unstructured per-action metadata, unlike domain relational data).
+    Real MinIO added to `docker-compose.yml` + a genuine `aioboto3` S3-compatible
+    storage adapter (`backend/app/core/storage.py`) — not a stub, since
+    `.env.example`'s `S3_*` vars already existed and MinIO is just another local
+    container, not a blocked third-party account. Two hand-written Alembic
+    migrations (`0f62a9b1cdf4`, `a7e9f4e50c45`).
+  - **Branch 2 (`feature/authentication`)**: real (optional, not yet required —
+    ADR-011's own caution stands) email verification using the same dev-log
+    `sendResetPassword` pattern; Redis-backed account lockout reusing
+    `app/core/rate_limit.py`'s fixed-window shape. Refresh-token rotation and MFA
+    were reviewed and documented (not rebuilt) — the short-lived-JWT + Better Auth
+    session-cookie mechanism was found sound, and `twoFactor` was confirmed to slot
+    in later without restructuring `web/lib/auth.ts`.
+  - **Branch 3 (`feature/rbac`)**: `require_verified_professional(*roles)` in
+    `core/security.py` (checks JWT role *and* live `verification_status`, reserved
+    for future M2+ operational endpoints — profile-management endpoints stay
+    reachable while pending, on purpose). New `admin/router.py` verification-queue
+    endpoints (list/view/approve/reject/request-info/suspend/deactivate), each
+    `require_role("admin")` and each writing an `audit_logs` row. Role assignment
+    wraps Better Auth's existing `set-role` admin action so it's audit-logged too,
+    instead of being called directly and silently.
+  - **Branch 4 / 5 (`feature/consultant-module`, `feature/dermatologist-module`)**:
+    real `consultant_profile`/`dermatologist_profile` backend services (mirroring
+    `skin_profile/`'s router/service/schemas/models anatomy) plus a genuinely new
+    multi-step onboarding wizard for each (no wireframe existed for this — designed
+    fresh against `docs/DESIGN.md`, reusing the `assessment/` step-tab pattern).
+    Replaced both roles' dashboard smoke tests with a real state machine: no
+    profile → onboarding; pending → locked dashboard (profile view/edit/document-
+    upload/status only, every other nav item still `built: false`); approved →
+    real operational dashboard shell.
+  - **Branch 6 (`feature/admin-panel`)**: took Admin from a smoke test to a real
+    platform, mapped onto the **fixed** 6-item admin nav (no new sidebar items
+    invented) — Dashboard (real role counts + pending-verification count + recent
+    `audit_logs` feed), Users (search/ban/unban/set-role via Better Auth's
+    admin-plugin actions, now actually surfaced in UI, each audit-logged through a
+    shared `web/lib/admin-audit-log.ts` helper), Users → Verification (the actual
+    review queue + per-professional detail view with presigned document URLs),
+    Content & Data (read-only product/ingredient list views over already-seeded
+    data — full CRUD write endpoints stay explicit M3 scope, not silently skipped),
+    Monitoring (filterable `audit_logs` table), System Reports/Settings (honest
+    "coming soon" panels, same pattern as Progress Tracking's before/after-photos
+    card — never a fake toggle).
+  - **Branch 7 (`feature/ui-improvements`)**: targeted light-theme color rebalance
+    responding to "colors feel slightly off, don't make it high-contrast" feedback
+    — kept the Navy/Blue/Teal brand architecture and Frosted Lab Glass system
+    intact (both load-bearing for the Score Ring/charts/score bands), rebalanced
+    the neutral ramp (slate → zinc, less blue-tinted), split `on-surface` from
+    `primary` (previously identical), and desaturated secondary/success/warning/
+    error one notch off Tailwind's vibrant defaults. Dark theme and score bands
+    deliberately untouched. Verified with live side-by-side screenshots before
+    finalizing hex values, not guessed. Also closed the M1 audit's one deferred
+    item: adopted `Field`/`FieldGroup`/`FieldLabel`/`FieldError` on every new
+    onboarding/document-upload form (scoped to the new forms, not a retrofit of
+    every existing M1 form in the same branch).
+  - **Branch 8 (`feature/testing`)**: real-DB-fixture backend tests for every new
+    endpoint and verification-state transition; a full cross-role Playwright e2e
+    journey (`cross-role-verification-journey.spec.ts` — consultant submits, admin
+    rejects with a reason, consultant resubmits, admin approves, consultant's
+    dashboard unlocks, all through the real UI). Found and fixed a systemic
+    suite-wide issue while adding it: Better Auth's rate limiter keys are always
+    `{ip}|{path}`, shared across every spec file's real signups against the same
+    IP — running the full suite in parallel (or even sequentially, since several
+    older spec files never cleared it) produced real 429 cascades unrelated to any
+    single test's logic. Fixed with a shared `tests/e2e/helpers.ts`
+    (`clearRateLimits`/`deleteTestUser`/`promoteRole`) retrofitted into all 7
+    real-auth spec files, plus `playwright.config.ts`'s `workers: 1`. Also found
+    and fixed a real, silent account leak in `auth-hardening.spec.ts` (neither of
+    its two tests had ever called cleanup, since Branch 2) and rewrote
+    `app-shell.spec.ts`/`scaffold.spec.ts` from scratch against live-inspected DOM
+    ground truth — both predated real implementations they no longer matched (a
+    placeholder homepage, an app-shell before the real shadcn Sidebar landed).
+  - **Deliberately deferred, tracked separately, not silently dropped**: a dynamic
+    permission-matrix editor (no concrete case needs per-permission granularity
+    yet — Role Management is a real assignment view, not a speculative ACL
+    editor), the Consultant/Dermatologist *clinical* review workflow itself (the
+    tables are ready, needs real assessment data to review against — M2+), and a
+    real day-boundary bug found in `scores/service.py`'s `compute_and_store_score`
+    (compares local-timezone `date.today()` against a UTC `calculated_at`,
+    duplicate-scoring for ~5–6 hours daily near local midnight) — out of scope for
+    this expansion (unrelated service), logged as its own standalone fix task, not
+    fixed opportunistically mid-branch.
+  - `ruff`/`mypy --strict`/`pytest` (backend) and `tsc`/`eslint`/`next build`
+    (frontend) clean at every branch boundary; each branch's own live/e2e
+    verification ran against the real Docker Postgres/Redis/MinIO stack before
+    merging, not mocked.
 
 ## Partially Completed
 
-- ◐ `docker-compose.yml` — missing `web`, `api`, `minio`, `worker` services. `backend/`
-  and `web/` now exist so this is unblocked, but adding Dockerfiles/compose entries needs
-  verification against a real Docker daemon first (not available in this session).
+- ◐ `docker-compose.yml` — `minio` now added (Branch 1); still missing `web`, `api`,
+  `worker` services. `backend/` and `web/` now exist so this is unblocked, but adding
+  Dockerfiles/compose entries needs verification against a real Docker daemon first.
+- ◐ `app/services/ingredients/` — now has a real, live-verified **read-only** API
+  surface (`GET /admin/ingredients`, admin-only, added in Branch 6), but no
+  standalone ingredients router, no write endpoints, and no consumer-facing (User
+  role) routes yet — full CRUD stays explicit M3 scope, not silently skipped.
 
 ## Pending
 
@@ -925,9 +1058,21 @@ refinement, real scoring/recs) is the natural next milestone.
   anything else.
 - ☐ Graphify setup (ADR-006) — explicitly deferred by product owner, revisit later
   (2026-07-08 decision, see Known Issues)
-- ☐ Consultant/Dermatologist/Admin dashboards remain shell smoke-test stubs (proving the
-  app-shell, not designed screens) — out of Milestone 1's 7-screen scope
-  (`docs/ARCHITECTURE.md` §11 names only the User-role 7), tracked here for M2+.
+- ☐ **`scores/service.py`'s `compute_and_store_score` day-boundary bug** — compares a
+  local-timezone `date.today()` against a UTC `calculated_at`
+  (`server_default=func.now()`), so for ~5–6 hours daily (whenever local time has
+  crossed midnight but the UTC DB container hasn't) a user gets a duplicate score row
+  instead of an update. Found and deliberately deferred during the Milestone 1
+  foundation expansion (out of scope for the branch that surfaced it, unrelated
+  service) — tracked as its own standalone fix, not folded into an unrelated PR.
+- ☐ Consultant/Dermatologist *clinical* review workflow — `consultant_clients`/
+  `consultant_notes` tables exist and are ready, but their UI needs real assessment
+  data to review against (M2+ territory); the identity/onboarding/verification layer
+  they'll sit behind is now real (see Completed).
+- ☐ A dynamic permission-matrix editor — deliberately not built; the fixed 4-role
+  model has no concrete case requiring per-permission granularity yet. Role
+  Management is a real role-*assignment* view (Better Auth's `set-role`), not a
+  speculative ACL editor.
 
 ## Folder structure
 
@@ -938,44 +1083,57 @@ on a few points (see that file's own notes on route-group vs. real-folder role p
 
 ## Backend status
 
-`app/services/user/`, `app/services/skin_profile/`, `app/services/scores/`,
-`app/services/routines/`, `app/services/recommendations/`, `app/services/progress/` are
-real, working, live-verified services; `app/services/ingredients/` has models + seed data
-but no API surface yet (M3 scope). Every User-role domain endpoint now enforces
-`require_role("user")` (this session's RBAC task — see Completed), not just `require_user`.
-`app/ai/` has the stub seeding helper + AI-contract schemas the recommender uses; no
-service package is empty except `integrations`. Two Alembic migrations exist
-(`50e82a643bf9` baseline, `ccb49f9b0f47` ingredients) — both hand-written, both only
-verified against a live, pre-populated database via `stamp`, not `upgrade` against a
-fresh one (tracked in Pending). `env.py` imports every service's models including
-`ingredients`, so `alembic revision --autogenerate` stays a meaningful drift check.
-19 backend tests pass (`ruff`/`mypy --strict`/`pytest`); no live Postgres/Mongo/Redis was
-reachable in this session (Docker wasn't running), so this session's backend changes are
-verified by static checks + tests with `dependency_overrides`, not a live round-trip —
-unlike the Postgres/Mongo/Redis-verified work from earlier sessions.
+`app/services/{user,skin_profile,scores,routines,recommendations,progress,
+consultant_profile,dermatologist_profile,admin}/` are all real, working,
+live-verified services. `app/services/ingredients/` has a real read-only API surface
+(admin-only, see Partially Completed) but no standalone router or write endpoints yet
+(M3 scope). Every User-role domain endpoint enforces `require_role("user")`; every new
+admin endpoint enforces `require_role("admin")` and writes an `audit_logs` row;
+`require_verified_professional(*roles)` exists in `core/security.py` for future M2+
+operational endpoints. `app/core/storage.py` is a real `aioboto3` MinIO/S3 adapter
+(Branch 1), reused by verification-document upload and ready for profile
+images/progress photos later. `app/ai/` has the stub seeding helper + AI-contract
+schemas the recommender uses; no service package is empty except `integrations`. Six
+hand-written Alembic migrations exist (`50e82a643bf9` baseline, `ccb49f9b0f47`
+ingredients, `44cfa8e6d5d4` products/routines/scoring, `0f62a9b1cdf4` professional
+verification, `a7e9f4e50c45` consulting/notifications/billing, `c21b3568fc1a` drop
+`user_profiles` identity drift) — all applied against the live Docker Postgres.
+151 backend tests pass (`ruff`/`mypy --strict`/`pytest`), the large majority added
+during the foundation-expansion phase's real-DB-fixture pattern (`tests/conftest.py`'s
+`db_session`/`test_user_id`, rollback-safe, verified to leave zero trace) rather than
+`dependency_overrides` mocking — Postgres/Mongo/Redis/MinIO are all live in Docker and
+were used directly for this phase's tests.
 
 ## Frontend status
 
-All 7 Milestone 1 screens are now real, wired, built screens: Login, Signup, User
-Dashboard, Skin Profile & Lifestyle, Skin Assessment (5-step wizard + results), Product
-Recommendations, Progress Tracking. Scaffold + app shell + Authentication + typed API
-client complete (`web/` — Next.js 16 / React 19 / Tailwind v4 / shadcn/ui / Better Auth /
-TanStack Query / `openapi-fetch`). Design system is now v2 (dark-mode "Deep Diagnostic
-Suite" — see Completed). `lib/api.ts` + `lib/api-types.ts` regenerated this session to
-include the newer scores/routines/recommendations/progress/skin-profile paths (they were
-stale, generated before those endpoints existed — `make openapi` closes this, worth
-re-running any time a backend route's shape changes). No visible role-switching (role is
-hardcoded per route-group layout until real sessions replace the stub `userName` in each
-layout) — Consultant/Dermatologist/Admin dashboards remain shell smoke-test stubs,
-correctly out of Milestone 1's User-role-only 7-screen scope. Design assets remain in
-`web/designs/wireframes/` (83 files) as the build reference.
+All 7 Milestone 1 (User-role) screens remain real, wired, built screens: Login,
+Signup, User Dashboard, Skin Profile & Lifestyle, Skin Assessment (5-step wizard +
+results), Product Recommendations, Progress Tracking. Beyond that, the foundation
+expansion made the other three roles real too: Consultant and Dermatologist each have
+a genuine onboarding wizard + locked/pending dashboard + approved-dashboard state
+machine (Branches 4–5); Admin has a full 6-nav-item management platform — Dashboard,
+Users (+ Verification queue/detail), Content & Data, Monitoring, System Reports,
+Settings — all `built: true` in `web/lib/nav-config.ts` (Branch 6). Light-theme color
+tokens were rebalanced (zinc neutrals, split on-surface/primary, desaturated
+secondary/semantic colors — Branch 7, dark theme untouched); `Field`/`FieldGroup`
+adopted on every new onboarding/document-upload form, closing the M1 audit's one
+deferred item for those forms specifically. `lib/api.ts`/`lib/api-types.ts` cover the
+current backend surface including the new admin/consultant/dermatologist-profile
+routes. Design assets remain in `web/designs/wireframes/` (83 files) as the build
+reference for the original 7 screens; the onboarding wizards, verification queue, and
+locked-dashboard states have no wireframe counterpart and were designed fresh against
+`docs/DESIGN.md`, per the expansion plan's own note.
 
 ## Database status
 
-**Postgres runs in Docker (`docker-compose.yml`'s `postgres` service) and is now
-genuinely the system of record** — live and populated (all 32 v3 tables +
-Better Auth identity tables), `alembic_version` stamped at `50e82a643bf9`. **This
-wasn't always true**: for most of this session, a native Homebrew Postgres 14
+**Postgres runs in Docker (`docker-compose.yml`'s `postgres` service) and is
+genuinely the system of record** — live, populated, and at `alembic upgrade head`
+(`0f62a9b1cdf4`, six migrations deep — see Backend status), 36 tables total including
+the foundation-expansion's `consultant_profiles`/`dermatologist_profiles`/
+`verification_documents`/`audit_logs`. MinIO is also live in Docker
+(`skinlytics-minio-1`) and genuinely holds verification documents via
+`core/storage.py`'s presigned-URL flow, not a stub. **This wasn't always true**: for
+part of an earlier session, a native Homebrew Postgres 14
 (`brew services`) was silently shadowing `localhost:5432` and was the database the app
 actually talked to; Docker's Postgres container was an unused decoy. Discovered when a
 Docker VM corruption (disk-full event, see `run.py`'s Completed entry) left Docker's
@@ -1000,15 +1158,17 @@ that's not what's running now.
   do not stand it up until asked, even though ADR-006 marks it "Accepted." No manual
   `docs/context/` context-graph files are being maintained in the interim either; treat
   this as an open gap, not a resolved alternative.
-- `docker-compose.yml` doesn't yet include `minio`/`worker`/`web`/`api` — add when the
-  scaffolds and outbox worker (ADR-010) land.
-- **Dark-mode token gap:** `docs/DESIGN.md`'s `colors-dark:` frontmatter doesn't define
-  `*-container`/`on-*-container`/`surface-dim`/`surface-bright`/`inverse-*`/`surface-tint`
-  for dark mode. `web/app/globals.css` derives these mechanically (reusing only hex values
-  already in DESIGN.md, via the same light/dark swap pattern the primary color already
-  uses) and comments each derived line. **Needs design/product-owner confirmation before
-  a real screen ships on dark mode** — verified visually OK for the current smoke test,
-  but not verified against a real dense screen (tables, forms).
+- `docker-compose.yml` still doesn't include `worker`/`web`/`api` (`minio` was added in
+  the foundation expansion's Branch 1) — add when the scaffolds and outbox worker
+  (ADR-010) land.
+- **Dark-mode token gap: resolved**, this bullet was stale — `docs/DESIGN.md`'s
+  `colors-dark:` frontmatter is now a full v3 "Deep Diagnostic Suite" palette with real
+  designer values for every `*-container`/`on-*-container`/`surface-*`/`inverse-*`
+  token (its own comment notes it "supersedes the v2 mechanically-derived extension
+  tokens" this bullet used to flag), and `web/app/globals.css`'s `.dark` block consumes
+  them directly, no derivation. The foundation expansion's Branch 7 color work only
+  touched the *light* theme, so this v3 dark palette is what every new professional/
+  admin screen already renders against.
 - `docs/WIREFRAMES.md` and `docs/CONVENTIONS.md` reference `web/design/wireframes/`
   (singular); the real folder is `web/designs/wireframes/` (plural). Doc typo, not a code
   issue — used the real path.
@@ -1044,20 +1204,35 @@ that's not what's running now.
   only because a new screen's build needed a type that didn't exist. Re-run
   `make openapi` as a matter of habit after any backend router change, not just when a
   frontend build actually fails.
-- No `gh` CLI and no Docker daemon in this Claude Code sandbox session — all of this
-  session's backend/RBAC/migration work is verified by static checks (`ruff`/`mypy
-  --strict`/`pytest` with `dependency_overrides`) and frontend work by Playwright against
-  either real error paths or mocked API responses, **not** a live Postgres/Mongo/Redis
-  round-trip. Re-verify live on a Docker-available machine before treating the new
-  migration or the three new screens' data paths as fully proven (see Pending).
+- No `gh` CLI in this Claude Code sandbox session (PR creation/GitHub API calls aren't
+  available directly) — Docker **is** available and running here as of the foundation
+  expansion (Postgres/Redis/MongoDB/Elasticsearch/MinIO all live), superseding the
+  earlier "no Docker in this sandbox" state; the whole 9-branch expansion was
+  live-verified against this real stack, not mocked.
+- **Better Auth's rate limiter is IP-scoped, not path-scoped in isolation** —
+  `createRateLimitKey` always produces `{ip}|{path}`, but every Playwright spec file
+  hitting the same local IP shares that ceiling across files. A full e2e suite run
+  needs every real-auth spec to call `clearRateLimits()` (`tests/e2e/helpers.ts`)
+  before its own signups/signins, and `playwright.config.ts` needs `workers: 1` — the
+  whole suite shares one real backend, not isolated per-worker state. Any new e2e spec
+  file that signs a real account up/in must follow this pattern from the start.
+- **shadcn `Button` with `render={<Link>}` exposes `role="button"` in the
+  accessibility tree, not `role="link"`**, even though it navigates — hit repeatedly
+  writing Playwright selectors during the foundation expansion. Use
+  `getByRole("button", ...)` for these, not `getByRole("link", ...)`.
 
 ## Next task
 
-All 11 Milestone 1 tasks are done; M1 is functionally complete. Real remaining work is
-verification-only or explicitly out of scope (see Pending): MongoDB live check, a fresh-
-database `alembic upgrade head` run (now covering two migrations), `api`/`web`
-Dockerfiles, wiring the GitHub remote once the user provides a URL, and a nav-entry-point
-decision for `/profile`. The natural next *feature* milestone is M2 — real skin
-assessment (replacing the client-side ADR-007 stub), routine-generation refinement, and
-the first real scoring/recommendation models behind the same M1 API contracts — user's
-call on sequencing.
+All 11 original Milestone 1 tasks *and* the 9-branch foundation expansion (professional
+verification workflow, admin management platform, auth hardening, color rebalance,
+cross-role e2e coverage) are done and merged to `dev`. The one known, tracked, not-yet-
+fixed bug is `scores/service.py`'s local-vs-UTC day-boundary duplicate-scoring issue
+(deliberately deferred, out of scope for the branch that found it — see Pending).
+Everything else outstanding is either an external-credential blocker (Kaggle,
+OpenWeather/OpenUV), a one-command follow-up waiting on user input (GitHub remote), or
+an explicit scope decision (ADR-010's outbox table, `/profile`'s nav entry point,
+`api`/`web` Dockerfiles). The natural next *feature* milestone is M2 — real skin
+assessment (replacing the client-side ADR-007 stub), routine-generation refinement, the
+first real scoring/recommendation models behind the same API contracts, and the
+Consultant/Dermatologist clinical review workflow now that the identity/verification
+layer it depends on is real — user's call on sequencing.

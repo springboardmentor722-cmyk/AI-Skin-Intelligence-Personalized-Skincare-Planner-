@@ -39,11 +39,17 @@ skinlytics/
 │   └── README_v3_changes.md
 │
 ├── web/                              # Next.js + shadcn + Better Auth
-│   ├── app/                          # App Router, route groups per role
-│   │   ├── (auth)/login  (auth)/register
+│   ├── app/                          # App Router — (auth)/(user) are true route groups
+│   │   │                            #   (no URL segment); consultant/dermatologist/admin
+│   │   │                            #   are real, prefixed folders — route groups add no
+│   │   │                            #   segment, so 4 roles sharing "/dashboard" would
+│   │   │                            #   collide (PROGRESS.md "Route collision, resolved")
+│   │   ├── login  signup                     # top-level, not under (auth)
+│   │   ├── (auth)/forgot-password  (auth)/reset-password
 │   │   ├── (user)/dashboard  (user)/profile  (user)/assessment
 │   │   │        (user)/recommendations  (user)/progress
-│   │   ├── (consultant)/…  (dermatologist)/…  (admin)/…
+│   │   ├── consultant/…  dermatologist/…  admin/…
+│   │   ├── consultant-onboarding/…  dermatologist-onboarding/…
 │   │   └── api/auth/[...all]/route.ts        # Better Auth handler
 │   ├── components/ui/                # shadcn components (owned, themed via CSS vars)
 │   ├── components/                   # app components (GlassBar, ScoreRing, …)

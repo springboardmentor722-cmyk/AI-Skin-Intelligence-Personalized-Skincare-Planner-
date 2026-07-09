@@ -308,8 +308,11 @@ total < 1.5 s cache-miss, < 100 ms cache-hit. Cold start (no history): content-b
 ## 11. Frontend architecture
 
 - **Next.js (App Router) + TypeScript.** Server Components for data-heavy dashboard
-  reads; Client Components for interactive forms/charts. Route groups per role:
-  `(auth)`, `(user)`, `(consultant)`, `(dermatologist)`, `(admin)`.
+  reads; Client Components for interactive forms/charts. `(auth)` and `(user)` are true
+  route groups (no URL segment: User's dashboard is bare `/dashboard`); `consultant/`,
+  `dermatologist/`, `admin/` are real, non-parenthesized folders that add a URL prefix
+  — route groups add no segment, so all four roles having their own `/dashboard` would
+  otherwise collide (`PROGRESS.md`'s "Route collision, resolved" note).
 - **Tailwind + shadcn/ui** — components owned in `web/components/ui`, themed exclusively
   through the CSS variables generated from `docs/DESIGN.md` (including the `--glass-*`
   family; glass usage rules in DESIGN §3). Sentence-case active-voice copy; a11y floor
