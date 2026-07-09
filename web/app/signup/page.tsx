@@ -29,6 +29,12 @@ import {
 import { GoogleIcon } from "@/components/auth/google-icon";
 import { cn } from "@/lib/utils";
 
+// docs/WIREFRAMES.md Registration "Accept": "consent stored with timestamp + policy
+// version". Bump this whenever the Terms of Service / skin-photo processing copy
+// below materially changes — docs/SUGGESTIONS.md's consent-ledger note ("re-prompt on
+// material changes") is the reason a version string exists at all, not just a date.
+const CONSENT_POLICY_VERSION = "2026-07-09";
+
 const STRENGTH_COLORS = [
   "bg-destructive",
   "bg-destructive",
@@ -96,6 +102,12 @@ export default function SignupPage() {
       name: `${values.firstName} ${values.lastName}`,
       email: values.email,
       password: values.password,
+      // Milestone 1 audit finding: consent was validated client-side only (this
+      // schema's own `consent: z.literal(true)`) and never sent to or stored by the
+      // backend — closes that gap. additionalFields wired in lib/auth.ts +
+      // lib/auth-client.ts.
+      consentAcceptedAt: new Date(),
+      consentPolicyVersion: CONSENT_POLICY_VERSION,
     });
 
     if (error) {
@@ -306,7 +318,12 @@ export default function SignupPage() {
             )}
           </div>
 
-          <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
+          <Button
+            type="submit"
+            className="w-full"
+            size="lg"
+            disabled={isSubmitting || !watch("consent")}
+          >
             {isSubmitting && <Loader2 className="size-4 animate-spin" strokeWidth={1.5} />}
             Create account
           </Button>

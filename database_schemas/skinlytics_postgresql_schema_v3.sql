@@ -33,7 +33,14 @@ CREATE TABLE "user" (
     "banReason"    TEXT,
     "banExpires"   TIMESTAMP,
     "createdAt"    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt"    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    "updatedAt"    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    -- Consent ledger (docs/SUGGESTIONS.md P0, docs/WIREFRAMES.md Registration accept
+    -- criteria) — added via `npx @better-auth/cli generate/migrate` as Better Auth
+    -- `user.additionalFields` (web/lib/auth.ts), not Alembic (ADR-003: identity tables
+    -- are Better-Auth-owned). Null for accounts created before this field existed and
+    -- for Google OAuth signups, which don't go through the consent checkbox.
+    "consentAcceptedAt"    TIMESTAMPTZ,
+    "consentPolicyVersion" TEXT
 );
 
 CREATE TABLE session (

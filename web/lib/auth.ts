@@ -64,6 +64,20 @@ export const auth = betterAuth({
       requireLocalEmailVerified: false,
     },
   },
+  // Milestone 1 audit finding: docs/WIREFRAMES.md's Registration accept criteria
+  // ("consent stored with timestamp + policy version; no account without consent")
+  // and docs/SUGGESTIONS.md's P0 "consent ledger" were never actually implemented —
+  // the signup form's consent checkbox only gated the client-side Zod submit handler
+  // (lib/schemas/auth.ts's `consent: z.literal(true)`); nothing was ever sent to or
+  // stored by the backend. Optional, not required at the field level, since the
+  // Google OAuth signup path doesn't go through this form/checkbox at all — closing
+  // that gap (a consent step for social signup) is separate, out-of-scope work.
+  user: {
+    additionalFields: {
+      consentAcceptedAt: { type: "date", required: false, input: true },
+      consentPolicyVersion: { type: "string", required: false, input: true },
+    },
+  },
   plugins: [
     // Issues JWTs + exposes JWKS at /api/auth/jwks (creates the `jwks` table).
     jwt(),
