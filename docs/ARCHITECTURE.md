@@ -80,7 +80,7 @@ containers at M4 (ADR-005). All routes mount under **`/api/v1`** from day one (A
 M1 runtime = docker-compose: `web`, `api`, `postgres`, `mongo`, `redis`, `elasticsearch`,
 `minio` (S3-compatible dev), `worker` (arq, ADR-010).
 
-## 4. Microservices (12)
+## 4. Microservices (13)
 
 FastAPI packages under `backend/app/services/<name>/` (`router.py · service.py ·
 schemas.py · models.py · deps.py`). Single-writer rule: each fact has exactly one owning
@@ -100,6 +100,7 @@ service; everything else reads via interfaces or consumes derived projections.
 | 10 | **Analytics** | nothing (read-only aggregator, never a source of truth) | all stores | `/analytics` |
 | 11 | **Report** | S3 `/exports/`, `/reports/`; PG report registry | all via interfaces | `/reports` |
 | 12 | **Admin** | platform settings, content mgmt orchestration; PG `verification_documents`, `audit_logs` | everything (admin role); reads `consultant_profiles`/`dermatologist_profiles` for the verification queue | `/admin` |
+| 13 | **Consultant Profile** | PG `consultant_profiles` | Admin service's document/audit-log functions (never its models, ADR-005) | `/consultant-profiles` |
 
 Service responsibilities per the diagram: User (management, authentication glue, role &
 profile management) · Skin Profile (profile creation, skin type, lifestyle/sleep/hydration/
@@ -195,6 +196,16 @@ through onboarding → `pending` → admin `approve`/`reject`/`request_info`/`su
 review actions or via `POST /admin/audit-logs`, which is what
 `web/app/api/admin/set-role/route.ts` calls after Better Auth's own `set-role` action
 (which has no audit trail of its own) so every role change is still logged.
+
+**Self-service role flip on first onboarding submission** (ADR-015): the moment a
+"user" account first submits the Consultant onboarding wizard,
+`web/app/api/consultant-onboarding/submit/route.ts` flips `user.role` to
+`consultant` via `(await auth.$context).internalAdapter.updateUser(...)` — the same
+internal function Better Auth's own routes call, not a raw SQL UPDATE, because only
+that path refreshes the Redis-cached session (secondaryStorage, ADR-013) that a raw
+UPDATE would leave stale for an already-signed-in browser session. Better Auth's
+admin-gated `set-role` action can't be reused here — it requires an admin session,
+and this is the account's own self-service transition.
 
 ## 7. Data layer — five stores + one file store
 

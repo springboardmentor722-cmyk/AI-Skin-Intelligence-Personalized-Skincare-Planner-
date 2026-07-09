@@ -245,4 +245,35 @@ operational endpoints don't exist), so its 200/allow path is covered by direct
 dependency-level tests (`tests/test_rbac.py`), not a live route — the same discipline
 `require_role`'s own tests already used before any real `user`-role routes existed.
 
-<!-- Next ADR: ADR-015 — add yours here -->
+## ADR-015 — Self-service role flip via `auth.$context.internalAdapter`, not a raw SQL UPDATE
+**Status:** Accepted (Milestone 1 foundation expansion)
+**Context:** A "user" account applying to become a Consultant needs its Better Auth
+`role` flipped to `consultant` the moment it first submits onboarding (Branch 3's
+`require_verified_professional` and the profile's own management endpoints both
+assume role is already `consultant` throughout the whole pending/rejected/approved
+lifecycle, never still `user`). Better Auth's admin-plugin `set-role` action can't do
+this — it's gated on an *admin* session (`adminMiddleware`/`hasPermission`), and this
+is a self-service transition on the caller's own account, not an admin one. A raw
+`UPDATE "user" SET role = ...` bypasses that gate, but empirically leaves an
+already-signed-in session showing the stale role: Branch 2's `secondaryStorage`
+(Redis) caches the full session+user object per token
+(`node_modules/better-auth/dist/db/internal-adapter.mjs`), refreshed only when
+Better Auth's own `updateUser` internal-adapter function runs (it calls
+`refreshUserSessions` after writing) — confirmed live, twice, that a raw SQL UPDATE
+does not trigger this and the JWT keeps minting the old role until sign-out/sign-in.
+**Decision:** `web/app/api/consultant-onboarding/submit/route.ts` calls `(await
+auth.$context).internalAdapter.updateUser(userId, { role: "consultant" })` —
+`$context` is a documented, typed public property of the Better Auth server instance
+(`node_modules/better-auth/dist/types/auth.d.mts`), and `internalAdapter.updateUser`
+is the exact function Better Auth's own `/update-user` and `/admin/set-role` routes
+call internally. Using it directly gets the session-cache refresh for free, so the
+role change is visible on the very next request — no forced re-login. Only fires on
+a first-ever submission (`session.user.role === "user"`); a resubmission after
+rejection/more-info-requested is already `consultant` and skips it.
+**Consequences:** This is the second, narrower exception to "only Better Auth writes
+`user.role`" (ADR-014's admin `set-role` wrapper is the first) — both go through a
+real Better Auth code path, never a raw UPDATE, so the session-cache-refresh behavior
+stays correct everywhere a role can change. Branch 5's dermatologist onboarding reuses
+this exact pattern rather than inventing a second one.
+
+<!-- Next ADR: ADR-016 — add yours here -->

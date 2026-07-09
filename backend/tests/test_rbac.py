@@ -169,6 +169,61 @@ async def test_admin_only_routes_reject_non_admin_roles(
 
 
 @pytest.mark.parametrize(
+    "method,path,json_body",
+    [
+        ("GET", "/api/v1/consultant-profiles/me", None),
+        ("POST", "/api/v1/consultant-profiles/me/submit", {}),
+        ("PATCH", "/api/v1/consultant-profiles/me", {}),
+        ("GET", "/api/v1/consultant-profiles/me/documents", None),
+        ("DELETE", "/api/v1/consultant-profiles/me/documents/1", None),
+    ],
+)
+async def test_consultant_profile_routes_reject_dermatologist_role(
+    client: AsyncClient, method: str, path: str, json_body: dict[str, Any] | None
+) -> None:
+    # A dermatologist is neither "user" (first-time onboarding) nor "consultant"
+    # (already onboarded) — every one of these routes must 403 them, submit included.
+    app.dependency_overrides[require_user] = lambda: {
+        "id": "dermatologist_1",
+        "role": "dermatologist",
+        "claims": {},
+    }
+    try:
+        response = await client.request(method, path, json=json_body)
+    finally:
+        app.dependency_overrides.pop(require_user, None)
+
+    assert response.status_code == 403, f"{method} {path} returned {response.status_code}"
+
+
+@pytest.mark.parametrize(
+    "method,path,json_body",
+    [
+        ("GET", "/api/v1/consultant-profiles/me", None),
+        ("PATCH", "/api/v1/consultant-profiles/me", {}),
+        ("GET", "/api/v1/consultant-profiles/me/documents", None),
+        ("DELETE", "/api/v1/consultant-profiles/me/documents/1", None),
+    ],
+)
+async def test_consultant_profile_management_routes_reject_plain_user_role(
+    client: AsyncClient, method: str, path: str, json_body: dict[str, Any] | None
+) -> None:
+    # A plain "user" (never submitted onboarding) has no profile row by construction —
+    # only .../submit is reachable before the role flips to "consultant".
+    app.dependency_overrides[require_user] = lambda: {
+        "id": "user_1",
+        "role": "user",
+        "claims": {},
+    }
+    try:
+        response = await client.request(method, path, json=json_body)
+    finally:
+        app.dependency_overrides.pop(require_user, None)
+
+    assert response.status_code == 403, f"{method} {path} returned {response.status_code}"
+
+
+@pytest.mark.parametrize(
     "path",
     [
         "/api/v1/admin/verification-queue/consultant/some-user/reject",

@@ -231,10 +231,486 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/verification-queue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Verification Queue */
+        get: operations["get_verification_queue_api_v1_admin_verification_queue_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/verification-queue/{role}/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Verification Review */
+        get: operations["get_verification_review_api_v1_admin_verification_queue__role___user_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/verification-queue/{role}/{user_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve Verification */
+        post: operations["approve_verification_api_v1_admin_verification_queue__role___user_id__approve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/verification-queue/{role}/{user_id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject Verification */
+        post: operations["reject_verification_api_v1_admin_verification_queue__role___user_id__reject_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/verification-queue/{role}/{user_id}/request-info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Request More Info */
+        post: operations["request_more_info_api_v1_admin_verification_queue__role___user_id__request_info_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/verification-queue/{role}/{user_id}/suspend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Suspend Professional */
+        post: operations["suspend_professional_api_v1_admin_verification_queue__role___user_id__suspend_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/verification-queue/{role}/{user_id}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Deactivate Professional */
+        post: operations["deactivate_professional_api_v1_admin_verification_queue__role___user_id__deactivate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/audit-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Audit Log */
+        post: operations["create_audit_log_api_v1_admin_audit_logs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/consultant-profiles/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Profile */
+        get: operations["get_my_profile_api_v1_consultant_profiles_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update My Profile */
+        patch: operations["update_my_profile_api_v1_consultant_profiles_me_patch"];
+        trace?: never;
+    };
+    "/api/v1/consultant-profiles/me/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit My Profile */
+        post: operations["submit_my_profile_api_v1_consultant_profiles_me_submit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/consultant-profiles/me/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List My Documents */
+        get: operations["list_my_documents_api_v1_consultant_profiles_me_documents_get"];
+        put?: never;
+        /** Upload My Document */
+        post: operations["upload_my_document_api_v1_consultant_profiles_me_documents_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/consultant-profiles/me/documents/{document_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete My Document */
+        delete: operations["delete_my_document_api_v1_consultant_profiles_me_documents__document_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AuditLogCreate
+         * @description Body for POST /admin/audit-logs — the one write path `audit_logs` has (this
+         *     service, docs/CONVENTIONS.md's single-writer rule), used both by this service's own
+         *     verification actions and by the Next.js admin role-assignment wrapper (Branch 3;
+         *     Better Auth's own `set-role` action has no audit trail of its own).
+         */
+        AuditLogCreate: {
+            /** Action */
+            action: string;
+            /** Target Type */
+            target_type?: string | null;
+            /** Target Id */
+            target_id?: string | null;
+            /** Metadata */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** AuditLogRead */
+        AuditLogRead: {
+            /** Audit Log Id */
+            audit_log_id: number;
+            /** Actor User Id */
+            actor_user_id: string | null;
+            /** Action */
+            action: string;
+            /** Target Type */
+            target_type: string | null;
+            /** Target Id */
+            target_id: string | null;
+            /** Created At */
+            created_at: string | null;
+        };
+        /** Body_upload_my_document_api_v1_consultant_profiles_me_documents_post */
+        Body_upload_my_document_api_v1_consultant_profiles_me_documents_post: {
+            /**
+             * Document Type
+             * @enum {string}
+             */
+            document_type: "government_id" | "professional_certificate" | "medical_license" | "supporting_document";
+            /** File */
+            file: string;
+        };
+        /** ConsultantProfileDetail */
+        ConsultantProfileDetail: {
+            /** User Id */
+            user_id: string;
+            /** Profile Image Url */
+            profile_image_url: string | null;
+            /** Qualifications */
+            qualifications: string | null;
+            /** Years Of Experience */
+            years_of_experience: number | null;
+            /** Current Organization */
+            current_organization: string | null;
+            /** License Number */
+            license_number: string | null;
+            /** Specializations */
+            specializations: string[] | null;
+            /** Areas Of Expertise */
+            areas_of_expertise: string[] | null;
+            /** Languages */
+            languages: string[] | null;
+            /** Consultation Modes */
+            consultation_modes: string[] | null;
+            /** Availability */
+            availability: string | null;
+            /** Biography */
+            biography: string | null;
+            /** Linkedin Url */
+            linkedin_url: string | null;
+            /** Portfolio Url */
+            portfolio_url: string | null;
+            /** Clinic Address */
+            clinic_address: string | null;
+            /** Location */
+            location: string | null;
+            /** Phone */
+            phone: string | null;
+            /**
+             * Verification Status
+             * @enum {string}
+             */
+            verification_status: "pending" | "approved" | "rejected" | "more_info_requested" | "suspended" | "deactivated";
+            /** Reviewed By */
+            reviewed_by: string | null;
+            /** Reviewed At */
+            reviewed_at: string | null;
+            /** Rejection Reason */
+            rejection_reason: string | null;
+            /** Submitted At */
+            submitted_at: string | null;
+            /** Created At */
+            created_at: string | null;
+            /** Updated At */
+            updated_at: string | null;
+        };
+        /** ConsultantProfileRead */
+        ConsultantProfileRead: {
+            /** User Id */
+            user_id: string;
+            /** Profile Image Url */
+            profile_image_url: string | null;
+            /** Qualifications */
+            qualifications: string | null;
+            /** Years Of Experience */
+            years_of_experience: number | null;
+            /** Current Organization */
+            current_organization: string | null;
+            /** License Number */
+            license_number: string | null;
+            /** Specializations */
+            specializations: string[] | null;
+            /** Areas Of Expertise */
+            areas_of_expertise: string[] | null;
+            /** Languages */
+            languages: string[] | null;
+            /** Consultation Modes */
+            consultation_modes: string[] | null;
+            /** Availability */
+            availability: string | null;
+            /** Biography */
+            biography: string | null;
+            /** Linkedin Url */
+            linkedin_url: string | null;
+            /** Portfolio Url */
+            portfolio_url: string | null;
+            /** Clinic Address */
+            clinic_address: string | null;
+            /** Location */
+            location: string | null;
+            /** Phone */
+            phone: string | null;
+            /**
+             * Verification Status
+             * @enum {string}
+             */
+            verification_status: "pending" | "approved" | "rejected" | "more_info_requested" | "suspended" | "deactivated";
+            /** Reviewed By */
+            reviewed_by: string | null;
+            /** Reviewed At */
+            reviewed_at: string | null;
+            /** Rejection Reason */
+            rejection_reason: string | null;
+            /** Submitted At */
+            submitted_at: string | null;
+            /** Created At */
+            created_at: string | null;
+            /** Updated At */
+            updated_at: string | null;
+        };
+        /** ConsultantProfileSubmit */
+        ConsultantProfileSubmit: {
+            /** Qualifications */
+            qualifications: string;
+            /** Years Of Experience */
+            years_of_experience: number;
+            /** Current Organization */
+            current_organization?: string | null;
+            /** License Number */
+            license_number?: string | null;
+            /** Specializations */
+            specializations: string[];
+            /** Areas Of Expertise */
+            areas_of_expertise?: string[] | null;
+            /** Languages */
+            languages: string[];
+            /** Consultation Modes */
+            consultation_modes: string[];
+            /** Availability */
+            availability?: string | null;
+            /** Biography */
+            biography: string;
+            /** Linkedin Url */
+            linkedin_url?: string | null;
+            /** Portfolio Url */
+            portfolio_url?: string | null;
+            /** Clinic Address */
+            clinic_address?: string | null;
+            /** Location */
+            location?: string | null;
+            /** Phone */
+            phone: string;
+        };
+        /**
+         * ConsultantProfileUpdate
+         * @description PATCH — every field optional; only supplied fields change. Never touches
+         *     verification_status (that's the admin review actions' job, admin/router.py).
+         */
+        ConsultantProfileUpdate: {
+            /** Profile Image Url */
+            profile_image_url?: string | null;
+            /** Qualifications */
+            qualifications?: string | null;
+            /** Years Of Experience */
+            years_of_experience?: number | null;
+            /** Current Organization */
+            current_organization?: string | null;
+            /** License Number */
+            license_number?: string | null;
+            /** Specializations */
+            specializations?: string[] | null;
+            /** Areas Of Expertise */
+            areas_of_expertise?: string[] | null;
+            /** Languages */
+            languages?: string[] | null;
+            /** Consultation Modes */
+            consultation_modes?: string[] | null;
+            /** Availability */
+            availability?: string | null;
+            /** Biography */
+            biography?: string | null;
+            /** Linkedin Url */
+            linkedin_url?: string | null;
+            /** Portfolio Url */
+            portfolio_url?: string | null;
+            /** Clinic Address */
+            clinic_address?: string | null;
+            /** Location */
+            location?: string | null;
+            /** Phone */
+            phone?: string | null;
+        };
+        /** DermatologistProfileDetail */
+        DermatologistProfileDetail: {
+            /** User Id */
+            user_id: string;
+            /** Profile Image Url */
+            profile_image_url: string | null;
+            /** Medical Registration Number */
+            medical_registration_number: string | null;
+            /** Medical Council */
+            medical_council: string | null;
+            /** Hospital Clinic */
+            hospital_clinic: string | null;
+            /** Years Of Practice */
+            years_of_practice: number | null;
+            /** Degrees */
+            degrees: string[] | null;
+            /** Board Certifications */
+            board_certifications: string[] | null;
+            /** Specializations */
+            specializations: string[] | null;
+            /** Research Interests */
+            research_interests: string | null;
+            /** Professional Biography */
+            professional_biography: string | null;
+            /** Phone */
+            phone: string | null;
+            /** Location */
+            location: string | null;
+            /**
+             * Verification Status
+             * @enum {string}
+             */
+            verification_status: "pending" | "approved" | "rejected" | "more_info_requested" | "suspended" | "deactivated";
+            /** Reviewed By */
+            reviewed_by: string | null;
+            /** Reviewed At */
+            reviewed_at: string | null;
+            /** Rejection Reason */
+            rejection_reason: string | null;
+            /** Submitted At */
+            submitted_at: string | null;
+            /** Created At */
+            created_at: string | null;
+            /** Updated At */
+            updated_at: string | null;
+        };
         /** EnvironmentalExposure */
         EnvironmentalExposure: {
             /** Sun Hours */
@@ -303,6 +779,15 @@ export interface components {
              * Format: date-time
              */
             logged_at: string;
+        };
+        /** PageMeta */
+        PageMeta: {
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Total */
+            total: number;
         };
         /** ProductRead */
         ProductRead: {
@@ -541,6 +1026,89 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /**
+         * VerificationActionRequest
+         * @description approve / deactivate — a reason is useful but not required.
+         */
+        VerificationActionRequest: {
+            /** Reason */
+            reason?: string | null;
+        };
+        /**
+         * VerificationActionWithReasonRequest
+         * @description reject / request-info / suspend — a real reason is the whole point of the
+         *     action (the professional reads it back on their locked dashboard).
+         */
+        VerificationActionWithReasonRequest: {
+            /** Reason */
+            reason: string;
+        };
+        /** VerificationQueueItem */
+        VerificationQueueItem: {
+            /** User Id */
+            user_id: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "consultant" | "dermatologist";
+            /**
+             * Verification Status
+             * @enum {string}
+             */
+            verification_status: "pending" | "approved" | "rejected" | "more_info_requested" | "suspended" | "deactivated";
+            /** Submitted At */
+            submitted_at: string | null;
+            /** Reviewed At */
+            reviewed_at: string | null;
+        };
+        /** VerificationQueuePage */
+        VerificationQueuePage: {
+            /** Items */
+            items: components["schemas"]["VerificationQueueItem"][];
+            meta: components["schemas"]["PageMeta"];
+        };
+        /** VerificationReviewDetail */
+        VerificationReviewDetail: {
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "consultant" | "dermatologist";
+            /** Profile */
+            profile: components["schemas"]["ConsultantProfileDetail"] | components["schemas"]["DermatologistProfileDetail"];
+            /** Documents */
+            documents: components["schemas"]["app__services__admin__schemas__VerificationDocumentRead"][];
+        };
+        /** VerificationDocumentRead */
+        app__services__admin__schemas__VerificationDocumentRead: {
+            /** Document Id */
+            document_id: number;
+            /** Document Type */
+            document_type: string;
+            /** Original Filename */
+            original_filename: string | null;
+            /** Uploaded At */
+            uploaded_at: string | null;
+            /** Verified At */
+            verified_at: string | null;
+        };
+        /** VerificationDocumentRead */
+        app__services__consultant_profile__schemas__VerificationDocumentRead: {
+            /** Document Id */
+            document_id: number;
+            /**
+             * Document Type
+             * @enum {string}
+             */
+            document_type: "government_id" | "professional_certificate" | "medical_license" | "supporting_document";
+            /** Original Filename */
+            original_filename: string | null;
+            /** Uploaded At */
+            uploaded_at: string | null;
+            /** Verified At */
+            verified_at: string | null;
         };
     };
     responses: never;
@@ -871,6 +1439,453 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ProgressSummaryRead"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_verification_queue_api_v1_admin_verification_queue_get: {
+        parameters: {
+            query?: {
+                role?: ("consultant" | "dermatologist") | null;
+                status?: string | null;
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerificationQueuePage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_verification_review_api_v1_admin_verification_queue__role___user_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                role: "consultant" | "dermatologist";
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerificationReviewDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve_verification_api_v1_admin_verification_queue__role___user_id__approve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                role: "consultant" | "dermatologist";
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerificationActionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConsultantProfileDetail"] | components["schemas"]["DermatologistProfileDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reject_verification_api_v1_admin_verification_queue__role___user_id__reject_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                role: "consultant" | "dermatologist";
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerificationActionWithReasonRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConsultantProfileDetail"] | components["schemas"]["DermatologistProfileDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    request_more_info_api_v1_admin_verification_queue__role___user_id__request_info_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                role: "consultant" | "dermatologist";
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerificationActionWithReasonRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConsultantProfileDetail"] | components["schemas"]["DermatologistProfileDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    suspend_professional_api_v1_admin_verification_queue__role___user_id__suspend_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                role: "consultant" | "dermatologist";
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerificationActionWithReasonRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConsultantProfileDetail"] | components["schemas"]["DermatologistProfileDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    deactivate_professional_api_v1_admin_verification_queue__role___user_id__deactivate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                role: "consultant" | "dermatologist";
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerificationActionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConsultantProfileDetail"] | components["schemas"]["DermatologistProfileDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_audit_log_api_v1_admin_audit_logs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AuditLogCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditLogRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_my_profile_api_v1_consultant_profiles_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConsultantProfileRead"];
+                };
+            };
+        };
+    };
+    update_my_profile_api_v1_consultant_profiles_me_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConsultantProfileUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConsultantProfileRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    submit_my_profile_api_v1_consultant_profiles_me_submit_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConsultantProfileSubmit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConsultantProfileRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_my_documents_api_v1_consultant_profiles_me_documents_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["app__services__consultant_profile__schemas__VerificationDocumentRead"][];
+                };
+            };
+        };
+    };
+    upload_my_document_api_v1_consultant_profiles_me_documents_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_my_document_api_v1_consultant_profiles_me_documents_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["app__services__consultant_profile__schemas__VerificationDocumentRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_my_document_api_v1_consultant_profiles_me_documents__document_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

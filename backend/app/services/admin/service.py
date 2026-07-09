@@ -137,6 +137,52 @@ async def apply_verification_action(
     return profile
 
 
+async def list_documents_for_owner(
+    db: AsyncSession, *, owner_user_id: str
+) -> list[VerificationDocument]:
+    result = await db.execute(
+        select(VerificationDocument).where(VerificationDocument.owner_user_id == owner_user_id)
+    )
+    return list(result.scalars().all())
+
+
+async def create_document(
+    db: AsyncSession,
+    *,
+    owner_user_id: str,
+    document_type: str,
+    storage_key: str,
+    original_filename: str | None,
+) -> VerificationDocument:
+    document = VerificationDocument(
+        owner_user_id=owner_user_id,
+        document_type=document_type,
+        storage_key=storage_key,
+        original_filename=original_filename,
+    )
+    db.add(document)
+    await db.commit()
+    await db.refresh(document)
+    return document
+
+
+async def get_own_document(
+    db: AsyncSession, *, document_id: int, owner_user_id: str
+) -> VerificationDocument | None:
+    result = await db.execute(
+        select(VerificationDocument).where(
+            VerificationDocument.document_id == document_id,
+            VerificationDocument.owner_user_id == owner_user_id,
+        )
+    )
+    return result.scalar_one_or_none()
+
+
+async def delete_document(db: AsyncSession, *, document: VerificationDocument) -> None:
+    await db.delete(document)
+    await db.commit()
+
+
 async def write_audit_log(
     db: AsyncSession,
     *,
