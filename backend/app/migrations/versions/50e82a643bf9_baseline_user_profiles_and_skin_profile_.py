@@ -62,13 +62,9 @@ def upgrade() -> None:
         sa.Column("is_active", sa.Boolean(), server_default=sa.text("true")),
     )
     op.create_index("idx_user_profiles_user", "user_profiles", ["user_id"])
-    op.create_unique_constraint(
-        "user_profiles_user_id_key", "user_profiles", ["user_id"]
-    )
+    op.create_unique_constraint("user_profiles_user_id_key", "user_profiles", ["user_id"])
     op.create_index("ix_user_profiles_email", "user_profiles", ["email"])
-    op.create_index(
-        "user_profiles_email_key", "user_profiles", ["email"], unique=True
-    )
+    op.create_index("user_profiles_email_key", "user_profiles", ["email"], unique=True)
 
     op.create_table(
         "skin_profiles",
@@ -108,12 +104,8 @@ def upgrade() -> None:
         sa.Column("severity_rating", sa.Integer(), nullable=True),
         sa.Column("priority_level", sa.Integer(), nullable=True),
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()")),
-        sa.CheckConstraint(
-            "severity_rating BETWEEN 1 AND 10", name="ck_concern_severity"
-        ),
-        sa.CheckConstraint(
-            "priority_level BETWEEN 1 AND 10", name="ck_concern_priority"
-        ),
+        sa.CheckConstraint("severity_rating BETWEEN 1 AND 10", name="ck_concern_severity"),
+        sa.CheckConstraint("priority_level BETWEEN 1 AND 10", name="ck_concern_priority"),
     )
     op.create_index(
         "idx_skin_profile_concerns_profile", "skin_profile_concerns", ["skin_profile_id"]
