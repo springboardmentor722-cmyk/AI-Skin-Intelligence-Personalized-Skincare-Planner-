@@ -1,27 +1,30 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { Camera, RotateCw, Sparkles, Trophy, TrendingDown, TrendingUp, TriangleAlert } from "lucide-react";
 
 import { StateCard } from "@/components/state-card";
 import { Button } from "@/components/ui/button";
-import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { api } from "@/lib/api";
+
+// Dynamically imported — see the identical comment in app/(user)/dashboard/page.tsx:
+// keeps recharts (this app's single heaviest dependency) out of this page's first-visit
+// dev compile and initial JS payload until a query with ≥2 real points actually needs it.
+const SkinScoreTrendChart = dynamic(
+  () => import("@/components/charts/skin-score-trend-chart").then((m) => m.SkinScoreTrendChart),
+  { ssr: false, loading: () => <Skeleton className="h-64 w-full rounded-lg" /> }
+);
 
 const RANGES = [
   { label: "7D", days: 7 },
   { label: "30D", days: 30 },
   { label: "90D", days: 90 },
 ] as const;
-
-const CHART_CONFIG = {
-  overall_score: { label: "Skin score", color: "var(--secondary)" },
-} satisfies ChartConfig;
 
 // docs/WIREFRAMES.md screen 7 "Progress tracking". Only the score-trend slice is real
 // (GET /api/v1/progress/me/summary, reading PG skin_scores) — the wireframe's
@@ -62,21 +65,28 @@ export default function ProgressPage() {
             Your Skin Score trend over time.
           </p>
         </div>
-        <div className="bg-muted flex gap-1 rounded-full p-1">
+        <ToggleGroup
+          aria-label="Trend range"
+          spacing={1}
+          className="bg-muted rounded-full p-1"
+          value={[String(days)]}
+          onValueChange={(next) => {
+            // Base UI's single-select ToggleGroup allows deselecting down to an empty
+            // array on a second click of the active item — ignored here so one range is
+            // always selected, matching the wireframe's segmented-control behavior.
+            if (next[0]) setDays(Number(next[0]));
+          }}
+        >
           {RANGES.map((r) => (
-            <button
+            <ToggleGroupItem
               key={r.days}
-              type="button"
-              onClick={() => setDays(r.days)}
-              className={cn(
-                "font-geist rounded-full px-3 py-1.5 text-xs font-bold transition-colors",
-                days === r.days ? "bg-secondary text-secondary-foreground" : "text-on-surface-variant"
-              )}
+              value={String(r.days)}
+              className="font-geist text-on-surface-variant data-pressed:bg-secondary data-pressed:text-secondary-foreground rounded-full px-3 py-1.5 text-xs font-bold"
             >
               {r.label}
-            </button>
+            </ToggleGroupItem>
           ))}
-        </div>
+        </ToggleGroup>
       </div>
 
       {query.isLoading ? (
@@ -145,21 +155,7 @@ export default function ProgressPage() {
                   No comparison yet — one data point isn&apos;t enough for a trend line.
                 </p>
               ) : (
-                <ChartContainer config={CHART_CONFIG} className="h-64 w-full">
-                  <AreaChart data={chartData}>
-                    <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                    <XAxis dataKey="date" tickLine={false} axisLine={false} />
-                    <YAxis domain={[0, 100]} tickLine={false} axisLine={false} width={28} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Area
-                      dataKey="overall_score"
-                      type="monotone"
-                      fill="var(--color-overall_score)"
-                      fillOpacity={0.15}
-                      stroke="var(--color-overall_score)"
-                    />
-                  </AreaChart>
-                </ChartContainer>
+                <SkinScoreTrendChart data={chartData} variant="full" />
               )}
             </div>
           </div>

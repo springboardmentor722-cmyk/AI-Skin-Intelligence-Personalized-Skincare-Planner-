@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useSyncExternalStore } from "react";
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 import { ArrowRight, RotateCw, Sparkles, TriangleAlert } from "lucide-react";
 
 import { RoutineChecklistCard } from "@/components/dashboard/routine-checklist-card";
@@ -11,10 +11,19 @@ import { ProductRecommendationCard } from "@/components/products/product-recomme
 import { SkinScoreRing } from "@/components/skin-score-ring";
 import { StateCard } from "@/components/state-card";
 import { Button } from "@/components/ui/button";
-import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
+
+// Dynamically imported (not a static import) — recharts is this app's single heaviest
+// dependency, and lazy-loading it here keeps it out of Dashboard's own first-visit dev
+// compile and initial JS payload entirely, only fetching it once a signed-in user with
+// a real score actually reaches the chart. No SSR (recharts needs a real DOM to
+// measure), Skeleton fallback matches the space it'll occupy once loaded.
+const SkinScoreTrendChart = dynamic(
+  () => import("@/components/charts/skin-score-trend-chart").then((m) => m.SkinScoreTrendChart),
+  { ssr: false, loading: () => <Skeleton className="h-40 w-full rounded-lg" /> }
+);
 
 // docs/WIREFRAMES.md screen 3 "User dashboard". Only the four documented, real-data
 // components are built: Skin Score Ring w/ weighted breakdown, today's routine
@@ -29,10 +38,6 @@ const SCORE_COMPONENTS = [
   { key: "sleep_quality_score", label: "Sleep", weight: "sleep_quality_weight" },
   { key: "hydration_score", label: "Hydration", weight: "hydration_weight" },
 ] as const;
-
-const CHART_CONFIG = {
-  overall_score: { label: "Skin score", color: "var(--secondary)" },
-} satisfies ChartConfig;
 
 // Both the greeting (depends on the viewer's local hour) and today's date (can render
 // with a different weekday/month order depending on the environment's default locale)
@@ -273,20 +278,7 @@ export default function UserDashboardPage() {
                   Check back after a few days to see your Skin Score trend.
                 </p>
               ) : (
-                <ChartContainer config={CHART_CONFIG} className="h-40 w-full">
-                  <AreaChart data={chartData}>
-                    <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                    <XAxis dataKey="date" hide />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Area
-                      dataKey="overall_score"
-                      type="monotone"
-                      fill="var(--color-overall_score)"
-                      fillOpacity={0.15}
-                      stroke="var(--color-overall_score)"
-                    />
-                  </AreaChart>
-                </ChartContainer>
+                <SkinScoreTrendChart data={chartData} variant="compact" />
               )}
             </div>
           </div>

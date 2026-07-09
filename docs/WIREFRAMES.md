@@ -94,17 +94,29 @@ Open `web/design/wireframes/index.html` to browse all seven.
   rollback on error.
 
 ## 5. Skin assessment
-- **Components:** capture/upload (camera + drag-drop, neutral face-outline guide,
-  lighting tips) · "Start assessment" · results: predicted skin type, prioritized
-  concerns table (severity · confidence · priority), condition scores
-  (hydration/oiliness/sensitivity/texture), summary; CTAs → recommendations, save to
-  progress.
-- **Data:** image → S3 (EXIF stripped, signed URL); `POST /api/v1/assessments` → Mongo
-  `skin_assessments`. **AI stubbed in M1** — placeholder derived from declared concerns.
-- **States:** no scan (empty) · uploading (progress) · analyzing · results ·
-  **low-confidence warning** (confidence < 0.6 — result not auto-saved) · error (retry).
-- **Accept:** consent verified before first capture; every AI figure shows its Geist
-  confidence label; "Not medical advice" visible.
+- **Components:** a 5-screen questionnaire wizard, not a photo-capture flow — intro →
+  Step 1 basics (age group, goals, location) → Step 2 skin type → Step 3 concerns
+  (multi-select, mild/moderate/severe severity) → Step 4 lifestyle (sleep, water,
+  stress, sun exposure) → results (Skin Score Ring, weighted component breakdown,
+  identified-concerns chips, "Complete your skin profile" / "Go to dashboard" CTAs).
+  Matches `web/designs/wireframes/assessment-{intro,step-1-basics,step-2-skin-type,
+  step-3-concerns,step-4-lifestyle,results}.html` exactly — no camera/upload UI in any
+  of those files.
+- **Data:** wizard state lives client-side only (`sessionStorage`, via
+  `AssessmentProvider`) for the length of the wizard. No dedicated Skin Assessment
+  backend exists (ADR-007-stubbed, not built), so the results screen computes its score
+  deterministically in the browser from the wizard's own answers, using the same
+  weighted formula (35/20/20/15/10) the real Skin Health Score uses. On reaching
+  results, the answers that overlap with screen 4's fields are also POSTed to the real
+  `/api/v1/skin-profiles` and `/api/v1/lifestyle-logs` endpoints (mapping in
+  `web/lib/assessment/save.ts`) so `/profile` opens pre-filled instead of asking the
+  same questions twice — non-blocking, so results still render if the save fails.
+- **States:** step 1–4 (validated, back/next) · results (always reachable — no
+  analyzing/uploading state, since nothing is uploaded) · background save
+  succeeded/failed toast on results.
+- **Accept:** "Not medical advice" disclaimer visible on results; assessment answers
+  and `/profile`'s own fields never silently diverge — the mapping in
+  `web/lib/assessment/save.ts` is the single place that reconciles their shapes.
 
 ## 6. Product recommendations
 - **Components:** filter rail (category · budget min/max · concern chips · brand ·

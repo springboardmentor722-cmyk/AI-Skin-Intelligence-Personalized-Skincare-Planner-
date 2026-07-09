@@ -750,6 +750,77 @@ scoring/recs) is the natural next milestone.
   Verified live (Playwright, mocked `/api/auth/sign-up/email` 200 response): full
   round-trip confirmed — POST fires, 200 returns, client-side navigation lands on
   `/assessment`. `npm run {lint,typecheck,build}` clean.
+- ✔ **Assessment wizard now saves into the real skin-profile/lifestyle-log backend.**
+  User asked directly: is the assessment wizard just asking the same questions as
+  `/profile`? Answer: substantial real overlap (skin type, concerns, allergies,
+  sensitivities, sleep, water, stress, sun exposure) but genuine shape mismatches
+  (severity categorical vs. 1–10 numeric, priority via pick-order vs. an explicit
+  slider, sensitivities as 3 fixed booleans vs. freeform tags, water in glasses vs.
+  liters, sun exposure as a category vs. hours) and real gaps `/profile`'s lifestyle
+  form asks that the wizard never does (gender, diet quality, exercise frequency,
+  smoking, alcohol, pollution level, AC hours). Previously the wizard computed its
+  client-side score estimate and then discarded every answer — finishing it and opening
+  `/profile` asked the same questions from scratch. New `web/lib/assessment/save.ts`
+  maps `AssessmentState` onto the real `SkinProfileCreate`/`LifestyleLogCreate` request
+  shapes (documented per-field, including the approximations — e.g. sun-exposure
+  category → representative hours, pick-order → a descending 1–10 priority scale) and
+  `app/assessment/results/page.tsx` now POSTs both on reaching results
+  (`POST /api/v1/skin-profiles`, `POST /api/v1/lifestyle-logs`), non-blocking so the
+  results screen still renders from local state if the save fails, with a success/
+  failure Sonner toast. Fields the wizard never asks are left `null`, not guessed —
+  `/profile` still has real, non-redundant work to do. Corrected `docs/WIREFRAMES.md`
+  screen 5, which described a stale photo-capture AI flow that matched neither the real
+  Stitch wireframes (`assessment-{intro,step-1..4,results}.html`, all titled as a
+  questionnaire, no camera/upload markup) nor the actual built wizard — rewrote it to
+  describe the real 5-screen flow and this save behavior.
+- ✔ **Bug fix (found live while verifying the save above): hydration mismatch on
+  `/assessment/results`.** `AssessmentProvider`'s old lazy `useState` initializer read
+  `sessionStorage` directly — fine on a client-side `<Link>` transition, but on any full
+  page load/refresh landing on a mid-wizard or results screen, the server's HTML (no
+  `window`, so `DEFAULT_STATE`) didn't match the client's first hydration render (real
+  answers already in `sessionStorage`). React discarded and fully re-rendered the tree —
+  caught by Playwright as a literal score flash (81 → 53) plus a hydration-mismatch
+  console error, not by reading the code. Rewrote `web/lib/assessment/context.tsx` to
+  back the wizard's state with a small external store (`useSyncExternalStore`, the same
+  pattern `app/(user)/dashboard/page.tsx`'s `useGreeting` already uses for its own
+  server/client mismatch): a fixed `SERVER_SNAPSHOT` for SSR and the first hydration
+  pass, swapping to the real `sessionStorage` value synchronously right after — no
+  hydration-mismatch warning, and (unlike an effect-based fix, which this repo's React
+  Compiler lint rule flags as "setState synchronously within an effect") no wasted
+  cascading render either. Added a `hydrated` flag to the context so the new
+  save-to-profile effect above waits for real data instead of firing on
+  `DEFAULT_STATE` before the provider's own sync completes. Verified live: no more
+  hydration error, correct score renders immediately, wizard click-through
+  (`/assessment/basics` → select answers → Continue → `/assessment/skin-type`) still
+  writes real answers to `sessionStorage` via `update()`.
+- ✔ **Dashboard/Progress chart code-splitting** (why pages "took long to render after a
+  click," part 1). Root cause of the broader complaint, timed directly rather than
+  guessed: Next.js dev-mode's per-route on-demand Turbopack compile — first visit to
+  Dashboard took 3.3s, Progress 1.7s, cold; the same routes warm (already compiled) were
+  ~250ms. Not a runtime bug, but Dashboard and Progress were both compiling
+  recharts — this app's single heaviest dependency — as part of their own first-visit
+  bundle even before a user had any score data to chart. New
+  `components/charts/skin-score-trend-chart.tsx` consolidates the two screens'
+  near-identical inline `AreaChart` blocks (`compact` for Dashboard's mini-chart, `full`
+  for Progress's own trend chart) into one component, now `next/dynamic`-imported
+  (`ssr: false`, `Skeleton` fallback) from both pages instead of statically imported —
+  keeps recharts out of each route's own first-compile and initial JS payload. Verified:
+  `npm run build` clean, live Playwright check confirms both chart variants render
+  identically to before.
+- ✔ **Progress range selector → real `ToggleGroup`** (UI pass via
+  `.agents/skills/shadcn/`, requested explicitly). The 7D/30D/90D segmented control was
+  a hand-looped `<button>` array with manual active-state `cn()` logic — exactly the
+  anti-pattern `shadcn/rules/forms.md` calls out ("Option sets (2–7 choices) use
+  ToggleGroup... don't manually loop Button components with active state"). Installed
+  `toggle-group` via `npx shadcn@latest add toggle-group` (this project's base-nova
+  preset, so single-select is `defaultValue`/`value` as a one-item array, not Radix's
+  `type="single"` — see `shadcn/rules/base-vs-radix.md`). Kept the exact wireframe pill
+  visual (`bg-muted` pill housing, `bg-secondary`/`text-secondary-foreground` active
+  state) via `className` on `ToggleGroupItem`, guarded `onValueChange` against Base UI's
+  single-select allowing a second click to deselect down to an empty array (would have
+  left no range selected). Verified live: pixel-identical to the old buttons, real
+  keyboard/ARIA group semantics gained, re-clicking the active pill correctly stays
+  selected. `npm run {lint,typecheck,build}` clean throughout this whole batch.
 
 ## Partially Completed
 

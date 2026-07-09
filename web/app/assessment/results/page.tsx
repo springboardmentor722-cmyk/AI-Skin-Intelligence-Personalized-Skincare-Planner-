@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { Sparkles, AlertTriangle, BadgeCheck } from "lucide-react";
 
 import { AssessmentShell } from "@/components/assessment/assessment-shell";
@@ -9,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { SkinScoreRing } from "@/components/skin-score-ring";
 import { useAssessment, type AssessmentState } from "@/lib/assessment/context";
+import { api } from "@/lib/api";
+import { assessmentToLifestyleLogPayload, assessmentToSkinProfilePayload } from "@/lib/assessment/save";
 
 const SEVERITY_VALUE: Record<string, number> = { mild: 3, moderate: 6, severe: 9 };
 const SLEEP_QUALITY_VALUE: Record<string, number> = {
@@ -70,10 +74,71 @@ function computeResults(state: AssessmentState) {
   };
 }
 
+// Persists the wizard's answers to the real skin-profile/lifestyle-log endpoints so
+// /profile opens pre-filled instead of asking the same questions again (see
+// web/lib/assessment/save.ts for the field-by-field mapping and its gaps). Fired once
+// per mount, after `hydrated` flips true — not on the very first render, since
+// AssessmentProvider (lib/assessment/context.tsx) mounts with DEFAULT_STATE and only
+// loads the real sessionStorage answers in its own effect, which commits *after* this
+// page's descendant effects. Firing on an unconditional `[]` dependency array would
+// have saved DEFAULT_STATE's empty answers instead of the user's real ones. Non-blocking
+// otherwise: results above render from local `state` regardless of whether the save
+// succeeds, since this environment (and any offline moment) may have no reachable
+// backend.
+function useSaveAssessmentToProfile(state: AssessmentState, hydrated: boolean) {
+  const queryClient = useQueryClient();
+  const firedRef = useRef(false);
+
+  const profileMutation = useMutation({
+    mutationFn: async () => {
+      const payload = assessmentToSkinProfilePayload(state);
+      if (!payload) return null;
+      const { data, error } = await api.POST("/api/v1/skin-profiles", { body: payload });
+      if (error) throw new Error("Failed to save skin profile");
+      return data;
+    },
+    onSuccess: (data) => {
+      if (data) queryClient.invalidateQueries({ queryKey: ["skin-profile", "me"] });
+    },
+  });
+
+  const lifestyleMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await api.POST("/api/v1/lifestyle-logs", {
+        body: assessmentToLifestyleLogPayload(state),
+      });
+      if (error) throw new Error("Failed to save lifestyle log");
+      return data;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["lifestyle-logs", "me"] }),
+  });
+
+  useEffect(() => {
+    if (!hydrated || firedRef.current) return;
+    firedRef.current = true;
+
+    Promise.allSettled([profileMutation.mutateAsync(), lifestyleMutation.mutateAsync()]).then(
+      (results) => {
+        const failed = results.some((r) => r.status === "rejected");
+        if (failed) {
+          toast.error("Saved your results, but couldn't sync them to your profile. You can fill it in manually.");
+        } else {
+          toast.success("Your answers were saved to your skin profile");
+        }
+      }
+    );
+    // Intentionally omits the mutation objects — see comment above the hook; only
+    // `hydrated` flipping true should ever trigger this.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated]);
+}
+
 export default function AssessmentResultsPage() {
-  const { state } = useAssessment();
+  const { state, hydrated } = useAssessment();
   const results = useMemo(() => computeResults(state), [state]);
   const topPriority = state.priorities[0];
+
+  useSaveAssessmentToProfile(state, hydrated);
 
   return (
     <AssessmentShell hideFooter>
