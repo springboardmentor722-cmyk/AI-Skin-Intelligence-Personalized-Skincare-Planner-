@@ -68,8 +68,13 @@ async def upsert_my_lifestyle_log(
 @lifestyle_router.get("/lifestyle-logs/me")
 async def get_my_lifestyle_logs(
     user: Annotated[dict[str, Any], Depends(require_role("user"))],
-) -> list[dict[str, Any]]:
+) -> list[LifestyleLogRead]:
+    # Milestone 1 audit: this returned raw Mongo documents (list[dict[str, Any]]) —
+    # untyped in the OpenAPI contract (openapi.json showed
+    # {"type":"object","additionalProperties":true}), so the generated frontend client
+    # got Record<string, any>[] instead of a real type, even though LifestyleLogRead
+    # already existed and every field it declares is present on the raw document.
+    # model_validate silently drops the two Mongo-only fields (_id, user_id) that
+    # aren't part of the schema — no explicit strip needed.
     logs = await service.list_recent_lifestyle_logs(user["id"])
-    for log in logs:
-        log["_id"] = str(log["_id"])
-    return logs
+    return [LifestyleLogRead.model_validate(log) for log in logs]

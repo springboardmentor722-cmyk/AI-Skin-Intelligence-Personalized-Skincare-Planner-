@@ -837,18 +837,26 @@ scoring/recs) is the natural next milestone.
   recommendations, and progress screens — all verified manually (real browser, both
   themes; mocked-API for the three newest), no automated test suite written yet, unlike
   the app-shell/auth screens' coverage.
-- ☐ Idempotent seed script (`make seed`) for `skin_types`/`skin_concerns` — currently
-  only seeded because they were part of the user's direct SQL load, not from any script
-  in this repo. Full product/ingredient seeding from Kaggle (the real ingestion
-  pipeline, not the curated placeholder set now in `seed.py`) is separate, larger scope
+- ☐ Full product/ingredient seeding from Kaggle (the real ingestion pipeline, not the
+  curated placeholder set in `seed.py`, which *is* idempotent and now actually run
+  against the live DB — see the Milestone 1 audit entry) is separate, larger scope
   (`docs/DATASETS_AND_APIS.md`) blocked on a Kaggle API token.
-- ☐ Verify `alembic upgrade head` against a genuinely fresh/empty database — only
-  `alembic stamp` (zero DDL) has been run, against the live pre-populated database. This
-  gap now also affects the new `ccb49f9b0f47` ingredients migration (its `upgrade()`
-  references `products`, which no earlier migration creates).
-- ☐ MongoDB verification — start it (`docker compose up -d mongo` or `make up`) and
-  confirm `lifestyle-logs` endpoints work for real; only typecheck/lint cover them now.
 - ☐ `api`/`web` Dockerfiles + docker-compose entries — needs a Docker-available session
+- ☐ **OpenWeather/OpenUV adapters never built** — `backend/app/integrations/` is empty
+  (just `__init__.py`), despite `docs/DATASETS_AND_APIS.md`'s own milestone mapping
+  naming this as M1 scope ("wire OpenWeather/OpenUV adapters (cached)"). Blocked on
+  missing `OPENWEATHER_API_KEY`/`OPENUV_API_KEY` (confirmed blank in `.env`) — same
+  class of external-credential blocker as the Kaggle item above, not a code gap.
+  Topbar's weather/UV chip is already an honest stub (`—`), not faked. Found during the
+  Milestone 1 audit; wasn't tracked here before that.
+- ☐ **ADR-010's outbox table doesn't exist** — the ADR commits to it existing "from M1,
+  day one" regardless of whether the worker consumes it yet, but no `outbox` table
+  appears anywhere (not the SQL schema doc, not a migration, no model). Elasticsearch/
+  vector DB are correctly, deliberately unwired for M1 (no consumers exist), but the
+  table itself was promised independent of that. Needs a decision: add a minimal table
+  now (cheap, no consumer required to exist), or formally push this specific ADR-010
+  sub-promise to M2 alongside the worker in a new ADR note — not resolved silently
+  either way. Found during the Milestone 1 audit.
 - ☐ GitHub remote — no `git remote` configured and no `gh` CLI in this session's
   sandbox. User is creating the repo directly on github.com; wiring `origin` once a URL
   is provided is a one-command follow-up (`git remote add origin <url>`), not blocked on

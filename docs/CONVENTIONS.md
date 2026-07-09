@@ -115,11 +115,27 @@ skinlytics/
 - PG DDL source of truth: `database_schemas/*.sql` → Alembic in
   `backend/app/migrations`. **Better Auth identity tables come from the Better Auth CLI,
   not Alembic** — keep the two migration streams separate.
-- Naming: plural snake_case tables; indexes `ix_<table>_<cols>`; FKs
-  `fk_<table>_<ref>`; every table gets `created_at`/`updated_at TIMESTAMPTZ` defaults.
+- Naming (reconciled against the real schema during the Milestone 1 audit — these are
+  what `database_schemas/skinlytics_postgresql_schema_v3.sql` and every migration
+  actually do, not an aspirational target nobody followed): plural snake_case tables;
+  indexes `idx_<table>_<cols>` (not `ix_`); FK constraints use Postgres's own
+  auto-generated `<table>_<col>_fkey` names (no migration has ever passed an explicit
+  `name=`) — don't introduce `fk_<table>_<ref>` names into new migrations, it'd be the
+  only table with that scheme; every table gets `created_at`/`updated_at TIMESTAMP`
+  defaults (plain, not `TIMESTAMPTZ` — the SQL file declares plain `TIMESTAMP`
+  everywhere, identity tables included, so a new migration should match that, not the
+  wall-clock-safer type this section used to claim).
 - Add an index for any new FK used by a dashboard query. Mongo collections carry the
   indexes/TTLs noted in the schema file.
 - Seeds are idempotent (upserts): `make seed` is always safe to re-run.
+- Auth/ownership dependencies live centrally in `backend/app/core/security.py`
+  (`require_user`/`require_role`), not per-service `deps.py` files — despite the
+  5-file service shape named above (`router.py service.py schemas.py models.py
+  deps.py`), no service has ever had a `deps.py`; one shared `require_role` pattern
+  serves all of them identically, which is why. Only add a per-service `deps.py` if a
+  service ever needs an ownership check `require_role` can't express (e.g.
+  consultant-can-only-read-*assigned*-clients) — don't add an empty one just to match
+  the shape.
 
 ## Git & process
 - Conventional commits (`feat:` `fix:` `docs:` `chore:` `refactor:` `test:`); branches
