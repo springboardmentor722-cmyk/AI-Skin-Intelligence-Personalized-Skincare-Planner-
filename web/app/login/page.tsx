@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { AlertCircle, Eye, EyeOff, Loader2, Mail, Lock } from "lucide-react";
@@ -18,8 +18,30 @@ import { GoogleIcon } from "@/components/auth/google-icon";
 // web/designs/wireframes/login.html — the form panel is a solid "diagnostic module"
 // card, not glass (docs/DESIGN.md §3: glass is forbidden under forms — it frames data,
 // never backgrounds it). Only the left branding panel (AuthSplitLayout) is glass.
+// Only accept a same-origin relative path — `from` is attacker-controllable (a
+// hand-crafted /login?from=... link), not just the value middleware.ts sets, so this
+// guards against an open-redirect (`//evil.com`, `https://evil.com`, etc.) rather than
+// trusting the query param outright.
+function safeRedirectTarget(from: string | null): string {
+  if (from && from.startsWith("/") && !from.startsWith("//")) return from;
+  return "/dashboard";
+}
+
+// useSearchParams (for the post-login ?from= redirect target) requires a Suspense
+// boundary around any client component that calls it, or `next build` fails
+// prerendering this route — the form itself has no meaningful fallback UI to show
+// during the sub-millisecond gap, so the fallback is just the same page shell.
 export default function LoginPage() {
+  return (
+    <Suspense fallback={<AuthSplitLayout><div className="border-border bg-card rounded-2xl border p-8" /></AuthSplitLayout>}>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [rateLimitedUntil, setRateLimitedUntil] = useState<number | null>(null);
@@ -67,9 +89,10 @@ export default function LoginPage() {
       return;
     }
 
-    // Redirects to /dashboard for now — routing to Skin profile when none exists yet
-    // waits on that service existing (PROGRESS.md pending: User Profile module).
-    router.push("/dashboard");
+    // Redirects back to wherever middleware.ts sent the user from (?from=), or
+    // /dashboard by default — routing to Skin profile when none exists yet waits on
+    // that service existing (PROGRESS.md pending: User Profile module).
+    router.push(safeRedirectTarget(searchParams.get("from")));
   };
 
   return (
