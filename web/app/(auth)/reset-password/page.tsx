@@ -102,8 +102,8 @@ function ResetPasswordForm() {
             </p>
           </header>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-            <div className="space-y-1.5">
+          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
+            <div className="flex flex-col gap-1.5">
               <Label htmlFor="newPassword">New password</Label>
               <input
                 id="newPassword"
@@ -118,7 +118,7 @@ function ResetPasswordForm() {
               )}
             </div>
 
-            <div className="space-y-1.5">
+            <div className="flex flex-col gap-1.5">
               <Label htmlFor="confirmPassword">Confirm new password</Label>
               <input
                 id="confirmPassword"

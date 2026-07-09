@@ -112,7 +112,7 @@ export function LifestyleForm() {
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2">
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label>Sleep duration (hours)</Label>
           <input
             type="number"
@@ -136,7 +136,7 @@ export function LifestyleForm() {
           onChange={(v) => setForm((f) => ({ ...f, sleep_quality: v }))}
         />
 
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label>Water intake (liters)</Label>
           <input
             type="number"
@@ -153,7 +153,7 @@ export function LifestyleForm() {
           />
         </div>
 
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label>Exercise (times/week)</Label>
           <input
             type="number"
@@ -180,7 +180,7 @@ export function LifestyleForm() {
           onChange={(v) => setForm((f) => ({ ...f, diet_quality: v }))}
         />
 
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label>Alcohol consumption</Label>
           <Select
             items={ALCOHOL_ITEMS}
@@ -219,10 +219,10 @@ export function LifestyleForm() {
         </div>
       </div>
 
-      <div className="mt-6 space-y-1.5">
+      <div className="mt-6 flex flex-col gap-1.5">
         <Label>Environmental exposure</Label>
         <div className="grid gap-5 sm:grid-cols-3">
-          <div className="space-y-1.5">
+          <div className="flex flex-col gap-1.5">
             <Label className="font-normal text-on-surface-variant">Sun hours</Label>
             <input
               type="number"
@@ -239,7 +239,7 @@ export function LifestyleForm() {
               className="w-full rounded-lg border-none bg-muted px-3 py-2.5 font-sans text-sm text-on-surface focus:ring-2 focus:ring-secondary/40 focus:outline-none"
             />
           </div>
-          <div className="space-y-1.5">
+          <div className="flex flex-col gap-1.5">
             <Label className="font-normal text-on-surface-variant">Pollution level</Label>
             <Select
               items={POLLUTION_ITEMS}
@@ -265,7 +265,7 @@ export function LifestyleForm() {
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-1.5">
+          <div className="flex flex-col gap-1.5">
             <Label className="font-normal text-on-surface-variant">AC exposure (hours)</Label>
             <input
               type="number"

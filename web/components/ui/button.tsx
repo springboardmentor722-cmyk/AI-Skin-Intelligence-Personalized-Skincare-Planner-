@@ -31,11 +31,18 @@ const buttonVariants = cva(
           "h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
         xs: "h-6 gap-1 px-2 text-xs has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
         sm: "h-7 gap-1 px-2.5 text-[0.8rem] has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
-        lg: "h-9 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
+        // h-11 (44px) — Milestone 1 audit: docs/CONVENTIONS.md/DESIGN.md's documented
+        // 44px touch-target floor, unmet by every size before this fix (lg was h-9 =
+        // 36px). `lg` is the one size actually used for primary-action CTAs app-wide
+        // (Sign in, Create account, Save skin profile, Continue, ...) — the other
+        // sizes are secondary/dense UI (nav items, chips, icon buttons) where a 44px
+        // floor isn't the same kind of primary-action accessibility requirement, so
+        // only this one changes.
+        lg: "h-11 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
         icon: "size-8",
         "icon-xs": "size-6 [&_svg:not([class*='size-'])]:size-3",
         "icon-sm": "size-7",
-        "icon-lg": "size-9",
+        "icon-lg": "size-11",
       },
     },
     defaultVariants: {

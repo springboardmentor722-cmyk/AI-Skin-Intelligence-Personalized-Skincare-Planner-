@@ -54,8 +54,8 @@ export default function AssessmentBasicsPage() {
         </p>
       </div>
 
-      <div className="border-border bg-card space-y-8 rounded-2xl border p-6 md:p-10">
-        <div className="space-y-3">
+      <div className="border-border bg-card flex flex-col gap-8 rounded-2xl border p-6 md:p-10">
+        <div className="flex flex-col gap-3">
           <label className="font-geist text-on-surface-variant text-xs font-semibold tracking-[0.05em] uppercase">
             How old are you?
           </label>
@@ -79,7 +79,7 @@ export default function AssessmentBasicsPage() {
           {error && <p className="text-destructive text-xs">{error}</p>}
         </div>
 
-        <div className="space-y-3">
+        <div className="flex flex-col gap-3">
           <label className="font-geist text-on-surface-variant text-xs font-semibold tracking-[0.05em] uppercase">
             What are your primary goals?{" "}
             <span className="normal-case">(select all that apply)</span>
@@ -119,7 +119,7 @@ export default function AssessmentBasicsPage() {
           </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="flex flex-col gap-2">
           <label
             htmlFor="location"
             className="font-geist text-on-surface-variant text-xs font-semibold tracking-[0.05em] uppercase"

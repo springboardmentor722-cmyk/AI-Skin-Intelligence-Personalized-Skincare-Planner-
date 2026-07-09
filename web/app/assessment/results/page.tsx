@@ -142,21 +142,21 @@ export default function AssessmentResultsPage() {
 
   return (
     <AssessmentShell hideFooter>
-      <div className="space-y-10">
+      <div className="flex flex-col gap-10">
         <section className="grid grid-cols-1 items-center gap-10 lg:grid-cols-12">
           <div className="flex justify-center lg:col-span-5">
             <SkinScoreRing score={results.overall} size={260} />
           </div>
-          <div className="space-y-6 lg:col-span-7">
+          <div className="flex flex-col gap-6 lg:col-span-7">
             <div className="flex items-center gap-2">
               <BadgeCheck className="text-secondary size-6" strokeWidth={1.5} />
               <h1 className="font-heading text-on-surface text-3xl font-bold">
                 Diagnostic overview
               </h1>
             </div>
-            <div className="space-y-4">
+            <div className="flex flex-col gap-4">
               {results.components.map((component) => (
-                <div key={component.label} className="space-y-1.5">
+                <div key={component.label} className="flex flex-col gap-1.5">
                   <div className="flex items-end justify-between">
                     <span className="text-on-surface-variant font-geist text-xs font-semibold tracking-[0.05em] uppercase">
                       {component.label} ({component.weight}%)
@@ -204,7 +204,7 @@ export default function AssessmentResultsPage() {
                 Watch areas
               </span>
             </div>
-            <ul className="space-y-3">
+            <ul className="flex flex-col gap-3">
               {state.sunExposure === "outdoor" || state.sunExposure === "intense" ? (
                 <li className="font-sans text-sm">
                   <p className="font-semibold">UV exposure</p>

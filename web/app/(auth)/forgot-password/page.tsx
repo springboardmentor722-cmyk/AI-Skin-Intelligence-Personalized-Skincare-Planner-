@@ -82,10 +82,10 @@ export default function ForgotPasswordPage() {
 
           <form
             onSubmit={handleSubmit(onSubmit)}
-            className="space-y-4"
+            className="flex flex-col gap-4"
             noValidate
           >
-            <div className="space-y-1.5">
+            <div className="flex flex-col gap-1.5">
               <Label htmlFor="email">Email address</Label>
               <input
                 id="email"

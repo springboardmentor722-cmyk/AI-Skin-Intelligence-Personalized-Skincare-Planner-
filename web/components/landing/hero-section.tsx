@@ -18,7 +18,7 @@ export function HeroSection() {
   return (
     <section className="mx-auto max-w-7xl px-6 pt-40 pb-16">
       <div className="glass flex flex-col items-center gap-16 overflow-hidden rounded-[2rem] p-10 lg:flex-row lg:p-16">
-        <div className="z-10 w-full space-y-8 lg:w-3/5">
+        <div className="z-10 w-full flex flex-col gap-8 lg:w-3/5">
           <div className="bg-secondary/10 border-secondary/20 text-secondary inline-flex items-center gap-2 rounded-full border px-4 py-1.5">
             <Sparkles className="size-4" strokeWidth={1.5} />
             <span className="font-geist text-xs font-semibold tracking-[0.05em] uppercase">
@@ -47,7 +47,7 @@ export function HeroSection() {
               render={<Link href="#how-it-works">See how it works</Link>}
             />
           </div>
-          <div className="border-on-surface/8 space-y-3 border-t pt-8">
+          <div className="border-on-surface/8 flex flex-col gap-3 border-t pt-8">
             <p className="text-on-surface-variant font-geist text-xs font-semibold tracking-[0.05em] uppercase">
               Trust platform
             </p>

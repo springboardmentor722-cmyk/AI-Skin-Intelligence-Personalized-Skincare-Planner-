@@ -62,7 +62,7 @@ export default function AssessmentLifestylePage() {
         </p>
       </div>
 
-      <div className="border-border bg-card space-y-10 rounded-2xl border p-6 md:p-10">
+      <div className="border-border bg-card flex flex-col gap-10 rounded-2xl border p-6 md:p-10">
         <section>
           <div className="mb-4 flex items-center gap-2">
             <FlaskConical className="text-secondary size-5" strokeWidth={1.5} />
@@ -130,7 +130,7 @@ export default function AssessmentLifestylePage() {
 
         <hr className="border-border" />
 
-        <section className="space-y-8">
+        <section className="flex flex-col gap-8">
           <div className="flex items-center gap-2">
             <Wand2 className="text-secondary size-5" strokeWidth={1.5} />
             <h2 className="font-heading text-on-surface text-lg font-semibold">
@@ -138,8 +138,8 @@ export default function AssessmentLifestylePage() {
             </h2>
           </div>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-            <div className="space-y-6">
-              <div className="space-y-2">
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-2">
                 <div className="flex items-end justify-between">
                   <label className="font-sans text-sm font-semibold">Average sleep</label>
                   <span className="font-geist text-secondary text-xl font-semibold">
@@ -172,7 +172,7 @@ export default function AssessmentLifestylePage() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
+              <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
                   <label className="font-sans text-sm font-semibold">Daily water intake</label>
                   <span className="text-on-surface-variant font-geist text-xs">Target: 8 glasses</span>
@@ -204,8 +204,8 @@ export default function AssessmentLifestylePage() {
               </div>
             </div>
 
-            <div className="space-y-6">
-              <div className="space-y-2">
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-2">
                 <div className="flex items-end justify-between">
                   <label className="font-sans text-sm font-semibold">Stress levels</label>
                   <span className="bg-secondary/10 text-secondary font-geist rounded px-2 py-1 text-xs font-semibold">
@@ -224,7 +224,7 @@ export default function AssessmentLifestylePage() {
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="flex flex-col gap-2">
                 <label className="font-sans text-sm font-semibold">Sun exposure</label>
                 <div className="grid grid-cols-2 gap-2">
                   {SUN_EXPOSURE_OPTIONS.map((option) => (

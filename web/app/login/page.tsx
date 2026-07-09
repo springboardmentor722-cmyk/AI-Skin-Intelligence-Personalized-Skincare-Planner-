@@ -117,8 +117,8 @@ function LoginForm() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-          <div className="space-y-1.5">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="email">Email address</Label>
             <div className="relative">
               <Mail
@@ -143,7 +143,7 @@ function LoginForm() {
             )}
           </div>
 
-          <div className="space-y-1.5">
+          <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Password</Label>
               <Link

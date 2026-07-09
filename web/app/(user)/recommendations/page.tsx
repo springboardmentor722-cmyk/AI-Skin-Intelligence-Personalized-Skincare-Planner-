@@ -145,7 +145,7 @@ export default function RecommendationsPage() {
     : [];
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="font-heading text-on-surface text-2xl font-bold">
@@ -192,7 +192,7 @@ export default function RecommendationsPage() {
         />
       ) : (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-          <aside className="border-border bg-card h-fit space-y-6 rounded-2xl border p-5 lg:col-span-3">
+          <aside className="border-border bg-card h-fit flex flex-col gap-6 rounded-2xl border p-5 lg:col-span-3">
             <div>
               <Label className="font-geist text-on-surface-variant text-xs font-semibold tracking-[0.05em] uppercase">
                 Sort by
@@ -215,7 +215,7 @@ export default function RecommendationsPage() {
               </Select>
             </div>
 
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <Label className="font-geist text-on-surface-variant text-xs font-semibold tracking-[0.05em] uppercase">
                   Budget
@@ -240,11 +240,11 @@ export default function RecommendationsPage() {
             </div>
 
             {categories.length > 0 && (
-              <div className="space-y-2">
+              <div className="flex flex-col gap-2">
                 <Label className="font-geist text-on-surface-variant text-xs font-semibold tracking-[0.05em] uppercase">
                   Category
                 </Label>
-                <div className="space-y-2">
+                <div className="flex flex-col gap-2">
                   {categories.map((c) => (
                     <label key={c} className="flex items-center gap-2 font-sans text-sm">
                       <Checkbox
@@ -259,11 +259,11 @@ export default function RecommendationsPage() {
             )}
 
             {brands.length > 0 && (
-              <div className="space-y-2">
+              <div className="flex flex-col gap-2">
                 <Label className="font-geist text-on-surface-variant text-xs font-semibold tracking-[0.05em] uppercase">
                   Brand
                 </Label>
-                <div className="space-y-2">
+                <div className="flex flex-col gap-2">
                   {brands.map((b) => (
                     <label key={b} className="flex items-center gap-2 font-sans text-sm">
                       <Checkbox
@@ -363,7 +363,7 @@ export default function RecommendationsPage() {
           <SheetHeader>
             <SheetTitle>Compare products</SheetTitle>
           </SheetHeader>
-          <div className="flex-1 space-y-4 overflow-y-auto p-4">
+          <div className="flex-1 flex flex-col gap-4 overflow-y-auto p-4">
             {compareItems.map((rec) => (
               <div key={rec.product.product_id} className="border-border rounded-xl border p-4">
                 <h4 className="font-heading text-on-surface text-sm font-semibold">
@@ -372,7 +372,7 @@ export default function RecommendationsPage() {
                 <p className="text-on-surface-variant font-sans text-xs">
                   {rec.product.brand_name}
                 </p>
-                <dl className="mt-3 space-y-1.5 font-sans text-xs">
+                <dl className="mt-3 flex flex-col gap-1.5 font-sans text-xs">
                   <div className="flex justify-between">
                     <dt className="text-on-surface-variant">Price</dt>
                     <dd className="font-geist tabular-nums">
@@ -416,7 +416,7 @@ export default function RecommendationsPage() {
               your profile.
             </p>
           ) : (
-            <div className="space-y-3">
+            <div className="flex flex-col gap-3">
               {alternatives.map((rec) => (
                 <div
                   key={rec.product.product_id}

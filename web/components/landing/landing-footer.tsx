@@ -35,7 +35,7 @@ export function LandingFooter() {
               <h3 className="text-on-surface font-geist mb-6 text-xs font-semibold tracking-[0.05em] uppercase">
                 {column.title}
               </h3>
-              <ul className="text-on-surface-variant space-y-4 font-sans text-sm">
+              <ul className="text-on-surface-variant flex flex-col gap-4 font-sans text-sm">
                 {column.links.map((link) => (
                   <li key={link}>
                     <a href="#" className="hover:text-on-surface">

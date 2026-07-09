@@ -218,7 +218,7 @@ function SkinProfileFormInner({
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2">
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label>Skin type</Label>
           <Select
             // `null`, never `undefined` — Base UI's useControlled decides controlled vs.
@@ -250,7 +250,7 @@ function SkinProfileFormInner({
           </Select>
         </div>
 
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label>Age group</Label>
           <Select
             items={AGE_GROUP_ITEMS}
@@ -273,7 +273,7 @@ function SkinProfileFormInner({
           </Select>
         </div>
 
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label>Gender (optional)</Label>
           <Select
             items={GENDER_ITEMS}
@@ -296,7 +296,7 @@ function SkinProfileFormInner({
         </div>
       </div>
 
-      <div className="mt-6 space-y-1.5">
+      <div className="mt-6 flex flex-col gap-1.5">
         <Label>Concerns</Label>
         <div className="grid gap-3 sm:grid-cols-2">
           {concerns.map((concern) => {
@@ -315,7 +315,7 @@ function SkinProfileFormInner({
                   </span>
                 </label>
                 {selected && (
-                  <div className="mt-3 space-y-3 pl-6">
+                  <div className="mt-3 flex flex-col gap-3 pl-6">
                     <div>
                       <div className="flex items-center justify-between">
                         <span className="font-geist text-xs text-on-surface-variant">
@@ -366,7 +366,7 @@ function SkinProfileFormInner({
       </div>
 
       <div className="mt-6 grid gap-5 sm:grid-cols-2">
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label>Allergies</Label>
           <TagInput
             value={form.allergies}
@@ -375,7 +375,7 @@ function SkinProfileFormInner({
             aria-label="Allergies"
           />
         </div>
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label>Sensitivities</Label>
           <TagInput
             value={form.sensitivities}

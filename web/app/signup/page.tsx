@@ -149,8 +149,8 @@ export default function SignupPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
-          <div className="space-y-2">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5" noValidate>
+          <div className="flex flex-col gap-2">
             <Label className="font-geist text-on-surface-variant text-xs tracking-[0.05em] uppercase">
               Who are you?
             </Label>
@@ -192,7 +192,7 @@ export default function SignupPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
+            <div className="flex flex-col gap-1.5">
               <Label htmlFor="firstName">First name</Label>
               <input
                 id="firstName"
@@ -205,7 +205,7 @@ export default function SignupPage() {
                 <p className="text-destructive text-xs">{errors.firstName.message}</p>
               )}
             </div>
-            <div className="space-y-1.5">
+            <div className="flex flex-col gap-1.5">
               <Label htmlFor="lastName">Last name</Label>
               <input
                 id="lastName"
@@ -220,7 +220,7 @@ export default function SignupPage() {
             </div>
           </div>
 
-          <div className="space-y-1.5">
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="email">Email address</Label>
             <input
               id="email"
@@ -235,7 +235,7 @@ export default function SignupPage() {
             )}
           </div>
 
-          <div className="space-y-1.5">
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="password">Password</Label>
             <div className="relative">
               <input
@@ -282,7 +282,7 @@ export default function SignupPage() {
             )}
           </div>
 
-          <div className="space-y-1.5">
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="confirmPassword">Confirm password</Label>
             <input
               id="confirmPassword"
@@ -299,7 +299,7 @@ export default function SignupPage() {
             )}
           </div>
 
-          <div className="space-y-1.5">
+          <div className="flex flex-col gap-1.5">
             <label className="flex cursor-pointer items-start gap-2">
               <Checkbox
                 checked={watch("consent")}

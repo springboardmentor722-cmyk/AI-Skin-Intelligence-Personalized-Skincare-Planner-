@@ -29,8 +29,8 @@ const ANALYSIS_POINTS = [
 export default function AssessmentIntroPage() {
   return (
     <AssessmentShell hideFooter>
-      <div className="space-y-10 text-center">
-        <div className="space-y-3">
+      <div className="flex flex-col gap-10 text-center">
+        <div className="flex flex-col gap-3">
           <h1 className="font-heading text-on-surface text-4xl font-bold">
             Let&apos;s understand your skin.
           </h1>
@@ -41,7 +41,7 @@ export default function AssessmentIntroPage() {
         </div>
 
         <div className="glass grid grid-cols-1 items-center gap-8 rounded-2xl p-8 text-left md:grid-cols-2 md:p-10">
-          <div className="space-y-6">
+          <div className="flex flex-col gap-6">
             <div>
               <h2 className="font-heading text-on-surface mb-2 text-xl font-semibold">
                 Assessment plan
@@ -50,7 +50,7 @@ export default function AssessmentIntroPage() {
                 A 4-step protocol taking about 3 minutes, followed by your results.
               </p>
             </div>
-            <div className="space-y-4">
+            <div className="flex flex-col gap-4">
               {ANALYSIS_POINTS.map((point) => (
                 <div key={point.title} className="flex items-start gap-3">
                   <div className="bg-secondary/10 text-secondary rounded-lg p-2">

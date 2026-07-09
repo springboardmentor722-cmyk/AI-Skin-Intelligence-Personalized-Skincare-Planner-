@@ -146,7 +146,7 @@ export default function AssessmentConcernsPage() {
                 </p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="flex flex-col gap-3">
                 {state.priorities.map((priority, i) => (
                   <div key={priority.concernId} className="border-border bg-background rounded-xl border p-4">
                     <div className="mb-3 flex items-center justify-between">

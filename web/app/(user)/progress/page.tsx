@@ -57,7 +57,7 @@ export default function ProgressPage() {
   const delta = first !== null && last !== null ? Math.round(last - first) : null;
 
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="font-heading text-on-surface text-2xl font-bold">Progress tracking</h1>

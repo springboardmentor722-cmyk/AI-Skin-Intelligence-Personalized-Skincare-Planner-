@@ -150,7 +150,7 @@ export default function UserDashboardPage() {
   const { greeting, today } = useGreeting();
 
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-8">
       <div>
         <h1 className="font-heading text-on-surface text-2xl font-bold">{greeting}</h1>
         <p className="text-on-surface-variant mt-1 font-sans text-sm">
@@ -182,12 +182,12 @@ export default function UserDashboardPage() {
               <div className="flex justify-center py-4">
                 <SkinScoreRing score={scoreQuery.data!.overall_score ?? 0} size={200} />
               </div>
-              <div className="mt-4 space-y-3">
+              <div className="mt-4 flex flex-col gap-3">
                 {SCORE_COMPONENTS.map((c) => {
                   const value = scoreQuery.data![c.key] ?? 0;
                   const weight = Math.round((scoreQuery.data!.weights[c.weight] ?? 0) * 100);
                   return (
-                    <div key={c.key} className="space-y-1">
+                    <div key={c.key} className="flex flex-col gap-1">
                       <div className="flex items-end justify-between text-xs">
                         <span className="text-on-surface-variant font-geist font-semibold tracking-[0.05em] uppercase">
                           {c.label} ({weight}%)

@@ -18,7 +18,7 @@ export function PricingSection() {
             <span className="font-geist text-on-surface text-5xl font-semibold">₹0</span>
             <span className="text-on-surface-variant font-sans"> /month</span>
           </div>
-          <ul className="mb-10 flex-1 space-y-4">
+          <ul className="mb-10 flex-1 flex flex-col gap-4">
             {["Weekly skin scan", "Basic routine builder", "Ingredient scanner"].map((item) => (
               <li key={item} className="flex items-center gap-3 font-sans">
                 <CheckCircle2 className="text-secondary size-5" strokeWidth={1.5} />
@@ -44,7 +44,7 @@ export function PricingSection() {
             <span className="font-geist text-5xl font-semibold">₹499</span>
             <span className="text-on-primary-container/60 font-sans"> /month</span>
           </div>
-          <ul className="mb-10 flex-1 space-y-4">
+          <ul className="mb-10 flex-1 flex flex-col gap-4">
             {[
               "Daily AI monitoring",
               "Environmental UV/pollution sync",

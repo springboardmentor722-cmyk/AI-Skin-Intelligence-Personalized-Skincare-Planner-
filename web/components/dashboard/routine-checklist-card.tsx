@@ -37,7 +37,7 @@ export function RoutineChecklistCard({ routines }: RoutineChecklistCardProps) {
   return (
     <div className="border-border bg-card rounded-2xl border p-6">
       <h3 className="font-heading text-on-surface mb-5 text-lg font-semibold">Today&apos;s routine</h3>
-      <div className="space-y-6">
+      <div className="flex flex-col gap-6">
         {routines.map((routine) => {
           const doneCount = routine.steps.filter((s) => checked[s.step_id]).length;
           return (
@@ -50,7 +50,7 @@ export function RoutineChecklistCard({ routines }: RoutineChecklistCardProps) {
                   {doneCount}/{routine.steps.length}
                 </span>
               </div>
-              <div className="space-y-2.5">
+              <div className="flex flex-col gap-2.5">
                 {routine.steps.map((step) => {
                   const isChecked = !!checked[step.step_id];
                   return (

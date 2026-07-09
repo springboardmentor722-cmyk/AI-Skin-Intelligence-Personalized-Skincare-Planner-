@@ -6,7 +6,7 @@ import { LifestyleForm } from "@/components/skin-profile/lifestyle-form";
 // sidebar (a real ambiguity in the docs, noted in PROGRESS.md rather than guessed at).
 export default function SkinProfilePage() {
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       <div>
         <h1 className="font-heading text-xl font-semibold text-on-surface">
           Skin profile &amp; lifestyle

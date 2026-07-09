@@ -55,7 +55,7 @@ export function AssessmentShell({
   return (
     <div className="flex min-h-screen flex-col">
       <header className="glass sticky top-0 z-50 rounded-none border-x-0 border-t-0">
-        <div className="mx-auto max-w-7xl space-y-3 px-6 py-4">
+        <div className="mx-auto max-w-7xl flex flex-col gap-3 px-6 py-4">
           <div className="flex items-center justify-between">
             <Link href="/" className="font-heading text-on-surface text-lg font-bold">
               Skinlytics
