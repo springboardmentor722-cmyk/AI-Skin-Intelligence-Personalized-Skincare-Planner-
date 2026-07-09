@@ -6,6 +6,7 @@ import { Sparkles, AlertTriangle, BadgeCheck } from "lucide-react";
 
 import { AssessmentShell } from "@/components/assessment/assessment-shell";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { SkinScoreRing } from "@/components/skin-score-ring";
 import { useAssessment, type AssessmentState } from "@/lib/assessment/context";
 
@@ -99,12 +100,11 @@ export default function AssessmentResultsPage() {
                       {Math.round(component.value)}/100
                     </span>
                   </div>
-                  <div className="bg-muted h-2 w-full overflow-hidden rounded-full">
-                    <div
-                      className="bg-secondary h-full rounded-full"
-                      style={{ width: `${Math.max(0, Math.min(100, component.value))}%` }}
-                    />
-                  </div>
+                  <Progress
+                    value={Math.max(0, Math.min(100, component.value))}
+                    trackClassName="h-2"
+                    indicatorClassName="bg-secondary"
+                  />
                 </div>
               ))}
             </div>

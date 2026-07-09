@@ -5,6 +5,8 @@ import { useState } from "react";
 import { ListChecks, RotateCw, TriangleAlert, X } from "lucide-react";
 
 import { AssessmentShell } from "@/components/assessment/assessment-shell";
+import { StateCard } from "@/components/state-card";
+import { Button } from "@/components/ui/button";
 import { useAssessment, type AssessmentConcernPriority } from "@/lib/assessment/context";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -85,23 +87,18 @@ export default function AssessmentConcernsPage() {
               ))}
             </div>
           ) : query.isError ? (
-            <div className="border-border bg-card flex flex-col items-center gap-3 rounded-xl border p-10 text-center">
-              <TriangleAlert className="text-destructive size-8" strokeWidth={1.5} />
-              <p className="text-on-surface font-sans text-sm font-semibold">
-                Couldn&apos;t load skin concerns
-              </p>
-              <p className="text-on-surface-variant max-w-sm font-sans text-xs">
-                We couldn&apos;t reach the server. Check your connection and try again.
-              </p>
-              <button
-                type="button"
-                onClick={() => query.refetch()}
-                className="border-border text-on-surface flex items-center gap-1.5 rounded-full border px-4 py-2 font-sans text-sm hover:border-secondary"
-              >
-                <RotateCw className="size-4" strokeWidth={1.5} />
-                Retry
-              </button>
-            </div>
+            <StateCard
+              tone="destructive"
+              icon={TriangleAlert}
+              title="Couldn't load skin concerns"
+              description="We couldn't reach the server. Check your connection and try again."
+              action={
+                <Button variant="outline" onClick={() => query.refetch()}>
+                  <RotateCw className="size-4" strokeWidth={1.5} />
+                  Retry
+                </Button>
+              }
+            />
           ) : (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {(query.data ?? []).map((concern) => {

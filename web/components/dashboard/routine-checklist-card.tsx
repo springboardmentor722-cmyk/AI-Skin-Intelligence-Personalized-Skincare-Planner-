@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Check } from "lucide-react";
 
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import type { components } from "@/lib/api-types";
 
@@ -54,22 +54,15 @@ export function RoutineChecklistCard({ routines }: RoutineChecklistCardProps) {
                 {routine.steps.map((step) => {
                   const isChecked = !!checked[step.step_id];
                   return (
-                    <button
+                    <label
                       key={step.step_id}
-                      type="button"
-                      onClick={() => toggle(step.step_id)}
-                      className="group flex w-full items-center gap-3 text-left"
+                      className="group flex w-full cursor-pointer items-center gap-3 text-left"
                     >
-                      <span
-                        className={cn(
-                          "flex size-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
-                          isChecked
-                            ? "bg-secondary border-secondary text-secondary-foreground"
-                            : "border-on-surface/20 group-hover:border-secondary"
-                        )}
-                      >
-                        {isChecked && <Check className="size-3" strokeWidth={3} />}
-                      </span>
+                      <Checkbox
+                        checked={isChecked}
+                        onCheckedChange={() => toggle(step.step_id)}
+                        className="size-5 rounded-full border-2 border-on-surface/20 data-checked:border-secondary data-checked:bg-secondary group-hover:border-secondary"
+                      />
                       <span
                         className={cn(
                           "font-sans text-sm",
@@ -78,7 +71,7 @@ export function RoutineChecklistCard({ routines }: RoutineChecklistCardProps) {
                       >
                         {step.step_name}
                       </span>
-                    </button>
+                    </label>
                   );
                 })}
               </div>

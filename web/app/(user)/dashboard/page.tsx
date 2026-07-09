@@ -9,8 +9,10 @@ import { ArrowRight, RotateCw, Sparkles, TriangleAlert } from "lucide-react";
 import { RoutineChecklistCard } from "@/components/dashboard/routine-checklist-card";
 import { ProductRecommendationCard } from "@/components/products/product-recommendation-card";
 import { SkinScoreRing } from "@/components/skin-score-ring";
+import { StateCard } from "@/components/state-card";
 import { Button } from "@/components/ui/button";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
 
@@ -80,18 +82,17 @@ function CardSkeleton({ className }: { className?: string }) {
 
 function CardError({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <div className="border-border bg-card flex flex-col items-center justify-center gap-3 rounded-2xl border p-10 text-center">
-      <TriangleAlert className="text-destructive size-6" strokeWidth={1.5} />
-      <p className="text-on-surface-variant font-sans text-sm">{message}</p>
-      <button
-        type="button"
-        onClick={onRetry}
-        className="border-border text-on-surface flex items-center gap-1.5 rounded-full border px-4 py-2 font-sans text-sm hover:border-secondary"
-      >
-        <RotateCw className="size-4" strokeWidth={1.5} />
-        Retry
-      </button>
-    </div>
+    <StateCard
+      tone="destructive"
+      icon={TriangleAlert}
+      description={message}
+      action={
+        <Button variant="outline" onClick={onRetry}>
+          <RotateCw className="size-4" strokeWidth={1.5} />
+          Retry
+        </Button>
+      }
+    />
   );
 }
 
@@ -155,19 +156,14 @@ export default function UserDashboardPage() {
       {scoreQuery.isLoading ? (
         <CardSkeleton className="h-96 w-full rounded-2xl" />
       ) : scoreQuery.data === null ? (
-        <div className="border-border bg-card flex flex-col items-center gap-4 rounded-2xl border p-12 text-center">
-          <Sparkles className="text-secondary size-8" strokeWidth={1.5} />
-          <div>
-            <h2 className="font-heading text-on-surface text-lg font-semibold">
-              Complete your skin profile to unlock your dashboard
-            </h2>
-            <p className="text-on-surface-variant mt-1 font-sans text-sm">
-              Your Skin Score, routine, and recommendations are calculated from your skin
-              profile — set it up to get started.
-            </p>
-          </div>
-          <Button nativeButton={false} render={<Link href="/profile">Complete skin profile</Link>} />
-        </div>
+        <StateCard
+          icon={Sparkles}
+          title="Complete your skin profile to unlock your dashboard"
+          description="Your Skin Score, routine, and recommendations are calculated from your skin profile — set it up to get started."
+          action={
+            <Button nativeButton={false} render={<Link href="/profile">Complete skin profile</Link>} />
+          }
+        />
       ) : scoreQuery.isError ? (
         <CardError
           message="Couldn't load your Skin Score."
@@ -193,12 +189,11 @@ export default function UserDashboardPage() {
                         </span>
                         <span className="font-geist text-on-surface">{Math.round(value)}/100</span>
                       </div>
-                      <div className="bg-muted h-1.5 w-full overflow-hidden rounded-full">
-                        <div
-                          className="bg-secondary h-full rounded-full"
-                          style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
-                        />
-                      </div>
+                      <Progress
+                        value={Math.max(0, Math.min(100, value))}
+                        trackClassName="h-1.5"
+                        indicatorClassName="bg-secondary"
+                      />
                     </div>
                   );
                 })}

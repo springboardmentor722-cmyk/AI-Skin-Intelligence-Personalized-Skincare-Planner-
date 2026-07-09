@@ -3,9 +3,23 @@
 import { FlaskConical, AlertTriangle, Wand2, Minus, Plus } from "lucide-react";
 
 import { AssessmentShell } from "@/components/assessment/assessment-shell";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { useAssessment, type SunExposure } from "@/lib/assessment/context";
-import { cn } from "@/lib/utils";
+import { cn, selectItems } from "@/lib/utils";
+
+// Base UI's Slider supports multi-thumb range sliders, so onValueChange is typed to
+// accept either a single number or an array — these sliders are always single-thumb
+// (same helper already used in components/skin-profile/skin-profile-form.tsx).
+const firstOf = (val: number | readonly number[]): number =>
+  Array.isArray(val) ? val[0] : (val as number);
 
 const ALLERGY_OPTIONS = ["Fragrance", "Essential oils", "Lanolin", "Sulfates", "Nuts"];
 
@@ -17,6 +31,7 @@ const SUN_EXPOSURE_OPTIONS: { value: SunExposure; label: string }[] = [
 ];
 
 const SLEEP_QUALITY_OPTIONS = ["Restful, uninterrupted", "Occasional waking", "Frequent insomnia"];
+const SLEEP_QUALITY_ITEMS = selectItems(SLEEP_QUALITY_OPTIONS);
 
 const STRESS_LABELS: Record<number, string> = { 1: "Low", 2: "Low", 3: "Calm", 4: "Mild", 5: "Moderate", 6: "Moderate", 7: "Elevated", 8: "High", 9: "High", 10: "Very high" };
 
@@ -132,24 +147,29 @@ export default function AssessmentLifestylePage() {
                     <span className="text-on-surface text-base">h</span>
                   </span>
                 </div>
-                <input
-                  type="range"
+                <Slider
                   min={4}
                   max={12}
                   step={0.5}
-                  value={state.sleepHours}
-                  onChange={(e) => update({ sleepHours: Number(e.target.value) })}
-                  className="accent-secondary w-full"
+                  value={[state.sleepHours]}
+                  onValueChange={(v) => update({ sleepHours: firstOf(v) })}
                 />
-                <select
+                <Select
+                  items={SLEEP_QUALITY_ITEMS}
                   value={state.sleepQuality}
-                  onChange={(e) => update({ sleepQuality: e.target.value })}
-                  className="bg-muted focus:ring-secondary/40 w-full rounded-lg border-none p-3 font-sans text-sm focus:ring-2 focus:outline-none"
+                  onValueChange={(v) => update({ sleepQuality: v ?? SLEEP_QUALITY_OPTIONS[0] })}
                 >
-                  {SLEEP_QUALITY_OPTIONS.map((option) => (
-                    <option key={option}>{option}</option>
-                  ))}
-                </select>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sleep quality" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SLEEP_QUALITY_OPTIONS.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
@@ -192,13 +212,11 @@ export default function AssessmentLifestylePage() {
                     {STRESS_LABELS[state.stressLevel]}
                   </span>
                 </div>
-                <input
-                  type="range"
+                <Slider
                   min={1}
                   max={10}
-                  value={state.stressLevel}
-                  onChange={(e) => update({ stressLevel: Number(e.target.value) })}
-                  className="accent-secondary w-full"
+                  value={[state.stressLevel]}
+                  onValueChange={(v) => update({ stressLevel: firstOf(v) })}
                 />
                 <div className="text-on-surface-variant font-geist flex justify-between text-[10px] font-semibold tracking-[0.05em] uppercase">
                   <span>Low calm</span>

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, Check } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 
 const STEPS = [
@@ -65,12 +66,11 @@ export function AssessmentShell({
           </div>
           {step != null && (
             <>
-              <div className="bg-muted h-1 w-full overflow-hidden rounded-full">
-                <div
-                  className="bg-secondary h-full transition-all duration-500"
-                  style={{ width: `${progressPercent}%` }}
-                />
-              </div>
+              <Progress
+                value={progressPercent}
+                trackClassName="h-1"
+                indicatorClassName="bg-secondary transition-all duration-500"
+              />
               <div className="no-scrollbar flex gap-2 overflow-x-auto">
                 {STEPS.map((s, i) => {
                   const stepNum = i + 1;

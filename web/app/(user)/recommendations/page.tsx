@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { Layers, RotateCw, Sparkles, TriangleAlert } from "lucide-react";
 
 import { MatchRing } from "@/components/products/match-ring";
+import { StateCard } from "@/components/state-card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -169,34 +170,26 @@ export default function RecommendationsPage() {
           ))}
         </div>
       ) : query.isError ? (
-        <div className="border-border bg-card flex flex-col items-center gap-3 rounded-2xl border p-12 text-center">
-          <TriangleAlert className="text-destructive size-8" strokeWidth={1.5} />
-          <p className="text-on-surface-variant font-sans text-sm">
-            Couldn&apos;t load recommendations.
-          </p>
-          <button
-            type="button"
-            onClick={() => query.refetch()}
-            className="border-border text-on-surface flex items-center gap-1.5 rounded-full border px-4 py-2 font-sans text-sm hover:border-secondary"
-          >
-            <RotateCw className="size-4" strokeWidth={1.5} />
-            Retry
-          </button>
-        </div>
+        <StateCard
+          tone="destructive"
+          icon={TriangleAlert}
+          description="Couldn't load recommendations."
+          action={
+            <Button variant="outline" onClick={() => query.refetch()}>
+              <RotateCw className="size-4" strokeWidth={1.5} />
+              Retry
+            </Button>
+          }
+        />
       ) : all.length === 0 ? (
-        <div className="border-border bg-card flex flex-col items-center gap-4 rounded-2xl border p-12 text-center">
-          <Sparkles className="text-secondary size-8" strokeWidth={1.5} />
-          <div>
-            <h2 className="font-heading text-on-surface text-lg font-semibold">
-              No recommendations yet
-            </h2>
-            <p className="text-on-surface-variant mt-1 font-sans text-sm">
-              Complete your skin profile so we can match products to your skin type and
-              concerns.
-            </p>
-          </div>
-          <Button nativeButton={false} render={<Link href="/profile">Complete skin profile</Link>} />
-        </div>
+        <StateCard
+          icon={Sparkles}
+          title="No recommendations yet"
+          description="Complete your skin profile so we can match products to your skin type and concerns."
+          action={
+            <Button nativeButton={false} render={<Link href="/profile">Complete skin profile</Link>} />
+          }
+        />
       ) : (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           <aside className="border-border bg-card h-fit space-y-6 rounded-2xl border p-5 lg:col-span-3">
@@ -293,15 +286,15 @@ export default function RecommendationsPage() {
 
           <div className="lg:col-span-9">
             {sorted.length === 0 ? (
-              <div className="border-border bg-card flex flex-col items-center gap-4 rounded-2xl border p-12 text-center">
-                <TriangleAlert className="text-on-surface-variant size-8" strokeWidth={1.5} />
-                <p className="text-on-surface-variant font-sans text-sm">
-                  No products match your filters.
-                </p>
-                <Button variant="outline" onClick={relaxFilters}>
-                  Relax filters
-                </Button>
-              </div>
+              <StateCard
+                icon={TriangleAlert}
+                description="No products match your filters."
+                action={
+                  <Button variant="outline" onClick={relaxFilters}>
+                    Relax filters
+                  </Button>
+                }
+              />
             ) : (
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
                 {sorted.map((rec) => (

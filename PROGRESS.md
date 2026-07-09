@@ -656,6 +656,44 @@ scoring/recs) is the natural next milestone.
   place, with zero registry-refetch risk. Verified live: submit button computes
   `cursor: pointer`, a disabled button still computes `cursor: default`. `npm run
   {lint,typecheck,build}` clean.
+- ✔ UI/UX refinement, Milestone 1 (`feature/shadcn-ui-revamp`) — scoped explicitly to
+  refining *within* the locked "Frosted Lab Glass" design system (AGENTS.md: "Design
+  system is locked, not proposed"), not replacing it — confirmed with the user before
+  starting, since the initial ask described a full Vercel/Linear/Stripe-style visual
+  redesign, which would have meant abandoning a decision this project's own docs call
+  locked. Audited the app for hand-rolled markup duplicating an existing (or
+  official-but-uninstalled) shadcn primitive, then fixed only the real, valuable hits:
+  - **5 near-identical hand-rolled "error + retry" / "empty + CTA" blocks** (dashboard,
+    recommendations ×2, progress, assessment skin-type, assessment concerns) replaced
+    with one new `components/state-card.tsx`, built on shadcn's official `Empty`
+    primitive (`components/ui/empty.tsx`, newly installed — not a bespoke one, per
+    "don't reinvent a component that already exists"). Standardized the retry/CTA
+    action on shadcn `Button` everywhere too — some instances used a raw `<button>`
+    before.
+  - **4 hand-rolled progress-bar `<div>` pairs** (dashboard score breakdown, assessment
+    results score breakdown, assessment-shell's step header bar) replaced with shadcn's
+    official `Progress` (`components/ui/progress.tsx`, newly installed) — patched to
+    accept `trackClassName`/`indicatorClassName` (not in the generated default) since
+    this app's bars use the secondary token and a thinner track than shadcn's own
+    default styling.
+  - **2 raw `<input type="range">` + 1 raw `<select>`** (assessment/lifestyle — sleep
+    hours, stress level, sleep quality) replaced with the shadcn `Slider`/`Select`
+    already used identically elsewhere in this codebase (skin-profile-form.tsx,
+    lifestyle-form.tsx) — same visual output, real keyboard/ARIA semantics for free.
+  - **Routine checklist's hand-rolled circular toggle** (`routine-checklist-card.tsx`)
+    replaced with shadcn `Checkbox` styled circular via `className`, instead of a
+    bespoke `<button><span>` pair reimplementing checkbox semantics from scratch.
+  - Verified live in a real browser (Playwright): all five state-card sites render
+    correctly (including fixing a real visual bug caught during verification — `Empty`'s
+    own dashed border wasn't actually overridden by adding `border`, since `border`
+    only sets width, not style; needed explicit `border-solid`), the new
+    Slider/Select/Checkbox are interactive, zero console/page errors. `npm run
+    {lint,typecheck,build}` clean throughout, one milestone at a time as instructed.
+  - **Not yet done, deliberately scoped as further milestones, not attempted in one
+    pass:** full accessibility audit, full responsive audit across breakpoints,
+    remaining screens not yet reviewed (auth screens, admin/consultant/dermatologist
+    stubs), broader Tabs/Data Table/Calendar adoption where applicable. Flagged rather
+    than rushed.
 
 ## Partially Completed
 

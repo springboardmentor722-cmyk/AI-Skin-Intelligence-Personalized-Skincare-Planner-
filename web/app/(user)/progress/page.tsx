@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { Camera, RotateCw, Sparkles, Trophy, TrendingDown, TrendingUp, TriangleAlert } from "lucide-react";
 
+import { StateCard } from "@/components/state-card";
 import { Button } from "@/components/ui/button";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -81,34 +82,24 @@ export default function ProgressPage() {
       {query.isLoading ? (
         <Skeleton className="h-80 w-full rounded-2xl" />
       ) : query.isError ? (
-        <div className="border-border bg-card flex flex-col items-center gap-3 rounded-2xl border p-12 text-center">
-          <TriangleAlert className="text-destructive size-8" strokeWidth={1.5} />
-          <p className="text-on-surface-variant font-sans text-sm">
-            Couldn&apos;t load your progress trend.
-          </p>
-          <button
-            type="button"
-            onClick={() => query.refetch()}
-            className="border-border text-on-surface flex items-center gap-1.5 rounded-full border px-4 py-2 font-sans text-sm hover:border-secondary"
-          >
-            <RotateCw className="size-4" strokeWidth={1.5} />
-            Retry
-          </button>
-        </div>
+        <StateCard
+          tone="destructive"
+          icon={TriangleAlert}
+          description="Couldn't load your progress trend."
+          action={
+            <Button variant="outline" onClick={() => query.refetch()}>
+              <RotateCw className="size-4" strokeWidth={1.5} />
+              Retry
+            </Button>
+          }
+        />
       ) : points.length === 0 ? (
-        <div className="border-border bg-card flex flex-col items-center gap-4 rounded-2xl border p-12 text-center">
-          <Sparkles className="text-secondary size-8" strokeWidth={1.5} />
-          <div>
-            <h2 className="font-heading text-on-surface text-lg font-semibold">
-              No progress data yet
-            </h2>
-            <p className="text-on-surface-variant mt-1 font-sans text-sm">
-              Visit your dashboard to calculate your first Skin Score — this screen tracks
-              it over time from there.
-            </p>
-          </div>
-          <Button nativeButton={false} render={<Link href="/dashboard">Go to dashboard</Link>} />
-        </div>
+        <StateCard
+          icon={Sparkles}
+          title="No progress data yet"
+          description="Visit your dashboard to calculate your first Skin Score — this screen tracks it over time from there."
+          action={<Button nativeButton={false} render={<Link href="/dashboard">Go to dashboard</Link>} />}
+        />
       ) : (
         <>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
