@@ -22,11 +22,15 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StateCard } from "@/components/state-card";
 import { seedOnboardingDraft } from "@/lib/dermatologist-onboarding/context";
 import { api } from "@/lib/api";
 import type { components } from "@/lib/api-types";
+
+const LABEL_CLASS =
+  "font-geist text-on-surface-variant text-xs font-semibold tracking-[0.05em] uppercase";
 
 type DermatologistProfile = components["schemas"]["DermatologistProfileRead"];
 // FastAPI OpenAPI dedup: admin/schemas.py, consultant_profile/schemas.py, and
@@ -253,12 +257,13 @@ function DocumentsCard() {
         </ul>
       )}
 
-      <div className="border-border flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-end">
-        <div className="flex flex-1 flex-col gap-1.5">
-          <label className="font-geist text-on-surface-variant text-xs font-semibold tracking-[0.05em] uppercase">
+      <FieldGroup className="border-border flex-col gap-3 border-t pt-4 sm:flex-row sm:items-end">
+        <Field className="flex-1">
+          <FieldLabel htmlFor="documentType" className={LABEL_CLASS}>
             Document type
-          </label>
+          </FieldLabel>
           <select
+            id="documentType"
             value={documentType}
             onChange={(e) => setDocumentType(e.target.value as DocumentType)}
             className="bg-muted text-on-surface focus:ring-secondary/40 w-full rounded-full border-none px-4 py-2.5 font-sans text-sm focus:ring-2 focus:outline-none"
@@ -269,17 +274,18 @@ function DocumentsCard() {
               </option>
             ))}
           </select>
-        </div>
-        <div className="flex flex-1 flex-col gap-1.5">
-          <label className="font-geist text-on-surface-variant text-xs font-semibold tracking-[0.05em] uppercase">
+        </Field>
+        <Field className="flex-1">
+          <FieldLabel htmlFor="documentFile" className={LABEL_CLASS}>
             File
-          </label>
+          </FieldLabel>
           <input
+            id="documentFile"
             type="file"
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             className="text-on-surface-variant font-sans text-sm"
           />
-        </div>
+        </Field>
         <Button
           onClick={() => uploadMutation.mutate()}
           disabled={!file || uploadMutation.isPending}
@@ -291,7 +297,7 @@ function DocumentsCard() {
           )}
           Upload
         </Button>
-      </div>
+      </FieldGroup>
     </div>
   );
 }

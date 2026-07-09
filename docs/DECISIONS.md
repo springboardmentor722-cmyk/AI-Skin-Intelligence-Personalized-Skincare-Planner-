@@ -309,4 +309,37 @@ boundary rather than duplicating one side's data into the other's store. Any fut
 admin surface reading `user` rows should extend `/api/admin/*`, never call FastAPI
 for identity data or Better Auth's client SDK for domain data.
 
-<!-- Next ADR: ADR-017 — add yours here -->
+## ADR-017 — Light-theme color rebalance: zinc neutrals, one-notch-down saturation
+**Status:** Accepted (Milestone 1 foundation expansion, Branch 7)
+**Context:** Direct product-owner feedback: "colors feel slightly off," explicitly
+*not* asking for a high-contrast redesign — "create a balanced professional
+healthcare SaaS design." The light theme's neutrals (`surface`/`on-surface`/
+`outline*`) were Tailwind's "slate" scale verbatim — a blue-tinted cool gray — and
+`on-surface` was literally the same hex as `primary` (`#0F172A`, Deep Navy), so body
+text carried the same visual weight as brand emphasis. Secondary/success/warning/
+error were each Tailwind's vibrant "600" shade, more "alert siren" than "calm
+confirmation."
+**Decision:** Two changes, both scoped to **light theme only** (dark mode's neutrals
+are already a true near-black ramp per ADR/v3, and its secondary/semantic tones are
+already soft pastels against near-black — neither exhibited the complaint):
+1. Neutrals move from Tailwind "slate" to "zinc" (same lightness tiers, blue cast
+   removed) and `on-surface` splits from `primary` (`#1F1F22`, not `#0F172A`) so body
+   text and brand-navy buttons are no longer the identical tone.
+2. `secondary` (Royal Blue), `success`, `warning`, `error` each step down one notch
+   of saturation from their original Tailwind "600" shade — same hue, same brand
+   architecture, just calmer. Score bands, tertiary (Teal), and dark mode are
+   untouched — they're diagnostic/data-visualization colors, not ambient chrome, and
+   weren't part of the complaint.
+Exact hex values were tuned with live Playwright screenshots (light theme, public
+pages, an authenticated dashboard) rather than picked from color theory alone —
+`docs/DESIGN.md` §1/§2 and its frontmatter `colors:` block carry the final values;
+`web/app/globals.css` mirrors them exactly (CONVENTIONS.md golden rule 7). No
+component was touched — every color lives behind a CSS variable already.
+**Consequences:** `on-surface` and `primary` diverging is a deliberate, permanent
+split — a future change to either must consider both independently now, they're no
+longer guaranteed to match. AGENTS.md §3's inlined hex list was also stale (its dark
+values didn't even match `docs/DESIGN.md`'s real v3 palette) — corrected here to
+point at `docs/DESIGN.md` as the source of truth instead of repeating numbers that
+will drift again otherwise.
+
+<!-- Next ADR: ADR-018 — add yours here -->

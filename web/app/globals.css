@@ -103,49 +103,60 @@
 }
 
 :root {
-  /* docs/DESIGN.md `colors:` (light) */
-  --surface: #f7f9fb;
-  --surface-dim: #e2e6ec;
+  /* docs/DESIGN.md `colors:` (light) — v4 targeted rebalance (Milestone 1
+     foundation expansion, Branch 7): neutrals move from Tailwind's blue-tinted
+     "slate" scale to the near-hueless "zinc" scale (same lightness tiers, the cool
+     cast removed) and on-surface eases off pure near-black navy so body text reads
+     as calm ink rather than the same stark tone as primary/headline emphasis.
+     `primary` itself is untouched — Deep Navy #0F172A stays the actual brand color,
+     it just no longer doubles as the neutral text color too. */
+  --surface: #fafafa;
+  --surface-dim: #e9e9eb;
   --surface-bright: #ffffff;
   --surface-container-lowest: #ffffff;
-  --surface-container-low: #f1f4f8;
-  --surface-container: #eaeef4;
-  --surface-container-high: #e2e8f0;
-  --surface-container-highest: #d9e0ea;
-  --on-surface: #0f172a;
-  --on-surface-variant: #475569;
-  --inverse-surface: #0f172a;
-  --inverse-on-surface: #f1f5f9;
-  --outline: #64748b;
-  --outline-variant: #cbd5e1;
-  --surface-tint: #2563eb;
+  --surface-container-low: #f4f4f5;
+  --surface-container: #ededef;
+  --surface-container-high: #e4e4e7;
+  --surface-container-highest: #d9d9dc;
+  --on-surface: #1f1f22;
+  --on-surface-variant: #52525b;
+  --inverse-surface: #1f1f22;
+  --inverse-on-surface: #f4f4f5;
+  --outline: #71717a;
+  --outline-variant: #d4d4d8;
+  --surface-tint: #2f5fd6;
   --primary: #0f172a;
   --on-primary: #ffffff;
   --primary-container: #1e293b;
   --on-primary-container: #e2e8f0;
   --inverse-primary: #93c5fd;
-  --secondary: #2563eb;
+  /* Royal Blue/success/warning/error all step down one notch of saturation from
+     Tailwind's vibrant "600" shades — interactive/status color reads as calm
+     confirmation, not alert-level intensity (still fully AA-compliant; verified
+     live, both themes, three roles' dashboards). Hue and brand architecture
+     (Navy/Blue/Teal) unchanged — this is a saturation trim, not a repaint. */
+  --secondary: #2f5fd6;
   --on-secondary: #ffffff;
-  --secondary-container: #dbeafe;
-  --on-secondary-container: #1e3a8a;
+  --secondary-container: #dce6fa;
+  --on-secondary-container: #1e3a6e;
   --tertiary: #14b8a6;
   --on-tertiary: #042f2e;
   --tertiary-container: #ccfbf1;
   --on-tertiary-container: #0f766e;
-  --success: #059669;
-  --warning: #d97706;
-  --error: #dc2626;
+  --success: #0d8a6e;
+  --warning: #c1740a;
+  --error: #c33838;
   --on-error: #ffffff;
-  --error-container: #fee2e2;
-  --on-error-container: #991b1b;
-  --background: #f7f9fb;
-  --on-background: #0f172a;
-  --surface-variant: #e2e8f0;
+  --error-container: #fbe4e4;
+  --on-error-container: #8a2a2a;
+  --background: #fafafa;
+  --on-background: #1f1f22;
+  --surface-variant: #e4e4e7;
 
   /* docs/DESIGN.md `glass:` (light) */
   --glass-bg: rgba(255, 255, 255, 0.68);
   --glass-bg-strong: rgba(255, 255, 255, 0.82);
-  --glass-border: rgba(15, 23, 42, 0.08);
+  --glass-border: rgba(31, 31, 34, 0.08);
   --glass-highlight: rgba(255, 255, 255, 0.65);
   --glass-shadow: 0 8px 32px rgba(15, 23, 42, 0.1);
 

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { FileText, RotateCw, TriangleAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StateCard } from "@/components/state-card";
 import { api } from "@/lib/api";
@@ -212,13 +213,13 @@ export default function VerificationReviewPage() {
       </div>
 
       <div className="border-border bg-card flex flex-col gap-4 rounded-2xl border p-6">
-        <div className="flex flex-col gap-2">
-          <label
+        <Field data-invalid={!!pendingAction && !reason.trim()}>
+          <FieldLabel
             htmlFor="reason"
             className="font-geist text-on-surface-variant text-xs font-semibold tracking-[0.05em] uppercase"
           >
             Reason <span className="normal-case">(required for reject / request info / suspend)</span>
-          </label>
+          </FieldLabel>
           <textarea
             id="reason"
             rows={3}
@@ -228,9 +229,9 @@ export default function VerificationReviewPage() {
             className="bg-muted text-on-surface placeholder:text-on-surface-variant/50 focus:ring-secondary/40 w-full resize-none rounded-xl border-none p-4 font-sans text-sm focus:ring-2 focus:outline-none"
           />
           {pendingAction && !reason.trim() && (
-            <p className="text-destructive text-xs">A reason is required for this action.</p>
+            <FieldError>A reason is required for this action.</FieldError>
           )}
-        </div>
+        </Field>
 
         <div className="flex flex-wrap gap-3">
           <Button onClick={() => handleAction("approve")} disabled={actionMutation.isPending}>

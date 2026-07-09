@@ -79,9 +79,9 @@ The directories above are the canonical project structure. Agents must reference
 
 **Design system is locked, not proposed — "Frosted Lab Glass."** Full spec lives in `docs/` (e.g. `DESIGN.md`); the essentials, so nobody has to go hunting mid-task:
 - **Glass lives in:** the app sidebar, top header, public navbar, dialogs/sheets/dropdowns/command palette, sticky action bars, toasts, the landing hero panel, and the Skin Score Ring housing. `backdrop-blur 20px`, `saturation 160%`.
-- **Data stays solid:** tables, charts, forms, product grids live on solid white "Diagnostic Module" cards (1px slate border, 16px radius). Glass frames data; it never sits under it.
+- **Data stays solid:** tables, charts, forms, product grids live on solid white "Diagnostic Module" cards (1px neutral border, 16px radius). Glass frames data; it never sits under it.
 - **Typography (tri-font):** Sora for headlines, Inter for body/UI, Geist for labels & data (tabular figures for all numbers; substitute Space Grotesk for Geist if unavailable).
-- **Color tokens** — Light: bg `#F7F9FB` · card `#FFFFFF` · border `#E2E8F0` · text `#0F172A` · primary (Deep Navy) `#0F172A` · secondary (Royal Blue) `#2563EB` · tertiary (Teal) `#14B8A6`. Dark: bg `#0B1220` · card `#111A2E` · elevated `#1A2740` · border `#24304A` · text `#E6EDF7`. Every screen ships in both themes; the header always has a theme toggle.
+- **Color tokens** — kept here only as a quick pointer; `docs/DESIGN.md` §2/§10 (with the CSS variables in `web/app/globals.css`) is the actual source of truth and wins on any conflict, per this file's own rule below. As of the Branch 7 targeted rebalance (Milestone 1 foundation expansion): Light: bg `#FAFAFA` · card `#FFFFFF` · border `#D4D4D8` · text `#1F1F22` · primary (Deep Navy) `#0F172A` · secondary (Royal Blue) `#2F5FD6` · tertiary (Teal) `#14B8A6`. Dark: bg `#131315` · card `#0E0E10` · elevated `#2A2A2B` · border `#45464D` · text `#E4E2E4`. Every screen ships in both themes; the header always has a theme toggle.
 - **Signature element:** the Skin Score Ring — circular gauge in frosted glass, teal→royal-blue gradient stroke, Geist numeral, five weighted mini-bars (35/20/20/15/10) beside it. Identical treatment everywhere it appears.
 - **Radius:** base 16px, large containers 32px, buttons/chips fully pill-shaped. **Icons:** Lucide, 1.5px stroke.
 

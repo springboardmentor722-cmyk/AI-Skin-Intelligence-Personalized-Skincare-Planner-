@@ -3,8 +3,14 @@
 import { useState } from "react";
 
 import { OnboardingShell } from "@/components/consultant-onboarding/onboarding-shell";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { useConsultantOnboarding } from "@/lib/consultant-onboarding/context";
 import { consultantContactSchema } from "@/lib/schemas/consultant-onboarding";
+
+const LABEL_CLASS =
+  "font-geist text-on-surface-variant text-xs font-semibold tracking-[0.05em] uppercase";
+const INPUT_CLASS =
+  "bg-muted text-on-surface placeholder:text-on-surface-variant/50 focus:ring-secondary/40 w-full rounded-full border-none px-4 py-2.5 font-sans text-sm focus:ring-2 focus:outline-none";
 
 export default function ConsultantContactPage() {
   const { state, update } = useConsultantOnboarding();
@@ -43,96 +49,79 @@ export default function ConsultantContactPage() {
         </p>
       </div>
 
-      <div className="border-border bg-card flex flex-col gap-6 rounded-2xl border p-6 md:p-10">
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <div className="flex flex-col gap-2">
-            <label
-              htmlFor="phone"
-              className="font-geist text-on-surface-variant text-xs font-semibold tracking-[0.05em] uppercase"
-            >
-              Phone
-            </label>
-            <input
-              id="phone"
-              type="tel"
-              value={state.phone}
-              onChange={(e) => update({ phone: e.target.value })}
-              className="bg-muted text-on-surface placeholder:text-on-surface-variant/50 focus:ring-secondary/40 w-full rounded-full border-none px-4 py-2.5 font-sans text-sm focus:ring-2 focus:outline-none"
-            />
-            {errors.phone && <p className="text-destructive text-xs">{errors.phone}</p>}
+      <div className="border-border bg-card rounded-2xl border p-6 md:p-10">
+        <FieldGroup>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <Field data-invalid={!!errors.phone}>
+              <FieldLabel htmlFor="phone" className={LABEL_CLASS}>
+                Phone
+              </FieldLabel>
+              <input
+                id="phone"
+                type="tel"
+                value={state.phone}
+                onChange={(e) => update({ phone: e.target.value })}
+                className={INPUT_CLASS}
+              />
+              <FieldError>{errors.phone}</FieldError>
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="location" className={LABEL_CLASS}>
+                Location <span className="normal-case">(optional)</span>
+              </FieldLabel>
+              <input
+                id="location"
+                value={state.location}
+                onChange={(e) => update({ location: e.target.value })}
+                placeholder="e.g. London, United Kingdom"
+                className={INPUT_CLASS}
+              />
+            </Field>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <label
-              htmlFor="location"
-              className="font-geist text-on-surface-variant text-xs font-semibold tracking-[0.05em] uppercase"
-            >
-              Location <span className="normal-case">(optional)</span>
-            </label>
+          <Field>
+            <FieldLabel htmlFor="clinicAddress" className={LABEL_CLASS}>
+              Clinic address <span className="normal-case">(optional)</span>
+            </FieldLabel>
             <input
-              id="location"
-              value={state.location}
-              onChange={(e) => update({ location: e.target.value })}
-              placeholder="e.g. London, United Kingdom"
-              className="bg-muted text-on-surface placeholder:text-on-surface-variant/50 focus:ring-secondary/40 w-full rounded-full border-none px-4 py-2.5 font-sans text-sm focus:ring-2 focus:outline-none"
+              id="clinicAddress"
+              value={state.clinicAddress}
+              onChange={(e) => update({ clinicAddress: e.target.value })}
+              className={INPUT_CLASS}
             />
-          </div>
-        </div>
+          </Field>
 
-        <div className="flex flex-col gap-2">
-          <label
-            htmlFor="clinicAddress"
-            className="font-geist text-on-surface-variant text-xs font-semibold tracking-[0.05em] uppercase"
-          >
-            Clinic address <span className="normal-case">(optional)</span>
-          </label>
-          <input
-            id="clinicAddress"
-            value={state.clinicAddress}
-            onChange={(e) => update({ clinicAddress: e.target.value })}
-            className="bg-muted text-on-surface placeholder:text-on-surface-variant/50 focus:ring-secondary/40 w-full rounded-full border-none px-4 py-2.5 font-sans text-sm focus:ring-2 focus:outline-none"
-          />
-        </div>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <Field data-invalid={!!errors.linkedinUrl}>
+              <FieldLabel htmlFor="linkedinUrl" className={LABEL_CLASS}>
+                LinkedIn <span className="normal-case">(optional)</span>
+              </FieldLabel>
+              <input
+                id="linkedinUrl"
+                value={state.linkedinUrl}
+                onChange={(e) => update({ linkedinUrl: e.target.value })}
+                placeholder="https://linkedin.com/in/…"
+                className={INPUT_CLASS}
+              />
+              <FieldError>{errors.linkedinUrl}</FieldError>
+            </Field>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <div className="flex flex-col gap-2">
-            <label
-              htmlFor="linkedinUrl"
-              className="font-geist text-on-surface-variant text-xs font-semibold tracking-[0.05em] uppercase"
-            >
-              LinkedIn <span className="normal-case">(optional)</span>
-            </label>
-            <input
-              id="linkedinUrl"
-              value={state.linkedinUrl}
-              onChange={(e) => update({ linkedinUrl: e.target.value })}
-              placeholder="https://linkedin.com/in/…"
-              className="bg-muted text-on-surface placeholder:text-on-surface-variant/50 focus:ring-secondary/40 w-full rounded-full border-none px-4 py-2.5 font-sans text-sm focus:ring-2 focus:outline-none"
-            />
-            {errors.linkedinUrl && (
-              <p className="text-destructive text-xs">{errors.linkedinUrl}</p>
-            )}
+            <Field data-invalid={!!errors.portfolioUrl}>
+              <FieldLabel htmlFor="portfolioUrl" className={LABEL_CLASS}>
+                Portfolio <span className="normal-case">(optional)</span>
+              </FieldLabel>
+              <input
+                id="portfolioUrl"
+                value={state.portfolioUrl}
+                onChange={(e) => update({ portfolioUrl: e.target.value })}
+                placeholder="https://…"
+                className={INPUT_CLASS}
+              />
+              <FieldError>{errors.portfolioUrl}</FieldError>
+            </Field>
           </div>
-
-          <div className="flex flex-col gap-2">
-            <label
-              htmlFor="portfolioUrl"
-              className="font-geist text-on-surface-variant text-xs font-semibold tracking-[0.05em] uppercase"
-            >
-              Portfolio <span className="normal-case">(optional)</span>
-            </label>
-            <input
-              id="portfolioUrl"
-              value={state.portfolioUrl}
-              onChange={(e) => update({ portfolioUrl: e.target.value })}
-              placeholder="https://…"
-              className="bg-muted text-on-surface placeholder:text-on-surface-variant/50 focus:ring-secondary/40 w-full rounded-full border-none px-4 py-2.5 font-sans text-sm focus:ring-2 focus:outline-none"
-            />
-            {errors.portfolioUrl && (
-              <p className="text-destructive text-xs">{errors.portfolioUrl}</p>
-            )}
-          </div>
-        </div>
+        </FieldGroup>
       </div>
     </OnboardingShell>
   );

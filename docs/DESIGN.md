@@ -3,46 +3,51 @@ name: Skinlytics
 # Tokens are the machine-readable source of truth. Values below are normalized to the
 # brand palette described in prose (Deep Navy / Royal Blue / Teal). v2 adds: dark theme,
 # glass, elevation, motion. v3 (Skin Intelligence System) replaces the dark theme with an
-# authoritative palette — the light theme is unchanged. Frontend maps these onto shadcn
-# CSS variables (see §10).
+# authoritative palette — the light theme is unchanged. v4 (Milestone 1 foundation
+# expansion, Branch 7) is a targeted rebalance of the *light* theme only: neutrals move
+# from Tailwind's blue-tinted "slate" scale to the near-hueless "zinc" scale (cool cast
+# removed, same lightness tiers), and secondary/success/warning/error each step down one
+# notch of saturation from their vibrant Tailwind "600" shades. Brand hues (Navy/Blue/
+# Teal), the dark theme, and the score bands are unchanged — this is not a repaint.
+# Frontend maps these onto shadcn CSS variables (see §10).
 colors:
-  surface: '#f7f9fb'
-  surface-dim: '#e2e6ec'
+  surface: '#fafafa'
+  surface-dim: '#e9e9eb'
   surface-bright: '#ffffff'
   surface-container-lowest: '#ffffff'
-  surface-container-low: '#f1f4f8'
-  surface-container: '#eaeef4'
-  surface-container-high: '#e2e8f0'
-  surface-container-highest: '#d9e0ea'
-  on-surface: '#0f172a'
-  on-surface-variant: '#475569'
-  inverse-surface: '#0f172a'
-  inverse-on-surface: '#f1f5f9'
-  outline: '#64748b'
-  outline-variant: '#cbd5e1'
-  surface-tint: '#2563eb'
+  surface-container-low: '#f4f4f5'
+  surface-container: '#ededef'
+  surface-container-high: '#e4e4e7'
+  surface-container-highest: '#d9d9dc'
+  on-surface: '#1f1f22'
+  on-surface-variant: '#52525b'
+  inverse-surface: '#1f1f22'
+  inverse-on-surface: '#f4f4f5'
+  outline: '#71717a'
+  outline-variant: '#d4d4d8'
+  surface-tint: '#2f5fd6'
   primary: '#0f172a'
   on-primary: '#ffffff'
   primary-container: '#1e293b'
   on-primary-container: '#e2e8f0'
   inverse-primary: '#93c5fd'
-  secondary: '#2563eb'
+  secondary: '#2f5fd6'
   on-secondary: '#ffffff'
-  secondary-container: '#dbeafe'
-  on-secondary-container: '#1e3a8a'
+  secondary-container: '#dce6fa'
+  on-secondary-container: '#1e3a6e'
   tertiary: '#14b8a6'
   on-tertiary: '#042f2e'
   tertiary-container: '#ccfbf1'
   on-tertiary-container: '#0f766e'
-  success: '#059669'
-  warning: '#d97706'
-  error: '#dc2626'
+  success: '#0d8a6e'
+  warning: '#c1740a'
+  error: '#c33838'
   on-error: '#ffffff'
-  error-container: '#fee2e2'
-  on-error-container: '#991b1b'
-  background: '#f7f9fb'
-  on-background: '#0f172a'
-  surface-variant: '#e2e8f0'
+  error-container: '#fbe4e4'
+  on-error-container: '#8a2a2a'
+  background: '#fafafa'
+  on-background: '#1f1f22'
+  surface-variant: '#e4e4e7'
 # colors-dark v3 "Skin Intelligence System" — Deep Diagnostic Suite. Full authoritative
 # palette (supersedes the v2 mechanically-derived extension tokens flagged in
 # PROGRESS.md's Known Issues). success/warning aren't redefined by v3 — kept from v2.
@@ -210,11 +215,12 @@ strictly **gender-neutral** in palette, imagery, and copy.
 
 Glassmorphism gives the interface dimensionality and a "looking through the instrument"
 quality — but glass is used with lab discipline: it frames data, it never sits under it.
-In light mode this reads as polished laboratory glassware over a quiet slate bench:
-precise, layered, light — the "Airy Lab." **v3's dark theme is the same instrument at
-night**: the "Deep Diagnostic Suite," a high-end night-time scan — quiet, authoritative,
-focused, leaning on heavy "darkspace" rather than whitespace to hold the same reduced
-cognitive load.
+In light mode this reads as polished laboratory glassware over a quiet neutral bench:
+precise, layered, light — the "Airy Lab" (v4: the bench itself moved off a blue-tinted
+slate onto a true neutral gray, per Branch 7's targeted rebalance below — still quiet,
+no longer reading cool). **v3's dark theme is the same instrument at night**: the "Deep
+Diagnostic Suite," a high-end night-time scan — quiet, authoritative, focused, leaning
+on heavy "darkspace" rather than whitespace to hold the same reduced cognitive load.
 
 ## 2. Color system
 
@@ -225,23 +231,36 @@ Three brand hues with distinct jobs, on a neutral foundation:
   itself shifts to a soft lavender-grey (`#BEC6E0`) for visibility on near-black
   surfaces — navy moves to `primary-container`, still the brand's anchor color, just no
   longer the highest-contrast one.
-- **Royal Blue `#2563EB` — secondary.** High-intent navigation, links, focus rings,
-  interactive states, chart series A. Dark mode brightens this to a periwinkle
-  `#B4C5FF` for the same reason primary shifts.
+- **Royal Blue `#2F5FD6` (light) / `#B4C5FF` (dark) — secondary.** High-intent
+  navigation, links, focus rings, interactive states, chart series A. v4 (Branch 7):
+  light mode's shade steps down one notch of saturation from the original `#2563EB` —
+  same hue, reads as calm confirmation rather than alert-level intensity; dark mode's
+  periwinkle is unchanged (already soft against near-black).
 - **Teal `#14B8A6` — tertiary, "data-active."** Reserved for AI processing states, positive
   skin metrics, healthy selections, chart series B. Teal appearing means "the intelligence
-  layer is speaking." Dark mode: `#4FDBC8`.
+  layer is speaking." Dark mode: `#4FDBC8`. Untouched by Branch 7 — score bands and the
+  Score Ring stay exactly as designed.
 
-Semantic set (light): success `#059669`, warning `#D97706`, error `#DC2626`, info = Royal
-Blue. Semantic set (dark): success `#34D399`, warning `#FBBF24`, error `#FFB4AB`.
-**Score bands** (Skin Health Score 0–100, theme-invariant): 80–100 Teal · 60–79 Royal Blue
-· 40–59 Amber `#F59E0B` · 0–39 Red `#EF4444`.
+Semantic set (light, v4): success `#0D8A6E`, warning `#C1740A`, error `#C33838`, info =
+Royal Blue — each one notch less saturated than the original Tailwind "600" shade it came
+from (`#059669`/`#D97706`/`#DC2626`), same reasoning as secondary above. Semantic set
+(dark, unchanged): success `#34D399`, warning `#FBBF24`, error `#FFB4AB` — already soft
+enough against near-black that Branch 7 left them alone.
+**Score bands** (Skin Health Score 0–100, theme-invariant, unchanged by Branch 7): 80–100
+Teal · 60–79 Royal Blue (the score-band reference, not the rebalanced secondary shade
+above — score bands are fixed diagnostic colors) · 40–59 Amber `#F59E0B` · 0–39 Red
+`#EF4444`.
 
 Neutrals are the tiered surface tokens: `background` → `surface-container-*` tiers
 distinguish page, grouping, and module layers **tonally**, so depth rarely needs shadows.
-**Dark mode (v3) is a true near-black neutral ramp** (`#131315` base, not a navy-tinted
-one) — navy is now reserved specifically for `primary-container`, a deliberate accent
-rather than the ambient surface color.
+**Light mode (v4, Branch 7)** moved off Tailwind's blue-tinted "slate" scale onto the
+near-hueless "zinc" scale — same lightness tiers (`surface` `#FAFAFA` → `surface-
+container-highest` `#D9D9DC`), the cool cast removed; `on-surface` also eased off pure
+near-black navy (`#0F172A`, shared with `primary`) to a warmer near-black (`#1F1F22`),
+so body text is no longer the identical tone as primary-brand emphasis. **Dark mode (v3)
+is a true near-black neutral ramp** (`#131315` base, not a navy-tinted one) — navy is now
+reserved specifically for `primary-container`, a deliberate accent rather than the
+ambient surface color; Branch 7 didn't touch dark mode's neutrals, only light's.
 
 Contrast floor: body text ≥ 4.5:1, large text and UI glyphs ≥ 3:1 — **measured against the
 effective backdrop, including glass surfaces** (see §3 guardrails).

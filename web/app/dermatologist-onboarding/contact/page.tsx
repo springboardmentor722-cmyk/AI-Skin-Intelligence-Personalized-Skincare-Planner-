@@ -3,8 +3,14 @@
 import { useState } from "react";
 
 import { OnboardingShell } from "@/components/dermatologist-onboarding/onboarding-shell";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { useDermatologistOnboarding } from "@/lib/dermatologist-onboarding/context";
 import { dermatologistContactSchema } from "@/lib/schemas/dermatologist-onboarding";
+
+const LABEL_CLASS =
+  "font-geist text-on-surface-variant text-xs font-semibold tracking-[0.05em] uppercase";
+const INPUT_CLASS =
+  "bg-muted text-on-surface placeholder:text-on-surface-variant/50 focus:ring-secondary/40 w-full rounded-full border-none px-4 py-2.5 font-sans text-sm focus:ring-2 focus:outline-none";
 
 export default function DermatologistContactPage() {
   const { state, update } = useDermatologistOnboarding();
@@ -38,41 +44,37 @@ export default function DermatologistContactPage() {
         </p>
       </div>
 
-      <div className="border-border bg-card flex flex-col gap-6 rounded-2xl border p-6 md:p-10">
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <div className="flex flex-col gap-2">
-            <label
-              htmlFor="phone"
-              className="font-geist text-on-surface-variant text-xs font-semibold tracking-[0.05em] uppercase"
-            >
-              Phone
-            </label>
-            <input
-              id="phone"
-              type="tel"
-              value={state.phone}
-              onChange={(e) => update({ phone: e.target.value })}
-              className="bg-muted text-on-surface placeholder:text-on-surface-variant/50 focus:ring-secondary/40 w-full rounded-full border-none px-4 py-2.5 font-sans text-sm focus:ring-2 focus:outline-none"
-            />
-            {errors.phone && <p className="text-destructive text-xs">{errors.phone}</p>}
-          </div>
+      <div className="border-border bg-card rounded-2xl border p-6 md:p-10">
+        <FieldGroup>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <Field data-invalid={!!errors.phone}>
+              <FieldLabel htmlFor="phone" className={LABEL_CLASS}>
+                Phone
+              </FieldLabel>
+              <input
+                id="phone"
+                type="tel"
+                value={state.phone}
+                onChange={(e) => update({ phone: e.target.value })}
+                className={INPUT_CLASS}
+              />
+              <FieldError>{errors.phone}</FieldError>
+            </Field>
 
-          <div className="flex flex-col gap-2">
-            <label
-              htmlFor="location"
-              className="font-geist text-on-surface-variant text-xs font-semibold tracking-[0.05em] uppercase"
-            >
-              Location <span className="normal-case">(optional)</span>
-            </label>
-            <input
-              id="location"
-              value={state.location}
-              onChange={(e) => update({ location: e.target.value })}
-              placeholder="e.g. Manchester, United Kingdom"
-              className="bg-muted text-on-surface placeholder:text-on-surface-variant/50 focus:ring-secondary/40 w-full rounded-full border-none px-4 py-2.5 font-sans text-sm focus:ring-2 focus:outline-none"
-            />
+            <Field>
+              <FieldLabel htmlFor="location" className={LABEL_CLASS}>
+                Location <span className="normal-case">(optional)</span>
+              </FieldLabel>
+              <input
+                id="location"
+                value={state.location}
+                onChange={(e) => update({ location: e.target.value })}
+                placeholder="e.g. Manchester, United Kingdom"
+                className={INPUT_CLASS}
+              />
+            </Field>
           </div>
-        </div>
+        </FieldGroup>
       </div>
     </OnboardingShell>
   );
