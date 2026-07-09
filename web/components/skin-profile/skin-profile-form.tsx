@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Slider } from "@/components/ui/slider";
 import { TagInput } from "@/components/ui/tag-input";
 import { api } from "@/lib/api";
@@ -83,9 +84,9 @@ export function SkinProfileForm() {
 
   if (skinTypesQuery.isLoading || concernsQuery.isLoading || profileQuery.isLoading) {
     return (
-      <div className="animate-pulse rounded-lg border border-border bg-card p-6">
-        <div className="h-4 w-1/3 rounded bg-muted" />
-        <div className="mt-4 h-24 rounded bg-muted" />
+      <div className="rounded-lg border border-border bg-card p-6">
+        <Skeleton className="h-4 w-1/3" />
+        <Skeleton className="mt-4 h-24 w-full" />
       </div>
     );
   }

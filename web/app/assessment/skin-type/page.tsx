@@ -8,6 +8,7 @@ import { useState } from "react";
 import { AssessmentShell } from "@/components/assessment/assessment-shell";
 import { StateCard } from "@/components/state-card";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAssessment } from "@/lib/assessment/context";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -80,7 +81,7 @@ export default function AssessmentSkinTypePage() {
       {query.isLoading ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="bg-muted h-64 animate-pulse rounded-xl" />
+            <Skeleton key={i} className="h-64 w-full rounded-xl" />
           ))}
         </div>
       ) : query.isError ? (

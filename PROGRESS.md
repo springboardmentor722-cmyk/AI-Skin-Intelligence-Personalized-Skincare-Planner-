@@ -694,6 +694,14 @@ scoring/recs) is the natural next milestone.
     remaining screens not yet reviewed (auth screens, admin/consultant/dermatologist
     stubs), broader Tabs/Data Table/Calendar adoption where applicable. Flagged rather
     than rushed.
+- ✔ Skeleton loading states consolidated onto shadcn's `Skeleton` — `Skeleton` itself
+  was already installed and used on Dashboard/Recommendations/Progress; audited for
+  remaining hand-rolled `animate-pulse` divs duplicating it and found 3: assessment
+  skin-type's and concerns' loading grids, and `skin-profile-form.tsx`'s whole-form
+  loading state. Replaced all three — same visual pulse animation, one shared
+  component instead of four different hand-typed copies of `animate-pulse rounded-xl
+  bg-muted`. Verified live (Playwright, caught mid-load): all three render identically
+  to before. `npm run {lint,typecheck,build}` clean.
 
 ## Partially Completed
 

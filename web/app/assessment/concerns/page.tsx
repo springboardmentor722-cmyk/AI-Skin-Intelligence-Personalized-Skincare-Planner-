@@ -7,6 +7,7 @@ import { ListChecks, RotateCw, TriangleAlert, X } from "lucide-react";
 import { AssessmentShell } from "@/components/assessment/assessment-shell";
 import { StateCard } from "@/components/state-card";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAssessment, type AssessmentConcernPriority } from "@/lib/assessment/context";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -83,7 +84,7 @@ export default function AssessmentConcernsPage() {
           {query.isLoading ? (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {Array.from({ length: 9 }).map((_, i) => (
-                <div key={i} className="bg-muted h-24 animate-pulse rounded-xl" />
+                <Skeleton key={i} className="h-24 w-full rounded-xl" />
               ))}
             </div>
           ) : query.isError ? (
