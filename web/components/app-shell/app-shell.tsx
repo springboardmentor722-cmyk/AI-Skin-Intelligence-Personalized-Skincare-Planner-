@@ -24,7 +24,7 @@ interface AppShellProps {
 export function AppShell({ role, userName, title, children }: AppShellProps) {
   return (
     <SidebarProvider>
-      <AppSidebar role={role} />
+      <AppSidebar role={role} userName={userName} />
       <SidebarInset>
         <GlassTopbar title={title} role={role} userName={userName} />
         <main className="flex-1 p-8">{children}</main>

@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { Bell, LogOut, Search, Settings, SunMedium } from "lucide-react";
 
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,7 +25,9 @@ import {
 } from "@/components/ui/command";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { authClient } from "@/lib/auth-client";
 import { NAV_ITEMS, ROLE_LABELS, type Role } from "@/lib/nav-config";
+import { useCurrentUser } from "@/lib/use-current-user";
 
 interface GlassTopbarProps {
   role: Role;
@@ -39,12 +42,21 @@ interface GlassTopbarProps {
 // invented data, just an explicit "—" until the real endpoint exists.
 export function GlassTopbar({ role, userName, title }: GlassTopbarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [searchOpen, setSearchOpen] = useState(false);
+  const user = useCurrentUser(userName);
 
   const pageTitle =
     title ??
     NAV_ITEMS[role].find((item) => pathname.startsWith(item.href))?.label ??
     "";
+
+  const settingsHref = NAV_ITEMS[role].find((item) => item.label === "Settings")?.href;
+
+  const handleSignOut = async () => {
+    await authClient.signOut();
+    router.push("/login");
+  };
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -106,13 +118,9 @@ export function GlassTopbar({ role, userName, title }: GlassTopbarProps) {
                   className="hover:bg-muted flex items-center gap-2 rounded-full py-1 pr-2 pl-1 transition-colors"
                 >
                   <Avatar className="size-7">
+                    {user.image && <AvatarImage src={user.image} alt={user.name} />}
                     <AvatarFallback className="font-geist text-xs">
-                      {userName
-                        .split(" ")
-                        .map((part) => part[0])
-                        .join("")
-                        .slice(0, 2)
-                        .toUpperCase()}
+                      {user.initials}
                     </AvatarFallback>
                   </Avatar>
                 </button>
@@ -126,7 +134,7 @@ export function GlassTopbar({ role, userName, title }: GlassTopbarProps) {
                 <DropdownMenuLabel>
                   <div className="flex flex-col">
                     <span className="text-on-surface font-sans text-sm font-medium">
-                      {userName}
+                      {user.name}
                     </span>
                     <span className="font-geist text-on-surface-variant text-xs">
                       {ROLE_LABELS[role]}
@@ -135,11 +143,13 @@ export function GlassTopbar({ role, userName, title }: GlassTopbarProps) {
                 </DropdownMenuLabel>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <Settings className="size-4" strokeWidth={1.5} />
-                Settings
-              </DropdownMenuItem>
-              <DropdownMenuItem variant="destructive">
+              {settingsHref && (
+                <DropdownMenuItem render={<Link href={settingsHref} />}>
+                  <Settings className="size-4" strokeWidth={1.5} />
+                  Settings
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem variant="destructive" onClick={handleSignOut}>
                 <LogOut className="size-4" strokeWidth={1.5} />
                 Sign out
               </DropdownMenuItem>

@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { NavUser } from "@/components/app-shell/nav-user";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarHeader,
@@ -18,6 +20,7 @@ import { NAV_ITEMS, type Role } from "@/lib/nav-config";
 
 interface AppSidebarProps {
   role: Role;
+  userName: string;
 }
 
 // Built on shadcn's sidebar-07 block primitives (components/ui/sidebar.tsx —
@@ -29,7 +32,7 @@ interface AppSidebarProps {
 // collapsible groups, none of which apply here), Skinlytics branding, and the same
 // active-link logic GlassSidebar used to own. Glass styling lives in ui/sidebar.tsx
 // itself (patched once, so every consumer gets it, not just this one).
-export function AppSidebar({ role }: AppSidebarProps) {
+export function AppSidebar({ role, userName }: AppSidebarProps) {
   const pathname = usePathname();
   const items = NAV_ITEMS[role];
 
@@ -72,6 +75,9 @@ export function AppSidebar({ role }: AppSidebarProps) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <NavUser role={role} fallbackName={userName} />
+      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );

@@ -702,6 +702,41 @@ scoring/recs) is the natural next milestone.
   component instead of four different hand-typed copies of `animate-pulse rounded-xl
   bg-muted`. Verified live (Playwright, caught mid-load): all three render identically
   to before. `npm run {lint,typecheck,build}` clean.
+- ✔ **Bug fix: sign-out did nothing.** Root cause: the account dropdown's "Sign out"
+  `DropdownMenuItem` (`glass-topbar.tsx`) had no `onClick` at all — purely decorative
+  markup, never wired to `authClient.signOut()`. Fixed, plus found and fixed the same
+  "looks clickable, does nothing" bug on the adjacent "Settings" item (now a real `Link`
+  to the role's `/settings` nav entry from `lib/nav-config.ts`). New
+  `lib/use-current-user.ts` (`useCurrentUser`) wraps Better Auth's real
+  `authClient.useSession()`, replacing the hard-coded `userName="Alex Rivera"`-style stub
+  every role layout still passes with the actual signed-in user's name/email/avatar —
+  falls back to that stub name only while the session is loading or genuinely absent.
+  Verified live: sign-out click → `POST .../sign-out` → `200 {"success":true}` →
+  redirects to `/login` (took ~2-3s end to end in this session, not instant — the first
+  Playwright check used too short a wait and looked broken until re-verified with a
+  longer one and real network-response logging).
+- ✔ Sidebar NavUser footer, matching `sidebar-07`'s own pattern (explicitly requested) —
+  new `components/app-shell/nav-user.tsx`: avatar + name + email in the sidebar's
+  bottom-left, `DropdownMenu` with Settings/Sign out, using the same `useCurrentUser`
+  hook and the same real actions as the topbar's account menu (not a second, divergent
+  implementation). Both surfaces now exist — the topbar's account menu already shipped
+  and removing it wasn't asked for, this adds the sidebar-07 position alongside it.
+  Collapses to just the avatar when the sidebar is collapsed to icons via
+  `SidebarMenuButton`'s existing `overflow-hidden`/icon-size classes, no extra markup
+  needed (same mechanism `sidebar-07`'s own `NavUser` relies on). Verified live:
+  dropdown opens with real content, Settings/Sign out both work.
+- ✔ **Bug fix: UI "taking long to render, slower than usual."** Not a code regression —
+  root cause was environmental, accumulated over this very long single session: (1)
+  orphaned `next dev`/`next-server` processes and two orphaned `backend_run.py`
+  (uvicorn) processes left running from earlier verification passes that were never
+  fully killed (confirmed this Claude Code session runs directly on the user's own Mac,
+  not an isolated sandbox — `whoami`/`hostname` both resolved to the real machine — so
+  every imperfectly-cleaned-up dev server from today was a real, resource-consuming
+  process competing for CPU/memory); (2) `web/.next` had bloated to 881 MB from dozens
+  of hot-reload cycles and hard `pkill` kills (not graceful shutdowns) across the
+  session. Killed all stray processes (confirmed via `lsof` that ports 3000/8000 were
+  clear), deleted `.next` entirely (safe, fully regenerable). Verified: a fresh `next
+  dev` now serves `/dashboard` in ~100ms per request, vs. the multi-second feel before.
 
 ## Partially Completed
 
