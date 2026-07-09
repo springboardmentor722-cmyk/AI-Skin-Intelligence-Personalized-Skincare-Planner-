@@ -76,9 +76,11 @@ async def test_me_stays_role_agnostic(client: AsyncClient) -> None:
     # GET /users/me is the one deliberate exception (role-probing endpoint) — every role
     # must be able to call it to learn which dashboard to land on.
     for role in ("user", "consultant", "dermatologist", "admin"):
-        app.dependency_overrides[require_user] = (
-            lambda role=role: {"id": f"{role}_1", "role": role, "claims": {}}
-        )
+        app.dependency_overrides[require_user] = lambda role=role: {
+            "id": f"{role}_1",
+            "role": role,
+            "claims": {},
+        }
         try:
             response = await client.get("/api/v1/users/me")
         finally:
