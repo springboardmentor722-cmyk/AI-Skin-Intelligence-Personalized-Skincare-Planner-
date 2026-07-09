@@ -437,6 +437,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/dermatologist-profiles/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Profile */
+        get: operations["get_my_profile_api_v1_dermatologist_profiles_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update My Profile */
+        patch: operations["update_my_profile_api_v1_dermatologist_profiles_me_patch"];
+        trace?: never;
+    };
+    "/api/v1/dermatologist-profiles/me/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit My Profile */
+        post: operations["submit_my_profile_api_v1_dermatologist_profiles_me_submit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/dermatologist-profiles/me/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List My Documents */
+        get: operations["list_my_documents_api_v1_dermatologist_profiles_me_documents_get"];
+        put?: never;
+        /** Upload My Document */
+        post: operations["upload_my_document_api_v1_dermatologist_profiles_me_documents_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/dermatologist-profiles/me/documents/{document_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete My Document */
+        delete: operations["delete_my_document_api_v1_dermatologist_profiles_me_documents__document_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -477,6 +547,16 @@ export interface components {
         };
         /** Body_upload_my_document_api_v1_consultant_profiles_me_documents_post */
         Body_upload_my_document_api_v1_consultant_profiles_me_documents_post: {
+            /**
+             * Document Type
+             * @enum {string}
+             */
+            document_type: "government_id" | "professional_certificate" | "medical_license" | "supporting_document";
+            /** File */
+            file: string;
+        };
+        /** Body_upload_my_document_api_v1_dermatologist_profiles_me_documents_post */
+        Body_upload_my_document_api_v1_dermatologist_profiles_me_documents_post: {
             /**
              * Document Type
              * @enum {string}
@@ -710,6 +790,108 @@ export interface components {
             created_at: string | null;
             /** Updated At */
             updated_at: string | null;
+        };
+        /** DermatologistProfileRead */
+        DermatologistProfileRead: {
+            /** User Id */
+            user_id: string;
+            /** Profile Image Url */
+            profile_image_url: string | null;
+            /** Medical Registration Number */
+            medical_registration_number: string | null;
+            /** Medical Council */
+            medical_council: string | null;
+            /** Hospital Clinic */
+            hospital_clinic: string | null;
+            /** Years Of Practice */
+            years_of_practice: number | null;
+            /** Degrees */
+            degrees: string[] | null;
+            /** Board Certifications */
+            board_certifications: string[] | null;
+            /** Specializations */
+            specializations: string[] | null;
+            /** Research Interests */
+            research_interests: string | null;
+            /** Professional Biography */
+            professional_biography: string | null;
+            /** Phone */
+            phone: string | null;
+            /** Location */
+            location: string | null;
+            /**
+             * Verification Status
+             * @enum {string}
+             */
+            verification_status: "pending" | "approved" | "rejected" | "more_info_requested" | "suspended" | "deactivated";
+            /** Reviewed By */
+            reviewed_by: string | null;
+            /** Reviewed At */
+            reviewed_at: string | null;
+            /** Rejection Reason */
+            rejection_reason: string | null;
+            /** Submitted At */
+            submitted_at: string | null;
+            /** Created At */
+            created_at: string | null;
+            /** Updated At */
+            updated_at: string | null;
+        };
+        /** DermatologistProfileSubmit */
+        DermatologistProfileSubmit: {
+            /** Medical Registration Number */
+            medical_registration_number: string;
+            /** Medical Council */
+            medical_council: string;
+            /** Hospital Clinic */
+            hospital_clinic?: string | null;
+            /** Years Of Practice */
+            years_of_practice: number;
+            /** Degrees */
+            degrees: string[];
+            /** Board Certifications */
+            board_certifications?: string[] | null;
+            /** Specializations */
+            specializations: string[];
+            /** Research Interests */
+            research_interests?: string | null;
+            /** Professional Biography */
+            professional_biography: string;
+            /** Phone */
+            phone: string;
+            /** Location */
+            location?: string | null;
+        };
+        /**
+         * DermatologistProfileUpdate
+         * @description PATCH — every field optional; only supplied fields change. Never touches
+         *     verification_status (that's the admin review actions' job, admin/router.py).
+         */
+        DermatologistProfileUpdate: {
+            /** Profile Image Url */
+            profile_image_url?: string | null;
+            /** Medical Registration Number */
+            medical_registration_number?: string | null;
+            /** Medical Council */
+            medical_council?: string | null;
+            /** Hospital Clinic */
+            hospital_clinic?: string | null;
+            /** Years Of Practice */
+            years_of_practice?: number | null;
+            /** Degrees */
+            degrees?: string[] | null;
+            /** Board Certifications */
+            board_certifications?: string[] | null;
+            /** Specializations */
+            specializations?: string[] | null;
+            /** Research Interests */
+            research_interests?: string | null;
+            /** Professional Biography */
+            professional_biography?: string | null;
+            /** Phone */
+            phone?: string | null;
+            /** Location */
+            location?: string | null;
         };
         /** EnvironmentalExposure */
         EnvironmentalExposure: {
@@ -1096,6 +1278,22 @@ export interface components {
         };
         /** VerificationDocumentRead */
         app__services__consultant_profile__schemas__VerificationDocumentRead: {
+            /** Document Id */
+            document_id: number;
+            /**
+             * Document Type
+             * @enum {string}
+             */
+            document_type: "government_id" | "professional_certificate" | "medical_license" | "supporting_document";
+            /** Original Filename */
+            original_filename: string | null;
+            /** Uploaded At */
+            uploaded_at: string | null;
+            /** Verified At */
+            verified_at: string | null;
+        };
+        /** VerificationDocumentRead */
+        app__services__dermatologist_profile__schemas__VerificationDocumentRead: {
             /** Document Id */
             document_id: number;
             /**
@@ -1870,6 +2068,174 @@ export interface operations {
         };
     };
     delete_my_document_api_v1_consultant_profiles_me_documents__document_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_my_profile_api_v1_dermatologist_profiles_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DermatologistProfileRead"];
+                };
+            };
+        };
+    };
+    update_my_profile_api_v1_dermatologist_profiles_me_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DermatologistProfileUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DermatologistProfileRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    submit_my_profile_api_v1_dermatologist_profiles_me_submit_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DermatologistProfileSubmit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DermatologistProfileRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_my_documents_api_v1_dermatologist_profiles_me_documents_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["app__services__dermatologist_profile__schemas__VerificationDocumentRead"][];
+                };
+            };
+        };
+    };
+    upload_my_document_api_v1_dermatologist_profiles_me_documents_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_my_document_api_v1_dermatologist_profiles_me_documents_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["app__services__dermatologist_profile__schemas__VerificationDocumentRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_my_document_api_v1_dermatologist_profiles_me_documents__document_id__delete: {
         parameters: {
             query?: never;
             header?: never;

@@ -1,13 +1,396 @@
-// Shell smoke test only — not a designed screen.
-export default function DermatologistDashboardPage() {
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import {
+  BadgeCheck,
+  BarChart3,
+  Clock,
+  FileText,
+  FileWarning,
+  Loader2,
+  Mail,
+  RotateCw,
+  ShieldAlert,
+  Stethoscope,
+  TriangleAlert,
+  Upload,
+  UserRound,
+  X,
+} from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { StateCard } from "@/components/state-card";
+import { seedOnboardingDraft } from "@/lib/dermatologist-onboarding/context";
+import { api } from "@/lib/api";
+import type { components } from "@/lib/api-types";
+
+type DermatologistProfile = components["schemas"]["DermatologistProfileRead"];
+// FastAPI OpenAPI dedup: admin/schemas.py, consultant_profile/schemas.py, and
+// dermatologist_profile/schemas.py each declare a `VerificationDocumentRead` class,
+// so the generated component name is qualified by module path to disambiguate them.
+type VerificationDocument =
+  components["schemas"]["app__services__dermatologist_profile__schemas__VerificationDocumentRead"];
+type DocumentType =
+  components["schemas"]["Body_upload_my_document_api_v1_dermatologist_profiles_me_documents_post"]["document_type"];
+
+const DOCUMENT_TYPES: { value: DocumentType; label: string }[] = [
+  { value: "medical_license", label: "Medical license" },
+  { value: "professional_certificate", label: "Professional certificate" },
+  { value: "government_id", label: "Government ID" },
+  { value: "supporting_document", label: "Supporting document" },
+];
+
+const STATUS_COPY: Record<
+  DermatologistProfile["verification_status"],
+  { title: string; body: string; icon: typeof Clock; tone: "warning" | "destructive" | "success" }
+> = {
+  pending: {
+    title: "Your application is under review",
+    body: "Our team reviews new dermatologist applications within a few business days. You'll be notified once a decision is made.",
+    icon: Clock,
+    tone: "warning",
+  },
+  more_info_requested: {
+    title: "More information needed",
+    body: "Our review team needs a bit more from you before they can continue — see the note below, then edit your profile or upload the missing document.",
+    icon: TriangleAlert,
+    tone: "warning",
+  },
+  rejected: {
+    title: "Your application wasn't approved",
+    body: "See the reviewer's note below. You can update your application and resubmit at any time.",
+    icon: X,
+    tone: "destructive",
+  },
+  suspended: {
+    title: "Your account is suspended",
+    body: "Your dermatologist account has been temporarily suspended. Contact support for details.",
+    icon: ShieldAlert,
+    tone: "destructive",
+  },
+  deactivated: {
+    title: "Your account is deactivated",
+    body: "Your dermatologist account has been deactivated. Contact support if you believe this is a mistake.",
+    icon: ShieldAlert,
+    tone: "destructive",
+  },
+  approved: {
+    title: "You're verified",
+    body: "Your dermatologist account is approved and active.",
+    icon: BadgeCheck,
+    tone: "success",
+  },
+};
+
+const TONE_CLASSES: Record<string, string> = {
+  warning: "bg-warning/10 text-warning",
+  destructive: "bg-destructive/10 text-destructive",
+  success: "bg-success/10 text-success",
+};
+
+const COMING_SOON = [
+  { icon: UserRound, title: "Patients", body: "Patient management is coming in a later milestone." },
+  {
+    icon: FileWarning,
+    title: "Condition reports",
+    body: "Reviewing condition reports is coming in a later milestone.",
+  },
+  {
+    icon: Stethoscope,
+    title: "Treatment plans",
+    body: "Building treatment plans is coming in a later milestone.",
+  },
+  {
+    icon: BarChart3,
+    title: "Analytics",
+    body: "Patient analytics is coming in a later milestone.",
+  },
+];
+
+function ProfileSummaryCard({ profile }: { profile: DermatologistProfile }) {
+  const router = useRouter();
+
+  const editProfile = () => {
+    seedOnboardingDraft({
+      medicalRegistrationNumber: profile.medical_registration_number ?? "",
+      medicalCouncil: profile.medical_council ?? "",
+      hospitalClinic: profile.hospital_clinic ?? "",
+      yearsOfPractice: profile.years_of_practice,
+      degrees: profile.degrees ?? [],
+      boardCertifications: profile.board_certifications ?? [],
+      specializations: profile.specializations ?? [],
+      researchInterests: profile.research_interests ?? "",
+      professionalBiography: profile.professional_biography ?? "",
+      phone: profile.phone ?? "",
+      location: profile.location ?? "",
+    });
+    router.push("/dermatologist-onboarding/background");
+  };
+
+  const rows: [string, string][] = [
+    ["Medical registration number", profile.medical_registration_number ?? "—"],
+    ["Medical council", profile.medical_council ?? "—"],
+    ["Hospital / clinic", profile.hospital_clinic ?? "—"],
+    ["Years of practice", profile.years_of_practice?.toString() ?? "—"],
+    ["Degrees", profile.degrees?.join(", ") || "—"],
+    ["Specializations", profile.specializations?.join(", ") || "—"],
+    ["Phone", profile.phone ?? "—"],
+    ["Location", profile.location ?? "—"],
+  ];
+
   return (
-    <div className="border-border bg-card rounded-lg border p-6">
-      <h2 className="font-heading text-card-foreground text-base font-semibold">
-        Dermatologist dashboard
+    <div className="border-border bg-card flex flex-col gap-4 rounded-2xl border p-6">
+      <div className="flex items-center justify-between">
+        <h2 className="font-heading text-on-surface text-base font-semibold">Your profile</h2>
+        <Button variant="outline" size="sm" onClick={editProfile}>
+          Edit profile
+        </Button>
+      </div>
+      <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {rows.map(([label, value]) => (
+          <div key={label} className="flex flex-col gap-0.5">
+            <dt className="text-on-surface-variant font-geist text-[11px] font-semibold tracking-[0.05em] uppercase">
+              {label}
+            </dt>
+            <dd className="text-on-surface font-sans text-sm break-words">{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
+
+function DocumentsCard() {
+  const queryClient = useQueryClient();
+  const [documentType, setDocumentType] = useState<DocumentType>("medical_license");
+  const [file, setFile] = useState<File | null>(null);
+
+  const documentsQuery = useQuery({
+    queryKey: ["dermatologist-profile", "me", "documents"],
+    queryFn: async () => {
+      const { data } = await api.GET("/api/v1/dermatologist-profiles/me/documents");
+      return data ?? [];
+    },
+  });
+
+  const uploadMutation = useMutation({
+    mutationFn: async () => {
+      if (!file) return;
+      const formData = new FormData();
+      formData.append("document_type", documentType);
+      formData.append("file", file);
+      const { data, error } = await api.POST("/api/v1/dermatologist-profiles/me/documents", {
+        // openapi-fetch passes FormData through untouched (no JSON serialization,
+        // browser sets the multipart boundary itself).
+        body: formData as unknown as never,
+      });
+      if (error) throw new Error("Upload failed");
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Document uploaded");
+      setFile(null);
+      queryClient.invalidateQueries({ queryKey: ["dermatologist-profile", "me", "documents"] });
+    },
+    onError: () => toast.error("Couldn't upload that document. Try again."),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (documentId: number) => {
+      const { error } = await api.DELETE(
+        "/api/v1/dermatologist-profiles/me/documents/{document_id}",
+        { params: { path: { document_id: documentId } } }
+      );
+      if (error) throw new Error("Delete failed");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dermatologist-profile", "me", "documents"] });
+    },
+    onError: () => toast.error("Couldn't remove that document. Try again."),
+  });
+
+  const documents: VerificationDocument[] = documentsQuery.data ?? [];
+
+  return (
+    <div className="border-border bg-card flex flex-col gap-4 rounded-2xl border p-6">
+      <h2 className="font-heading text-on-surface text-base font-semibold">
+        Verification documents
       </h2>
-      <p className="text-muted-foreground mt-2 font-sans text-sm">
-        App shell smoke test — this screen isn&apos;t built yet.
-      </p>
+
+      {documentsQuery.isLoading ? (
+        <Skeleton className="h-16 w-full rounded-lg" />
+      ) : documents.length === 0 ? (
+        <p className="text-on-surface-variant font-sans text-sm">No documents uploaded yet.</p>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {documents.map((doc) => (
+            <li
+              key={doc.document_id}
+              className="bg-muted flex items-center justify-between rounded-lg px-4 py-2.5"
+            >
+              <div className="flex items-center gap-2">
+                <FileText className="text-on-surface-variant size-4" strokeWidth={1.5} />
+                <span className="font-sans text-sm">{doc.original_filename}</span>
+                <span className="text-on-surface-variant font-sans text-xs">
+                  ({DOCUMENT_TYPES.find((t) => t.value === doc.document_type)?.label})
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => deleteMutation.mutate(doc.document_id)}
+                disabled={deleteMutation.isPending}
+                className="text-on-surface-variant hover:text-destructive"
+                aria-label={`Remove ${doc.original_filename}`}
+              >
+                <X className="size-4" strokeWidth={1.5} />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="border-border flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-end">
+        <div className="flex flex-1 flex-col gap-1.5">
+          <label className="font-geist text-on-surface-variant text-xs font-semibold tracking-[0.05em] uppercase">
+            Document type
+          </label>
+          <select
+            value={documentType}
+            onChange={(e) => setDocumentType(e.target.value as DocumentType)}
+            className="bg-muted text-on-surface focus:ring-secondary/40 w-full rounded-full border-none px-4 py-2.5 font-sans text-sm focus:ring-2 focus:outline-none"
+          >
+            {DOCUMENT_TYPES.map((t) => (
+              <option key={t.value} value={t.value}>
+                {t.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex flex-1 flex-col gap-1.5">
+          <label className="font-geist text-on-surface-variant text-xs font-semibold tracking-[0.05em] uppercase">
+            File
+          </label>
+          <input
+            type="file"
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            className="text-on-surface-variant font-sans text-sm"
+          />
+        </div>
+        <Button
+          onClick={() => uploadMutation.mutate()}
+          disabled={!file || uploadMutation.isPending}
+        >
+          {uploadMutation.isPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Upload className="size-4" strokeWidth={1.5} />
+          )}
+          Upload
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+export default function DermatologistDashboardPage() {
+  const profileQuery = useQuery({
+    queryKey: ["dermatologist-profile", "me"],
+    queryFn: async () => {
+      const { data, error } = await api.GET("/api/v1/dermatologist-profiles/me");
+      if (error) throw new Error("Failed to load profile");
+      return data;
+    },
+  });
+
+  if (profileQuery.isLoading) {
+    return (
+      <div className="flex flex-col gap-6">
+        <Skeleton className="h-24 w-full rounded-2xl" />
+        <Skeleton className="h-64 w-full rounded-2xl" />
+      </div>
+    );
+  }
+
+  if (profileQuery.isError || !profileQuery.data) {
+    return (
+      <StateCard
+        tone="destructive"
+        icon={TriangleAlert}
+        description="Couldn't load your profile."
+        action={
+          <Button variant="outline" onClick={() => profileQuery.refetch()}>
+            <RotateCw className="size-4" strokeWidth={1.5} />
+            Retry
+          </Button>
+        }
+      />
+    );
+  }
+
+  const profile = profileQuery.data;
+  const status = STATUS_COPY[profile.verification_status];
+  const isApproved = profile.verification_status === "approved";
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="border-border bg-card flex items-start gap-4 rounded-2xl border p-6">
+        <div className={`rounded-full p-2.5 ${TONE_CLASSES[status.tone]}`}>
+          <status.icon className="size-5" strokeWidth={1.5} />
+        </div>
+        <div>
+          <h1 className="font-heading text-on-surface text-lg font-semibold">{status.title}</h1>
+          <p className="text-on-surface-variant mt-1 font-sans text-sm">{status.body}</p>
+          {profile.rejection_reason && (
+            <p className="bg-muted text-on-surface mt-3 rounded-lg p-3 font-sans text-sm">
+              <strong className="font-semibold">Reviewer note:</strong>{" "}
+              {profile.rejection_reason}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <ProfileSummaryCard profile={profile} />
+
+      {!isApproved && <DocumentsCard />}
+
+      {isApproved && (
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {COMING_SOON.map((item) => (
+            <div
+              key={item.title}
+              className="border-border bg-card rounded-2xl border border-dashed p-6 text-center"
+            >
+              <item.icon
+                className="text-on-surface-variant/40 mx-auto mb-3 size-7"
+                strokeWidth={1.5}
+              />
+              <h3 className="font-heading text-on-surface text-sm font-semibold">
+                {item.title}
+              </h3>
+              <p className="text-on-surface-variant mt-1 font-sans text-xs">{item.body}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="border-border bg-card flex items-center justify-between rounded-2xl border p-4">
+        <div className="flex items-center gap-2">
+          <Mail className="text-on-surface-variant size-4" strokeWidth={1.5} />
+          <span className="text-on-surface-variant font-sans text-sm">
+            Need help with your application?
+          </span>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          nativeButton={false}
+          render={<a href="mailto:support@skinlytics.app">Contact support</a>}
+        />
+      </div>
     </div>
   );
 }

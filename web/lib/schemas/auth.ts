@@ -16,12 +16,12 @@ export type LoginValues = z.infer<typeof loginSchema>;
 // "Registration", every new account still defaults to role `user` at signup
 // (Better Auth's defaultRole, lib/auth.ts) — this field is never sent to Better
 // Auth's signUp.email call itself, so the *account* never self-escalates its own
-// role at signup. What it *does* drive (Branch 4, docs/DECISIONS.md) is the
-// post-signup redirect: a Consultant applicant goes straight to
-// /consultant-onboarding, whose own submission is what actually flips the role
-// (app/api/consultant-onboarding/submit/route.ts) — a real, reviewed, self-service
-// transition, just not this field/call. Dermatologist has no onboarding wizard yet
-// (Branch 5) and still redirects to /assessment like a plain user.
+// role at signup. What it *does* drive (Branch 4/5, docs/DECISIONS.md) is the
+// post-signup redirect: a Consultant/Dermatologist applicant goes straight to their
+// own onboarding wizard (/consultant-onboarding or /dermatologist-onboarding), whose
+// own submission is what actually flips the role
+// (app/api/{consultant,dermatologist}-onboarding/submit/route.ts) — a real,
+// reviewed, self-service transition, just not this field/call.
 export const SIGNUP_ROLES = ["user", "consultant", "dermatologist"] as const;
 
 export const signupSchema = z

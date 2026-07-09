@@ -80,7 +80,7 @@ containers at M4 (ADR-005). All routes mount under **`/api/v1`** from day one (A
 M1 runtime = docker-compose: `web`, `api`, `postgres`, `mongo`, `redis`, `elasticsearch`,
 `minio` (S3-compatible dev), `worker` (arq, ADR-010).
 
-## 4. Microservices (13)
+## 4. Microservices (14)
 
 FastAPI packages under `backend/app/services/<name>/` (`router.py · service.py ·
 schemas.py · models.py · deps.py`). Single-writer rule: each fact has exactly one owning
@@ -101,6 +101,7 @@ service; everything else reads via interfaces or consumes derived projections.
 | 11 | **Report** | S3 `/exports/`, `/reports/`; PG report registry | all via interfaces | `/reports` |
 | 12 | **Admin** | platform settings, content mgmt orchestration; PG `verification_documents`, `audit_logs` | everything (admin role); reads `consultant_profiles`/`dermatologist_profiles` for the verification queue | `/admin` |
 | 13 | **Consultant Profile** | PG `consultant_profiles` | Admin service's document/audit-log functions (never its models, ADR-005) | `/consultant-profiles` |
+| 14 | **Dermatologist Profile** | PG `dermatologist_profiles` | Admin service's document/audit-log functions (never its models, ADR-005) | `/dermatologist-profiles` |
 
 Service responsibilities per the diagram: User (management, authentication glue, role &
 profile management) · Skin Profile (profile creation, skin type, lifestyle/sleep/hydration/

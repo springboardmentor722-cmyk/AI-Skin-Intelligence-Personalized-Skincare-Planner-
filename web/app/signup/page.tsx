@@ -120,16 +120,20 @@ export default function SignupPage() {
     }
 
     // New accounts default to role "user" (defaultRole, lib/auth.ts) regardless of
-    // requestedRole — a Consultant applicant goes straight to the onboarding wizard
-    // (Branch 4, docs/DECISIONS.md's professional-verification ADR), which is what
-    // flips the role once their application is actually submitted, not this redirect
-    // itself. Everyone else is sent to the guided assessment wizard first (not the
-    // plain Skin profile form directly), matching docs/WIREFRAMES.md's documented
-    // Registration "success" state (updated 2026-07-09, product-owner decision —
-    // assessment results itself offers "Complete your skin profile" as its own next
-    // step). Dermatologist keeps going to /assessment until its own onboarding wizard
-    // exists (Branch 5) — not wired here to avoid a dead link mid-build.
-    router.push(values.requestedRole === "consultant" ? "/consultant-onboarding" : "/assessment");
+    // requestedRole — a Consultant/Dermatologist applicant goes straight to their own
+    // onboarding wizard (Branch 4/5, docs/DECISIONS.md's professional-verification
+    // ADR), which is what flips the role once their application is actually
+    // submitted, not this redirect itself. A plain "user" is sent to the guided
+    // assessment wizard first (not the plain Skin profile form directly), matching
+    // docs/WIREFRAMES.md's documented Registration "success" state (updated
+    // 2026-07-09, product-owner decision — assessment results itself offers
+    // "Complete your skin profile" as its own next step).
+    const onboardingPath: Record<SignupValues["requestedRole"], string> = {
+      user: "/assessment",
+      consultant: "/consultant-onboarding",
+      dermatologist: "/dermatologist-onboarding",
+    };
+    router.push(onboardingPath[values.requestedRole]);
   };
 
   return (

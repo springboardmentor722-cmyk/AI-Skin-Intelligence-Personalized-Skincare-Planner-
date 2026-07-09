@@ -9,6 +9,7 @@ from app.core.logging import RequestIdMiddleware, configure_logging
 from app.core.rate_limit import RateLimitMiddleware
 from app.services.admin.router import router as admin_router
 from app.services.consultant_profile.router import router as consultant_profile_router
+from app.services.dermatologist_profile.router import router as dermatologist_profile_router
 from app.services.progress.router import router as progress_router
 from app.services.recommendations.router import router as recommendations_router
 from app.services.routines.router import router as routines_router
@@ -70,6 +71,8 @@ def create_app() -> FastAPI:
     api_v1.include_router(admin_router, tags=["admin"])
     # consultant_profile_router already declares prefix="/consultant-profiles".
     api_v1.include_router(consultant_profile_router, tags=["consultant-profiles"])
+    # dermatologist_profile_router already declares prefix="/dermatologist-profiles".
+    api_v1.include_router(dermatologist_profile_router, tags=["dermatologist-profiles"])
     app.include_router(api_v1)
 
     return app
