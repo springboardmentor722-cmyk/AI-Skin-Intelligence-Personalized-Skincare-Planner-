@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.errors import register_exception_handlers
 from app.core.logging import RequestIdMiddleware, configure_logging
+from app.core.rate_limit import RateLimitMiddleware
 from app.services.progress.router import router as progress_router
 from app.services.recommendations.router import router as recommendations_router
 from app.services.routines.router import router as routines_router
@@ -24,9 +25,17 @@ async def lifespan(app: FastAPI):  # type: ignore[no-untyped-def]
 def create_app() -> FastAPI:
     app = FastAPI(title="Skinlytics API", version="0.1.0", lifespan=lifespan)
 
-    # Gateway concerns (docs/ARCHITECTURE.md §3): request-id -> CORS -> rate limit
-    # (lands with the Authentication task, Redis is already wired) -> JWT verify
-    # (per-route, app.core.security) -> validation (per-route Pydantic schemas).
+    # Gateway concerns (docs/ARCHITECTURE.md §3): CORS -> request-id -> rate limit ->
+    # JWT verify (per-route, app.core.security) -> validation (per-route Pydantic
+    # schemas). Starlette's add_middleware() inserts each call at the *front* of the
+    # stack (starlette/applications.py), so the most-recently-added middleware runs
+    # first — added here in reverse of that execution order (RateLimit first, CORS
+    # last) so CORS preflight (OPTIONS) is handled before rate limiting counts it,
+    # and RequestIdMiddleware has already set request_id before RateLimitMiddleware
+    # needs it for a 429's error envelope. Milestone 1 audit: rate limiting was a
+    # reserved comment ("lands with the Authentication task") with nothing actually
+    # wired — Redis was sitting there unused for this.
+    app.add_middleware(RateLimitMiddleware)
     app.add_middleware(RequestIdMiddleware)
     app.add_middleware(
         CORSMiddleware,

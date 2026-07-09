@@ -21,7 +21,7 @@ _STATUS_CODE_NAMES = {
 }
 
 
-def _envelope(
+def error_envelope(
     request: Request, code: str, message: str, details: list[object] | None = None
 ) -> dict[str, object]:
     return {
@@ -39,13 +39,11 @@ def register_exception_handlers(app: FastAPI) -> None:
     # catches routing-level exceptions Starlette raises itself (404 no-route, 405
     # wrong-method) — those are never fastapi.HTTPException instances.
     @app.exception_handler(StarletteHTTPException)
-    async def http_exception_handler(
-        request: Request, exc: StarletteHTTPException
-    ) -> JSONResponse:
+    async def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
         code = _STATUS_CODE_NAMES.get(exc.status_code, "error")
         return JSONResponse(
             status_code=exc.status_code,
-            content=_envelope(request, code, str(exc.detail)),
+            content=error_envelope(request, code, str(exc.detail)),
             headers=exc.headers,
         )
 
@@ -55,7 +53,7 @@ def register_exception_handlers(app: FastAPI) -> None:
     ) -> JSONResponse:
         return JSONResponse(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-            content=_envelope(
+            content=error_envelope(
                 request,
                 "validation_error",
                 "Request validation failed",
@@ -71,5 +69,5 @@ def register_exception_handlers(app: FastAPI) -> None:
         logger.error("unhandled_exception", error=str(exc), exc_info=exc)
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content=_envelope(request, "internal_error", "Something went wrong"),
+            content=error_envelope(request, "internal_error", "Something went wrong"),
         )

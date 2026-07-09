@@ -29,6 +29,12 @@ class Settings(BaseSettings):
     # Redis — sessions, rate limits, caches, arq queues (worker lands M2, ADR-010).
     redis_url: str = "redis://localhost:6379/0"
 
+    # Rate limiting (docs/ARCHITECTURE.md §9 "per-tier rate limits") — one general
+    # fixed-window ceiling per identity (app/core/rate_limit.py), not yet split into
+    # the doc's finer per-endpoint AI-path tier since no AI path does real (expensive)
+    # work yet (ADR-007 stubs are cheap, deterministic computation).
+    rate_limit_per_minute: int = 300
+
     @property
     def sqlalchemy_database_url(self) -> str:
         return self.database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
