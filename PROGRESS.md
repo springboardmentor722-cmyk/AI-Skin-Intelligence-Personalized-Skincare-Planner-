@@ -737,6 +737,19 @@ scoring/recs) is the natural next milestone.
   session. Killed all stray processes (confirmed via `lsof` that ports 3000/8000 were
   clear), deleted `.next` entirely (safe, fully regenerable). Verified: a fresh `next
   dev` now serves `/dashboard` in ~100ms per request, vs. the multi-second feel before.
+- ✔ Signup redirects to Skin assessment, not Skin profile — product-owner decision,
+  2026-07-09. Was intentional, documented behavior (`docs/WIREFRAMES.md`'s Registration
+  spec said "success → Skin profile", matching the code exactly) — user asked why, and
+  on reflection preferred the guided assessment wizard as the actual onboarding step
+  over landing straight on a plain form, since assessment results already offers
+  "Complete your skin profile" as its own next action. Changed `web/app/signup/page.tsx`
+  to `router.push("/assessment")` and updated `docs/WIREFRAMES.md` screen 2 to match —
+  the doc is the source of truth, so it moved with the code, not after it. Login's own
+  "success → Dashboard (or Skin profile if none exists yet)" spec was deliberately left
+  alone — only Registration's target changed, this wasn't asked to extend further.
+  Verified live (Playwright, mocked `/api/auth/sign-up/email` 200 response): full
+  round-trip confirmed — POST fires, 200 returns, client-side navigation lands on
+  `/assessment`. `npm run {lint,typecheck,build}` clean.
 
 ## Partially Completed
 

@@ -108,9 +108,11 @@ export default function SignupPage() {
     }
 
     // New accounts default to role "user" (defaultRole, lib/auth.ts) regardless of
-    // requestedRole — sent to skin profile setup first, matching
-    // docs/WIREFRAMES.md's documented Registration "success" state.
-    router.push("/profile");
+    // requestedRole — sent to the guided assessment wizard first (not the plain Skin
+    // profile form directly), matching docs/WIREFRAMES.md's documented Registration
+    // "success" state (updated 2026-07-09, product-owner decision — assessment results
+    // itself offers "Complete your skin profile" as its own next step).
+    router.push("/assessment");
   };
 
   return (

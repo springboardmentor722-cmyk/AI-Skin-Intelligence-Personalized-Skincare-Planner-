@@ -59,7 +59,9 @@ Open `web/design/wireframes/index.html` to browse all seven.
 - **Rules:** submit disabled until consent checked (skin photos are sensitive data —
   `SUGGESTIONS.md` P0); password rules inline; email-taken handled inline.
 - **States:** default · email taken · password mismatch · consent unchecked · loading ·
-  success → Skin profile.
+  success → Skin assessment (screen 5) — the guided wizard, not the plain Skin profile
+  form directly (product-owner decision, 2026-07-09; was "→ Skin profile" originally).
+  Assessment results' own "Complete your skin profile" CTA is what leads to screen 4.
 - **Accept:** consent stored with timestamp + policy version; no account without consent.
 
 ## 3. User dashboard
