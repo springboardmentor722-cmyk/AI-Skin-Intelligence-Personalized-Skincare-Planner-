@@ -12,6 +12,7 @@ from app.db.redis import get_redis
 from app.services.recommendations.service import (
     get_products_by_ids,
     get_recommendations,
+    list_all_products,
     list_concern_ids_for_products,
     list_products_for_skin_type,
 )
@@ -112,3 +113,15 @@ async def test_saving_a_new_profile_invalidates_the_recommendation_cache(
     )
 
     assert await get_redis().get(f"recommendation:cache:{test_user_id}") is None
+
+
+async def test_list_all_products_paginates_over_real_seeded_data(
+    db_session: AsyncSession,
+) -> None:
+    page_one, total = await list_all_products(db_session, page=1, page_size=2)
+
+    assert total >= len(page_one)
+    assert len(page_one) <= 2
+    if total > 2:
+        page_two, _total = await list_all_products(db_session, page=2, page_size=2)
+        assert {p.product_id for p in page_one}.isdisjoint({p.product_id for p in page_two})

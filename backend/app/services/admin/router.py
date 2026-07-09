@@ -8,9 +8,14 @@ from app.db.postgres import get_db
 from app.services.admin import service
 from app.services.admin.schemas import (
     AuditLogCreate,
+    AuditLogPage,
     AuditLogRead,
     ConsultantProfileDetail,
+    DashboardStats,
     DermatologistProfileDetail,
+    DocumentViewUrl,
+    IngredientPage,
+    ProductPage,
     ProfessionalRole,
     VerificationActionRequest,
     VerificationActionWithReasonRequest,
@@ -18,6 +23,8 @@ from app.services.admin.schemas import (
     VerificationQueuePage,
     VerificationReviewDetail,
 )
+from app.services.ingredients import service as ingredients_service
+from app.services.recommendations import service as recommendations_service
 
 router = APIRouter(prefix="/admin")
 
@@ -63,6 +70,20 @@ async def get_verification_review(
         profile=schema_cls.model_validate(profile),
         documents=[VerificationDocumentRead.model_validate(doc) for doc in documents],
     )
+
+
+@router.get("/verification-queue/{role}/{user_id}/documents/{document_id}/url")
+async def get_verification_document_url(
+    role: ProfessionalRole,
+    user_id: str,
+    document_id: int,
+    admin: Annotated[dict[str, Any], Depends(require_role("admin"))],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> DocumentViewUrl:
+    url = await service.get_document_view_url(db, owner_user_id=user_id, document_id=document_id)
+    if url is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "No such document")
+    return DocumentViewUrl(url=url)
 
 
 async def _run_action(
@@ -171,11 +192,67 @@ async def create_audit_log(
     )
     await db.commit()
     await db.refresh(entry)
-    return AuditLogRead(
-        audit_log_id=entry.audit_log_id,
-        actor_user_id=entry.actor_user_id,
-        action=entry.action,
-        target_type=entry.target_type,
-        target_id=entry.target_id,
-        created_at=entry.created_at,
+    return AuditLogRead.model_validate(entry)
+
+
+@router.get("/audit-logs")
+async def get_audit_logs(
+    admin: Annotated[dict[str, Any], Depends(require_role("admin"))],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    action: str | None = None,
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
+) -> AuditLogPage:
+    items, total = await service.list_audit_logs(db, action=action, page=page, page_size=page_size)
+    return AuditLogPage(
+        items=[AuditLogRead.model_validate(item) for item in items],
+        meta={"page": page, "page_size": page_size, "total": total},  # type: ignore[arg-type]
+    )
+
+
+@router.get("/dashboard-stats")
+async def get_dashboard_stats(
+    admin: Annotated[dict[str, Any], Depends(require_role("admin"))],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> DashboardStats:
+    consultant_count, dermatologist_count = await service.get_pending_verification_counts(db)
+    recent, _total = await service.list_audit_logs(db, action=None, page=1, page_size=10)
+    return DashboardStats(
+        pending_consultant_count=consultant_count,
+        pending_dermatologist_count=dermatologist_count,
+        recent_activity=[AuditLogRead.model_validate(item) for item in recent],
+    )
+
+
+@router.get("/ingredients")
+async def get_ingredients(
+    admin: Annotated[dict[str, Any], Depends(require_role("admin"))],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
+) -> IngredientPage:
+    # Read-only (Branch 6) — full CRUD stays M3 scope, docs/SUGGESTIONS.md.
+    items, total = await ingredients_service.list_all_ingredients(
+        db, page=page, page_size=page_size
+    )
+    return IngredientPage(
+        items=items,  # type: ignore[arg-type]
+        meta={"page": page, "page_size": page_size, "total": total},  # type: ignore[arg-type]
+    )
+
+
+@router.get("/products")
+async def get_products(
+    admin: Annotated[dict[str, Any], Depends(require_role("admin"))],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
+) -> ProductPage:
+    # Read-only (Branch 6) — full CRUD stays M3 scope, docs/SUGGESTIONS.md.
+    items, total = await recommendations_service.list_all_products(
+        db, page=page, page_size=page_size
+    )
+    return ProductPage(
+        items=items,  # type: ignore[arg-type]
+        meta={"page": page, "page_size": page_size, "total": total},  # type: ignore[arg-type]
     )

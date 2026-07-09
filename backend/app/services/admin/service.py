@@ -2,9 +2,10 @@ import datetime
 from collections.abc import Sequence
 from typing import Any, TypeVar
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.storage import get_presigned_url
 from app.services.admin.models import AuditLog, VerificationDocument
 from app.services.admin.schemas import ProfessionalRole
 from app.services.consultant_profile.models import ConsultantProfile
@@ -183,6 +184,24 @@ async def delete_document(db: AsyncSession, *, document: VerificationDocument) -
     await db.commit()
 
 
+async def get_document_view_url(
+    db: AsyncSession, *, owner_user_id: str, document_id: int
+) -> str | None:
+    """A short-lived presigned URL for the admin review UI (Branch 6) to actually
+    display an uploaded document — objects are private (docs/ARCHITECTURE.md §7,
+    "access via signed URLs only"), never a public bucket URL."""
+    result = await db.execute(
+        select(VerificationDocument).where(
+            VerificationDocument.document_id == document_id,
+            VerificationDocument.owner_user_id == owner_user_id,
+        )
+    )
+    document = result.scalar_one_or_none()
+    if document is None:
+        return None
+    return await get_presigned_url(document.storage_key, expires_in=600)
+
+
 async def write_audit_log(
     db: AsyncSession,
     *,
@@ -204,3 +223,48 @@ async def write_audit_log(
     db.add(entry)
     await db.flush()
     return entry
+
+
+async def list_audit_logs(
+    db: AsyncSession,
+    *,
+    action: str | None,
+    page: int,
+    page_size: int,
+) -> tuple[list[AuditLog], int]:
+    """Admin's Monitoring screen (Branch 6) — a filterable read over the same
+    single-writer table `write_audit_log` populates, newest first. Tiebreaks on
+    audit_log_id (not just created_at): `created_at` is `func.now()`, which Postgres
+    fixes to the transaction's start time, not per-statement — two writes in the same
+    transaction (or just the same clock tick) get identical timestamps, so
+    created_at DESC alone doesn't reliably order them."""
+    stmt = select(AuditLog)
+    if action:
+        stmt = stmt.where(AuditLog.action == action)
+    total = (await db.execute(select(func.count()).select_from(stmt.subquery()))).scalar_one()
+    result = await db.execute(
+        stmt.order_by(AuditLog.created_at.desc().nulls_last(), AuditLog.audit_log_id.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+    )
+    return list(result.scalars().all()), total
+
+
+async def get_pending_verification_counts(db: AsyncSession) -> tuple[int, int]:
+    """(consultant, dermatologist) counts of profiles awaiting review — Admin
+    dashboard's real, non-invented headline numbers (Branch 6)."""
+    consultant_count = (
+        await db.execute(
+            select(func.count())
+            .select_from(ConsultantProfile)
+            .where(ConsultantProfile.verification_status == "pending")
+        )
+    ).scalar_one()
+    dermatologist_count = (
+        await db.execute(
+            select(func.count())
+            .select_from(DermatologistProfile)
+            .where(DermatologistProfile.verification_status == "pending")
+        )
+    ).scalar_one()
+    return consultant_count, dermatologist_count

@@ -208,6 +208,17 @@ UPDATE would leave stale for an already-signed-in browser session. Better Auth's
 admin-gated `set-role` action can't be reused here — it requires an admin session,
 and this is the account's own self-service transition.
 
+**Admin platform data ownership** (ADR-016): the admin UI's Users screen mutates
+`user` rows only through audit-logged `/api/admin/{set-role,ban-user,unban-user}`
+wrappers (one shared helper, `web/lib/admin-audit-log.ts`) and reads them via
+`GET /api/admin/users`, a passthrough to Better Auth's own `listUsers` — FastAPI never
+touches identity tables. Every other admin screen (Verification queue, Monitoring,
+Content & Data, Dashboard) reads FastAPI's own data through new endpoints
+(`/admin/audit-logs` GET, `/admin/dashboard-stats`, `/admin/ingredients`,
+`/admin/products`, and a presigned-URL endpoint for reviewing uploaded verification
+documents) — the frontend never queries Better Auth for domain data or FastAPI for
+identity data.
+
 ## 7. Data layer — five stores + one file store
 
 Single writer per fact; **derived stores are never authored** and must be rebuildable

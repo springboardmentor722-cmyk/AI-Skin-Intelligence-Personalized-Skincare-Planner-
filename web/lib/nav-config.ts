@@ -107,16 +107,14 @@ const RAW_NAV_ITEMS: Record<Role, RawNavItem[]> = {
   ],
   admin: [
     { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
-    { label: "Users", path: "/users", icon: Users, built: false },
-    { label: "Content & Data", path: "/content", icon: Database, built: false },
-    { label: "Monitoring", path: "/monitoring", icon: Activity, built: false },
-    {
-      label: "System Reports",
-      path: "/system-reports",
-      icon: FileBarChart,
-      built: false,
-    },
-    { label: "Settings", path: "/settings", icon: Settings, built: false },
+    // Branch 6 (feature/admin-panel): Users now covers real search/ban/unban/role
+    // assignment plus the verification queue (linked from that page, not a separate
+    // nav item — the fixed 6-item admin nav doesn't grow for it).
+    { label: "Users", path: "/users", icon: Users },
+    { label: "Content & Data", path: "/content", icon: Database },
+    { label: "Monitoring", path: "/monitoring", icon: Activity },
+    { label: "System Reports", path: "/system-reports", icon: FileBarChart },
+    { label: "Settings", path: "/settings", icon: Settings },
   ],
 };
 

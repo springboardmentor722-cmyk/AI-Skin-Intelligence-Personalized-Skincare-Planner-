@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
+import { writeAdminAuditLog } from "@/lib/admin-audit-log";
 
 const ASSIGNABLE_ROLES = ["user", "consultant", "dermatologist", "admin"] as const;
 type AssignableRole = (typeof ASSIGNABLE_ROLES)[number];
@@ -53,19 +54,11 @@ export async function POST(request: Request) {
     headers: requestHeaders,
   });
 
-  const { token } = await auth.api.getToken({ headers: requestHeaders });
-  await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/admin/audit-logs`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      action: "role_changed",
-      target_type: "user",
-      target_id: userId,
-      metadata: { from: previousRole, to: role, reason },
-    }),
+  await writeAdminAuditLog(requestHeaders, {
+    action: "role_changed",
+    target_type: "user",
+    target_id: userId,
+    metadata: { from: previousRole, to: role, reason },
   });
 
   return NextResponse.json(result);

@@ -148,6 +148,10 @@ async def test_user_only_routes_reject_other_roles(
         ),
         ("POST", "/api/v1/admin/verification-queue/consultant/some-user/deactivate", {}),
         ("POST", "/api/v1/admin/audit-logs", {"action": "test"}),
+        ("GET", "/api/v1/admin/audit-logs", None),
+        ("GET", "/api/v1/admin/dashboard-stats", None),
+        ("GET", "/api/v1/admin/ingredients", None),
+        ("GET", "/api/v1/admin/products", None),
     ],
 )
 async def test_admin_only_routes_reject_non_admin_roles(

@@ -265,6 +265,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/verification-queue/{role}/{user_id}/documents/{document_id}/url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Verification Document Url */
+        get: operations["get_verification_document_url_api_v1_admin_verification_queue__role___user_id__documents__document_id__url_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/verification-queue/{role}/{user_id}/approve": {
         parameters: {
             query?: never;
@@ -357,10 +374,62 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Get Audit Logs */
+        get: operations["get_audit_logs_api_v1_admin_audit_logs_get"];
         put?: never;
         /** Create Audit Log */
         post: operations["create_audit_log_api_v1_admin_audit_logs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/dashboard-stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Dashboard Stats */
+        get: operations["get_dashboard_stats_api_v1_admin_dashboard_stats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/ingredients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Ingredients */
+        get: operations["get_ingredients_api_v1_admin_ingredients_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Products */
+        get: operations["get_products_api_v1_admin_products_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -530,6 +599,12 @@ export interface components {
                 [key: string]: unknown;
             } | null;
         };
+        /** AuditLogPage */
+        AuditLogPage: {
+            /** Items */
+            items: components["schemas"]["AuditLogRead"][];
+            meta: components["schemas"]["PageMeta"];
+        };
         /** AuditLogRead */
         AuditLogRead: {
             /** Audit Log Id */
@@ -542,6 +617,10 @@ export interface components {
             target_type: string | null;
             /** Target Id */
             target_id: string | null;
+            /** Metadata */
+            metadata_: {
+                [key: string]: unknown;
+            } | null;
             /** Created At */
             created_at: string | null;
         };
@@ -745,6 +824,21 @@ export interface components {
             /** Phone */
             phone?: string | null;
         };
+        /**
+         * DashboardStats
+         * @description Admin dashboard (Branch 6) — real counts only, no invented KPIs. User-role
+         *     counts come from Better Auth (web/app/api/admin/dashboard-stats/route.ts calls
+         *     its own listUsers, not this endpoint) — this covers only what FastAPI actually
+         *     owns: the verification queue and the audit trail.
+         */
+        DashboardStats: {
+            /** Pending Consultant Count */
+            pending_consultant_count: number;
+            /** Pending Dermatologist Count */
+            pending_dermatologist_count: number;
+            /** Recent Activity */
+            recent_activity: components["schemas"]["AuditLogRead"][];
+        };
         /** DermatologistProfileDetail */
         DermatologistProfileDetail: {
             /** User Id */
@@ -893,6 +987,11 @@ export interface components {
             /** Location */
             location?: string | null;
         };
+        /** DocumentViewUrl */
+        DocumentViewUrl: {
+            /** Url */
+            url: string;
+        };
         /** EnvironmentalExposure */
         EnvironmentalExposure: {
             /** Sun Hours */
@@ -906,6 +1005,31 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /**
+         * IngredientPage
+         * @description Admin's read-only Ingredient Management view (Branch 6) — full CRUD stays M3
+         *     scope; this wraps ingredients.schemas.IngredientRead, not a redefinition.
+         */
+        IngredientPage: {
+            /** Items */
+            items: components["schemas"]["IngredientRead"][];
+            meta: components["schemas"]["PageMeta"];
+        };
+        /** IngredientRead */
+        IngredientRead: {
+            /** Ingredient Id */
+            ingredient_id: number;
+            /** Ingredient Name */
+            ingredient_name: string;
+            /** Inci Name */
+            inci_name: string | null;
+            /** Category */
+            category: string | null;
+            /** Is Active */
+            is_active: boolean | null;
+            /** Created At */
+            created_at: string | null;
         };
         /** LifestyleLogCreate */
         LifestyleLogCreate: {
@@ -970,6 +1094,16 @@ export interface components {
             page_size: number;
             /** Total */
             total: number;
+        };
+        /**
+         * ProductPage
+         * @description Admin's read-only Product Management view (Branch 6) — same reasoning as
+         *     IngredientPage.
+         */
+        ProductPage: {
+            /** Items */
+            items: components["schemas"]["ProductRead"][];
+            meta: components["schemas"]["PageMeta"];
         };
         /** ProductRead */
         ProductRead: {
@@ -1715,6 +1849,39 @@ export interface operations {
             };
         };
     };
+    get_verification_document_url_api_v1_admin_verification_queue__role___user_id__documents__document_id__url_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                role: "consultant" | "dermatologist";
+                user_id: string;
+                document_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentViewUrl"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     approve_verification_api_v1_admin_verification_queue__role___user_id__approve_post: {
         parameters: {
             query?: never;
@@ -1895,6 +2062,39 @@ export interface operations {
             };
         };
     };
+    get_audit_logs_api_v1_admin_audit_logs_get: {
+        parameters: {
+            query?: {
+                action?: string | null;
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditLogPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     create_audit_log_api_v1_admin_audit_logs_post: {
         parameters: {
             query?: never;
@@ -1915,6 +2115,90 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AuditLogRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_dashboard_stats_api_v1_admin_dashboard_stats_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DashboardStats"];
+                };
+            };
+        };
+    };
+    get_ingredients_api_v1_admin_ingredients_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IngredientPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_products_api_v1_admin_products_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductPage"];
                 };
             };
             /** @description Validation Error */

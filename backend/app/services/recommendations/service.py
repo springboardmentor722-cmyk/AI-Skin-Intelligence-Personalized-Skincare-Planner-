@@ -1,6 +1,6 @@
 import json
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.ai.seeding import seeded_random
@@ -28,6 +28,19 @@ async def list_products_for_skin_type(
         stmt = stmt.where(Product.category == category)
     result = await db.execute(stmt)
     return list(result.scalars().all())
+
+
+async def list_all_products(
+    db: AsyncSession, *, page: int, page_size: int
+) -> tuple[list[Product], int]:
+    """Interface function (ADR-005) — Admin's read-only Product Management view
+    (Branch 6) reads through this, never `products` directly. Full CRUD stays M3
+    scope (docs/SUGGESTIONS.md) — this is a paginated read only."""
+    total = (await db.execute(select(func.count()).select_from(Product))).scalar_one()
+    result = await db.execute(
+        select(Product).order_by(Product.product_id).offset((page - 1) * page_size).limit(page_size)
+    )
+    return list(result.scalars().all()), total
 
 
 async def get_products_by_ids(db: AsyncSession, product_ids: list[int]) -> dict[int, Product]:
@@ -106,7 +119,5 @@ async def get_recommendations(db: AsyncSession, user_id: str) -> list[Recommenda
         for score, product, reasons in ranked[:_TOP_N]
     ]
 
-    await redis.set(
-        cache_key, json.dumps([r.model_dump() for r in results]), ex=_CACHE_TTL_SECONDS
-    )
+    await redis.set(cache_key, json.dumps([r.model_dump() for r in results]), ex=_CACHE_TTL_SECONDS)
     return results

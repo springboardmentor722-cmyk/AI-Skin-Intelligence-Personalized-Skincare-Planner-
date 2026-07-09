@@ -276,4 +276,37 @@ real Better Auth code path, never a raw UPDATE, so the session-cache-refresh beh
 stays correct everywhere a role can change. Branch 5's dermatologist onboarding reuses
 this exact pattern rather than inventing a second one.
 
-<!-- Next ADR: ADR-016 — add yours here -->
+## ADR-016 — Admin panel: identity reads via Better Auth, domain reads via FastAPI
+**Status:** Accepted (Milestone 1 foundation expansion)
+**Context:** The admin platform (Users, Verification queue, Monitoring, Content &
+Data) needs data from two different owners: Better Auth owns identity (`user` role/
+ban state), FastAPI owns domain data (verification profiles, `audit_logs`,
+`ingredients`, `products`). Mixing them behind one ad-hoc surface risks either
+FastAPI reaching into identity tables it doesn't own, or the frontend re-implementing
+Better Auth's own listUsers/ban/unban logic.
+**Decision:** Every admin mutation on a `user` row goes through a thin, audit-logged
+Next.js wrapper — `set-role` (ADR-014), and now `ban-user`/`unban-user`, added this
+branch, sharing one helper (`web/lib/admin-audit-log.ts`) instead of three copies of
+the same fetch-and-log code. `GET /api/admin/users` is the read-only equivalent
+(no audit needed for a read), a passthrough to Better Auth's own `listUsers`. Every
+other admin screen reads through new FastAPI endpoints instead: `GET /admin/audit-
+logs` (paginated, filterable — the write side already existed from ADR-014),
+`GET /admin/dashboard-stats` (pending-verification counts + recent activity — real
+counts only, no invented KPIs), and `GET /admin/ingredients`/`GET /admin/products`
+(read-only views over already-seeded data, backed by new interface functions —
+`ingredients/service.py` didn't exist before this branch; `recommendations/
+service.py` gained `list_all_products` — full CRUD on either stays M3 scope,
+docs/SUGGESTIONS.md). `GET /api/admin/dashboard-stats` (Next.js) merges Better
+Auth's per-role user counts with FastAPI's dashboard-stats response into one call the
+dashboard page makes, rather than the page juggling two data sources itself.
+Document review needed a new `GET /admin/verification-queue/{role}/{user_id}/
+documents/{document_id}/url` endpoint — verification documents are private objects
+(ADR from Branch 1's storage adapter), so the admin review UI needs a presigned URL
+to actually display one, not just its metadata.
+**Consequences:** Two DB reads for one page-load isn't unusual here (dashboard stats,
+audit-log-list route) — accepted as the cost of respecting the actual data-ownership
+boundary rather than duplicating one side's data into the other's store. Any future
+admin surface reading `user` rows should extend `/api/admin/*`, never call FastAPI
+for identity data or Better Auth's client SDK for domain data.
+
+<!-- Next ADR: ADR-017 — add yours here -->
