@@ -164,6 +164,86 @@ async def test_apply_verification_action_reject_records_reason(
     assert profile.rejection_reason == "Missing professional certificate"
 
 
+async def test_apply_verification_action_request_info_transitions_status(
+    db_session: AsyncSession, test_user_id: str, second_user_id: str
+) -> None:
+    db_session.add(ConsultantProfile(user_id=test_user_id, verification_status="pending"))
+    await db_session.flush()
+
+    profile = await apply_verification_action(
+        db_session,
+        role="consultant",
+        user_id=test_user_id,
+        action="request_info",
+        reviewer_id=second_user_id,
+        reason="Please upload a government ID.",
+    )
+
+    assert profile is not None
+    assert profile.verification_status == "more_info_requested"
+    # Only "reject" writes rejection_reason (schemas.py's own contract) — request-info's
+    # reason lives in the audit_logs entry, not a profile column.
+    assert profile.rejection_reason is None
+
+
+async def test_apply_verification_action_suspend_transitions_status(
+    db_session: AsyncSession, test_user_id: str, second_user_id: str
+) -> None:
+    db_session.add(ConsultantProfile(user_id=test_user_id, verification_status="approved"))
+    await db_session.flush()
+
+    profile = await apply_verification_action(
+        db_session,
+        role="consultant",
+        user_id=test_user_id,
+        action="suspend",
+        reviewer_id=second_user_id,
+        reason="Policy violation.",
+    )
+
+    assert profile is not None
+    assert profile.verification_status == "suspended"
+
+
+async def test_apply_verification_action_deactivate_transitions_status(
+    db_session: AsyncSession, test_user_id: str, second_user_id: str
+) -> None:
+    db_session.add(ConsultantProfile(user_id=test_user_id, verification_status="approved"))
+    await db_session.flush()
+
+    profile = await apply_verification_action(
+        db_session,
+        role="consultant",
+        user_id=test_user_id,
+        action="deactivate",
+        reviewer_id=second_user_id,
+        reason=None,
+    )
+
+    assert profile is not None
+    assert profile.verification_status == "deactivated"
+
+
+async def test_apply_verification_action_works_for_dermatologist_role(
+    db_session: AsyncSession, test_user_id: str, second_user_id: str
+) -> None:
+    db_session.add(DermatologistProfile(user_id=test_user_id, verification_status="pending"))
+    await db_session.flush()
+
+    profile = await apply_verification_action(
+        db_session,
+        role="dermatologist",
+        user_id=test_user_id,
+        action="approve",
+        reviewer_id=second_user_id,
+        reason=None,
+    )
+
+    assert profile is not None
+    assert isinstance(profile, DermatologistProfile)
+    assert profile.verification_status == "approved"
+
+
 async def test_apply_verification_action_returns_none_when_missing(
     db_session: AsyncSession, test_user_id: str
 ) -> None:

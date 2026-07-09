@@ -1,34 +1,14 @@
 import { test, expect } from "@playwright/test";
-import { Pool } from "pg";
+
+import { clearRateLimits, deleteTestUser, pool } from "./helpers";
 
 // Branch 5 (feature/dermatologist-module) — same shape as
 // consultant-onboarding.spec.ts, distinct medical field set. Real onboarding wizard
 // -> submission -> locked dashboard journey, driven through the actual UI, with a
 // direct Postgres check that the role really flipped and the profile really landed.
+// `clearRateLimits` (helpers.ts, Branch 8) before the signup — see
+// consultant-onboarding.spec.ts's comment for why.
 test.describe.configure({ mode: "serial" });
-
-function pool(): Pool {
-  return new Pool({
-    connectionString:
-      process.env.DATABASE_URL ?? "postgresql://skinlytics:skinlytics@localhost:5432/skinlytics",
-  });
-}
-
-async function deleteTestUser(userId: string): Promise<void> {
-  const db = pool();
-  try {
-    await db.query("delete from audit_logs where actor_user_id = $1 or target_id = $1", [
-      userId,
-    ]);
-    await db.query("delete from verification_documents where owner_user_id = $1", [userId]);
-    await db.query("delete from dermatologist_profiles where user_id = $1", [userId]);
-    await db.query('delete from session where "userId" = $1', [userId]);
-    await db.query('delete from account where "userId" = $1', [userId]);
-    await db.query('delete from "user" where id = $1', [userId]);
-  } finally {
-    await db.end();
-  }
-}
 
 test.describe("dermatologist onboarding", () => {
   test("signup as dermatologist -> submit application -> locked pending dashboard", async ({
@@ -39,6 +19,7 @@ test.describe("dermatologist onboarding", () => {
     let userId: string | null = null;
 
     try {
+      await clearRateLimits();
       await page.goto("/signup");
       await page.locator('input[type="radio"][value="dermatologist"]').click({ force: true });
       await page.fill("#firstName", "E2E");

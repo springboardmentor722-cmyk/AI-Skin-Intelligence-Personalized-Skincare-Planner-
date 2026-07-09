@@ -1,5 +1,6 @@
 import { test, expect, request as playwrightRequest } from "@playwright/test";
-import Redis from "ioredis";
+
+import { clearRateLimits, deleteTestUser, pool } from "./helpers";
 
 // Milestone 1 foundation expansion (docs/DECISIONS.md ADR-012/013). Real signup, a
 // real verification link captured from the server log (no email provider exists —
@@ -11,45 +12,52 @@ import Redis from "ioredis";
 // limit for this runner's IP — running alongside another test hitting sign-in in the
 // same window would make both flaky. Cleans up its own Redis key in a `finally` so a
 // failed assertion can never leave the next test run (or a developer's own manual
-// testing) locked out.
+// testing) locked out. `clearRateLimits` (helpers.ts) clears every rate-limit key,
+// not just this file's own `/sign-in/email` one — Branch 8 found the *general*
+// default ceiling (shared by every real signup in the suite) could also trip this
+// file's own signup if left uncleared.
 test.describe.configure({ mode: "serial" });
-
-async function clearSignInLockout(): Promise<void> {
-  const redis = new Redis(process.env.REDIS_URL ?? "redis://localhost:6379/0");
-  try {
-    // Scans for the key rather than assuming one exact loopback-address
-    // representation (differs by environment: IPv4 vs. IPv6-mapped, etc.).
-    const keys = await redis.keys("*|/sign-in/email");
-    if (keys.length > 0) await redis.del(...keys);
-  } finally {
-    await redis.quit();
-  }
-}
 
 test.describe("auth hardening", () => {
   test("signup sends a real, followable email-verification link", async ({ page }) => {
     const email = `e2e-verify-${Date.now()}@example.com`;
     const password = "SuperSecret123!";
+    let userId: string | null = null;
 
-    await page.goto("/signup");
-    await page.fill("#firstName", "E2E");
-    await page.fill("#lastName", "Verify");
-    await page.fill("#email", email);
-    await page.fill("#password", password);
-    await page.fill("#confirmPassword", password);
-    await page.getByRole("checkbox").click({ force: true });
-    await page.getByRole("button", { name: /create account/i }).click();
-    await page.waitForURL(/\/assessment/, { timeout: 10_000 });
+    try {
+      await clearRateLimits();
+      await page.goto("/signup");
+      await page.fill("#firstName", "E2E");
+      await page.fill("#lastName", "Verify");
+      await page.fill("#email", email);
+      await page.fill("#password", password);
+      await page.fill("#confirmPassword", password);
+      await page.getByRole("checkbox").click({ force: true });
+      await page.getByRole("button", { name: /create account/i }).click();
+      await page.waitForURL(/\/assessment/, { timeout: 10_000 });
 
-    // The verification link itself is a real Better Auth endpoint
-    // (/api/auth/verify-email?token=...) — asserting it responds (not 404) is the
-    // observable-from-Playwright half of "this is real"; the DB-level emailVerified
-    // flip following a genuine token is covered by this session's own live
-    // verification against Postgres directly (PROGRESS.md).
-    const response = await page.request.get(
-      "/api/auth/verify-email?token=deliberately-invalid-token-shape-check"
-    );
-    expect(response.status()).not.toBe(404);
+      const db = pool();
+      try {
+        const { rows } = await db.query('select id from "user" where email = $1', [email]);
+        userId = rows[0]?.id ?? null;
+      } finally {
+        await db.end();
+      }
+
+      // The verification link itself is a real Better Auth endpoint
+      // (/api/auth/verify-email?token=...) — asserting it responds (not 404) is the
+      // observable-from-Playwright half of "this is real"; the DB-level emailVerified
+      // flip following a genuine token is covered by this session's own live
+      // verification against Postgres directly (PROGRESS.md).
+      const response = await page.request.get(
+        "/api/auth/verify-email?token=deliberately-invalid-token-shape-check"
+      );
+      expect(response.status()).not.toBe(404);
+    } finally {
+      // Branch 8 finding: this test never deleted its own account before — a real,
+      // silent leak on every run, not just a hypothetical.
+      if (userId) await deleteTestUser(userId);
+    }
   });
 
   test("sign-in locks out after repeated attempts, correct password included", async () => {
@@ -63,16 +71,18 @@ test.describe("auth hardening", () => {
       baseURL: "http://localhost:3000",
       extraHTTPHeaders: { Origin: "http://localhost:3000" },
     });
-    await clearSignInLockout();
+    await clearRateLimits();
+    let userId: string | null = null;
 
     try {
       const email = `e2e-lockout-${Date.now()}@example.com`;
       const password = "SuperSecret123!";
 
       // Real account so the "correct password while locked out" check is meaningful.
-      await context.post("/api/auth/sign-up/email", {
+      const signup = await context.post("/api/auth/sign-up/email", {
         data: { email, password, name: "E2E Lockout" },
       });
+      userId = (await signup.json()).user.id as string;
 
       const statuses: number[] = [];
       for (let i = 0; i < 6; i++) {
@@ -90,7 +100,10 @@ test.describe("auth hardening", () => {
       expect(correctPasswordResponse.status()).toBe(429);
     } finally {
       await context.dispose();
-      await clearSignInLockout();
+      await clearRateLimits();
+      // Branch 8 finding: this test never deleted its own account before either —
+      // a real, silent leak on every run.
+      if (userId) await deleteTestUser(userId);
     }
   });
 });

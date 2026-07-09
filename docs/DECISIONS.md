@@ -342,4 +342,35 @@ values didn't even match `docs/DESIGN.md`'s real v3 palette) — corrected here 
 point at `docs/DESIGN.md` as the source of truth instead of repeating numbers that
 will drift again otherwise.
 
-<!-- Next ADR: ADR-018 — add yours here -->
+## ADR-018 — e2e suite runs `workers: 1`; one shared account/rate-limit helper module
+**Status:** Accepted (Milestone 1 foundation expansion, Branch 8)
+**Context:** This suite deliberately hits a real, shared backend (Postgres, Redis,
+MinIO) rather than mocks — the project's established testing philosophy throughout
+this session. By Branch 8 there are 7 spec files that each sign real accounts up/in,
+and Better Auth's rate limiter keys are IP-scoped (`{ip}|{path}`,
+`createRateLimitKey`) — shared across every file, not just within one. Running the
+full suite with Playwright's default `fullyParallel`/multi-worker scheduling caused
+real, reproducible failures: different files' real signups landing in the same
+window tripped either the general default rate-limit ceiling or each other's
+lockout-clearing, independent of any single file's own internal
+`test.describe.configure({ mode: "serial" })`. It wasn't just a parallelism problem
+either — several files (`auth-hardening.spec.ts`, most notably) never cleared the
+*general* ceiling at all (only the `/sign-in/email`-specific one from ADR-013),
+which could still fail even running fully sequential.
+**Decision:** `playwright.config.ts` sets `workers: 1` — the whole suite runs
+sequentially, trading speed for determinism against a suite that intentionally
+exercises the real stack. Every file's previously-duplicated `pool()`/
+`deleteTestUser()`/`promoteRole()`/rate-limit-clearing helpers are consolidated into
+`tests/e2e/helpers.ts`; `clearRateLimits()` (broadened to clear every `*|*` key, not
+just one path) is now called before every real signup/sign-in in every file, not
+just the two that happened to need it originally. Also fixed in the same pass:
+`auth-hardening.spec.ts`'s two tests silently leaked their own test accounts on
+every run (no `deleteTestUser` call ever existed for either) — a real, pre-existing
+gap found while investigating the rate-limit failures, not a hypothetical.
+**Consequences:** The full e2e suite is slower (sequential) but now deterministic —
+confirmed by running it repeatedly, both themes, zero flakes and zero leaked test
+data. Any new e2e file that signs a real account up or in should import from
+`helpers.ts` and call `clearRateLimits()` first, rather than reinventing a ninth
+version of the same three functions.
+
+<!-- Next ADR: ADR-019 — add yours here -->

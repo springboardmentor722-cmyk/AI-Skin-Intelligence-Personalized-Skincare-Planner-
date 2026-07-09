@@ -150,6 +150,10 @@ skinlytics/
   pipeline contract (stub mode), outbox projection. Factories over fixtures-by-hand.
 - **Frontend:** component tests for forms; Playwright e2e for the 7 M1 screens
   (`WIREFRAMES.md`), including one dark-mode and one reduced-transparency pass.
+  Any e2e spec that signs a real account up or in imports `tests/e2e/helpers.ts`
+  (`pool`/`deleteTestUser`/`promoteRole`/`clearRateLimits`) rather than reinventing
+  them — the suite runs `workers: 1` (ADR-018) since it hits a real, shared backend
+  whose rate limiter is IP-scoped across every file, not just within one.
 - **ml/:** `make eval` gates model-version bumps (`AI_ML.md`).
 - Coverage floor: 80% on services touched by a PR.
 

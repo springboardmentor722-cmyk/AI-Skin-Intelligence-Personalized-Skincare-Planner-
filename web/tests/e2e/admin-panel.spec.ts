@@ -1,65 +1,21 @@
 import { test, expect } from "@playwright/test";
-import { Pool } from "pg";
-import Redis from "ioredis";
+
+import { clearRateLimits, deleteTestUser, pool, promoteRole } from "./helpers";
 
 // Branch 6 (feature/admin-panel) — drives the real admin UI (not raw API calls) for
 // the three highest-value new screens: Users (search/ban/unban), the verification
 // queue (review + approve), and the dashboard's real stats. Promoting a real
 // signed-up user to admin needs a direct Postgres write (no seed-data admin exists),
 // same pattern as admin-rbac.spec.ts. Serial + its own `finally` cleanup.
+// `clearRateLimits` (helpers.ts, Branch 8) before every real signup/sign-in.
 test.describe.configure({ mode: "serial" });
-
-function pool(): Pool {
-  return new Pool({
-    connectionString:
-      process.env.DATABASE_URL ?? "postgresql://skinlytics:skinlytics@localhost:5432/skinlytics",
-  });
-}
-
-async function promoteToAdmin(userId: string): Promise<void> {
-  const db = pool();
-  try {
-    await db.query('update "user" set role = $1 where id = $2', ["admin", userId]);
-  } finally {
-    await db.end();
-  }
-}
-
-async function deleteTestUser(userId: string): Promise<void> {
-  const db = pool();
-  try {
-    await db.query("delete from audit_logs where actor_user_id = $1 or target_id = $1", [
-      userId,
-    ]);
-    await db.query("delete from verification_documents where owner_user_id = $1", [userId]);
-    await db.query("delete from consultant_profiles where user_id = $1", [userId]);
-    await db.query('delete from session where "userId" = $1', [userId]);
-    await db.query('delete from account where "userId" = $1', [userId]);
-    await db.query('delete from "user" where id = $1', [userId]);
-  } finally {
-    await db.end();
-  }
-}
-
-async function clearSignInLockout(): Promise<void> {
-  // ADR-013's Redis-backed rate limiter is IP-scoped, not per-account — every e2e
-  // file in this suite that signs in shares the same limit, so this must be cleared
-  // before each sign-in here too (same helper as auth-hardening.spec.ts's own).
-  const redis = new Redis(process.env.REDIS_URL ?? "redis://localhost:6379/0");
-  try {
-    const keys = await redis.keys("*|/sign-in/email");
-    if (keys.length > 0) await redis.del(...keys);
-  } finally {
-    await redis.quit();
-  }
-}
 
 async function signInAsAdmin(
   page: import("@playwright/test").Page,
   email: string,
   password: string
 ): Promise<void> {
-  await clearSignInLockout();
+  await clearRateLimits();
   await page.goto("/login");
   await page.fill("#email", email);
   await page.fill("#password", password);
@@ -78,6 +34,7 @@ test.describe("admin panel", () => {
     let targetId: string | null = null;
 
     try {
+      await clearRateLimits();
       await page.goto("/signup");
       await page.fill("#firstName", "E2E");
       await page.fill("#lastName", "Admin");
@@ -104,7 +61,7 @@ test.describe("admin panel", () => {
       });
       targetId = (await targetSignupResponse.json()).user.id as string;
 
-      await promoteToAdmin(adminId);
+      await promoteRole(adminId, "admin");
       await page.request.post("/api/auth/sign-out");
       await signInAsAdmin(page, adminEmail, password);
 
@@ -138,6 +95,7 @@ test.describe("admin panel", () => {
     let consultantId: string | null = null;
 
     try {
+      await clearRateLimits();
       await page.goto("/signup");
       await page.fill("#firstName", "E2E");
       await page.fill("#lastName", "VerifyAdmin");
@@ -174,7 +132,7 @@ test.describe("admin panel", () => {
         await db.end();
       }
 
-      await promoteToAdmin(adminId);
+      await promoteRole(adminId, "admin");
       await page.request.post("/api/auth/sign-out");
       await signInAsAdmin(page, adminEmail, password);
 

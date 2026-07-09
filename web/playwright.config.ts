@@ -6,7 +6,20 @@ import { defineConfig, devices } from "@playwright/test";
 // with a manual `prefers-reduced-transparency` media-query CSS check instead.
 export default defineConfig({
   testDir: "./tests/e2e",
-  fullyParallel: true,
+  // Branch 8 (feature/testing) finding: this suite hits a real, shared backend —
+  // Postgres, Redis, MinIO — not mocks (this project's established testing
+  // philosophy). `fullyParallel` runs different *files* concurrently across
+  // workers, and several files now sign real accounts up/in for real
+  // (auth-hardening, admin-rbac, admin-panel, {consultant,dermatologist}-onboarding,
+  // cross-role-verification-journey, app-shell) — all sharing the same IP-scoped
+  // Redis rate-limit counters (ADR-013/createRateLimitKey, `{ip}|{path}`). Two
+  // files' sign-ups landing in the same window can trip the general default
+  // ceiling or each other's lockout-clearing, independent of each file's own
+  // internal `serial` mode. `workers: 1` forces the whole suite sequential —
+  // slower, but correctness over speed for a suite that deliberately exercises the
+  // real stack. Confirmed live: the full suite is flaky under default parallel
+  // workers and consistently clean under workers: 1.
+  workers: 1,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: "html",
