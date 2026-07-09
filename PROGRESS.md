@@ -6,12 +6,16 @@ first, then the rest of `docs/`.
 
 **Current milestone:** M1 (weeks 1–2) — architecture, DB schema, wireframes, env setup,
 Better Auth + RBAC, profile & lifestyle modules, seed data. No AI (ADR-007).
-**M1 status: functionally complete** — all 11 milestone tasks done, including all 7 M1
-screens live-built and the fine-grained RBAC matrix. Milestone-close documentation lives
-in `project_docs/milestone_1/`. Remaining M1 items are verification-only (fresh-DB
-migration, MongoDB live check) or explicitly deferred infra (Docker containerization) —
-see Pending below. M2 (skin assessment engine, routine generation refinement, real
-scoring/recs) is the natural next milestone.
+**M1 status: independently verified, not just claimed complete** — a full audit
+(`audit/milestone-1-verification`, see Completed below) traced every M1 requirement
+against the live Docker Postgres/Mongo/Redis and the running backend/frontend rather
+than trusting this file's own prior "functionally complete" claim, found 21 real gaps
+(the fresh-DB migration crash and MongoDB verification this file used to list as
+merely "pending" turned out to be genuine bugs, not just unverified), and fixed and
+re-verified all 21 live. Remaining items are either genuinely blocked on external
+credentials (Kaggle, OpenWeather/OpenUV) or explicit scope/tradeoff decisions, not
+unverified claims — see Pending. M2 (skin assessment engine, routine generation
+refinement, real scoring/recs) is the natural next milestone.
 
 ---
 
@@ -821,6 +825,64 @@ scoring/recs) is the natural next milestone.
   left no range selected). Verified live: pixel-identical to the old buttons, real
   keyboard/ARIA group semantics gained, re-clicking the active pill correctly stays
   selected. `npm run {lint,typecheck,build}` clean throughout this whole batch.
+- ✔ **Milestone 1 verification audit** (`audit/milestone-1-verification`) — this
+  file's own "M1 functionally complete" claim was treated as unverified, not trusted.
+  With Docker genuinely live this session (Postgres/Mongo/Redis/Elasticsearch all up,
+  unlike prior sessions), four parallel research passes (database, backend, frontend,
+  security) traced every M1 exit criterion in `docs/ARCHITECTURE.md` §13 against the
+  real running stack, not static reading. 21 real findings, all fixed and
+  re-verified live, 11 commits (one concern each):
+  - **DB integrity**: Alembic was stuck one migration behind head while that
+    migration's own `upgrade()` referenced a table (`products`) no earlier migration
+    created — 17 live tables had never been captured in any migration at all, meaning
+    a fresh install/CI database could never be stood up. Two new migrations close the
+    gap, verified against a real scratch database (created, migrated, diffed, dropped)
+    before touching live data. Also: a duplicate active `scoring_weights` row (new
+    partial unique index prevents recurrence), `ingredients` reported seeded but
+    actually empty (the idempotent seed script had never been re-run against this
+    Postgres instance — now has), 3 MongoDB `lifestyle_logs` documents orphaned by
+    deleted Postgres users (Mongo has no FK to catch this), missing documented Mongo
+    indexes, and `user_profiles`' `email`/`role`/`is_active` drift columns (confirmed
+    redundant with Better Auth's own `user` table before dropping).
+  - **Security**: zero frontend route protection existed — confirmed live,
+    unauthenticated `curl /dashboard` returned a full 200 page shell. New `proxy.ts`
+    (Next 16 renamed the `middleware.ts` convention) closes this. Password reset was
+    decorative (server-side `RESET_PASSWORD_DISABLED`, unhandled promise rejection, a
+    dead `/reset-password` link) — now genuinely works end to end, verified with a
+    real captured reset link followed through Better Auth's own token flow. Signup
+    consent was validated client-side only and never persisted — added Better Auth
+    `additionalFields`, verified a real signup lands a real timestamp + policy
+    version. Rate limiting had a reserved comment and unused Redis wiring for months —
+    now real, verified via a genuine 429 at request #301 of a burst. Also: security
+    headers on the web app (`next.config.ts`), and a native Homebrew Redis silently
+    shadowing Docker's (the exact same shadowing bug already fixed once for Postgres,
+    recurring on a different service — stopped it).
+  - **Frontend**: 7 of the User nav's 10 sidebar items led to a 404 (confirmed live);
+    unbuilt items now render disabled with a "coming soon" state instead of a dead
+    link, "Products" repointed at the real built Recommendations screen. Fixed a blank
+    topbar title on `/profile`. Design-system cleanup: the shadcn skill's
+    `space-y-*`/`space-x-*` ban was violated in ~70 places across 20 files (converted
+    to `gap-*`, verified visually against a real session before/after); the primary
+    button size didn't reach the documented 44px touch-target floor (now does).
+  - **Backend & tests**: coverage was 60% overall but 19–32% on the actual business
+    logic (scoring, routines, recommendations) — 47 new tests added against the real
+    live databases (not mocked), in a rollback-safe transaction fixture verified to
+    leave zero trace; surfaced two further real bugs (the Postgres engine and Mongo
+    client were both unsafe to reuse across pytest-asyncio's per-test event loops).
+    69 tests now pass (was 19). Also typed an untyped API response, deleted dead code
+    in `app/ai/`, and reconciled `docs/CONVENTIONS.md`'s DB-naming section (it
+    described `TIMESTAMPTZ`/`ix_`/`fk_`, the real schema has always used
+    `TIMESTAMP`/`idx_`/auto-generated FK names) to describe real practice instead of
+    fiction nobody followed.
+  - **Deliberately left open, not oversights**: a full CSP (needs dedicated testing
+    across the OAuth flow — a wrong one silently breaks sign-in), ADR-010's outbox
+    table (doesn't exist anywhere despite the ADR's "day one" commitment — needs a
+    decision, not a silent build), and full `Field`/`FieldGroup`/`InputGroup` adoption
+    (installed, still unused on every form — a larger rewrite than the mechanical
+    spacing fix this audit did complete).
+  - Full report: see the audit artifact linked in the conversation that ran this.
+    `ruff`/`mypy --strict`/`pytest` (backend) and `tsc`/`eslint`/`next build`
+    (frontend) all clean throughout.
 
 ## Partially Completed
 
