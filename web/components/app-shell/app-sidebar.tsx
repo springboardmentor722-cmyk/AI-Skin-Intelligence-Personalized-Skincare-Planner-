@@ -58,6 +58,21 @@ export function AppSidebar({ role, userName }: AppSidebarProps) {
               {items.map((item) => {
                 const active =
                   pathname === item.href || pathname.startsWith(`${item.href}/`);
+                if (!item.built) {
+                  // No page exists yet (Milestone 1 audit) — stays visible per
+                  // AGENTS.md §3's fixed nav list, but doesn't navigate to a 404.
+                  return (
+                    <SidebarMenuItem key={item.href}>
+                      <SidebarMenuButton
+                        aria-disabled="true"
+                        tooltip={`${item.label} — coming soon`}
+                      >
+                        <item.icon strokeWidth={1.5} />
+                        <span>{item.label}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                }
                 return (
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton

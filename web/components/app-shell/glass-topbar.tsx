@@ -26,7 +26,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
-import { NAV_ITEMS, ROLE_LABELS, type Role } from "@/lib/nav-config";
+import { EXTRA_TITLES, NAV_ITEMS, ROLE_LABELS, type Role } from "@/lib/nav-config";
 import { useCurrentUser } from "@/lib/use-current-user";
 
 interface GlassTopbarProps {
@@ -49,6 +49,7 @@ export function GlassTopbar({ role, userName, title }: GlassTopbarProps) {
   const pageTitle =
     title ??
     NAV_ITEMS[role].find((item) => pathname.startsWith(item.href))?.label ??
+    EXTRA_TITLES[pathname] ??
     "";
 
   const settingsHref = NAV_ITEMS[role].find((item) => item.label === "Settings")?.href;

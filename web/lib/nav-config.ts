@@ -29,6 +29,14 @@ export interface NavItem {
   label: string;
   href: string;
   icon: LucideIcon;
+  /** False for a nav item whose page hasn't been built yet — Milestone 1 audit found
+   * 7 of the User role's 10 nav items (and every non-Dashboard item for the other
+   * three roles, whose dashboards are still M1 shell smoke-test stubs per
+   * PROGRESS.md) linked to routes that 404. AGENTS.md §3 fixes the nav *list* — it
+   * doesn't say every item must already have a live page — so items stay visible
+   * (not removed) but render disabled with a "Coming soon" tooltip instead of
+   * navigating to a dead link. */
+  built: boolean;
 }
 
 // User keeps bare paths (app/(user)/... is a route group — no URL segment); the other
@@ -45,6 +53,9 @@ interface RawNavItem {
   label: string;
   path: string;
   icon: LucideIcon;
+  /** Omit for a real, built page. Set false for a nav item with no page yet —
+   * see NavItem.built. */
+  built?: boolean;
 }
 
 // Canonical nav lists — AGENTS.md §3 is the single source of truth (fixed sets; don't
@@ -53,43 +64,59 @@ interface RawNavItem {
 const RAW_NAV_ITEMS: Record<Role, RawNavItem[]> = {
   user: [
     { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
-    { label: "My Routine", path: "/routine", icon: ClipboardList },
-    { label: "Daily Check-in", path: "/check-in", icon: CalendarCheck },
-    { label: "Products", path: "/products", icon: ShoppingBag },
-    { label: "Ingredients", path: "/ingredients", icon: FlaskConical },
+    { label: "My Routine", path: "/routine", icon: ClipboardList, built: false },
+    { label: "Daily Check-in", path: "/check-in", icon: CalendarCheck, built: false },
+    // Milestone 1 audit: repointed at the real, built Product Recommendations screen
+    // (app/(user)/recommendations) instead of a nonexistent /products catalog page —
+    // the nearest real match for "Products" today, not a guess at a second, separate
+    // product-browse feature. Flagged in the audit report as an assumption, not a
+    // silent decision.
+    { label: "Products", path: "/recommendations", icon: ShoppingBag },
+    { label: "Ingredients", path: "/ingredients", icon: FlaskConical, built: false },
     { label: "Progress", path: "/progress", icon: TrendingUp },
-    { label: "Insights", path: "/insights", icon: Sparkles },
-    { label: "Reports", path: "/reports", icon: FileText },
-    { label: "Notifications", path: "/notifications", icon: Bell },
-    { label: "Settings", path: "/settings", icon: Settings },
+    { label: "Insights", path: "/insights", icon: Sparkles, built: false },
+    { label: "Reports", path: "/reports", icon: FileText, built: false },
+    { label: "Notifications", path: "/notifications", icon: Bell, built: false },
+    { label: "Settings", path: "/settings", icon: Settings, built: false },
   ],
   consultant: [
     { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
-    { label: "Clients", path: "/clients", icon: Users },
-    { label: "Assessments", path: "/assessments", icon: ClipboardCheck },
-    { label: "Recommendations", path: "/recommendations", icon: Sparkles },
-    { label: "Reports", path: "/reports", icon: FileText },
-    { label: "Settings", path: "/settings", icon: Settings },
+    { label: "Clients", path: "/clients", icon: Users, built: false },
+    { label: "Assessments", path: "/assessments", icon: ClipboardCheck, built: false },
+    { label: "Recommendations", path: "/recommendations", icon: Sparkles, built: false },
+    { label: "Reports", path: "/reports", icon: FileText, built: false },
+    { label: "Settings", path: "/settings", icon: Settings, built: false },
   ],
   dermatologist: [
     { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
-    { label: "Patients", path: "/patients", icon: UserRound },
+    { label: "Patients", path: "/patients", icon: UserRound, built: false },
     {
       label: "Condition Reports",
       path: "/condition-reports",
       icon: FileWarning,
+      built: false,
     },
-    { label: "Treatment Plans", path: "/treatment-plans", icon: Stethoscope },
-    { label: "Analytics", path: "/analytics", icon: BarChart3 },
-    { label: "Settings", path: "/settings", icon: Settings },
+    {
+      label: "Treatment Plans",
+      path: "/treatment-plans",
+      icon: Stethoscope,
+      built: false,
+    },
+    { label: "Analytics", path: "/analytics", icon: BarChart3, built: false },
+    { label: "Settings", path: "/settings", icon: Settings, built: false },
   ],
   admin: [
     { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
-    { label: "Users", path: "/users", icon: Users },
-    { label: "Content & Data", path: "/content", icon: Database },
-    { label: "Monitoring", path: "/monitoring", icon: Activity },
-    { label: "System Reports", path: "/system-reports", icon: FileBarChart },
-    { label: "Settings", path: "/settings", icon: Settings },
+    { label: "Users", path: "/users", icon: Users, built: false },
+    { label: "Content & Data", path: "/content", icon: Database, built: false },
+    { label: "Monitoring", path: "/monitoring", icon: Activity, built: false },
+    {
+      label: "System Reports",
+      path: "/system-reports",
+      icon: FileBarChart,
+      built: false,
+    },
+    { label: "Settings", path: "/settings", icon: Settings, built: false },
   ],
 };
 
@@ -97,14 +124,24 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = Object.fromEntries(
   (Object.entries(RAW_NAV_ITEMS) as [Role, RawNavItem[]][]).map(
     ([role, items]) => [
       role,
-      items.map(({ label, path, icon }) => ({
+      items.map(({ label, path, icon, built = true }) => ({
         label,
         icon,
+        built,
         href: `${ROLE_PATH_PREFIX[role]}${path}`,
       })),
     ]
   )
 ) as Record<Role, NavItem[]>;
+
+// Milestone 1 audit finding: GlassTopbar derives its page title by matching the
+// current path against NAV_ITEMS — /profile has no nav entry at all (PROGRESS.md
+// Pending: "needs a product decision", not guessed here) so its title rendered
+// blank. This is a title-only fallback, not a nav placement decision — it doesn't add
+// /profile to any sidebar.
+export const EXTRA_TITLES: Partial<Record<string, string>> = {
+  "/profile": "Skin Profile",
+};
 
 export const ROLE_LABELS: Record<Role, string> = {
   user: "User",
