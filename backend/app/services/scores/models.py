@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import CheckConstraint, ForeignKey, Index, Numeric, func
+from sqlalchemy import CheckConstraint, ForeignKey, Index, Numeric, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.postgres import Base
@@ -17,6 +17,15 @@ class ScoringWeights(Base):
             "skin_condition_weight + lifestyle_weight + sleep_quality_weight "
             "+ routine_adherence_weight + hydration_weight = 1.00",
             name="chk_weights_sum",
+        ),
+        # Migration c21b3568fc1a — found two active rows live (an accidental double
+        # seed), which made "the active weights" non-deterministic. At most one
+        # is_active=true row can exist now.
+        Index(
+            "uq_scoring_weights_one_active",
+            "is_active",
+            unique=True,
+            postgresql_where=text("is_active = true"),
         ),
     )
 

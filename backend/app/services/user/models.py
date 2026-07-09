@@ -14,26 +14,19 @@ class UserProfile(Base):
 
     Nullability matches the SQL file's DDL exactly, not "sensible" defaults — e.g.
     created_at/updated_at have a DEFAULT but no NOT NULL, so they stay Optional here.
-    `email`/`role`/`is_active` are NOT in the documented v3 schema; they exist on the
-    live database (confirmed with the user: loaded directly from the SQL file, so
-    presumably a leftover from an earlier v2-era load) — added here to match reality
-    per the "stamp baseline, no DDL" reconciliation, but flagged in PROGRESS.md as
-    schema drift to resolve later, not accepted as correct design (ADR-003: role lives
-    on Better Auth's user.role, not duplicated here).
+    `email`/`role`/`is_active` briefly existed here as schema drift (duplicating
+    Better Auth's own `"user"` table, against ADR-003) — dropped in migration
+    c21b3568fc1a once confirmed nothing read them and Better Auth's `"user"` table
+    already had identical values.
     """
 
     __tablename__ = "user_profiles"
     # Index/constraint names match the live database exactly (idx_* naming, not
-    # CONVENTIONS.md's ix_<table>_<cols> rule — another doc-vs-reality mismatch found
-    # while reconciling, flagged in PROGRESS.md rather than silently picking one).
-    # user_id and email each carry *two* separate index objects on the live db (a plain
-    # index plus a same-column unique constraint) rather than one combined unique
-    # index — reproduced exactly rather than collapsed into SQLAlchemy's usual shorthand.
+    # CONVENTIONS.md's ix_<table>_<cols> rule — a doc-vs-reality mismatch reconciled in
+    # docs/CONVENTIONS.md rather than renaming a working index).
     __table_args__ = (
         Index("idx_user_profiles_user", "user_id"),
         UniqueConstraint("user_id", name="user_profiles_user_id_key"),
-        Index("ix_user_profiles_email", "email"),
-        Index("user_profiles_email_key", "email", unique=True),
     )
 
     profile_id: Mapped[int] = mapped_column(primary_key=True)
@@ -51,8 +44,3 @@ class UserProfile(Base):
     bio: Mapped[str | None] = mapped_column(Text, default=None)
     created_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
-
-    # --- Not in the documented v3 schema — schema drift, see class docstring ---
-    email: Mapped[str | None] = mapped_column(default=None)
-    role: Mapped[str | None] = mapped_column(default="user")
-    is_active: Mapped[bool | None] = mapped_column(server_default="true")
