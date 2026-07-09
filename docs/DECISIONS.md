@@ -164,4 +164,51 @@ this permanently. Don't silently "fix" this by re-enabling
 `requireLocalEmailVerified` without also shipping verification — that reintroduces the
 "every OAuth-after-password user is permanently locked out" bug this ADR fixed.
 
-<!-- Next ADR: ADR-012 — add yours here -->
+## ADR-012 — Email verification: real send path, kept optional (not yet required)
+**Status:** Accepted (Milestone 1 foundation expansion)
+**Context:** `user.emailVerified` was permanently `false` for every email/password
+account — no `sendVerificationEmail` callback existed at all (`web/lib/auth.ts`),
+matching ADR-011's own observation about this gap. No email-sending provider is
+chosen yet (`docs/DATASETS_AND_APIS.md`'s external-services list has none) — the same
+real, external blocker class as the OpenWeather/Kaggle adapters, not a code gap to
+invent around.
+**Decision:** Add a genuine `emailVerification.sendVerificationEmail` callback using
+the same dev-mode transport already shipped for password reset (log the link instead
+of emailing it — contract-first, ADR-007's own "real logic, stubbed transport"
+treatment). `sendOnSignUp: true` so every new signup actually gets a real, followable
+verification link in dev/local. `emailAndPassword.requireEmailVerification` stays
+`false` — flipping it on would (a) lock out every account created before this
+shipped, with no way for them to have verified, and (b) reintroduce ADR-011's exact
+"every OAuth-after-password user permanently blocked" failure, since Better Auth ANDs
+`requireLocalEmailVerified` account-linking checks against this setting
+independently.
+**Consequences:** Verification is real and usable today, not required. Once a real
+email provider is chosen and verification uptake can be measured, flipping
+`requireEmailVerification: true` (and reconsidering `requireLocalEmailVerified`) is a
+config change, not a rebuild — don't do it silently without checking both
+consequences above still hold.
+
+## ADR-013 — Sign-in lockout via Better Auth's own rate limiter, not a parallel system
+**Status:** Accepted (Milestone 1 foundation expansion)
+**Context:** No account-lockout protection existed on `/sign-in/email` — confirmed
+live, 6+ rapid attempts (right or wrong password) all reached the handler
+unthrottled. A hand-rolled lockout system (a `failed_attempts`/`locked_until` column
+on `user`, checked in a custom pre-auth hook) would duplicate machinery Better Auth
+already ships: a `rateLimit` system with per-path `customRules` and a pluggable
+`secondaryStorage` backend.
+**Decision:** Configure `rateLimit.customRules["/sign-in/email"]` to a much stricter
+window (5 attempts / 15 minutes) than the rest of the API, backed by Redis via a new
+`secondaryStorage` adapter (`web/lib/secondary-storage.ts`, using the same Redis
+instance `backend/app/core/rate_limit.py` already uses — one Redis, not two).
+`rateLimit.enabled: true` is set explicitly since Better Auth defaults this to
+production-only, which would have made the control untestable in dev. This throttles
+the *endpoint* (scoped by Better Auth's own default IP-based key), not literally "this
+one account" — a real, live-verified brute-force lockout, just not a per-account
+`locked_until` flag with an explicit admin-unlock action.
+**Consequences:** Backed by shared, durable infra (Redis), not in-memory state that
+resets on every dev-server restart or isn't shared across server instances in prod.
+If a genuinely per-account (not per-IP) lockout with an explicit unlock workflow
+becomes a real requirement later, it layers on top of this rather than replacing it —
+this ADR doesn't preclude that, it just didn't build it speculatively now.
+
+<!-- Next ADR: ADR-014 — add yours here -->

@@ -161,6 +161,27 @@ domain `user_id`/`consultant_id` is `TEXT REFERENCES "user"(id)` — never seria
 (ADR-003). Exact TS config + FastAPI dependency:
 `database_schemas/skinlytics_identity_betterauth.md`.
 
+**Session/token refresh — reviewed, not changed (Milestone 1 foundation expansion).**
+The mechanism above (short-lived JWT reissued via Better Auth's own session cookie,
+not a hand-rolled refresh-token table) was reviewed for gaps and found sound: the
+session cookie already handles silent reissue, JWKS `kid` rotation is already
+respected, and the blacklist already provides instant revocation. No refresh-token
+redesign was needed or made.
+
+**Account lockout** (ADR-013): `/sign-in/email` carries a much stricter Redis-backed
+rate-limit window (5 attempts/15 min) than the general API ceiling — a real,
+live-verified brute-force throttle, not a per-account `locked_until` flag.
+
+**Email verification** (ADR-012): real send path exists (dev-mode: logs the link,
+no email provider chosen yet), `emailVerified` genuinely flips true when followed —
+but not yet *required* to sign in, a deliberate intermediate step.
+
+**MFA — compatibility note, not implemented.** Better Auth's `twoFactor` plugin
+(`better-auth/plugins`) slots into `web/lib/auth.ts`'s existing `plugins` array
+without restructuring anything above — no code changes now since there's no concrete
+near-term requirement driving it, but nothing in this architecture blocks adding it
+when one exists.
+
 ## 7. Data layer — five stores + one file store
 
 Single writer per fact; **derived stores are never authored** and must be rebuildable

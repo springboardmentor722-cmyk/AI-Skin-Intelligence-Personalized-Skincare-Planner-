@@ -10,6 +10,7 @@ import {
   dermatologistRole,
   userRole,
 } from "@/lib/permissions";
+import { secondaryStorage } from "@/lib/secondary-storage";
 
 // Better Auth is the single auth authority — ADR-002/003. FastAPI never mints tokens,
 // only validates (backend/app/core/security.py). Config verbatim from
@@ -40,6 +41,43 @@ export const auth = betterAuth({
       );
     },
   },
+  // ADR-011-adjacent: real email verification, kept *optional* rather than required.
+  // `user.emailVerified` was permanently false for every email/password account
+  // (no send path existed at all) — this closes that gap the same way password
+  // reset was closed: a genuine sendVerificationEmail callback, dev-mode transport
+  // (log instead of send, no email provider chosen yet — the same real-external-
+  // blocker class as OpenWeather/Kaggle, not invented here). `requireEmailVerification`
+  // stays false: flipping it on would lock out every existing account created before
+  // this shipped, and reintroduces exactly the "every OAuth-after-password user is
+  // permanently blocked" failure mode ADR-011 already fixed once (Better Auth ANDs
+  // `requireLocalEmailVerified` account-linking checks against this independently).
+  // `sendOnSignUp: true` makes verification genuinely happen for every new signup
+  // regardless — a safe increment toward requiring it later, once verification
+  // uptake can actually be measured.
+  emailVerification: {
+    sendOnSignUp: true,
+    sendVerificationEmail: async ({ user, url }) => {
+      console.log(
+        `[auth] Verification email for ${user.email} — no email adapter configured yet, verify link: ${url}`
+      );
+    },
+  },
+  // Redis-backed (secondaryStorage below) so rate-limit state survives a dev-server
+  // restart and is shared across server instances in prod — in-memory (Better
+  // Auth's default) is neither. `/sign-in/email` gets its own much stricter rule: 5
+  // attempts per 15-minute window is a real account-lockout-style brute-force
+  // throttle, not the general API ceiling every other endpoint gets. Rate limiting
+  // is disabled outside production by Better Auth's own default — explicitly
+  // enabled here so this is actually exercised (and testable) in dev too, not just
+  // assumed correct.
+  rateLimit: {
+    enabled: true,
+    storage: "secondary-storage",
+    customRules: {
+      "/sign-in/email": { window: 900, max: 5 },
+    },
+  },
+  secondaryStorage,
   socialProviders: {
     // Real provider config so the button works the moment real credentials land in
     // .env — no code change needed. Empty strings until then (never invent secrets).
