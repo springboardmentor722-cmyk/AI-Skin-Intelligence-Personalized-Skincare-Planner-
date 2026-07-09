@@ -1,9 +1,11 @@
 import type { ReactNode } from "react";
 
-// forgot-password is a standalone centered glass card over the aurora — no app shell
-// (docs/WIREFRAMES.md). Aurora itself is rendered once globally in app/layout.tsx.
-// Login and signup moved out of this group (app/login/, app/signup/) — they need the
-// full-viewport two-column split layout (AuthSplitLayout), not this centered wrapper.
+// forgot-password is a standalone centered card over the aurora — no app shell
+// (docs/WIREFRAMES.md). The card itself is solid (bg-card), not glass — AGENTS.md §3:
+// "Glass frames data; it never sits under it", same rule login/signup follow. Aurora
+// itself is rendered once globally in app/layout.tsx. Login and signup moved out of
+// this group (app/login/, app/signup/) — they need the full-viewport two-column split
+// layout (AuthSplitLayout), not this centered wrapper.
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center px-4 py-12">

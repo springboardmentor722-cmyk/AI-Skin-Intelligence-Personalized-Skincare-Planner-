@@ -20,6 +20,25 @@ export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,
   emailAndPassword: {
     enabled: true,
+    // Milestone 1 audit finding: without this callback Better Auth's own
+    // /reset-password endpoint hard-rejects every request with `RESET_PASSWORD_DISABLED`
+    // (node_modules/better-auth/dist/api/routes/password.mjs) — the forgot-password
+    // form looked functional (real request, real UI) but silently could never work.
+    // No email-sending integration exists anywhere in this project yet (confirmed —
+    // docs/DATASETS_AND_APIS.md's external-services list has none, same gap ADR-011
+    // already documents for email verification) — standing one up is a real,
+    // separate infra decision (provider, API key, deliverability), not something to
+    // invent here. This makes the reset flow genuinely work end-to-end in dev/local
+    // by logging the reset link server-side instead of emailing it — same
+    // "contract-first, real stub" treatment ADR-007 gives the AI surfaces. Swap the
+    // body for a real adapter call once a provider is chosen; nothing else in the
+    // reset flow (this callback's signature, the /reset-password page) needs to
+    // change when that happens.
+    sendResetPassword: async ({ user, url }) => {
+      console.log(
+        `[auth] Password reset requested for ${user.email} — no email adapter configured yet, reset link: ${url}`
+      );
+    },
   },
   socialProviders: {
     // Real provider config so the button works the moment real credentials land in

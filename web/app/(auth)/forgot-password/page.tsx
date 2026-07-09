@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { ArrowLeft, CheckCircle2, Loader2 } from "lucide-react";
+import { AlertCircle, ArrowLeft, CheckCircle2, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -16,6 +16,7 @@ import {
 
 export default function ForgotPasswordPage() {
   const [sent, setSent] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const {
     register,
@@ -27,17 +28,26 @@ export default function ForgotPasswordPage() {
   });
 
   const onSubmit = async (values: ForgotPasswordValues) => {
+    setFormError(null);
     // Always show the same success state regardless of whether the email exists —
-    // don't leak account existence via a different response.
-    await authClient.requestPasswordReset({
+    // don't leak account existence via a different response. `error` (not a thrown
+    // rejection) is Better Auth's client convention for a failed request — the
+    // previous version of this handler didn't check it at all, so a real failure
+    // (e.g. reset temporarily disabled) left the user stuck on the form with no
+    // feedback and no way to tell the request had failed.
+    const { error } = await authClient.requestPasswordReset({
       email: values.email,
       redirectTo: "/reset-password",
     });
+    if (error) {
+      setFormError(error.message ?? "Couldn't send the reset link. Please try again.");
+      return;
+    }
     setSent(true);
   };
 
   return (
-    <div className="glass w-full max-w-md p-8">
+    <div className="border-border bg-card w-full max-w-md rounded-2xl border p-8">
       {sent ? (
         <div className="text-center">
           <CheckCircle2
@@ -91,6 +101,13 @@ export default function ForgotPasswordPage() {
                 </p>
               )}
             </div>
+
+            {formError && (
+              <p className="text-destructive flex items-center gap-1.5 text-xs">
+                <AlertCircle className="size-3.5 shrink-0" strokeWidth={1.5} />
+                {formError}
+              </p>
+            )}
 
             <Button
               type="submit"

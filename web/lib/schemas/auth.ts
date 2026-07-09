@@ -48,6 +48,23 @@ export const forgotPasswordSchema = z.object({
 });
 export type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>;
 
+// Same password rules as signupSchema — kept as a separate schema (not reused
+// directly) since this form has no name/email/role/consent fields.
+export const resetPasswordSchema = z
+  .object({
+    newPassword: z
+      .string()
+      .min(8, "At least 8 characters")
+      .regex(/[A-Z]/, "At least one uppercase letter")
+      .regex(/[0-9]/, "At least one number"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
+export type ResetPasswordValues = z.infer<typeof resetPasswordSchema>;
+
 export function passwordStrength(password: string): {
   score: 0 | 1 | 2 | 3 | 4;
   label: string;
