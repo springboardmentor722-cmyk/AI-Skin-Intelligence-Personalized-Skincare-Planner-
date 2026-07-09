@@ -99,6 +99,17 @@ Bucket: skinlytics-storage (private; access via signed URLs only)
     ingredient_docs/
     product_docs/
 
+/verification-documents/                  # NEW: Milestone 1 foundation expansion —
+    user_{user_id}/{uuid}_{original_filename}
+    # Consultant/Dermatologist onboarding uploads (government ID, professional
+    # certificate, medical license, supporting documents — Postgres
+    # verification_documents.document_type). uuid prefix (not resource_id) since a
+    # professional can upload several documents of the same type across
+    # submission/resubmission; PG row is still the source of truth for
+    # type/owner/verified-by, this is only the object key. Written/read via
+    # backend/app/core/storage.py — MinIO locally (docker-compose.yml's minio
+    # service), same bucket as every other entry above in prod.
+
 Naming convention: {entity_type}/{user_id}/{resource_id}/{file_name}
 
 Upload constraints (enforced at the API gateway):

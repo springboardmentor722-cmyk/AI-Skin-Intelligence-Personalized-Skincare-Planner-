@@ -35,6 +35,15 @@ class Settings(BaseSettings):
     # work yet (ADR-007 stubs are cheap, deterministic computation).
     rate_limit_per_minute: int = 300
 
+    # Object storage — S3-compatible (MinIO in docker-compose.yml for dev, real S3/
+    # Azure Blob in prod — same adapter either way, app/core/storage.py). Bucket
+    # layout: database_schemas/skinlytics_infrastructure_layer_v2.txt §2.
+    s3_endpoint_url: str = "http://localhost:9000"
+    s3_access_key_id: str = ""
+    s3_secret_access_key: str = ""
+    s3_bucket_name: str = "skinlytics-storage"
+    s3_region: str = "us-east-1"
+
     @property
     def sqlalchemy_database_url(self) -> str:
         return self.database_url.replace("postgresql://", "postgresql+asyncpg://", 1)

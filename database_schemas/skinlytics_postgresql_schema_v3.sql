@@ -333,6 +333,108 @@ CREATE TABLE consultant_notes (
 );
 
 -- ============================================================
+-- PROFESSIONAL VERIFICATION (Consultant / Dermatologist onboarding + admin review)
+-- v3.1 addition — Milestone 1 foundation expansion. Consultant and Dermatologist are
+-- professional roles (AGENTS.md), not consumer signups: after registering, each
+-- submits a role-specific profile and supporting documents, then sits in
+-- verification_status = 'pending' until an admin reviews it (audit_logs records every
+-- transition). Two separate tables, not one polymorphic table, because the field sets
+-- genuinely differ (medical registration/council vs. license number/consultation
+-- modes) and neither role's fields are optional decoration on the other's schema.
+-- ============================================================
+
+CREATE TABLE consultant_profiles (
+    consultant_profile_id SERIAL PRIMARY KEY,
+    user_id TEXT UNIQUE NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+    profile_image_url VARCHAR(255),
+    qualifications TEXT,
+    years_of_experience INTEGER,
+    current_organization VARCHAR(200),
+    license_number VARCHAR(100),
+    specializations TEXT[],
+    areas_of_expertise TEXT[],
+    languages TEXT[],
+    consultation_modes TEXT[],
+    availability TEXT,
+    biography TEXT,
+    linkedin_url VARCHAR(255),
+    portfolio_url VARCHAR(255),
+    clinic_address TEXT,
+    location VARCHAR(150),
+    phone VARCHAR(20),
+    verification_status VARCHAR(20) NOT NULL DEFAULT 'pending'
+        CHECK (verification_status IN
+            ('pending', 'approved', 'rejected', 'more_info_requested', 'suspended', 'deactivated')),
+    reviewed_by TEXT REFERENCES "user"(id),
+    reviewed_at TIMESTAMP,
+    rejection_reason TEXT,
+    submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE dermatologist_profiles (
+    dermatologist_profile_id SERIAL PRIMARY KEY,
+    user_id TEXT UNIQUE NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+    profile_image_url VARCHAR(255),
+    medical_registration_number VARCHAR(100),
+    medical_council VARCHAR(150),
+    hospital_clinic VARCHAR(200),
+    years_of_practice INTEGER,
+    degrees TEXT[],
+    board_certifications TEXT[],
+    specializations TEXT[],
+    research_interests TEXT,
+    professional_biography TEXT,
+    phone VARCHAR(20),
+    location VARCHAR(150),
+    verification_status VARCHAR(20) NOT NULL DEFAULT 'pending'
+        CHECK (verification_status IN
+            ('pending', 'approved', 'rejected', 'more_info_requested', 'suspended', 'deactivated')),
+    reviewed_by TEXT REFERENCES "user"(id),
+    reviewed_at TIMESTAMP,
+    rejection_reason TEXT,
+    submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Polymorphic across both profile types (owner_user_id, not a profile FK) so one
+-- table serves government ID / certificate / license / supporting-document uploads
+-- for either role without a second near-identical table. storage_key is the object
+-- key in the S3-compatible store (backend/app/core/storage.py), never a raw
+-- filesystem path — signed URLs are generated on read, never stored.
+CREATE TABLE verification_documents (
+    document_id SERIAL PRIMARY KEY,
+    owner_user_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+    document_type VARCHAR(30) NOT NULL
+        CHECK (document_type IN
+            ('government_id', 'professional_certificate', 'medical_license', 'supporting_document')),
+    storage_key VARCHAR(500) NOT NULL,
+    original_filename VARCHAR(255),
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    verified_by TEXT REFERENCES "user"(id),
+    verified_at TIMESTAMP
+);
+
+-- General-purpose system audit log — serves the Admin platform's "Audit Logs" /
+-- "Activity Logs" screens and every verification-workflow transition
+-- (submitted/approved/rejected/more_info_requested/suspended/deactivated/
+-- role_changed/banned/...). metadata is the one JSONB column in this schema by
+-- design: an event log is genuinely unstructured per action, unlike the typed
+-- relational tables above.
+CREATE TABLE audit_logs (
+    audit_log_id SERIAL PRIMARY KEY,
+    actor_user_id TEXT REFERENCES "user"(id),
+    action VARCHAR(100) NOT NULL,
+    target_type VARCHAR(50),
+    target_id TEXT,
+    metadata JSONB,
+    ip_address VARCHAR(45),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ============================================================
 -- NOTIFICATIONS & BILLING
 -- ============================================================
 
@@ -407,6 +509,12 @@ CREATE INDEX idx_progress_images_user ON progress_images(user_id);
 CREATE INDEX idx_product_recommendations_user ON product_recommendations(user_id);
 CREATE INDEX idx_consultant_clients_consultant ON consultant_clients(consultant_id);
 CREATE INDEX idx_consultant_notes_user ON consultant_notes(user_id);
+CREATE INDEX idx_consultant_profiles_status ON consultant_profiles(verification_status);
+CREATE INDEX idx_dermatologist_profiles_status ON dermatologist_profiles(verification_status);
+CREATE INDEX idx_verification_documents_owner ON verification_documents(owner_user_id);
+CREATE INDEX idx_audit_logs_actor ON audit_logs(actor_user_id);
+CREATE INDEX idx_audit_logs_target ON audit_logs(target_type, target_id);
+CREATE INDEX idx_audit_logs_created ON audit_logs(created_at);
 CREATE INDEX idx_notifications_user_unread ON notifications(user_id, is_read);
 CREATE INDEX idx_reminders_user_active ON reminders(user_id, is_active);
 CREATE INDEX idx_subscriptions_user_status ON subscriptions(user_id, status);

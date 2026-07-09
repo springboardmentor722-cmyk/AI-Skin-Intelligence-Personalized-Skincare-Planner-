@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Skinlytics FastAPI modular monolith (docs/ARCHITECTURE.md, ADR-005)"
 requires-python = ">=3.11"
 dependencies = [
+    "aioboto3>=15.5.0",
     "alembic>=1.18.5",
     "asyncpg>=0.31.0",
     "cryptography>=49.0.0",
@@ -40,6 +41,11 @@ ignore = ["B008"]
 python_version = "3.11"
 strict = true
 exclude = ["tests/"]
+
+# No py.typed marker/stubs published — untyped third-party, not our code.
+[[tool.mypy.overrides]]
+module = ["aioboto3.*", "aiobotocore.*", "botocore.*", "boto3.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
