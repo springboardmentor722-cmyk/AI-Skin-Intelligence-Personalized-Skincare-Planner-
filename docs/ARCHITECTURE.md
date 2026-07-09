@@ -99,7 +99,7 @@ service; everything else reads via interfaces or consumes derived projections.
 | 9 | **Notification** | PG `notifications`, `reminders` | user prefs | `/notifications`, `/reminders` |
 | 10 | **Analytics** | nothing (read-only aggregator, never a source of truth) | all stores | `/analytics` |
 | 11 | **Report** | S3 `/exports/`, `/reports/`; PG report registry | all via interfaces | `/reports` |
-| 12 | **Admin** | platform settings, content mgmt orchestration | everything (admin role) | `/admin` |
+| 12 | **Admin** | platform settings, content mgmt orchestration; PG `verification_documents`, `audit_logs` | everything (admin role); reads `consultant_profiles`/`dermatologist_profiles` for the verification queue | `/admin` |
 
 Service responsibilities per the diagram: User (management, authentication glue, role &
 profile management) · Skin Profile (profile creation, skin type, lifestyle/sleep/hydration/
@@ -151,7 +151,12 @@ DB round-trip, no duplicated auth logic. One dependency pair —
 
 **RBAC:** roles/permissions defined once with `createAccessControl`; the role claim is
 enforced per route; ownership checks (user can only read `me`; consultant only assigned
-clients) live in `deps.py` per service.
+clients) live in `deps.py` per service. `require_verified_professional(*roles)`
+(`core/security.py`, ADR-014) additionally gates *operational* consultant/dermatologist
+endpoints on the matching profile's `verification_status == "approved"` — it wraps
+`require_role`, so wrong-role and unapproved-status both fail 403 the same way; it never
+gates the profile's own view/edit/upload-documents endpoints, which stay reachable at
+every status.
 
 **Revocation & abuse:** Redis backs rate limiting (per-IP unauthenticated, per-user
 authenticated, stricter per-endpoint on AI paths) and an optional `auth:blacklist:{jti}`
@@ -181,6 +186,15 @@ but not yet *required* to sign in, a deliberate intermediate step.
 without restructuring anything above — no code changes now since there's no concrete
 near-term requirement driving it, but nothing in this architecture blocks adding it
 when one exists.
+
+**Professional verification workflow** (ADR-014): Consultant/Dermatologist accounts go
+through onboarding → `pending` → admin `approve`/`reject`/`request_info`/`suspend`/
+`deactivate`, tracked on `consultant_profiles`/`dermatologist_profiles`.
+`verification_status`. `audit_logs` (Admin service, §4) has exactly one write path —
+`write_audit_log` in `services/admin/service.py` — reached either directly by the five
+review actions or via `POST /admin/audit-logs`, which is what
+`web/app/api/admin/set-role/route.ts` calls after Better Auth's own `set-role` action
+(which has no audit trail of its own) so every role change is still logged.
 
 ## 7. Data layer — five stores + one file store
 

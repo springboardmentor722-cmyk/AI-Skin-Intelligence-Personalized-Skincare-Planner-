@@ -211,4 +211,38 @@ If a genuinely per-account (not per-IP) lockout with an explicit unlock workflow
 becomes a real requirement later, it layers on top of this rather than replacing it —
 this ADR doesn't preclude that, it just didn't build it speculatively now.
 
-<!-- Next ADR: ADR-014 — add yours here -->
+## ADR-014 — Professional verification gating + a single writer for `audit_logs`
+**Status:** Accepted (Milestone 1 foundation expansion)
+**Context:** Consultant/Dermatologist need an onboarding → pending → admin-approved/
+rejected lifecycle (`consultant_profiles`/`dermatologist_profiles`.`verification_status`,
+Branch 1). Two design questions this raises: (1) where does the "is this professional
+actually allowed to do the operational thing" check live, and (2) who is allowed to
+write `audit_logs`, given both FastAPI (Python) and Better Auth's admin-plugin actions
+(TypeScript, e.g. `set-role`) can each independently change state that should be
+logged.
+**Decision:** `require_verified_professional(*roles)` lives in `backend/app/core/
+security.py` next to `require_role` (docs/CONVENTIONS.md already centralizes auth/
+ownership dependencies there) — it wraps `require_role` and then checks the matching
+profile table's `verification_status == "approved"`, failing closed (wrong role, no
+profile row yet, or any non-approved status all 403 identically). It gates *future*
+M2+ operational endpoints only — never the profile's own management endpoints (view/
+edit/upload-documents), which must stay reachable in every status so a pending/
+rejected professional can still act on their own verification.
+`audit_logs` gets exactly one write path: `backend/app/services/admin/service.py`'s
+`write_audit_log`, reached either directly (the five verification actions — approve/
+reject/request-info/suspend/deactivate, each `require_role("admin")`) or via the new
+`POST /api/v1/admin/audit-logs` endpoint. The latter exists because Better Auth's
+`set-role` admin action has no audit trail of its own and runs entirely in the
+Next.js/Better Auth process, not FastAPI — `web/app/api/admin/set-role/route.ts` is a
+thin wrapper that calls `auth.api.setRole` then POSTs to that endpoint with its own
+freshly-minted JWT, so a role change is never silent. No future code should insert
+into `audit_logs` any other way.
+**Consequences:** Reject/request-info/suspend require a non-empty `reason` at the
+schema level (`VerificationActionWithReasonRequest`, min_length=1) — approve/
+deactivate don't, matching the plan's explicit scope rather than requiring one
+everywhere by default. `require_verified_professional` has no consumer yet (M2+
+operational endpoints don't exist), so its 200/allow path is covered by direct
+dependency-level tests (`tests/test_rbac.py`), not a live route — the same discipline
+`require_role`'s own tests already used before any real `user`-role routes existed.
+
+<!-- Next ADR: ADR-015 — add yours here -->
