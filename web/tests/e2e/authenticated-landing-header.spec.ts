@@ -27,13 +27,13 @@ test.describe("authenticated landing header", () => {
     await expect(page.getByRole("button", { name: "Start free assessment" })).toBeVisible();
 
     await page.waitForTimeout(500);
-    // Pre-existing, unrelated to this change: next/image optimization 400s on the
-    // landing page's own hero/testimonial JPEGs (public/images/landing/*.jpg) —
-    // reproduces with zero auth/session code involved at all. Filtered here so this
-    // assertion covers what it's actually meant to (no *new* errors from the
-    // session-aware header); tracked separately as its own follow-up.
-    const relevantErrors = errors.filter((e) => !e.includes("400 (Bad Request)"));
-    expect(relevantErrors).toEqual([]);
+    // Previously filtered out a next/image 400 here (root cause: proxy.ts's
+    // matcher didn't exclude public/ static assets by extension, so an
+    // unauthenticated request for the hero/testimonial JPEGs got redirected to
+    // /login same as a protected page, and the optimizer choked on the HTML body
+    // it got back instead of image bytes — fixed in proxy.ts). No more filter now
+    // that it's fixed, so a regression here fails loudly again.
+    expect(errors).toEqual([]);
   });
 
   test("admin session: avatar menu replaces Login/Signup, role-appropriate items, sign out", async ({
