@@ -113,8 +113,12 @@ async def compute_and_store_score(db: AsyncSession, user_id: str) -> ScoreRead:
 
     # Collapse to one row per user per day (mirrors lifestyle_logs' own "one doc per
     # user per day" shape) — repeated dashboard views update today's row in place
-    # rather than spamming skin_scores with near-identical history.
-    today = datetime.date.today()
+    # rather than spamming skin_scores with near-identical history. `calculated_at`
+    # is `server_default=func.now()`, i.e. the DB server's (UTC, in Docker Postgres)
+    # clock — comparing it against local `date.today()` caused duplicate rows for
+    # ~5-6 hours daily whenever local time had crossed midnight but UTC hadn't yet
+    # (or vice versa). Use UTC on both sides, matching `get_recent_scores` below.
+    today = datetime.datetime.now(datetime.UTC).date()
     existing_result = await db.execute(
         select(SkinScore)
         .where(SkinScore.user_id == user_id)
