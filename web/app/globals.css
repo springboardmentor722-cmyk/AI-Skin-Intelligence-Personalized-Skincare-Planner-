@@ -288,6 +288,253 @@
   --sidebar-ring: var(--secondary);
 }
 
+/* ------------------------------------------------------------------------------
+   Theme system (Phase 3) — alternate color PALETTES, not alternate design systems.
+   AGENTS.md: "Design system is locked, not proposed" — the Frosted Lab Glass system
+   itself (glass recipe above, spacing, radius, tri-font, the Skin Score Ring's own
+   gradient logic) is unchanged by any palette. A palette only re-points the same
+   brand/semantic token *names* already used everywhere in this file
+   (--primary/--secondary/--tertiary + their --on-*/--*-container pairs) to
+   different values — every component that already consumes `--color-primary` etc.
+   (buttons, chips, charts, the sidebar, the aurora gradient) re-themes automatically,
+   with zero component-level changes.
+
+   Deliberately NOT varied per palette, matching the existing Default theme's own
+   values in every case:
+   - The neutral surface/on-surface/outline scale — this is what makes every theme
+     still read as unmistakably "Frosted Lab Glass", not a repaint. Per-theme neutral
+     ramps were considered and rejected: 7 hand-tuned neutral scales risk looking
+     muddy without real design-tool iteration, and the brand personality of a theme
+     reads through its accent colors already (how most real dashboards — Linear,
+     GitHub, Vercel — do accent theming).
+   - success/warning/error — status color should mean the same thing regardless of
+     which palette is active; themeing "danger" away from red would hurt usability,
+     not polish it.
+   - --surface-tint mirrors each palette's own --secondary, same relationship the
+     Default theme already has.
+   Chart colors, sidebar accents, the shadcn `--accent`, and `--ring` are NOT
+   redefined per palette below because they already derive from
+   --secondary/--tertiary via `var()` (see the :root/.dark blocks above) — they
+   re-theme for free.
+   ------------------------------------------------------------------------------ */
+
+[data-palette="emerald"] {
+  --primary: #064e3b;
+  --on-primary: #ffffff;
+  --primary-container: #d1fae5;
+  --on-primary-container: #065f46;
+  --secondary: #059669;
+  --on-secondary: #ffffff;
+  --secondary-container: #a7f3d0;
+  --on-secondary-container: #065f46;
+  --tertiary: #84cc16;
+  --on-tertiary: #1a2e05;
+  --tertiary-container: #ecfccb;
+  --on-tertiary-container: #3f6212;
+  --surface-tint: #059669;
+}
+[data-palette="emerald"].dark {
+  --primary: #6ee7b7;
+  --on-primary: #053b2c;
+  --primary-container: #065f46;
+  --on-primary-container: #a7f3d0;
+  --secondary: #34d399;
+  --on-secondary: #012a1c;
+  --secondary-container: #047857;
+  --on-secondary-container: #d1fae5;
+  --tertiary: #bef264;
+  --on-tertiary: #2a3b05;
+  --tertiary-container: #4d7c0f;
+  --on-tertiary-container: #ecfccb;
+  --surface-tint: #34d399;
+}
+
+[data-palette="ocean"] {
+  --primary: #0c4a6e;
+  --on-primary: #ffffff;
+  --primary-container: #e0f2fe;
+  --on-primary-container: #0c4a6e;
+  --secondary: #0284c7;
+  --on-secondary: #ffffff;
+  --secondary-container: #bae6fd;
+  --on-secondary-container: #075985;
+  --tertiary: #06b6d4;
+  --on-tertiary: #083344;
+  --tertiary-container: #cffafe;
+  --on-tertiary-container: #155e75;
+  --surface-tint: #0284c7;
+}
+[data-palette="ocean"].dark {
+  --primary: #7dd3fc;
+  --on-primary: #0c3a56;
+  --primary-container: #075985;
+  --on-primary-container: #e0f2fe;
+  --secondary: #38bdf8;
+  --on-secondary: #04314d;
+  --secondary-container: #0369a1;
+  --on-secondary-container: #e0f2fe;
+  --tertiary: #67e8f9;
+  --on-tertiary: #083344;
+  --tertiary-container: #0e7490;
+  --on-tertiary-container: #cffafe;
+  --surface-tint: #38bdf8;
+}
+
+[data-palette="lavender"] {
+  --primary: #3b0764;
+  --on-primary: #ffffff;
+  --primary-container: #ede9fe;
+  --on-primary-container: #4c1d95;
+  --secondary: #7c3aed;
+  --on-secondary: #ffffff;
+  --secondary-container: #ddd6fe;
+  --on-secondary-container: #5b21b6;
+  --tertiary: #c026d3;
+  --on-tertiary: #ffffff;
+  --tertiary-container: #fae8ff;
+  --on-tertiary-container: #86198f;
+  --surface-tint: #7c3aed;
+}
+[data-palette="lavender"].dark {
+  --primary: #c4b5fd;
+  --on-primary: #3b0764;
+  --primary-container: #5b21b6;
+  --on-primary-container: #ede9fe;
+  --secondary: #a78bfa;
+  --on-secondary: #2e1065;
+  --secondary-container: #6d28d9;
+  --on-secondary-container: #ede9fe;
+  --tertiary: #f0abfc;
+  --on-tertiary: #4a044e;
+  --tertiary-container: #a21caf;
+  --on-tertiary-container: #fae8ff;
+  --surface-tint: #a78bfa;
+}
+
+[data-palette="sunset"] {
+  --primary: #7c2d12;
+  --on-primary: #ffffff;
+  --primary-container: #ffedd5;
+  --on-primary-container: #7c2d12;
+  --secondary: #ea580c;
+  --on-secondary: #ffffff;
+  --secondary-container: #fed7aa;
+  --on-secondary-container: #9a3412;
+  --tertiary: #db2777;
+  --on-tertiary: #ffffff;
+  --tertiary-container: #fce7f3;
+  --on-tertiary-container: #9d174d;
+  --surface-tint: #ea580c;
+}
+[data-palette="sunset"].dark {
+  --primary: #fdba74;
+  --on-primary: #431407;
+  --primary-container: #9a3412;
+  --on-primary-container: #ffedd5;
+  --secondary: #fb923c;
+  --on-secondary: #431407;
+  --secondary-container: #c2410c;
+  --on-secondary-container: #ffedd5;
+  --tertiary: #f9a8d4;
+  --on-tertiary: #500724;
+  --tertiary-container: #be185d;
+  --on-tertiary-container: #fce7f3;
+  --surface-tint: #fb923c;
+}
+
+[data-palette="slate"] {
+  --primary: #1e293b;
+  --on-primary: #ffffff;
+  --primary-container: #e2e8f0;
+  --on-primary-container: #1e293b;
+  --secondary: #475569;
+  --on-secondary: #ffffff;
+  --secondary-container: #cbd5e1;
+  --on-secondary-container: #334155;
+  --tertiary: #d97706;
+  --on-tertiary: #ffffff;
+  --tertiary-container: #fef3c7;
+  --on-tertiary-container: #92400e;
+  --surface-tint: #475569;
+}
+[data-palette="slate"].dark {
+  --primary: #cbd5e1;
+  --on-primary: #1e293b;
+  --primary-container: #334155;
+  --on-primary-container: #e2e8f0;
+  --secondary: #94a3b8;
+  --on-secondary: #1e293b;
+  --secondary-container: #475569;
+  --on-secondary-container: #e2e8f0;
+  --tertiary: #fbbf24;
+  --on-tertiary: #451a03;
+  --tertiary-container: #b45309;
+  --on-tertiary-container: #fef3c7;
+  --surface-tint: #94a3b8;
+}
+
+[data-palette="rose"] {
+  --primary: #881337;
+  --on-primary: #ffffff;
+  --primary-container: #ffe4e6;
+  --on-primary-container: #881337;
+  --secondary: #e11d48;
+  --on-secondary: #ffffff;
+  --secondary-container: #fecdd3;
+  --on-secondary-container: #9f1239;
+  --tertiary: #0d9488;
+  --on-tertiary: #ffffff;
+  --tertiary-container: #ccfbf1;
+  --on-tertiary-container: #115e59;
+  --surface-tint: #e11d48;
+}
+[data-palette="rose"].dark {
+  --primary: #fda4af;
+  --on-primary: #4c0519;
+  --primary-container: #9f1239;
+  --on-primary-container: #ffe4e6;
+  --secondary: #fb7185;
+  --on-secondary: #4c0519;
+  --secondary-container: #be123c;
+  --on-secondary-container: #ffe4e6;
+  --tertiary: #5eead4;
+  --on-tertiary: #042f2e;
+  --tertiary-container: #0f766e;
+  --on-tertiary-container: #ccfbf1;
+  --surface-tint: #fb7185;
+}
+
+[data-palette="forest"] {
+  --primary: #14532d;
+  --on-primary: #ffffff;
+  --primary-container: #dcfce7;
+  --on-primary-container: #14532d;
+  --secondary: #4d7c0f;
+  --on-secondary: #ffffff;
+  --secondary-container: #ecfccb;
+  --on-secondary-container: #3f6212;
+  --tertiary: #a16207;
+  --on-tertiary: #ffffff;
+  --tertiary-container: #fef3c7;
+  --on-tertiary-container: #854d0e;
+  --surface-tint: #4d7c0f;
+}
+[data-palette="forest"].dark {
+  --primary: #86efac;
+  --on-primary: #052e16;
+  --primary-container: #166534;
+  --on-primary-container: #dcfce7;
+  --secondary: #bef264;
+  --on-secondary: #1a2e05;
+  --secondary-container: #4d7c0f;
+  --on-secondary-container: #ecfccb;
+  --tertiary: #fcd34d;
+  --on-tertiary: #451a03;
+  --tertiary-container: #92400e;
+  --on-tertiary-container: #fef3c7;
+  --surface-tint: #bef264;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

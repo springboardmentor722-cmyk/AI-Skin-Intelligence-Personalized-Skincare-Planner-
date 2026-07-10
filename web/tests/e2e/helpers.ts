@@ -41,6 +41,7 @@ export async function deleteTestUser(userId: string): Promise<void> {
     await db.query("delete from verification_documents where owner_user_id = $1", [userId]);
     await db.query("delete from consultant_profiles where user_id = $1", [userId]);
     await db.query("delete from dermatologist_profiles where user_id = $1", [userId]);
+    await db.query("delete from user_appearance_preferences where user_id = $1", [userId]);
     await db.query('delete from session where "userId" = $1', [userId]);
     await db.query('delete from account where "userId" = $1', [userId]);
     await db.query('delete from "user" where id = $1', [userId]);

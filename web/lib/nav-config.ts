@@ -77,7 +77,8 @@ const RAW_NAV_ITEMS: Record<Role, RawNavItem[]> = {
     { label: "Insights", path: "/insights", icon: Sparkles, built: false },
     { label: "Reports", path: "/reports", icon: FileText, built: false },
     { label: "Notifications", path: "/notifications", icon: Bell, built: false },
-    { label: "Settings", path: "/settings", icon: Settings, built: false },
+    // Phase 3 (theme system): Settings now covers a real Appearance section.
+    { label: "Settings", path: "/settings", icon: Settings },
   ],
   consultant: [
     { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
@@ -85,7 +86,7 @@ const RAW_NAV_ITEMS: Record<Role, RawNavItem[]> = {
     { label: "Assessments", path: "/assessments", icon: ClipboardCheck, built: false },
     { label: "Recommendations", path: "/recommendations", icon: Sparkles, built: false },
     { label: "Reports", path: "/reports", icon: FileText, built: false },
-    { label: "Settings", path: "/settings", icon: Settings, built: false },
+    { label: "Settings", path: "/settings", icon: Settings },
   ],
   dermatologist: [
     { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
@@ -103,7 +104,7 @@ const RAW_NAV_ITEMS: Record<Role, RawNavItem[]> = {
       built: false,
     },
     { label: "Analytics", path: "/analytics", icon: BarChart3, built: false },
-    { label: "Settings", path: "/settings", icon: Settings, built: false },
+    { label: "Settings", path: "/settings", icon: Settings },
   ],
   admin: [
     { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },

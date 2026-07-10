@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { AppearanceSync } from "@/components/app-shell/appearance-sync";
 import { AppSidebar } from "@/components/app-shell/app-sidebar";
 import { GlassTopbar } from "@/components/app-shell/glass-topbar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -24,6 +25,7 @@ interface AppShellProps {
 export function AppShell({ role, userName, title, children }: AppShellProps) {
   return (
     <SidebarProvider>
+      <AppearanceSync />
       <AppSidebar role={role} userName={userName} />
       <SidebarInset>
         <GlassTopbar title={title} role={role} userName={userName} />

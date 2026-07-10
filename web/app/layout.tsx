@@ -4,6 +4,7 @@ import { ThemeProvider } from "next-themes";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { QueryProvider } from "@/components/providers/query-provider";
+import { PaletteProvider, PaletteScript } from "@/components/providers/palette-provider";
 import "./globals.css";
 
 // Tri-font strategy — docs/DESIGN.md §4: Sora for headlines, Inter for body/UI,
@@ -43,14 +44,17 @@ export default function RootLayout({
       className={`${sora.variable} ${inter.variable} ${geist.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
+        <PaletteScript />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <QueryProvider>
-            <TooltipProvider delay={200}>
-              <div className="aurora" aria-hidden="true" />
-              {children}
-              <Toaster />
-            </TooltipProvider>
-          </QueryProvider>
+          <PaletteProvider>
+            <QueryProvider>
+              <TooltipProvider delay={200}>
+                <div className="aurora" aria-hidden="true" />
+                {children}
+                <Toaster />
+              </TooltipProvider>
+            </QueryProvider>
+          </PaletteProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -61,6 +61,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/users/me/appearance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Appearance */
+        get: operations["get_my_appearance_api_v1_users_me_appearance_get"];
+        /** Update My Appearance */
+        put: operations["update_my_appearance_api_v1_users_me_appearance_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/me/appearance/reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reset My Appearance */
+        post: operations["reset_my_appearance_api_v1_users_me_appearance_reset_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/skin-types": {
         parameters: {
             query?: never;
@@ -580,6 +615,49 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AppearancePreferenceRead */
+        AppearancePreferenceRead: {
+            /**
+             * Palette
+             * @enum {string}
+             */
+            palette: "default" | "emerald" | "ocean" | "lavender" | "sunset" | "slate" | "rose" | "forest";
+            /**
+             * Theme Mode
+             * @enum {string}
+             */
+            theme_mode: "light" | "dark" | "system";
+            /** Accent Color */
+            accent_color: string | null;
+            /** Font Size */
+            font_size: string | null;
+            /** Density */
+            density: string | null;
+            /** Motion Preference */
+            motion_preference: string | null;
+        };
+        /**
+         * AppearancePreferenceUpdate
+         * @description All fields optional — PATCH-style partial update (`exclude_unset`), same
+         *     convention as `UserProfileUpdate`. `accent_color`/`font_size`/`density`/
+         *     `motion_preference` are accepted but not yet consumed by the v1 UI — genuine
+         *     future-ready placeholders, not dead fields, since the column/schema/API round
+         *     trip already works end to end.
+         */
+        AppearancePreferenceUpdate: {
+            /** Palette */
+            palette?: ("default" | "emerald" | "ocean" | "lavender" | "sunset" | "slate" | "rose" | "forest") | null;
+            /** Theme Mode */
+            theme_mode?: ("light" | "dark" | "system") | null;
+            /** Accent Color */
+            accent_color?: string | null;
+            /** Font Size */
+            font_size?: string | null;
+            /** Density */
+            density?: string | null;
+            /** Motion Preference */
+            motion_preference?: string | null;
+        };
         /**
          * AuditLogCreate
          * @description Body for POST /admin/audit-logs — the one write path `audit_logs` has (this
@@ -1542,6 +1620,79 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_my_appearance_api_v1_users_me_appearance_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppearancePreferenceRead"];
+                };
+            };
+        };
+    };
+    update_my_appearance_api_v1_users_me_appearance_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AppearancePreferenceUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppearancePreferenceRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reset_my_appearance_api_v1_users_me_appearance_reset_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppearancePreferenceRead"];
                 };
             };
         };
