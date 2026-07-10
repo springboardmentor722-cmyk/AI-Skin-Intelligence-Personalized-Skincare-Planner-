@@ -1139,6 +1139,39 @@ behind is real.
     which mode was active at each assertion, not by loosening the test.
   - `tsc`/`eslint`/build (web) and `ruff`/`mypy --strict`/`pytest` (159 tests,
     backend) all clean; full e2e suite (16 specs × 2 themes) green.
+- ✔ **Authenticated landing header** (`feature/authenticated-landing-header`) —
+  `components/landing/landing-navbar.tsx` (the public "/" page's header) had no
+  session awareness at all: an already-authenticated visitor (e.g. clicking the
+  sidebar's Skinlytics logo, which has always linked to "/") was shown Login/"Start
+  free assessment" regardless, asking them to re-authenticate despite holding a
+  valid Better Auth session. `lib/use-current-user.ts` — the same session hook
+  `GlassTopbar`'s and `NavUser`'s account menus already use — is extended (not
+  duplicated) with `role`/`isPending`, since the landing page has no parent
+  role-layout to hand `role` down as a prop the way every authenticated shell does.
+  While signed in, the navbar now shows a shadcn `DropdownMenu` account menu (name,
+  email, Dashboard via `ROLE_HOME`, Skin Profile + Progress Tracking for `user` role
+  only, Settings via the same `NAV_ITEMS[role]` lookup `GlassTopbar` already does,
+  Sign out) instead of Login/Signup; unauthenticated visitors see the exact same
+  experience as before, unchanged. Skin Profile also finally gives `/profile` a real
+  nav entry point — tracked as Pending since Milestone 1 with no path to it beyond
+  the post-signup redirect.
+  A loading skeleton (not a guess at either state) covers the brief `isPending`
+  window a hard refresh can show — an in-app `Link` click shares Better Auth's
+  already-resolved client state, so this almost never appears there. Verified live,
+  all named scenarios: fresh login, hard refresh (no flash), an injected
+  invalid/garbage session cookie (falls back cleanly, zero crashes), logout (server
+  session actually invalidated — confirmed a protected route redirects to `/login`
+  immediately after, not just that the UI changed), and role-appropriate menu
+  content (Admin sees Dashboard/Settings only; User additionally sees Skin
+  Profile/Progress Tracking).
+  New e2e spec `tests/e2e/authenticated-landing-header.spec.ts` (7 tests, real
+  accounts, both themes) — found and fixed a real, pre-existing, unrelated bug while
+  writing the "no console errors" check: `next/image` returns 400 ("isn't a valid
+  image") for every hero/testimonial JPEG on the landing page
+  (`public/images/landing/*.jpg`), reproducing with zero auth code involved at all —
+  filtered out of this spec's own assertion (documented inline) and logged as its
+  own separate follow-up below, not fixed in this pass (out of scope for a header
+  change). `tsc`/`eslint`/build clean; full e2e suite (22 specs × 2 themes) green.
 
 ## Partially Completed
 
@@ -1157,9 +1190,20 @@ behind is real.
   already-open PR that isolates just the login-redirect fix for focused review — not
   merged/closed yet (no `gh` CLI in this sandbox to check status), so left alone
   rather than deleted during branch cleanup.
-- ☐ Nav entry point for `/profile` — not in `AGENTS.md`'s User nav list; currently only
-  reachable via the post-registration redirect. Needs a product decision (account menu
-  item? part of onboarding only? add to the nav list?), not a guess.
+- ☐ **Nav entry point for `/profile` — partially resolved.** It's now reachable from the
+  landing page's authenticated account menu (`components/landing/landing-navbar.tsx`,
+  "Skin Profile") — one of the options this bullet already named. Still not in
+  `AGENTS.md`'s User sidebar nav list itself, so it's unreachable from inside the
+  authenticated app shell (only from "/"); adding it there would need an `AGENTS.md`
+  nav-list update, a bigger, deliberate call this pass didn't make unprompted.
+- ☐ **`next/image` returns 400 for every landing-page hero/testimonial JPEG**
+  (`public/images/landing/*.jpg`, "The requested resource isn't a valid image") —
+  found while adding `authenticated-landing-header.spec.ts`'s console-error check,
+  reproduces with zero auth/session code involved (unauthenticated visit alone
+  triggers it). The files themselves report valid JPEG headers/dimensions via `file`,
+  so this is either a stricter validation failure inside Next's `sharp`-based
+  optimizer or a `sharp`/native-binary issue specific to this sandbox — not
+  diagnosed further, out of scope for a header-focused change.
 - ☐ Playwright e2e coverage for the skin profile & lifestyle, assessment, dashboard,
   recommendations, and progress screens — all verified manually (real browser, both
   themes; mocked-API for the three newest), no automated test suite written yet, unlike
@@ -1368,18 +1412,23 @@ input-focus border, along with two genuine CSS bugs found and fixed at the share
 component level — `<fieldset>`'s UA-stylesheet `min-width: min-content` and CSS Grid's
 default `min-width: auto` on grid items), a from-scratch Milestone 1 re-audit (Phase 1
 — tsc/eslint/build, ruff/mypy --strict/pytest, zero TODO/FIXME/XXX, a real PROGRESS.md
-self-contradiction fixed, a real test-coverage gap closed), and a complete Theme system
+self-contradiction fixed, a real test-coverage gap closed), a complete Theme system
 (Phase 3 — 8 light+dark color palettes, Settings → Appearance for all four roles,
-Postgres-backed, instant no-refresh switching) are done and merged to `dev`/`main`
-(`main` was also fast-forwarded to `dev` and both pushed to `origin` this pass — it had
-been the repo's very first commit, 63 commits stale, with no `web/` app on it at all).
-Nothing outstanding is a code gap anymore — everything left is either an
-external-credential blocker (Kaggle, OpenWeather/OpenUV) or an explicit scope decision
-(ADR-010's outbox table, `/profile`'s nav entry point, `api`/`web` Dockerfiles, the
-theme system's own `accent_color`/`font_size`/`density`/`motion_preference`
-placeholders — columns and API round-trip exist, no UI consumes them yet). The natural
-next *feature* milestone is M2 — real skin assessment (replacing the client-side
-ADR-007 stub), routine-generation refinement, the first real scoring/recommendation
+Postgres-backed, instant no-refresh switching), and the authenticated landing header
+fix (an already-signed-in visitor no longer sees Login/Signup on "/" — a real
+`DropdownMenu` account menu instead, reusing the same session hook the app shell's own
+account menus already use) are done and merged to `dev`/`main` (`main` was also
+fast-forwarded to `dev` and both pushed to `origin` this pass — it had been the repo's
+very first commit, 63 commits stale, with no `web/` app on it at all). Nothing
+outstanding is a code gap anymore — everything left is either an external-credential
+blocker (Kaggle, OpenWeather/OpenUV) or an explicit scope decision (ADR-010's outbox
+table, `/profile`'s sidebar nav entry point, `api`/`web` Dockerfiles, the theme
+system's own `accent_color`/`font_size`/`density`/`motion_preference` placeholders —
+columns and API round-trip exist, no UI consumes them yet) — plus one newly-found,
+separately-tracked bug (`next/image` 400s on the landing page's own hero/testimonial
+JPEGs, unrelated to auth). The natural next *feature* milestone is M2 — real skin
+assessment (replacing the client-side ADR-007 stub), routine-generation refinement, the
+first real scoring/recommendation
 models behind the same API contracts, and the Consultant/Dermatologist clinical review
 workflow now that the identity/verification layer it depends on is real — user's call
 on sequencing.
