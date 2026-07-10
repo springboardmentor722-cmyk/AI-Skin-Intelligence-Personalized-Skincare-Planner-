@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
 import { loginSchema, type LoginValues } from "@/lib/schemas/auth";
 import { ROLE_HOME, type Role } from "@/lib/nav-config";
+import { useCurrentUser } from "@/lib/use-current-user";
 import { GoogleIcon } from "@/components/auth/google-icon";
 
 // web/designs/wireframes/login.html — the form panel is a solid "diagnostic module"
@@ -48,6 +49,29 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [rateLimitedUntil, setRateLimitedUntil] = useState<number | null>(null);
+
+  // A visitor who already holds a valid session (browser tab left open, back
+  // button, a hand-typed /login) shouldn't be asked to sign in again — same
+  // useCurrentUser() every other session-aware surface in this app already shares,
+  // not a second auth-reading implementation. `from` is still honored so this
+  // plays nice with the "session expired mid-page, redirected here" flow too.
+  //
+  // Checked once, on initial mount, not reactively on every `role` change: a
+  // *successful sign-in on this very page* also flips `role` from null to a real
+  // value, which would otherwise race this effect against onSubmit's own explicit
+  // redirect below — whichever navigation call landed last would silently win.
+  // `checkedInitialSession` gates this to "was there already a session when this
+  // page loaded," never "did a role change happen for any reason."
+  const { role, isPending } = useCurrentUser();
+  const checkedInitialSession = useRef(false);
+
+  useEffect(() => {
+    if (isPending || checkedInitialSession.current) return;
+    checkedInitialSession.current = true;
+    if (role) {
+      router.replace(safeRedirectTarget(searchParams.get("from"), ROLE_HOME[role]));
+    }
+  }, [isPending, role, router, searchParams]);
 
   useEffect(() => {
     if (!rateLimitedUntil) return;
@@ -99,6 +123,16 @@ function LoginForm() {
     const fallback = ROLE_HOME[data.user.role as Role] ?? "/dashboard";
     router.push(safeRedirectTarget(searchParams.get("from"), fallback));
   };
+
+  if (isPending || role) {
+    return (
+      <AuthSplitLayout>
+        <div className="border-border bg-card flex min-h-[420px] items-center justify-center rounded-2xl border p-8">
+          <Loader2 className="text-on-surface-variant size-6 animate-spin" strokeWidth={1.5} />
+        </div>
+      </AuthSplitLayout>
+    );
+  }
 
   return (
     <AuthSplitLayout>

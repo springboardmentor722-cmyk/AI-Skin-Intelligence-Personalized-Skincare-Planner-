@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -37,6 +37,8 @@ import {
   SIGNUP_ROLES,
   type SignupValues,
 } from "@/lib/schemas/auth";
+import { ROLE_HOME } from "@/lib/nav-config";
+import { useCurrentUser } from "@/lib/use-current-user";
 import { GoogleIcon } from "@/components/auth/google-icon";
 import { cn } from "@/lib/utils";
 
@@ -124,6 +126,27 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
+  // Same reasoning as app/login/page.tsx: an already-authenticated visitor
+  // shouldn't be shown the signup form again — send them to their own dashboard
+  // instead, via the same shared session hook every other session-aware surface
+  // in this app already uses.
+  //
+  // Checked once, on initial mount, not reactively on every `role` change: a
+  // *successful signup on this very page* also flips `role` from null to "user",
+  // which would otherwise race this effect against onSubmit's own explicit
+  // onboarding-path redirect below (/assessment, /consultant-onboarding, /
+  // dermatologist-onboarding — never just ROLE_HOME) — found live, a brand new
+  // signup was landing on /dashboard instead of the onboarding wizard it's supposed
+  // to be forced through first.
+  const { role, isPending } = useCurrentUser();
+  const checkedInitialSession = useRef(false);
+
+  useEffect(() => {
+    if (isPending || checkedInitialSession.current) return;
+    checkedInitialSession.current = true;
+    if (role) router.replace(ROLE_HOME[role]);
+  }, [isPending, role, router]);
+
   const {
     register,
     handleSubmit,
@@ -192,6 +215,16 @@ export default function SignupPage() {
     };
     router.push(onboardingPath[values.requestedRole]);
   };
+
+  if (isPending || role) {
+    return (
+      <AuthSplitLayout formClassName="max-w-2xl" sectionClassName="p-6 md:p-8 lg:py-3">
+        <div className="border-border bg-card flex min-h-[420px] items-center justify-center rounded-2xl border p-7 shadow-sm sm:p-8 lg:p-4">
+          <Loader2 className="text-on-surface-variant size-6 animate-spin" strokeWidth={1.5} />
+        </div>
+      </AuthSplitLayout>
+    );
+  }
 
   return (
     <AuthSplitLayout formClassName="max-w-2xl" sectionClassName="p-6 md:p-8 lg:py-3">
