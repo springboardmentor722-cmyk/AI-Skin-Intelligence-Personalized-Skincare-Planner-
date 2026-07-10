@@ -1233,6 +1233,38 @@ behind is real.
   not yet diagnosed) is now removed — it would have silently masked a regression;
   the assertion is back to a plain `expect(errors).toEqual([])`. `tsc`/build clean;
   full e2e suite (23 specs × 2 themes) green.
+- ✔ **Route-protection audit + `/login`/`/signup` already-authenticated redirect**
+  — a full audit (every `page.tsx`/`route.ts` cross-checked against `proxy.ts`'s
+  allowlist, all four role layouts, all `/api/*` handlers, live `curl` against every
+  route) found no other page missing protection; the one forward-looking note is
+  that the `next/image` fix's extension-based matcher exclusion is path-position-
+  agnostic, so a *future* Next.js-hosted route ending in `.pdf`/etc. (a downloadable
+  report) would also bypass it — nothing like that exists today, not acted on.
+  Separately, `/login` and `/signup` had no session awareness at all: an
+  already-authenticated visitor (tab left open, back button, hand-typed URL) was
+  shown the form again instead of being sent to their own dashboard. Both now use
+  the same shared `useCurrentUser()` hook — checked *once, on initial mount*, not
+  reactively on every `role` change, which matters because a *successful sign-in/
+  signup on the page itself* also flips `role` from null to a real value: without
+  the once-only guard this raced the form's own post-submit redirect (found live —
+  a brand-new signup briefly landed on `/dashboard` instead of the onboarding wizard
+  its own `onSubmit` was sending it to, whichever `router.push`/`replace` call won
+  the race). `/login` still honors a same-origin `?from=` for an already-signed-in
+  visitor, matching its own post-sign-in redirect logic exactly.
+  Found and fixed a real, unrelated, pre-existing test bug while verifying this:
+  `page.request.post("/api/auth/sign-out")` (11 call sites across 4 spec files) sent
+  no `Content-Type`/`Origin` header, so Better Auth 403'd it every time
+  ("Missing or null Origin") — a complete no-op that nothing ever surfaced, because
+  `/login` never used to check session state, so a still-signed-in visitor landing
+  back on it looked identical to a real one. Once `/login` started redirecting an
+  authenticated visitor away, the stale sessions became observable as 8 real test
+  timeouts. Root-caused via a throwaway instrumented reproduction (not a guess) and
+  fixed with one shared `signOut()` helper (`tests/e2e/helpers.ts`) instead of
+  patching 11 call sites individually — every one now sends a real, working
+  sign-out. New spec `tests/e2e/auth-pages-redirect.spec.ts` (anon visitor unchanged,
+  signed-in user redirected, signed-in admin redirected to *its own* home not
+  `/dashboard`, `?from=` honored). `tsc`/`eslint`/build clean; full e2e suite
+  (27 specs × 2 themes) green.
 
 ## Partially Completed
 
