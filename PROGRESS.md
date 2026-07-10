@@ -1215,6 +1215,24 @@ behind is real.
   exposes `role="button"` in the accessibility tree, not `role="link"`, matching
   the same gotcha already logged below. `tsc`/`eslint`/build clean; full e2e suite
   (23 specs × 2 themes) green.
+- ✔ **`next/image` 400s on the landing page, actually root-caused and fixed** — the
+  prior pass's guess (a `sharp`/native-binary issue) was wrong. `proxy.ts`'s matcher
+  excluded `_next/static`, `_next/image`, and `favicon.ico` but nothing else static
+  — so an unauthenticated request for `public/images/landing/*.jpg` itself got
+  redirected to `/login` exactly like a protected page (confirmed via `curl -I`:
+  307 to `/login?from=...`). `/_next/image`'s own internal fetch for a local
+  source image is a request like any other, so the optimizer received an HTML
+  redirect body instead of JPEG bytes and failed with "isn't a valid image."
+  Fixed by extending the matcher to exclude by file extension (Next's own
+  documented convention for this exact case:
+  `.(?:jpg|jpeg|png|gif|webp|avif|svg|ico|css|js|woff|woff2|ttf|otf|pdf)$`) — every
+  future `public/` asset (icons, fonts, downloads) is covered, not just this one
+  folder. Verified: `curl` on both the raw asset and `/_next/image?url=...` now
+  return 200 with real JPEG bytes; protected routes (`/dashboard`) still redirect
+  correctly. The console-error test's 400-filter (added when this was first found,
+  not yet diagnosed) is now removed — it would have silently masked a regression;
+  the assertion is back to a plain `expect(errors).toEqual([])`. `tsc`/build clean;
+  full e2e suite (23 specs × 2 themes) green.
 
 ## Partially Completed
 
@@ -1228,25 +1246,12 @@ behind is real.
 
 ## Pending
 
-- ☐ Two small support branches (`base/pre-login-role-redirect`,
-  `fix/login-role-redirect`) are pushed to `origin` backing a standalone,
-  already-open PR that isolates just the login-redirect fix for focused review — not
-  merged/closed yet (no `gh` CLI in this sandbox to check status), so left alone
-  rather than deleted during branch cleanup.
 - ☐ **Nav entry point for `/profile` — partially resolved.** It's now reachable from the
   landing page's authenticated account menu (`components/landing/landing-navbar.tsx`,
   "Skin Profile") — one of the options this bullet already named. Still not in
   `AGENTS.md`'s User sidebar nav list itself, so it's unreachable from inside the
   authenticated app shell (only from "/"); adding it there would need an `AGENTS.md`
   nav-list update, a bigger, deliberate call this pass didn't make unprompted.
-- ☐ **`next/image` returns 400 for every landing-page hero/testimonial JPEG**
-  (`public/images/landing/*.jpg`, "The requested resource isn't a valid image") —
-  found while adding `authenticated-landing-header.spec.ts`'s console-error check,
-  reproduces with zero auth/session code involved (unauthenticated visit alone
-  triggers it). The files themselves report valid JPEG headers/dimensions via `file`,
-  so this is either a stricter validation failure inside Next's `sharp`-based
-  optimizer or a `sharp`/native-binary issue specific to this sandbox — not
-  diagnosed further, out of scope for a header-focused change.
 - ☐ Playwright e2e coverage for the skin profile & lifestyle, assessment, dashboard,
   recommendations, and progress screens — all verified manually (real browser, both
   themes; mocked-API for the three newest), no automated test suite written yet, unlike
@@ -1467,9 +1472,11 @@ outstanding is a code gap anymore — everything left is either an external-cred
 blocker (Kaggle, OpenWeather/OpenUV) or an explicit scope decision (ADR-010's outbox
 table, `/profile`'s sidebar nav entry point, `api`/`web` Dockerfiles, the theme
 system's own `accent_color`/`font_size`/`density`/`motion_preference` placeholders —
-columns and API round-trip exist, no UI consumes them yet) — plus one newly-found,
-separately-tracked bug (`next/image` 400s on the landing page's own hero/testimonial
-JPEGs, unrelated to auth). The natural next *feature* milestone is M2 — real skin
+columns and API round-trip exist, no UI consumes them yet). The landing page's
+hero/final-CTA CTAs are now session-aware too, and the `next/image` 400 bug found
+while building that (a `proxy.ts` matcher gap redirecting unauthenticated static-asset
+requests to `/login`, unrelated to `sharp`) is root-caused and fixed, not just
+tracked. The natural next *feature* milestone is M2 — real skin
 assessment (replacing the client-side ADR-007 stub), routine-generation refinement, the
 first real scoring/recommendation
 models behind the same API contracts, and the Consultant/Dermatologist clinical review
