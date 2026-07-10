@@ -294,8 +294,8 @@
    itself (glass recipe above, spacing, radius, tri-font, the Skin Score Ring's own
    gradient logic) is unchanged by any palette. A palette only re-points the same
    brand/semantic token *names* already used everywhere in this file
-   (--primary/--secondary/--tertiary + their --on-*/--*-container pairs) to
-   different values — every component that already consumes `--color-primary` etc.
+   (--primary/--secondary/--tertiary plus their --on-* and --*-container companions)
+   to different values — every component that already consumes `--color-primary` etc.
    (buttons, chips, charts, the sidebar, the aurora gradient) re-themes automatically,
    with zero component-level changes.
 
