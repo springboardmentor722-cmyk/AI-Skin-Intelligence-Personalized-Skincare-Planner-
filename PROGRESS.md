@@ -1025,6 +1025,49 @@ behind is real.
   (the suite's own upsert test flaked exactly this way at 2026-07-10 03:00 UTC /
   08:30 local, before the fix) and confirmed stable after it; `ruff`/`mypy
   --strict`/`pytest` (151 tests) all clean.
+- ✔ **Cross-role dashboard-redirect fix** (`fix/role-based-dashboard-redirect`) —
+  `(user)/layout.tsx` predated Better Auth session wiring entirely: no session/role
+  check at all (still hardcoded `userName="Alex Rivera"`), unlike the admin/consultant/
+  dermatologist layouts which already gated on `session.user.role`. Combined with
+  login's post-sign-in redirect defaulting to `/dashboard` regardless of who signed in
+  (and every other layout's mismatched-role fallback also hardcoded to `/dashboard`),
+  any admin/consultant/dermatologist account landing there was silently rendered as a
+  plain User — found live when a freshly-promoted admin account was asked to "complete
+  your skin profile." Fixed with a new `ROLE_HOME` map (`web/lib/nav-config.ts`) used by
+  login's redirect and all four layouts' fallback. Verified live (admin account now
+  lands on `/admin/dashboard`) and via the full e2e suite.
+- ✔ **Signup page redesign** (`feature/signup-page-redesign`, superseding an earlier,
+  smaller `feature/signup-ui-refinement` pass that was left un-merged and is now
+  obsolete) — `web/designs/wireframes/signup-dark.html` used as inspiration only (per-
+  role icon tinting, full-width role rows, the "OR CONTINUE WITH" divider), not copied:
+  its two-step wizard (a separate role-selection screen, then a details screen) was
+  deliberately not adopted since this app already has dedicated post-signup onboarding
+  wizards for the two professional roles — a second, pre-signup wizard step would be
+  redundant friction. Card widened (`AuthSplitLayout`'s new `formClassName`/
+  `sectionClassName` props, login's own defaults unchanged) and spacing tightened at
+  `lg:` so the full form fits 1366×768/1280×800 with zero vertical scroll, verified via
+  Playwright, not estimated. Role selector rebuilt on Base UI's `RadioGroup`
+  (`components/ui/radio-group.tsx`, new, customized to accept card-style children) as
+  real full-width `role="radio"` rows — the old markup used `sr-only` native radios
+  with no shared `name`, so arrow-key navigation never worked. Adopted
+  `Field`/`FieldGroup`/`FieldLabel`/`FieldError` and Geist uppercase labels
+  (`docs/DESIGN.md` §9's documented spec, previously unmet by login/signup); every
+  required input now has a real `required` attribute (previously none did); fixed the
+  input focus state to actually show the documented Royal Blue border (`border-none`
+  meant no border could ever appear); fixed the "OR CONTINUE WITH" divider's
+  `bg-transparent` label letting the rule line show through. Found and fixed two real,
+  general CSS bugs at the shared component level along the way: native `<fieldset>`'s
+  UA-stylesheet `min-width: min-content` (`components/ui/field.tsx`'s `FieldSet` now
+  sets `min-w-0`) and CSS Grid's default `min-width: auto` on grid items (the role-row
+  `RadioGroupItem`s now set it directly) — both caused real horizontal overflow on
+  narrow viewports, invisible until a `FieldSet`/`RadioGroup` held something wider than
+  a plain label+input. Same business logic throughout (still defaults to role `user`,
+  same redirect-by-role, same consent gate). Full e2e suite green in both themes;
+  `tsc`/`eslint`/build clean.
+- ✔ **`main` brought current** — it was still the repository's very first commit (docs/
+  schema scaffolding only, no `web/` app on it at all), 63 commits behind `dev`, because
+  nothing had ever promoted work onto it. Fast-forwarded to match `dev` exactly and
+  pushed; both branches are now on `origin` and identical.
 
 ## Partially Completed
 
@@ -1065,10 +1108,6 @@ behind is real.
   now (cheap, no consumer required to exist), or formally push this specific ADR-010
   sub-promise to M2 alongside the worker in a new ADR note — not resolved silently
   either way. Found during the Milestone 1 audit.
-- ☐ GitHub remote — no `git remote` configured and no `gh` CLI in this session's
-  sandbox. User is creating the repo directly on github.com; wiring `origin` once a URL
-  is provided is a one-command follow-up (`git remote add origin <url>`), not blocked on
-  anything else.
 - ☐ Graphify setup (ADR-006) — explicitly deferred by product owner, revisit later
   (2026-07-08 decision, see Known Issues)
 - ☐ Consultant/Dermatologist *clinical* review workflow — `consultant_clients`/
@@ -1128,7 +1167,12 @@ current backend surface including the new admin/consultant/dermatologist-profile
 routes. Design assets remain in `web/designs/wireframes/` (83 files) as the build
 reference for the original 7 screens; the onboarding wizards, verification queue, and
 locked-dashboard states have no wireframe counterpart and were designed fresh against
-`docs/DESIGN.md`, per the expansion plan's own note.
+`docs/DESIGN.md`, per the expansion plan's own note. Signup was later fully redesigned
+(see Completed) using `web/designs/wireframes/signup-dark.html` as inspiration only, not
+a copy; `Field`/`FieldGroup` now covers it too, not just the onboarding wizards.
+`components/ui/radio-group.tsx` is a new shared primitive (shadcn's Base UI RadioGroup,
+customized to accept card-style children) — reusable for any future "choose one of N"
+picker, not signup-specific.
 
 ## Database status
 
@@ -1231,14 +1275,22 @@ that's not what's running now.
 
 All 11 original Milestone 1 tasks, the 9-branch foundation expansion (professional
 verification workflow, admin management platform, auth hardening, color rebalance,
-cross-role e2e coverage), and the one standalone bug it deferred
-(`scores/service.py`'s day-boundary fix) are done and merged to `dev`. Nothing
+cross-role e2e coverage), the one standalone bug it deferred (`scores/service.py`'s
+day-boundary fix), a real cross-role dashboard-redirect bug (`(user)/layout.tsx` had no
+session/role gate at all — any admin/consultant/dermatologist account landing on
+`/dashboard` got silently rendered as a plain User; fixed via a new `ROLE_HOME` map used
+by login's redirect and every layout's mismatched-role fallback), and a complete signup
+page redesign (wider card, a real full-width `role="radio"` selector replacing an
+ungrouped `sr-only` native radio, Geist labels, real `required` attributes, a fixed
+input-focus border, along with two genuine CSS bugs found and fixed at the shared
+component level — `<fieldset>`'s UA-stylesheet `min-width: min-content` and CSS Grid's
+default `min-width: auto` on grid items) are done and merged to `dev`/`main` (`main` was
+also fast-forwarded to `dev` and both pushed to `origin` this pass — it had been the
+repo's very first commit, 63 commits stale, with no `web/` app on it at all). Nothing
 outstanding is a code gap anymore — everything left is either an external-credential
-blocker (Kaggle,
-OpenWeather/OpenUV), a one-command follow-up waiting on user input (GitHub remote), or
-an explicit scope decision (ADR-010's outbox table, `/profile`'s nav entry point,
-`api`/`web` Dockerfiles). The natural next *feature* milestone is M2 — real skin
-assessment (replacing the client-side ADR-007 stub), routine-generation refinement, the
-first real scoring/recommendation models behind the same API contracts, and the
-Consultant/Dermatologist clinical review workflow now that the identity/verification
-layer it depends on is real — user's call on sequencing.
+blocker (Kaggle, OpenWeather/OpenUV) or an explicit scope decision (ADR-010's outbox
+table, `/profile`'s nav entry point, `api`/`web` Dockerfiles). The natural next *feature*
+milestone is M2 — real skin assessment (replacing the client-side ADR-007 stub),
+routine-generation refinement, the first real scoring/recommendation models behind the
+same API contracts, and the Consultant/Dermatologist clinical review workflow now that
+the identity/verification layer it depends on is real — user's call on sequencing.
