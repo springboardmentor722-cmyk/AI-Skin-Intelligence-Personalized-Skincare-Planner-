@@ -42,10 +42,12 @@ passed and its own live/e2e verification ran — see Completed for the per-branc
    (`workers: 1` + `tests/e2e/helpers.ts`).
 9. `feature/documentation` — this sweep.
 
-Remaining items are either genuinely blocked on external credentials (Kaggle,
-OpenWeather/OpenUV), explicit scope/tradeoff decisions, or one standalone known bug
-(scores/service.py's day-boundary duplicate-score issue) — not unverified claims, see
-Pending and Known issues. M2 (real skin assessment engine replacing the ADR-007 stub,
+The one standalone known bug this expansion deliberately deferred
+(`scores/service.py`'s day-boundary duplicate-score issue) has since been fixed
+(`fix/scores-day-boundary`, see Completed). Remaining items are either genuinely
+blocked on external credentials (Kaggle, OpenWeather/OpenUV) or explicit
+scope/tradeoff decisions — not unverified claims, see Pending and Known issues.
+M2 (real skin assessment engine replacing the ADR-007 stub,
 routine-generation refinement, real scoring/recommendation models) is the natural next
 feature milestone; the Consultant/Dermatologist *clinical* review workflow (the tables
 exist, `consultant_clients`/`consultant_notes`, but need real assessment data to review
@@ -1012,6 +1014,17 @@ behind is real.
     (frontend) clean at every branch boundary; each branch's own live/e2e
     verification ran against the real Docker Postgres/Redis/MinIO stack before
     merging, not mocked.
+- ✔ **`scores/service.py` day-boundary fix** (`fix/scores-day-boundary`, the standalone
+  task the foundation expansion deliberately deferred) — `compute_and_store_score`'s
+  same-day upsert check compared `calculated_at` (`server_default=func.now()`, the
+  DB server's UTC clock) against `date.today()` (the app process's local timezone),
+  producing a duplicate score row for ~5–6 hours daily whenever local time had
+  crossed midnight but UTC hadn't. Now uses
+  `datetime.datetime.now(datetime.UTC).date()` on both sides, matching
+  `get_recent_scores`'s existing correct pattern in the same file. Reproduced live
+  (the suite's own upsert test flaked exactly this way at 2026-07-10 03:00 UTC /
+  08:30 local, before the fix) and confirmed stable after it; `ruff`/`mypy
+  --strict`/`pytest` (151 tests) all clean.
 
 ## Partially Completed
 
@@ -1058,13 +1071,6 @@ behind is real.
   anything else.
 - ☐ Graphify setup (ADR-006) — explicitly deferred by product owner, revisit later
   (2026-07-08 decision, see Known Issues)
-- ☐ **`scores/service.py`'s `compute_and_store_score` day-boundary bug** — compares a
-  local-timezone `date.today()` against a UTC `calculated_at`
-  (`server_default=func.now()`), so for ~5–6 hours daily (whenever local time has
-  crossed midnight but the UTC DB container hasn't) a user gets a duplicate score row
-  instead of an update. Found and deliberately deferred during the Milestone 1
-  foundation expansion (out of scope for the branch that surfaced it, unrelated
-  service) — tracked as its own standalone fix, not folded into an unrelated PR.
 - ☐ Consultant/Dermatologist *clinical* review workflow — `consultant_clients`/
   `consultant_notes` tables exist and are ready, but their UI needs real assessment
   data to review against (M2+ territory); the identity/onboarding/verification layer
@@ -1223,12 +1229,12 @@ that's not what's running now.
 
 ## Next task
 
-All 11 original Milestone 1 tasks *and* the 9-branch foundation expansion (professional
+All 11 original Milestone 1 tasks, the 9-branch foundation expansion (professional
 verification workflow, admin management platform, auth hardening, color rebalance,
-cross-role e2e coverage) are done and merged to `dev`. The one known, tracked, not-yet-
-fixed bug is `scores/service.py`'s local-vs-UTC day-boundary duplicate-scoring issue
-(deliberately deferred, out of scope for the branch that found it — see Pending).
-Everything else outstanding is either an external-credential blocker (Kaggle,
+cross-role e2e coverage), and the one standalone bug it deferred
+(`scores/service.py`'s day-boundary fix) are done and merged to `dev`. Nothing
+outstanding is a code gap anymore — everything left is either an external-credential
+blocker (Kaggle,
 OpenWeather/OpenUV), a one-command follow-up waiting on user input (GitHub remote), or
 an explicit scope decision (ADR-010's outbox table, `/profile`'s nav entry point,
 `api`/`web` Dockerfiles). The natural next *feature* milestone is M2 — real skin
