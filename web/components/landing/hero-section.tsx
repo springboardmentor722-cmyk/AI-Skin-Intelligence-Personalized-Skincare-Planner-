@@ -1,9 +1,14 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { Sparkles, Droplet } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { SkinScoreRing } from "@/components/skin-score-ring";
+import { ROLE_HOME } from "@/lib/nav-config";
+import { useCurrentUser } from "@/lib/use-current-user";
 
 // Placeholder photography carried over from the approved Stitch wireframe
 // (web/designs/wireframes/landing-page.html) — not licensed production imagery;
@@ -15,6 +20,11 @@ const TRUST_AVATARS = [
 ];
 
 export function HeroSection() {
+  // Same session hook the header uses (lib/use-current-user.ts) — an already
+  // signed-in visitor scrolling past the (now session-aware) header shouldn't hit
+  // "Get started free" a moment later; it's sent to their own dashboard instead.
+  const { role, isPending } = useCurrentUser();
+
   return (
     <section className="mx-auto max-w-7xl px-6 pt-40 pb-16">
       <div className="glass flex flex-col items-center gap-16 overflow-hidden rounded-[2rem] p-10 lg:flex-row lg:p-16">
@@ -32,13 +42,24 @@ export function HeroSection() {
             Skinlytics analyzes your unique skin biology, lifestyle habits, sleep quality, and
             environmental stressors to build your optimal regimen.
           </p>
-          <div className="flex flex-wrap gap-4">
-            <Button
-              size="lg"
-              className="h-auto px-8 py-4 text-base"
-              nativeButton={false}
-              render={<Link href="/signup">Get started free</Link>}
-            />
+          <div className="flex flex-wrap items-center gap-4">
+            {isPending ? (
+              <Skeleton className="h-14 w-44 rounded-full" />
+            ) : role ? (
+              <Button
+                size="lg"
+                className="h-auto px-8 py-4 text-base"
+                nativeButton={false}
+                render={<Link href={ROLE_HOME[role]}>Go to Dashboard</Link>}
+              />
+            ) : (
+              <Button
+                size="lg"
+                className="h-auto px-8 py-4 text-base"
+                nativeButton={false}
+                render={<Link href="/signup">Get started free</Link>}
+              />
+            )}
             <Button
               size="lg"
               variant="outline"

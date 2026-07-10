@@ -143,6 +143,59 @@ test.describe("authenticated landing header", () => {
     }
   });
 
+  test("hero and final-CTA buttons: Get started/Start assessment for anon, Go to Dashboard for a signed-in visitor", async ({
+    page,
+  }) => {
+    const email = `e2e-landing-cta-${Date.now()}@example.com`;
+    const password = "SuperSecret123!";
+    let userId: string | null = null;
+
+    try {
+      // Anonymous: both CTAs still point at /signup — the header dropdown's own
+      // session-awareness (this file's other tests) doesn't imply the CTAs further
+      // down the same page picked it up too, since hero-section.tsx/final-cta-
+      // section.tsx are separate components each calling useCurrentUser() themselves.
+      await page.goto("/");
+      await expect(page.getByRole("button", { name: "Get started free" })).toHaveAttribute(
+        "href",
+        "/signup",
+      );
+      await expect(page.getByRole("button", { name: "Start assessment" })).toHaveAttribute(
+        "href",
+        "/signup",
+      );
+
+      await clearRateLimits();
+      await page.goto("/signup");
+      await page.fill("#firstName", "E2E");
+      await page.fill("#lastName", "LandingCta");
+      await page.fill("#email", email);
+      await page.fill("#password", password);
+      await page.fill("#confirmPassword", password);
+      await page.getByRole("checkbox").click({ force: true });
+      await page.getByRole("button", { name: /create account/i }).click();
+      await page.waitForURL(/\/assessment/, { timeout: 10_000 });
+
+      const lookupDb = pool();
+      try {
+        const { rows } = await lookupDb.query('select id from "user" where email = $1', [email]);
+        userId = rows[0]?.id ?? null;
+      } finally {
+        await lookupDb.end();
+      }
+
+      await page.goto("/");
+      const dashboardLinks = page.getByRole("button", { name: "Go to Dashboard" });
+      await expect(dashboardLinks).toHaveCount(2);
+      await expect(dashboardLinks.first()).toHaveAttribute("href", "/dashboard");
+      await expect(dashboardLinks.last()).toHaveAttribute("href", "/dashboard");
+      await expect(page.getByRole("button", { name: "Get started free" })).toHaveCount(0);
+      await expect(page.getByRole("button", { name: "Start assessment" })).toHaveCount(0);
+    } finally {
+      if (userId) await deleteTestUser(userId);
+    }
+  });
+
   test("keyboard accessibility: Enter opens the menu, Escape closes it", async ({ page }) => {
     const email = `e2e-landing-kbd-${Date.now()}@example.com`;
     const password = "SuperSecret123!";

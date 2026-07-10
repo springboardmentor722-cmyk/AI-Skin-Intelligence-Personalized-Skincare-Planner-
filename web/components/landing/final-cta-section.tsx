@@ -1,8 +1,18 @@
+"use client";
+
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ROLE_HOME } from "@/lib/nav-config";
+import { useCurrentUser } from "@/lib/use-current-user";
 
 export function FinalCtaSection() {
+  // Same session hook the header/hero use (lib/use-current-user.ts) — an already
+  // signed-in visitor gets sent back to their own dashboard instead of "Start
+  // assessment," which would just re-run the signup flow they've already completed.
+  const { role, isPending } = useCurrentUser();
+
   return (
     <section className="mx-auto max-w-7xl px-6 py-16">
       {/* primary-container (not primary) — a fixed dark navy accent band in both
@@ -16,13 +26,24 @@ export function FinalCtaSection() {
             Join 12,000+ users who have optimized their skin health with clinical-grade
             intelligence.
           </p>
-          <div className="flex flex-col justify-center gap-4 sm:flex-row">
-            <Button
-              size="lg"
-              className="h-auto bg-white px-10 py-4 text-base text-black hover:bg-white/90"
-              nativeButton={false}
-              render={<Link href="/signup">Start assessment</Link>}
-            />
+          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+            {isPending ? (
+              <Skeleton className="h-14 w-44 rounded-full bg-white/20" />
+            ) : role ? (
+              <Button
+                size="lg"
+                className="h-auto bg-white px-10 py-4 text-base text-black hover:bg-white/90"
+                nativeButton={false}
+                render={<Link href={ROLE_HOME[role]}>Go to Dashboard</Link>}
+              />
+            ) : (
+              <Button
+                size="lg"
+                className="h-auto bg-white px-10 py-4 text-base text-black hover:bg-white/90"
+                nativeButton={false}
+                render={<Link href="/signup">Start assessment</Link>}
+              />
+            )}
             <Button
               size="lg"
               variant="outline"
