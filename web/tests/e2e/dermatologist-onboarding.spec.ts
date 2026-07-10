@@ -21,7 +21,7 @@ test.describe("dermatologist onboarding", () => {
     try {
       await clearRateLimits();
       await page.goto("/signup");
-      await page.locator('input[type="radio"][value="dermatologist"]').click({ force: true });
+      await page.getByRole("radio", { name: /^Dermatologist/i }).click();
       await page.fill("#firstName", "E2E");
       await page.fill("#lastName", "Dermatologist");
       await page.fill("#email", email);

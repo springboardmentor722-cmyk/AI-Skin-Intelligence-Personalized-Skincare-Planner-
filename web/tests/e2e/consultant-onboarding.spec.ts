@@ -22,7 +22,7 @@ test.describe("consultant onboarding", () => {
     try {
       await clearRateLimits();
       await page.goto("/signup");
-      await page.locator('input[type="radio"][value="consultant"]').click({ force: true });
+      await page.getByRole("radio", { name: /Skincare Consultant/i }).click();
       await page.fill("#firstName", "E2E");
       await page.fill("#lastName", "Consultant");
       await page.fill("#email", email);

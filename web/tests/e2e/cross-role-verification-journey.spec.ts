@@ -36,7 +36,7 @@ test("consultant onboarding -> admin reject -> resubmit -> admin approve -> unlo
     // --- Consultant: real signup + real onboarding wizard submission ---
     await clearRateLimits();
     await page.goto("/signup");
-    await page.locator('input[type="radio"][value="consultant"]').click({ force: true });
+    await page.getByRole("radio", { name: /Skincare Consultant/i }).click();
     await page.fill("#firstName", "Journey");
     await page.fill("#lastName", "Consultant");
     await page.fill("#email", consultantEmail);
