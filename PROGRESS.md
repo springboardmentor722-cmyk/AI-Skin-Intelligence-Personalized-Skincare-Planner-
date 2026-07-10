@@ -1172,6 +1172,49 @@ behind is real.
   filtered out of this spec's own assertion (documented inline) and logged as its
   own separate follow-up below, not fixed in this pass (out of scope for a header
   change). `tsc`/`eslint`/build clean; full e2e suite (22 specs × 2 themes) green.
+- ✔ **Authenticated landing hero/final-CTA** (`feature/authenticated-landing-ctas`)
+  — the header fix above didn't cover the rest of "/": `components/landing/
+  hero-section.tsx`'s "Get started free" and `final-cta-section.tsx`'s "Start
+  assessment" still sent an already-signed-in visitor back into the signup flow
+  they'd already completed. Both are now `"use client"` and call the same
+  `useCurrentUser()` hook the header/`GlassTopbar`/`NavUser` already share — signed
+  in, both buttons become "Go to Dashboard" (via `ROLE_HOME[role]`); signed out,
+  unchanged. A `Skeleton` (matched to each section's own background —
+  `bg-white/20` on final-CTA's dark `primary-container` band) covers the same brief
+  `isPending` window the header already handles, for the same reason.
+  Two real, unrelated bugs found and fixed while wiring this up:
+  - `app/globals.css` had a stray literal `*/` inside a `/* ... */` comment written
+    during the earlier theme-system work (`--on-*` immediately followed by
+    `/--*-container` in prose) — this silently prematurely closed the comment.
+    Production `next build`/`next start` tolerated it; `next dev` (Turbopack) did
+    not, failing every request to `/` with a hard 500
+    (`Parsing CSS source code failed ... Unexpected token Delim('*')`). Found by
+    running `next dev` for the first time this pass while chasing the bug below.
+    Fixed by rephrasing the comment so no literal `*/` substring survives.
+  - Adding two more independent `useCurrentUser()` consumers to a statically
+    prerendered route ("/" has no per-request context at build time, so
+    `isPending` freezes `true` forever in the static HTML) exposed a real React
+    hydration mismatch (minified error #418): depending on exactly when
+    `authClient.useSession()`'s underlying store resolves relative to React's
+    hydration pass, a real browser's very first client render could already
+    disagree with the frozen static skeleton — a race no authenticated role layout
+    ever hits, since those already gate their whole subtree on one `isPending`
+    check before rendering `GlassTopbar`/`NavUser` at all. Fixed inside the shared
+    `lib/use-current-user.ts` itself (not per-consumer) via `useSyncExternalStore`
+    — its server-snapshot argument is the primitive React ships specifically for
+    "must match the frozen build-time render on the very first client pass,"
+    reporting real data only once React itself confirms hydration is done. (A
+    first attempt used the older manual `useState` + `useEffect(() => setMounted
+    (true), [])` "mounted gate" pattern `next-themes` popularized — functionally
+    equivalent, but `eslint-plugin-react-hooks`' `set-state-in-effect` rule
+    correctly flags synchronous `setState` in an effect body as unnecessary here,
+    since `useSyncExternalStore` covers this exact case without one.)
+  New e2e test added to `authenticated-landing-header.spec.ts` (hero/final-CTA
+  buttons: signup-linked for anon, "Go to Dashboard" ×2 for a signed-in visitor,
+  both themes) — also surfaced that shadcn's `Button` with `render={<Link>}`
+  exposes `role="button"` in the accessibility tree, not `role="link"`, matching
+  the same gotcha already logged below. `tsc`/`eslint`/build clean; full e2e suite
+  (23 specs × 2 themes) green.
 
 ## Partially Completed
 
