@@ -12,7 +12,11 @@ function FieldSet({ className, ...props }: React.ComponentProps<"fieldset">) {
     <fieldset
       data-slot="field-set"
       className={cn(
-        "flex flex-col gap-4 has-[>[data-slot=checkbox-group]]:gap-3 has-[>[data-slot=radio-group]]:gap-3",
+        // min-w-0: browsers give <fieldset> a UA-stylesheet `min-width: min-content`
+        // that `flex` alone doesn't override, so it refuses to shrink below its
+        // widest child's intrinsic content width — a real overflow with any wide
+        // child (e.g. a full-width RadioGroup row) in a narrower container.
+        "flex min-w-0 flex-col gap-4 has-[>[data-slot=checkbox-group]]:gap-3 has-[>[data-slot=radio-group]]:gap-3",
         className
       )}
       {...props}

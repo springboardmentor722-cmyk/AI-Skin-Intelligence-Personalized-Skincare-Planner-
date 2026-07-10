@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { ShieldCheck, FlaskConical } from "lucide-react";
 
+import { cn } from "@/lib/utils";
+
 // Two-column auth shell — web/designs/wireframes/login.html / signup.html: left is a
 // glass branding panel over the aurora (Hero & signature housing, docs/DESIGN.md §3),
 // right is the actual form. No shared (auth) layout wrapper here (that one is a
@@ -10,7 +12,19 @@ import { ShieldCheck, FlaskConical } from "lucide-react";
 // .agents/rules/skinlytics-stitch.md that's a Stitch authoring artifact, not something
 // to port — the app's real global `.aurora` (app/layout.tsx) already sits behind
 // everything, so the glass panel here just floats over that.
-export function AuthSplitLayout({ children }: { children: ReactNode }) {
+export function AuthSplitLayout({
+  children,
+  formClassName = "max-w-md",
+  sectionClassName = "p-6 md:p-12",
+}: {
+  children: ReactNode;
+  // Login's short form is fine at the default max-w-md/p-12; signup's 2026 redesign
+  // has a full role-selector plus every account field and needs both more width and
+  // less padding to avoid a tall, scroll-heavy card on laptop viewports — passed per
+  // page rather than changing every auth screen's proportions.
+  formClassName?: string;
+  sectionClassName?: string;
+}) {
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       <section className="relative hidden items-center justify-center overflow-hidden p-2xl lg:flex">
@@ -36,8 +50,8 @@ export function AuthSplitLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
       </section>
-      <section className="bg-background flex items-center justify-center p-6 md:p-12">
-        <div className="w-full max-w-md">
+      <section className={cn("bg-background flex items-center justify-center", sectionClassName)}>
+        <div className={cn("w-full", formClassName)}>
           <Link
             href="/"
             className="font-heading text-on-surface mb-8 block text-center text-2xl font-bold lg:hidden"
