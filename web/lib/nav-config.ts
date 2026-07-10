@@ -147,3 +147,14 @@ export const ROLE_LABELS: Record<Role, string> = {
   dermatologist: "Dermatologist",
   admin: "Administrator",
 };
+
+// Where each role's own dashboard lives — the single source every per-role layout's
+// session gate (app/{consultant,dermatologist,admin,(user)}/layout.tsx) and the login
+// page redirect to, so a signed-in account is only ever sent to its *own* home, never
+// left on (or bounced through) another role's route by a hardcoded "/dashboard".
+export const ROLE_HOME: Record<Role, string> = {
+  user: "/dashboard",
+  consultant: "/consultant/dashboard",
+  dermatologist: "/dermatologist/dashboard",
+  admin: "/admin/dashboard",
+};

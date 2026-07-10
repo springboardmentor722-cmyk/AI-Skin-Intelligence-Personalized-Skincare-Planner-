@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 
 import { AppShell } from "@/components/app-shell/app-shell";
 import { authClient } from "@/lib/auth-client";
+import { ROLE_HOME, type Role } from "@/lib/nav-config";
 
 // Same real per-role session gate as app/consultant/layout.tsx — see that file's
 // comment for the full reasoning.
@@ -20,7 +21,7 @@ export default function DermatologistLayout({ children }: { children: React.Reac
       return;
     }
     if (session.user.role !== "dermatologist") {
-      router.replace("/dashboard");
+      router.replace(ROLE_HOME[session.user.role as Role] ?? "/login");
     }
   }, [isPending, session, router]);
 

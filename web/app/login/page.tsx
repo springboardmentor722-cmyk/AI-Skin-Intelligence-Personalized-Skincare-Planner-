@@ -13,18 +13,21 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
 import { loginSchema, type LoginValues } from "@/lib/schemas/auth";
+import { ROLE_HOME, type Role } from "@/lib/nav-config";
 import { GoogleIcon } from "@/components/auth/google-icon";
 
 // web/designs/wireframes/login.html — the form panel is a solid "diagnostic module"
 // card, not glass (docs/DESIGN.md §3: glass is forbidden under forms — it frames data,
 // never backgrounds it). Only the left branding panel (AuthSplitLayout) is glass.
 // Only accept a same-origin relative path — `from` is attacker-controllable (a
-// hand-crafted /login?from=... link), not just the value middleware.ts sets, so this
-// guards against an open-redirect (`//evil.com`, `https://evil.com`, etc.) rather than
-// trusting the query param outright.
-function safeRedirectTarget(from: string | null): string {
+// hand-crafted /login?from=... link) — this guards against an open-redirect
+// (`//evil.com`, `https://evil.com`, etc.) rather than trusting the query param
+// outright. Falls back to `fallback` (the signed-in account's own ROLE_HOME), not a
+// hardcoded "/dashboard" — that hardcoding used to send every role, including admin,
+// to the User dashboard regardless of who actually signed in.
+function safeRedirectTarget(from: string | null, fallback: string): string {
   if (from && from.startsWith("/") && !from.startsWith("//")) return from;
-  return "/dashboard";
+  return fallback;
 }
 
 // useSearchParams (for the post-login ?from= redirect target) requires a Suspense
@@ -70,7 +73,7 @@ function LoginForm() {
     setFormError(null);
     setRateLimitedUntil(null);
 
-    const { error } = await authClient.signIn.email({
+    const { data, error } = await authClient.signIn.email({
       email: values.email,
       password: values.password,
       rememberMe: values.rememberMe,
@@ -89,10 +92,12 @@ function LoginForm() {
       return;
     }
 
-    // Redirects back to wherever middleware.ts sent the user from (?from=), or
-    // /dashboard by default — routing to Skin profile when none exists yet waits on
-    // that service existing (PROGRESS.md pending: User Profile module).
-    router.push(safeRedirectTarget(searchParams.get("from")));
+    // Redirects back to a same-origin ?from= if one was given, else the signed-in
+    // account's own role home (ROLE_HOME) — never a hardcoded "/dashboard" (that's
+    // the User role's home, not a universal default; an admin/consultant/
+    // dermatologist account landing there used to be rendered as a plain user).
+    const fallback = ROLE_HOME[data.user.role as Role] ?? "/dashboard";
+    router.push(safeRedirectTarget(searchParams.get("from"), fallback));
   };
 
   return (
