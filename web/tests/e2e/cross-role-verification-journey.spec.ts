@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-import { clearRateLimits, deleteTestUser, pool, promoteRole } from "./helpers";
+import { clearRateLimits, deleteTestUser, pool, promoteRole, signOut } from "./helpers";
 
 // Branch 8 (feature/testing) — the one flow in the whole app that spans two
 // different roles' real sessions: a consultant's real onboarding submission, an
@@ -83,7 +83,7 @@ test("consultant onboarding -> admin reject -> resubmit -> admin approve -> unlo
     await expect(page.getByText(/under review/i)).toBeVisible();
 
     // --- Admin: real signup, promote, real review via the UI, reject with a reason ---
-    await page.request.post("/api/auth/sign-out");
+    await signOut(page.request);
     await clearRateLimits();
     await page.goto("/signup");
     await page.fill("#firstName", "Journey");
@@ -106,7 +106,7 @@ test("consultant onboarding -> admin reject -> resubmit -> admin approve -> unlo
     }
     expect(adminId).not.toBeNull();
     await promoteRole(adminId as string, "admin");
-    await page.request.post("/api/auth/sign-out");
+    await signOut(page.request);
     await signIn(page, adminEmail, password);
 
     await page.goto("/admin/users/verification");
@@ -120,7 +120,7 @@ test("consultant onboarding -> admin reject -> resubmit -> admin approve -> unlo
     await expect(page.getByText(/rejected/i).first()).toBeVisible({ timeout: 10_000 });
 
     // --- Consultant: sees the rejection + reviewer's note, resubmits ---
-    await page.request.post("/api/auth/sign-out");
+    await signOut(page.request);
     await clearRateLimits();
     await signIn(page, consultantEmail, password);
     await page.goto("/consultant/dashboard");
@@ -140,7 +140,7 @@ test("consultant onboarding -> admin reject -> resubmit -> admin approve -> unlo
     await expect(page.getByText(/under review/i)).toBeVisible();
 
     // --- Admin: approves the resubmission ---
-    await page.request.post("/api/auth/sign-out");
+    await signOut(page.request);
     await clearRateLimits();
     await signIn(page, adminEmail, password);
     await page.goto(`/admin/users/verification/consultant/${consultantId}`);
@@ -150,7 +150,7 @@ test("consultant onboarding -> admin reject -> resubmit -> admin approve -> unlo
     await expect(page.getByText(/currently approved/i)).toBeVisible({ timeout: 10_000 });
 
     // --- Consultant: dashboard is now unlocked ---
-    await page.request.post("/api/auth/sign-out");
+    await signOut(page.request);
     await clearRateLimits();
     await signIn(page, consultantEmail, password);
     await page.goto("/consultant/dashboard");

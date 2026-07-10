@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-import { clearRateLimits, deleteTestUser, pool, promoteRole } from "./helpers";
+import { clearRateLimits, deleteTestUser, pool, promoteRole, signOut } from "./helpers";
 
 // Branch 6 (feature/admin-panel) — drives the real admin UI (not raw API calls) for
 // the three highest-value new screens: Users (search/ban/unban), the verification
@@ -62,7 +62,7 @@ test.describe("admin panel", () => {
       targetId = (await targetSignupResponse.json()).user.id as string;
 
       await promoteRole(adminId, "admin");
-      await page.request.post("/api/auth/sign-out");
+      await signOut(page.request);
       await signInAsAdmin(page, adminEmail, password);
 
       // Dashboard: real KPI cards, no invented numbers.
@@ -133,7 +133,7 @@ test.describe("admin panel", () => {
       }
 
       await promoteRole(adminId, "admin");
-      await page.request.post("/api/auth/sign-out");
+      await signOut(page.request);
       await signInAsAdmin(page, adminEmail, password);
 
       await page.goto("/admin/users/verification");

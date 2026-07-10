@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-import { clearRateLimits, deleteTestUser, pool, promoteRole } from "./helpers";
+import { clearRateLimits, deleteTestUser, pool, promoteRole, signOut } from "./helpers";
 
 // feature/authenticated-landing-header — the public landing page's header
 // (components/landing/landing-navbar.tsx) previously always showed Login/"Start free
@@ -65,7 +65,7 @@ test.describe("authenticated landing header", () => {
       expect(userId).not.toBeNull();
       await promoteRole(userId as string, "admin");
 
-      await page.request.post("/api/auth/sign-out");
+      await signOut(page.request);
       await clearRateLimits();
       await page.goto("/login");
       await page.fill("#email", email);

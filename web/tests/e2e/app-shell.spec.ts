@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-import { clearRateLimits, deleteTestUser, pool, promoteRole } from "./helpers";
+import { clearRateLimits, deleteTestUser, pool, promoteRole, signOut } from "./helpers";
 
 // Rewritten for Branch 8 (feature/testing) — this file predated two real changes and
 // had been failing (or asserting things that were never quite true) ever since:
@@ -97,7 +97,7 @@ test.describe("app shell", () => {
     try {
       consultantId = await signUpAndLand(page, consultantEmail, password);
       await promoteRole(consultantId, "consultant");
-      await page.request.post("/api/auth/sign-out");
+      await signOut(page.request);
       await signIn(page, consultantEmail, password);
       await page.goto("/consultant/dashboard");
       await expect(page.getByRole("link", { name: "Dashboard" })).toHaveAttribute(
@@ -105,11 +105,11 @@ test.describe("app shell", () => {
         "/consultant/dashboard"
       );
 
-      await page.request.post("/api/auth/sign-out");
+      await signOut(page.request);
 
       adminId = await signUpAndLand(page, adminEmail, password);
       await promoteRole(adminId, "admin");
-      await page.request.post("/api/auth/sign-out");
+      await signOut(page.request);
       await signIn(page, adminEmail, password);
       await page.goto("/admin/dashboard");
       await expect(page.getByRole("link", { name: "Dashboard" })).toHaveAttribute(

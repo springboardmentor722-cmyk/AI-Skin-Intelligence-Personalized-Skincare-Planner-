@@ -1,5 +1,6 @@
 import { Pool } from "pg";
 import Redis from "ioredis";
+import type { APIRequestContext } from "@playwright/test";
 
 // Branch 8 (feature/testing) — shared by every e2e file that signs a real account
 // up or in. This suite hits a real, shared backend (Postgres, Redis, MinIO) rather
@@ -48,6 +49,24 @@ export async function deleteTestUser(userId: string): Promise<void> {
   } finally {
     await db.end();
   }
+}
+
+// Every spec file that needed a real server-side sign-out (to test switching
+// accounts, or confirming a session is actually invalidated, not just hidden
+// client-side) called `page.request.post("/api/auth/sign-out")` bare — no body, no
+// Origin header. Better Auth 403s that ("Missing or null Origin"), so the call was
+// silently a no-op everywhere it was used; nothing surfaced it because /login and
+// /signup never used to check session state at all, so a still-signed-in visitor
+// landing back on either page looked identical to a genuinely signed-out one. Once
+// those pages started redirecting an authenticated visitor away (login/signup
+// session-awareness), the stale session became observable: tests expecting a clean
+// /login form landed back on their old dashboard instead. Found via a real dev-log
+// 403, not a guess.
+export async function signOut(request: APIRequestContext): Promise<void> {
+  await request.post("/api/auth/sign-out", {
+    headers: { Origin: "http://localhost:3000" },
+    data: {},
+  });
 }
 
 export async function promoteRole(userId: string, role: string): Promise<void> {
