@@ -44,3 +44,25 @@ class UserProfile(Base):
     bio: Mapped[str | None] = mapped_column(Text, default=None)
     created_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
+
+
+class UserAppearancePreference(Base):
+    """database_schemas/skinlytics_postgresql_schema_v3.sql's "APPEARANCE PREFERENCES"
+    section — one row per user, any role. References `"user"` directly (not through
+    `UserProfile`, which is User-role-only) since a Consultant/Dermatologist/Admin
+    account needs a theme too.
+    """
+
+    __tablename__ = "user_appearance_preferences"
+    __table_args__ = (UniqueConstraint("user_id", name="user_appearance_preferences_user_id_key"),)
+
+    preference_id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
+    palette: Mapped[str] = mapped_column(default="default", server_default="default")
+    theme_mode: Mapped[str] = mapped_column(default="system", server_default="system")
+    accent_color: Mapped[str | None] = mapped_column(default=None)
+    font_size: Mapped[str | None] = mapped_column(default=None)
+    density: Mapped[str | None] = mapped_column(default=None)
+    motion_preference: Mapped[str | None] = mapped_column(default=None)
+    created_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
+    updated_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())

@@ -6,7 +6,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.security import require_role, require_user
 from app.db.postgres import get_db
 from app.services.user import service
-from app.services.user.schemas import UserMeResponse, UserProfileRead, UserProfileUpdate
+from app.services.user.schemas import (
+    AppearancePreferenceRead,
+    AppearancePreferenceUpdate,
+    UserMeResponse,
+    UserProfileRead,
+    UserProfileUpdate,
+)
 
 router = APIRouter()
 
@@ -42,3 +48,33 @@ async def update_my_profile(
 ) -> UserProfileRead:
     profile = await service.update_profile(db, user["id"], data)
     return UserProfileRead.model_validate(profile)
+
+
+@router.get("/me/appearance")
+async def get_my_appearance(
+    # Role-agnostic like /me — every role has its own theme (Settings > Appearance is
+    # in all four roles' nav, AGENTS.md §3), never require_role("user").
+    user: Annotated[dict[str, Any], Depends(require_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> AppearancePreferenceRead:
+    preference = await service.get_or_create_appearance(db, user["id"])
+    return AppearancePreferenceRead.model_validate(preference)
+
+
+@router.put("/me/appearance")
+async def update_my_appearance(
+    data: AppearancePreferenceUpdate,
+    user: Annotated[dict[str, Any], Depends(require_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> AppearancePreferenceRead:
+    preference = await service.update_appearance(db, user["id"], data)
+    return AppearancePreferenceRead.model_validate(preference)
+
+
+@router.post("/me/appearance/reset")
+async def reset_my_appearance(
+    user: Annotated[dict[str, Any], Depends(require_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> AppearancePreferenceRead:
+    preference = await service.reset_appearance(db, user["id"])
+    return AppearancePreferenceRead.model_validate(preference)

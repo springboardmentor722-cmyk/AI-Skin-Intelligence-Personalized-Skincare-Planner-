@@ -489,6 +489,35 @@ CREATE TABLE payments (
 );
 
 -- ============================================================
+-- APPEARANCE PREFERENCES (Theme system, Phase 3)
+-- ============================================================
+
+-- One row per user, any role — a Consultant/Dermatologist/Admin account needs a
+-- theme just as much as a User does, so this references "user" directly rather than
+-- going through the User-role-only `user_profiles` table. `palette` is the token-
+-- *value* set (docs/DESIGN.md's locked Frosted Lab Glass system — spacing, radius,
+-- typography, glass rules — stays fixed across every palette; only the semantic
+-- color tokens a palette defines vary). `theme_mode` is orthogonal light/dark/system,
+-- mirroring next-themes' own three-value model. accent_color/font_size/density/
+-- motion_preference are genuine future-ready placeholders (nullable, unused by the
+-- v1 UI), not implemented speculatively.
+CREATE TABLE user_appearance_preferences (
+    preference_id SERIAL PRIMARY KEY,
+    user_id TEXT UNIQUE NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+    palette VARCHAR(20) NOT NULL DEFAULT 'default'
+        CHECK (palette IN
+            ('default', 'emerald', 'ocean', 'lavender', 'sunset', 'slate', 'rose', 'forest')),
+    theme_mode VARCHAR(10) NOT NULL DEFAULT 'system'
+        CHECK (theme_mode IN ('light', 'dark', 'system')),
+    accent_color VARCHAR(20),
+    font_size VARCHAR(10),
+    density VARCHAR(10),
+    motion_preference VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ============================================================
 -- INDEXES
 -- ============================================================
 
