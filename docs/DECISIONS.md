@@ -373,4 +373,47 @@ data. Any new e2e file that signs a real account up or in should import from
 `helpers.ts` and call `clearRateLimits()` first, rather than reinventing a ninth
 version of the same three functions.
 
-<!-- Next ADR: ADR-019 — add yours here -->
+## ADR-019 — Theme system: palettes are color-token swaps, not alternate design systems
+**Status:** Accepted (Phase 3)
+**Context:** The brief asked for a full SaaS-grade theme system — multiple named
+palettes (Emerald, Ocean, Lavender, Sunset, Slate, Rose, Forest, alongside the
+existing Default), each with light+dark, switchable from Settings → Appearance,
+persisted server-side. This is in real tension with AGENTS.md §3's "Design system is
+locked, not proposed" — Frosted Lab Glass's glass recipe, spacing, radius, tri-font,
+and the Skin Score Ring's own gradient logic are a deliberate, singular identity, not
+something 8 palettes should each reinterpret independently.
+**Decision:** A palette varies **only** `primary`/`secondary`/`tertiary` and their
+`on-*`/`*-container` pairs (`app/globals.css`'s `[data-palette="…"]` blocks, docs/
+DESIGN.md §2a has the full table) — every other token (neutral surface/on-surface/
+outline ramp, glass, radius, typography) stays exactly as §2/§3/§4/§7 already specify,
+regardless of which palette is active. `success`/`warning`/`error` and the Skin
+Health Score bands are also deliberately constant across every palette — status
+color and diagnostic bands should mean the same thing no matter which palette a user
+picked; theming "danger" away from red would hurt usability, not polish it. Every
+component already themes via these token *names* (`--color-primary` etc.), so
+switching palettes needed zero component-level changes — confirmed live, the exact
+same sidebar/topbar/chart/dialog markup re-colors automatically.
+Two independent axes, combined orthogonally: **palette** (a new `data-palette`
+attribute PaletteProvider manages, `components/providers/palette-provider.tsx`, hand-
+rolled with the same blocking-inline-script anti-flash technique next-themes uses
+internally) and **mode** (`next-themes`' own existing `light`/`dark`/`system`,
+completely unchanged — no reason to reinvent a solved problem for the one dimension
+it already owns).
+Storage: a new `user_appearance_preferences` table (one row per user, any role — a
+Consultant/Dermatologist/Admin account needs a theme as much as a User does, so it
+references `"user"` directly rather than through the User-role-only `user_profiles`).
+Postgres is the source of truth; `localStorage` is a same-device instant-paint cache
+only (mirroring `next-themes`' own no-flash approach for the one extra attribute it
+doesn't manage) — `components/app-shell/appearance-sync.tsx` reconciles server state
+into local state once per authenticated mount, so a new device/browser picks up the
+saved preference rather than silently defaulting.
+**Consequences:** Adding a 9th palette later is a CSS-only change (one more
+`[data-palette="…"]` block + a `PALETTES`/`PALETTE_META` entry, frontend; one more
+CHECK-constraint value, backend) — no component touches a hard-coded color, so
+nothing else needs updating. `accent_color`/`font_size`/`density`/
+`motion_preference` columns exist now (nullable, unused by the v1 UI) specifically so
+those future settings don't need a second migration. Org/white-label branding
+(mentioned as a future direction) would extend this same pattern — a palette scoped
+to an organization instead of a user — not replace it.
+
+<!-- Next ADR: ADR-020 — add yours here -->

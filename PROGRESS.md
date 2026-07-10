@@ -1068,6 +1068,77 @@ behind is real.
   schema scaffolding only, no `web/` app on it at all), 63 commits behind `dev`, because
   nothing had ever promoted work onto it. Fast-forwarded to match `dev` exactly and
   pushed; both branches are now on `origin` and identical.
+- ✔ **Milestone 1 re-audit (Phase 1)** — a full engineering audit, not assumed
+  complete: `tsc`/`eslint`/build (web) and `ruff`/`mypy --strict`/`pytest` (151 tests,
+  backend) all clean; zero `TODO`/`FIXME`/`XXX` anywhere in the repo; every "coming
+  soon" state confirmed genuinely out-of-scope and documented, not a silent gap;
+  `web/lib/api-types.ts` confirmed byte-identical to a fresh `make openapi`
+  regeneration (no drift); full e2e suite (14 specs × 2 themes) green end to end. Two
+  real, concrete findings fixed: PROGRESS.md said the GitHub remote was both done
+  (a Completed entry) and still pending (a contradicting Pending bullet + Next-task
+  mention) — the stale half removed; and `user_profiles`'s own CRUD
+  (`get_or_create_profile`/`update_profile`) had zero test coverage, the only service
+  package with none — closed in the same pass that added the new appearance-
+  preference tests (see below), not a separate afterthought.
+- ✔ **Theme system (Phase 3)** — a full Appearance settings feature, not a dark-mode
+  toggle: 8 named color palettes (Skinlytics Default, Emerald, Ocean, Lavender,
+  Sunset, Slate, Rose, Forest), each with light **and** dark, switchable from
+  Settings → Appearance for all four roles, instant (no refresh), persisted in
+  Postgres, cached in `localStorage` for same-device instant paint. Full architecture
+  rationale in `docs/DECISIONS.md` ADR-019 and the palette table in `docs/DESIGN.md`
+  §2a — in short: a palette only re-points `primary`/`secondary`/`tertiary` (+ their
+  `on-*`/`*-container` pairs) to different values; the Frosted Lab Glass system
+  itself (glass, spacing, radius, typography, the Score Ring's gradient) and the
+  semantic success/warning/error/score-band colors are untouched by any palette —
+  every existing component already themes via these token names, so switching
+  palettes needed zero component-level changes (confirmed live: the identical
+  sidebar/topbar/chart/dialog markup re-colors automatically under every palette,
+  both modes).
+  - **Database**: new `user_appearance_preferences` table (migration
+    `a1e009276345`), one row per user, any role — references `"user"` directly, not
+    through the User-role-only `user_profiles`, since a Consultant/Dermatologist/
+    Admin account needs a theme too. `accent_color`/`font_size`/`density`/
+    `motion_preference` columns exist now (nullable, unused by the v1 UI) so those
+    genuinely future settings don't need a second migration later.
+  - **Backend**: `GET`/`PUT /users/me/appearance` + `POST /users/me/appearance/reset`
+    (`app/services/user/` — schemas/service/router extended, not a new service
+    package, since this is account-level metadata the User service already owns the
+    adjacent concept for), all `require_user` (role-agnostic, like `/me`). 8 new
+    service-level tests (real DB, rollback-wrapped) plus the profile-CRUD tests noted
+    above. Verified live via real curl round trips (GET/PUT/reset/invalid-palette-
+    rejected) against the running dev server before any frontend work started.
+  - **Frontend**: `web/lib/themes.ts` (the fixed palette set + per-palette preview
+    swatches, kept in lockstep with the backend's `PaletteId` and the migration's
+    CHECK constraint), `components/providers/palette-provider.tsx` (a hand-rolled
+    `data-palette` attribute manager with the same blocking-inline-script anti-flash
+    technique `next-themes` uses internally for its own `light`/`dark`/`system` —
+    which is otherwise completely unchanged, no reason to reinvent a solved problem),
+    `components/app-shell/appearance-sync.tsx` (reconciles Postgres into local state
+    once per authenticated mount — a new device/browser picks up the real saved
+    preference instead of silently defaulting), and
+    `components/settings/appearance-settings.tsx` (the actual UI: a `ToggleGroup`
+    mode segmented control, a `RadioGroup`-based palette card grid reusing the same
+    customized primitive the signup redesign built, a live "Saving…/Saved" indicator,
+    loading/error states, a reset button — auto-saves on every change rather than a
+    manual Save button, a deliberate call since appearance is a low-stakes,
+    frequently-toggled preference). Mounted at `/settings` (User),
+    `/consultant/settings`, `/dermatologist/settings` (both newly built — Settings
+    flips from `built: false` to a real page), and folded into `/admin/settings`
+    alongside its existing "coming soon" platform panels.
+  - Found and fixed two real, general CSS bugs while building the palette card grid
+    (same class as the signup redesign's fieldset/grid-item bugs, not a coincidence —
+    both are "wide content inside a narrow flex/grid ancestor" cases): none new here,
+    reused the already-fixed `FieldSet`/`RadioGroupItem` `min-w-0` fixes directly.
+  - New e2e spec `tests/e2e/appearance-settings.spec.ts` — real signup → switch
+    palette → instant re-theme (checked via the actual computed `--primary` CSS
+    value, not just a snapshot) → direct Postgres check → switch mode → reload →
+    both survive → reset → both survive, both themes. Caught two real test-authoring
+    bugs before they could flake in CI: reloading before the background save
+    confirmably landed, and a hardcoded light-mode hex checked after dark mode was
+    already active — fixed by waiting for the real "Saved" indicator and by tracking
+    which mode was active at each assertion, not by loosening the test.
+  - `tsc`/`eslint`/build (web) and `ruff`/`mypy --strict`/`pytest` (159 tests,
+    backend) all clean; full e2e suite (16 specs × 2 themes) green.
 
 ## Partially Completed
 
@@ -1081,6 +1152,11 @@ behind is real.
 
 ## Pending
 
+- ☐ Two small support branches (`base/pre-login-role-redirect`,
+  `fix/login-role-redirect`) are pushed to `origin` backing a standalone,
+  already-open PR that isolates just the login-redirect fix for focused review — not
+  merged/closed yet (no `gh` CLI in this sandbox to check status), so left alone
+  rather than deleted during branch cleanup.
 - ☐ Nav entry point for `/profile` — not in `AGENTS.md`'s User nav list; currently only
   reachable via the post-registration redirect. Needs a product decision (account menu
   item? part of onboarding only? add to the nav list?), not a guess.
@@ -1138,12 +1214,13 @@ admin endpoint enforces `require_role("admin")` and writes an `audit_logs` row;
 operational endpoints. `app/core/storage.py` is a real `aioboto3` MinIO/S3 adapter
 (Branch 1), reused by verification-document upload and ready for profile
 images/progress photos later. `app/ai/` has the stub seeding helper + AI-contract
-schemas the recommender uses; no service package is empty except `integrations`. Six
+schemas the recommender uses; no service package is empty except `integrations`. Seven
 hand-written Alembic migrations exist (`50e82a643bf9` baseline, `ccb49f9b0f47`
 ingredients, `44cfa8e6d5d4` products/routines/scoring, `0f62a9b1cdf4` professional
 verification, `a7e9f4e50c45` consulting/notifications/billing, `c21b3568fc1a` drop
-`user_profiles` identity drift) — all applied against the live Docker Postgres.
-151 backend tests pass (`ruff`/`mypy --strict`/`pytest`), the large majority added
+`user_profiles` identity drift, `a1e009276345` appearance preferences) — all applied
+against the live Docker Postgres.
+159 backend tests pass (`ruff`/`mypy --strict`/`pytest`), the large majority added
 during the foundation-expansion phase's real-DB-fixture pattern (`tests/conftest.py`'s
 `db_session`/`test_user_id`, rollback-safe, verified to leave zero trace) rather than
 `dependency_overrides` mocking — Postgres/Mongo/Redis/MinIO are all live in Docker and
@@ -1172,15 +1249,20 @@ locked-dashboard states have no wireframe counterpart and were designed fresh ag
 a copy; `Field`/`FieldGroup` now covers it too, not just the onboarding wizards.
 `components/ui/radio-group.tsx` is a new shared primitive (shadcn's Base UI RadioGroup,
 customized to accept card-style children) — reusable for any future "choose one of N"
-picker, not signup-specific.
+picker, not signup-specific (reused as-is for the theme system's palette grid below).
+Settings is now real for all four roles (Phase 3) — `/settings`, `/consultant/settings`,
+`/dermatologist/settings` all newly built, `/admin/settings` extended — each rendering
+`components/settings/appearance-settings.tsx`, the app's first genuinely cross-role
+shared feature UI (identical component, different route per role's `AppShell`).
 
 ## Database status
 
 **Postgres runs in Docker (`docker-compose.yml`'s `postgres` service) and is
 genuinely the system of record** — live, populated, and at `alembic upgrade head`
-(`0f62a9b1cdf4`, six migrations deep — see Backend status), 36 tables total including
+(`a1e009276345`, seven migrations deep — see Backend status), 37 tables total including
 the foundation-expansion's `consultant_profiles`/`dermatologist_profiles`/
-`verification_documents`/`audit_logs`. MinIO is also live in Docker
+`verification_documents`/`audit_logs` and Phase 3's `user_appearance_preferences`.
+MinIO is also live in Docker
 (`skinlytics-minio-1`) and genuinely holds verification documents via
 `core/storage.py`'s presigned-URL flow, not a stub. **This wasn't always true**: for
 part of an earlier session, a native Homebrew Postgres 14
@@ -1284,13 +1366,20 @@ page redesign (wider card, a real full-width `role="radio"` selector replacing a
 ungrouped `sr-only` native radio, Geist labels, real `required` attributes, a fixed
 input-focus border, along with two genuine CSS bugs found and fixed at the shared
 component level — `<fieldset>`'s UA-stylesheet `min-width: min-content` and CSS Grid's
-default `min-width: auto` on grid items) are done and merged to `dev`/`main` (`main` was
-also fast-forwarded to `dev` and both pushed to `origin` this pass — it had been the
-repo's very first commit, 63 commits stale, with no `web/` app on it at all). Nothing
-outstanding is a code gap anymore — everything left is either an external-credential
-blocker (Kaggle, OpenWeather/OpenUV) or an explicit scope decision (ADR-010's outbox
-table, `/profile`'s nav entry point, `api`/`web` Dockerfiles). The natural next *feature*
-milestone is M2 — real skin assessment (replacing the client-side ADR-007 stub),
-routine-generation refinement, the first real scoring/recommendation models behind the
-same API contracts, and the Consultant/Dermatologist clinical review workflow now that
-the identity/verification layer it depends on is real — user's call on sequencing.
+default `min-width: auto` on grid items), a from-scratch Milestone 1 re-audit (Phase 1
+— tsc/eslint/build, ruff/mypy --strict/pytest, zero TODO/FIXME/XXX, a real PROGRESS.md
+self-contradiction fixed, a real test-coverage gap closed), and a complete Theme system
+(Phase 3 — 8 light+dark color palettes, Settings → Appearance for all four roles,
+Postgres-backed, instant no-refresh switching) are done and merged to `dev`/`main`
+(`main` was also fast-forwarded to `dev` and both pushed to `origin` this pass — it had
+been the repo's very first commit, 63 commits stale, with no `web/` app on it at all).
+Nothing outstanding is a code gap anymore — everything left is either an
+external-credential blocker (Kaggle, OpenWeather/OpenUV) or an explicit scope decision
+(ADR-010's outbox table, `/profile`'s nav entry point, `api`/`web` Dockerfiles, the
+theme system's own `accent_color`/`font_size`/`density`/`motion_preference`
+placeholders — columns and API round-trip exist, no UI consumes them yet). The natural
+next *feature* milestone is M2 — real skin assessment (replacing the client-side
+ADR-007 stub), routine-generation refinement, the first real scoring/recommendation
+models behind the same API contracts, and the Consultant/Dermatologist clinical review
+workflow now that the identity/verification layer it depends on is real — user's call
+on sequencing.

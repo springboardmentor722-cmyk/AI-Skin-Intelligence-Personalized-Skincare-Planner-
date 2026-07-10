@@ -88,7 +88,7 @@ service; everything else reads via interfaces or consumes derived projections.
 
 | # | Service | Owns (writes) | Reads | API prefix |
 |---|---|---|---|---|
-| 1 | **User** | domain user profile, role glue to Better Auth | identity tables (RO) | `/users` |
+| 1 | **User** | domain user profile, role glue to Better Auth; PG `user_appearance_preferences` (Phase 3 theme system — any role, not User-only) | identity tables (RO) | `/users` |
 | 2 | **Skin Profile** | PG `skin_profiles`, `skin_profile_concerns`; Mongo `lifestyle_logs`, `weather_uv_logs` | weather adapters | `/skin-profiles`, `/lifestyle-logs` |
 | 3 | **Skin Assessment** | Mongo `skin_assessments`; S3 scan images | AI interfaces | `/assessments` |
 | 4 | **Routine Planner** | PG `routines`, `routine_steps`, step↔product links | profile, scoring, AI | `/routines` |

@@ -265,6 +265,42 @@ ambient surface color; Branch 7 didn't touch dark mode's neutrals, only light's.
 Contrast floor: body text ≥ 4.5:1, large text and UI glyphs ≥ 3:1 — **measured against the
 effective backdrop, including glass surfaces** (see §3 guardrails).
 
+### 2a. Alternate palettes (Theme system, Phase 3)
+
+Users can pick one of 8 **color palettes** from Settings → Appearance
+(`components/settings/appearance-settings.tsx`), independent of light/dark mode. A
+palette is a color choice only — it re-points `primary`/`secondary`/`tertiary` (+ their
+`on-*`/`*-container` pairs) to different values in `app/globals.css`'s
+`[data-palette="…"]` blocks; everything else in this document (glass, spacing, radius,
+tri-font, the Score Ring's own gradient) is unchanged by any palette, per this file's own
+"Design system is locked, not proposed" rule (AGENTS.md §3). Every component already
+consumes these token names, so a palette switch needs zero component-level changes.
+
+Deliberately **not** varied per palette: the neutral surface/on-surface/outline ramp
+(this is what keeps every palette reading as unmistakably Frosted Lab Glass, not a
+repaint — 7 hand-tuned neutral scales without real design-tool iteration risk looking
+muddy); success/warning/error (status color should mean the same thing regardless of
+palette); score bands (already theme-invariant, see above).
+
+"Skinlytics Default" is exactly §2's Navy/Blue/Teal system above. The other 7:
+
+| Palette | Light: primary / secondary / tertiary | Dark: primary / secondary / tertiary |
+|---|---|---|
+| Emerald | `#064E3B` / `#059669` / `#84CC16` | `#6EE7B7` / `#34D399` / `#BEF264` |
+| Ocean | `#0C4A6E` / `#0284C7` / `#06B6D4` | `#7DD3FC` / `#38BDF8` / `#67E8F9` |
+| Lavender | `#3B0764` / `#7C3AED` / `#C026D3` | `#C4B5FD` / `#A78BFA` / `#F0ABFC` |
+| Sunset | `#7C2D12` / `#EA580C` / `#DB2777` | `#FDBA74` / `#FB923C` / `#F9A8D4` |
+| Slate | `#1E293B` / `#475569` / `#D97706` | `#CBD5E1` / `#94A3B8` / `#FBBF24` |
+| Rose | `#881337` / `#E11D48` / `#0D9488` | `#FDA4AF` / `#FB7185` / `#5EEAD4` |
+| Forest | `#14532D` / `#4D7C0F` / `#A16207` | `#86EFAC` / `#BEF264` / `#FCD34D` |
+
+Each palette's `*-container`/`on-*` pairs and `surface-tint` live in `app/globals.css`
+next to this table's values — update both together (this file's own golden rule).
+Storage: one `user_appearance_preferences` row per user (any role), Postgres is the
+source of truth, `localStorage` is a same-device instant-paint cache only
+(`components/providers/palette-provider.tsx`). See `docs/DECISIONS.md` ADR-019 for the
+full architecture rationale.
+
 ## 3. Glassmorphism — the elevation crown
 
 Glass is **level-4 elevation**: the highest layer, reserved for chrome and moments.
