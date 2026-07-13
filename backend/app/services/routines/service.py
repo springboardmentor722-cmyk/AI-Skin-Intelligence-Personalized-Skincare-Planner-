@@ -20,8 +20,19 @@ _STEP_INSTRUCTIONS = {
     "Moisturizer": "Apply evenly while skin is still slightly damp to lock in hydration.",
     "Sunscreen": "Apply generously as the last step, 15 minutes before sun exposure.",
 }
+# Weekly Care's Treatment step uses different cadence guidance than the daily AM/PM
+# Treatment step (same category, same candidate pool/safety filter — see
+# _generate_routine — just used less often), so it gets its own instruction text
+# instead of sharing _STEP_INSTRUCTIONS["Treatment"].
+_WEEKLY_STEP_INSTRUCTIONS = {
+    "Treatment": "Use 2-3 times per week, not daily — allow skin to rest in between applications.",
+}
 _AM_CATEGORIES = ["Cleanser", "Treatment", "Moisturizer", "Sunscreen"]
 _PM_CATEGORIES = ["Cleanser", "Treatment", "Moisturizer"]
+# The seed catalog (backend/app/db/seed.py) has no dedicated exfoliant/mask product
+# category — Weekly Care's one real, non-invented category is Treatment, the same
+# actives AM/PM already draw from, just at a lower cadence (see _WEEKLY_STEP_INSTRUCTIONS).
+_WEEKLY_CATEGORIES = ["Treatment"]
 
 
 async def _read_with_steps(db: AsyncSession, routine: Routine) -> RoutineRead:
@@ -81,6 +92,7 @@ async def _generate_routine(
     categories: list[str],
     skin_type_id: int,
     concern_ids: list[int],
+    step_instructions: dict[str, str] = _STEP_INSTRUCTIONS,
 ) -> Routine:
     rng = seeded_random(user_id, "routine", routine_type)
     # Hard safety filter (Milestone 2 Step 4 / docs/AI_ML.md Principle 3) — never
@@ -123,7 +135,7 @@ async def _generate_routine(
             routine_id=routine.routine_id,
             step_order=order,
             step_name=category,
-            instruction=_STEP_INSTRUCTIONS.get(category, "Apply as directed."),
+            instruction=step_instructions.get(category, "Apply as directed."),
             duration_minutes=1,
         )
         db.add(step)
@@ -143,7 +155,9 @@ async def get_or_generate_routines(db: AsyncSession, user_id: str) -> list[Routi
     dedicated AI model surface exists for routine planning (docs/ARCHITECTURE.md §5's 7
     surfaces don't include one), so this is rule-based candidate selection over the
     skin_type/concern junction tables (ADR-001: relationship queries are indexed joins,
-    not a graph DB), with a seeded pick where multiple products qualify.
+    not a graph DB), with a seeded pick where multiple products qualify. Generates AM,
+    PM, and Weekly Care (Milestone 2) — three real routines, not the Dashboard's
+    AM/PM-only checklist.
 
     Generated once per user and reused on subsequent reads. Regenerating automatically
     after a skin-profile update isn't built yet (routines has no skin_profile_id column
@@ -166,11 +180,26 @@ async def get_or_generate_routines(db: AsyncSession, user_id: str) -> list[Routi
     pm = await _generate_routine(
         db, user_id, "PM", "Evening Routine", _PM_CATEGORIES, profile.skin_type_id, concern_ids
     )
+    weekly = await _generate_routine(
+        db,
+        user_id,
+        "Weekly",
+        "Weekly Care",
+        _WEEKLY_CATEGORIES,
+        profile.skin_type_id,
+        concern_ids,
+        step_instructions=_WEEKLY_STEP_INSTRUCTIONS,
+    )
     await db.commit()
     await db.refresh(am)
     await db.refresh(pm)
+    await db.refresh(weekly)
 
-    return [await _read_with_steps(db, am), await _read_with_steps(db, pm)]
+    return [
+        await _read_with_steps(db, am),
+        await _read_with_steps(db, pm),
+        await _read_with_steps(db, weekly),
+    ]
 
 
 # --- Routine completion logs (Mongo, M2) ---

@@ -1302,7 +1302,39 @@ behind is real.
   and an XGBoost recommender — `docs/AI_ML.md` itself scopes these as needing training
   data/an eval harness/a model registry that don't exist yet, so they stay ADR-007
   stubs; weekly/seasonal routines — no wireframe slot exists for a third dashboard
-  card, deferred pending its own design pass.
+  card, deferred pending its own design pass. **Correction, see the next entry:** a
+  real wireframe for this did exist after all — just not on the Dashboard.
+- ✔ **"My Routine" screen (`/routine`) — AM/PM/Weekly, real weekly routine
+  generation** — `web/lib/nav-config.ts` already tracked this as a real, `built: false`
+  User-nav item; its wireframe pair (`web/designs/wireframes/app-routine{,-dark}.html`)
+  was found on a second look, not on the Dashboard where the previous entry looked.
+  Backend: `routines/service.py` now generates a third routine
+  (`routine_type="Weekly"`, name "Weekly Care") alongside AM/PM in
+  `get_or_generate_routines`, reusing `_generate_routine` unchanged — same candidate
+  selection and `ingredient_skintype_avoid` safety filter, just under a `Treatment`-only
+  category (the seed catalog has no dedicated exfoliant/mask product category, so
+  Treatment — the same actives AM/PM already use — is Weekly's one real, non-invented
+  choice; a `_WEEKLY_STEP_INSTRUCTIONS` override gives its step 2-3×/week cadence
+  copy instead of AM/PM's daily instruction). Frontend: `app/(user)/routine/page.tsx`
+  — AppShell page (not the wireframe's own raw sidebar/topbar, which is a generic
+  Stitch draft nav, not `AGENTS.md` §3's real one), three tabs (AM/PM/Weekly) as React
+  state, step cards (numbered circle, product image w/ `FlaskConical` fallback,
+  category chip, duration, shadcn `Accordion` instructions, a real completion
+  checkbox). Two things in the raw wireframe were deliberately **not** reproduced,
+  same "raw exports never ship" precedent the Dashboard already set: the Seasonal
+  banner + "Regenerate with AI"/"Edit routine" buttons (fabricated copy, zero backing
+  data — no weather/season integration exists, no step-edit backend exists either,
+  the latter deferred to its own branch alongside `app-routine-edit.html`), and the
+  wireframe's PM tab, which is a literal unfinished placeholder ("PM Routine details
+  are loading...") — the real PM tab renders real steps, same as AM. The optimistic
+  toggle-mutation logic used to live only in `RoutineChecklistCard`; extracted to
+  `web/lib/hooks/use-toggle-routine-step.ts` so both it and the new page share one
+  implementation — `RoutineChecklistCard` itself now filters to AM/PM only (Weekly
+  belongs on `/routine`, not the dashboard's daily checklist; this filtering was a
+  real bug this pass caught before shipping — the card's own AM/PM-only copy would
+  have silently mislabeled a Weekly routine as "Evening protocol"). `web/lib/
+  nav-config.ts`'s "My Routine" entry no longer has `built: false`. 170 backend
+  tests pass; frontend `tsc`/`eslint`/`next build` clean.
 
 ## Partially Completed
 

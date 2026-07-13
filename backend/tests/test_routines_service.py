@@ -24,7 +24,7 @@ async def test_no_routines_before_a_skin_profile_exists(
     assert await get_or_generate_routines(db_session, test_user_id) == []
 
 
-async def test_generates_one_am_and_one_pm_routine(
+async def test_generates_am_pm_and_weekly_routines(
     db_session: AsyncSession, test_user_id: str
 ) -> None:
     await create_profile(
@@ -39,7 +39,21 @@ async def test_generates_one_am_and_one_pm_routine(
     routines = await get_or_generate_routines(db_session, test_user_id)
 
     types = {r.routine_type for r in routines}
-    assert types == {"AM", "PM"}
+    assert types == {"AM", "PM", "Weekly"}
+
+
+async def test_weekly_routine_is_treatment_only(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+
+    routines = await get_or_generate_routines(db_session, test_user_id)
+    weekly = next(r for r in routines if r.routine_type == "Weekly")
+
+    assert {s.step_name for s in weekly.steps} == {"Treatment"}
+    assert len(weekly.steps[0].products) >= 1
 
 
 async def test_am_routine_covers_all_four_documented_categories(
