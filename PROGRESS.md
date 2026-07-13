@@ -1351,6 +1351,38 @@ behind is real.
   `deleteMongoLogsForUser` helper (`mongodb` added as a devDependency). Full
   56-test suite passes both `chromium-light`/`-dark` projects, no rate-limit
   interference; confirmed zero leftover rows in Postgres and Mongo after a run.
+- ✔ **Routine edit/reorder — the deferred half of My Routine, shipped** —
+  `web/designs/wireframes/app-routine-edit{,-dark}.html`'s real, schema-backed
+  parts: reorder steps (`PATCH /routines/{routine_id}/steps/reorder`, up/down move
+  buttons, not real drag-and-drop — no drag library exists and this screen's other
+  pieces didn't justify adding one), add/delete a step
+  (`POST /routines/{routine_id}/steps`, `DELETE /routines/steps/{step_id}`,
+  remaining steps renumbered contiguously on delete), swap a step's product via a
+  real search (`GET /routines/products/search`, category + `ingredient_skintype_avoid`
+  filtered, no invented match percentages), and usage notes
+  (`routine_products.usage_notes` existed and was read but never written until
+  now — `PATCH /routines/steps/{step_id}`). Every mutation enforces routine/step
+  ownership and re-runs the same hard safety filter `_generate_routine` already
+  enforces at generation time (`recommendations_service.list_avoided_ingredient_product_ids`)
+  — confirmed live: a direct API attempt to swap in a Salicylic-Acid product for a
+  Sensitive profile gets a real `400`, not a silent success. New
+  `UnsafeProductError(ValueError)` distinguishes a rejected choice (400) from a
+  missing resource (404) in the router's exception mapping.
+  Deliberately **not** built, same "raw exports never ship" precedent the
+  Dashboard and My Routine screens already set: the wireframe's "Interaction
+  Conflict" banner ("Retinoid + AHA... prevent barrier damage") and "AI
+  Prediction: Barrier Health" chart ("may increase TEWL by 12%") — no
+  ingredient-interaction table exists anywhere in `database_schemas/`, no
+  predictive model exists; both would be fully fabricated clinical-sounding
+  output. `app/(user)/routine/edit/[routineId]/page.tsx` — real `AppShell`
+  two-pane editor, local edits staged client-side until a real "Save changes"
+  commits them (delete → update → reorder → add, in that order, then refetches
+  `["routines", "me"]`); `/routine`'s "Edit routine" button now links here for
+  real. One real bug caught live before shipping (not by inspection): the step
+  list nested a `<button>` inside another `<button>` (invalid HTML), causing a
+  real hydration error — fixed by making the outer card a `role="button"` `<div>`
+  with keyboard support instead. 179 backend tests pass; frontend
+  `tsc`/`eslint`/`next build` clean.
 
 ## Partially Completed
 

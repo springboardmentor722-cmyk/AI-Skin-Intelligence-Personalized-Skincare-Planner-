@@ -1,7 +1,7 @@
 import datetime
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.ai.seeding import seeded_random
@@ -266,3 +266,189 @@ async def list_active_step_ids(db: AsyncSession, user_id: str) -> list[int]:
         .where(Routine.user_id == user_id, Routine.is_active.is_(True))
     )
     return list(result.scalars().all())
+
+
+# --- Routine edit/reorder (M2, deferred half of the My Routine screen) ---
+# app-routine-edit.html's real, schema-backed parts only — reorder/add/delete a
+# step, swap a step's product, edit usage notes. The wireframe's "Interaction
+# Conflict" banner, invented match-percentage "Recommended Alternatives", and "AI
+# Prediction: Barrier Health" chart are deliberately not built: no ingredient-
+# interaction table exists anywhere in database_schemas/, and there's no real
+# ranking/predictive model behind any of the three — same "raw exports never ship"
+# precedent the Dashboard and My Routine screens already set for this wireframe pack.
+
+
+class UnsafeProductError(ValueError):
+    """Distinct from a plain not-found ValueError — routers map this to 400, not
+    404, since it's a rejected choice, not a missing resource."""
+
+
+async def _get_owned_routine(db: AsyncSession, user_id: str, routine_id: int) -> Routine:
+    result = await db.execute(
+        select(Routine).where(Routine.routine_id == routine_id, Routine.user_id == user_id)
+    )
+    routine = result.scalar_one_or_none()
+    if routine is None:
+        raise ValueError("Routine not found")
+    return routine
+
+
+async def _get_owned_step(db: AsyncSession, user_id: str, step_id: int) -> RoutineStep:
+    result = await db.execute(
+        select(RoutineStep)
+        .join(Routine, Routine.routine_id == RoutineStep.routine_id)
+        .where(RoutineStep.step_id == step_id, Routine.user_id == user_id)
+    )
+    step = result.scalar_one_or_none()
+    if step is None:
+        raise ValueError("Step not found")
+    return step
+
+
+async def _assert_product_is_safe(db: AsyncSession, user_id: str, product_id: int) -> None:
+    """Same hard safety filter _generate_routine enforces at generation time
+    (recommendations_service.list_avoided_ingredient_product_ids), now enforced on
+    manual edits too — a user (or a direct API call) can't add/swap in a product
+    flagged unsafe for their own skin type."""
+    profile = await skin_profile_service.get_current_profile(db, user_id)
+    if profile is None:
+        raise ValueError("No skin profile yet")
+    avoided = await recommendations_service.list_avoided_ingredient_product_ids(
+        db, profile.skin_type_id
+    )
+    if product_id in avoided:
+        raise UnsafeProductError("This product isn't safe for your skin type")
+
+
+async def reorder_steps(
+    db: AsyncSession, user_id: str, routine_id: int, step_ids: list[int]
+) -> RoutineRead:
+    routine = await _get_owned_routine(db, user_id, routine_id)
+    steps_result = await db.execute(
+        select(RoutineStep).where(RoutineStep.routine_id == routine_id)
+    )
+    steps_by_id = {s.step_id: s for s in steps_result.scalars().all()}
+    if set(step_ids) != set(steps_by_id):
+        raise ValueError("step_ids must match the routine's existing steps exactly")
+
+    for order, step_id in enumerate(step_ids, start=1):
+        steps_by_id[step_id].step_order = order
+    await db.commit()
+    await db.refresh(routine)
+    return await _read_with_steps(db, routine)
+
+
+async def add_step(
+    db: AsyncSession, user_id: str, routine_id: int, step_name: str, product_id: int
+) -> RoutineRead:
+    routine = await _get_owned_routine(db, user_id, routine_id)
+    await _assert_product_is_safe(db, user_id, product_id)
+
+    max_order_result = await db.execute(
+        select(func.max(RoutineStep.step_order)).where(RoutineStep.routine_id == routine_id)
+    )
+    next_order = (max_order_result.scalar_one_or_none() or 0) + 1
+
+    step = RoutineStep(
+        routine_id=routine_id,
+        step_order=next_order,
+        step_name=step_name,
+        instruction=_STEP_INSTRUCTIONS.get(step_name, "Apply as directed."),
+        duration_minutes=1,
+    )
+    db.add(step)
+    await db.flush()  # assigns step.step_id
+    db.add(RoutineProduct(routine_id=routine_id, product_id=product_id, step_id=step.step_id))
+
+    await db.commit()
+    await db.refresh(routine)
+    return await _read_with_steps(db, routine)
+
+
+async def delete_step(db: AsyncSession, user_id: str, step_id: int) -> RoutineRead:
+    step = await _get_owned_step(db, user_id, step_id)
+    routine_id = step.routine_id
+
+    await db.execute(delete(RoutineProduct).where(RoutineProduct.step_id == step_id))
+    await db.delete(step)
+    await db.flush()
+
+    remaining_result = await db.execute(
+        select(RoutineStep)
+        .where(RoutineStep.routine_id == routine_id)
+        .order_by(RoutineStep.step_order)
+    )
+    for order, remaining_step in enumerate(remaining_result.scalars().all(), start=1):
+        remaining_step.step_order = order
+
+    await db.commit()
+    routine = await _get_owned_routine(db, user_id, routine_id)
+    return await _read_with_steps(db, routine)
+
+
+async def update_step(
+    db: AsyncSession,
+    user_id: str,
+    step_id: int,
+    step_name: str | None,
+    product_id: int | None,
+    usage_notes: str | None,
+) -> RoutineRead:
+    step = await _get_owned_step(db, user_id, step_id)
+
+    if step_name is not None:
+        step.step_name = step_name
+
+    if product_id is not None:
+        await _assert_product_is_safe(db, user_id, product_id)
+        rp_result = await db.execute(
+            select(RoutineProduct).where(RoutineProduct.step_id == step_id)
+        )
+        routine_product = rp_result.scalars().first()
+        if routine_product is None:
+            db.add(
+                RoutineProduct(
+                    routine_id=step.routine_id, product_id=product_id, step_id=step_id
+                )
+            )
+        else:
+            routine_product.product_id = product_id
+            if usage_notes is not None:
+                routine_product.usage_notes = usage_notes
+    elif usage_notes is not None:
+        rp_result = await db.execute(
+            select(RoutineProduct).where(RoutineProduct.step_id == step_id)
+        )
+        routine_product = rp_result.scalars().first()
+        if routine_product is not None:
+            routine_product.usage_notes = usage_notes
+
+    await db.commit()
+    routine = await _get_owned_routine(db, user_id, step.routine_id)
+    return await _read_with_steps(db, routine)
+
+
+async def search_products_for_edit(
+    db: AsyncSession, user_id: str, category: str, query: str
+) -> list[ProductRead]:
+    profile = await skin_profile_service.get_current_profile(db, user_id)
+    if profile is None:
+        return []
+    candidates = await recommendations_service.list_products_for_skin_type(
+        db, profile.skin_type_id, category=category
+    )
+    avoided = await recommendations_service.list_avoided_ingredient_product_ids(
+        db, profile.skin_type_id
+    )
+    query_lower = query.strip().lower()
+    matches = [
+        p
+        for p in candidates
+        if p.product_id not in avoided
+        and (
+            not query_lower
+            or query_lower in (p.product_name or "").lower()
+            or query_lower in (p.brand_name or "").lower()
+        )
+    ]
+    return [ProductRead.model_validate(p) for p in matches[:10]]
