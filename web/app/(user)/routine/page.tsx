@@ -3,7 +3,16 @@
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { CalendarDays, FlaskConical, Moon, RotateCw, Sparkles, Sun, TriangleAlert } from "lucide-react";
+import {
+  CalendarDays,
+  FlaskConical,
+  Moon,
+  Pencil,
+  RotateCw,
+  Sparkles,
+  Sun,
+  TriangleAlert,
+} from "lucide-react";
 
 import {
   Accordion,
@@ -31,11 +40,11 @@ type RoutineType = "AM" | "PM" | "Weekly";
 // Two things in the raw wireframe are deliberately NOT reproduced here, same
 // "raw exports never ship" precedent the Dashboard already established for its own
 // wireframe's undocumented, no-backing-data modules:
-//   - The Seasonal banner ("winter adjustments ready...") and "Regenerate with AI" /
-//     "Edit routine" buttons — no weather/season integration exists
-//     (OPENWEATHER_API_KEY/OPENUV_API_KEY are unset, PROGRESS.md) and no step-edit
-//     backend exists yet (a separate, deferred feature). Fabricating this copy would
-//     be exactly the fake-AI-output problem AGENTS.md §4 warns against.
+//   - The Seasonal banner ("winter adjustments ready...") and "Regenerate with AI"
+//     button — no weather/season integration exists (OPENWEATHER_API_KEY/
+//     OPENUV_API_KEY are unset, PROGRESS.md). Fabricating this copy would be exactly
+//     the fake-AI-output problem AGENTS.md §4 warns against. "Edit routine" itself
+//     is real now (routine/edit/[routineId]/page.tsx) — the deferred half shipped.
 //   - The wireframe's PM tab content is a literal unfinished placeholder ("PM Routine
 //     details are loading..."). The real PM tab renders real step cards, same as AM.
 const TABS: { type: RoutineType; label: string; icon: typeof Sun }[] = [
@@ -140,9 +149,23 @@ function RoutineTabPanel({ routine }: { routine: RoutineRead | undefined }) {
   const estimatedMinutes = routine.steps.reduce((sum, s) => sum + (s.duration_minutes ?? 0), 0);
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-on-surface-variant font-geist text-sm">
-        Estimated time: <span className="text-on-surface font-semibold">{estimatedMinutes} min</span>
-      </p>
+      <div className="flex items-center justify-between">
+        <p className="text-on-surface-variant font-geist text-sm">
+          Estimated time:{" "}
+          <span className="text-on-surface font-semibold">{estimatedMinutes} min</span>
+        </p>
+        <Button
+          variant="outline"
+          size="sm"
+          nativeButton={false}
+          render={
+            <Link href={`/routine/edit/${routine.routine_id}`}>
+              <Pencil className="size-4" strokeWidth={1.5} />
+              Edit routine
+            </Link>
+          }
+        />
+      </div>
       {routine.steps.map((step, i) => (
         <RoutineStepCard key={step.step_id} step={step} order={i + 1} />
       ))}
