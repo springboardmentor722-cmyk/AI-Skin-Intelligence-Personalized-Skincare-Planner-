@@ -128,5 +128,18 @@
 }
 // Index: { product_id: 1 } unique
 
+// 8. routine_logs  (added M2 — checklist completion, one doc per user per day, same
+//    shape as lifestyle_logs; backs the real routine_adherence Skin Health Score
+//    component and the dashboard's persisted checkbox state)
+{
+  "_id": "ObjectId",
+  "user_id": "String",              // FK -> Postgres "user"(id)
+  "log_date": "ISODate",            // unique with user_id
+  "completed_steps": [
+    { "routine_step_id": "Integer", "completed_at": "ISODate" }  // FK -> Postgres routine_steps.step_id
+  ]
+}
+// Index: { user_id: 1, log_date: -1 } unique
+
 // REMOVED in v2 (still removed): consultant_notes (Postgres only),
 // ingredient_insights (Postgres ingredients + ES prose).

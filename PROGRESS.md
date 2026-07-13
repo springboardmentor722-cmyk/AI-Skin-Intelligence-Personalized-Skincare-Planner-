@@ -4,8 +4,10 @@ Canonical task-state doc, per `docs/CONVENTIONS.md` and `docs/ARCHITECTURE.md`'s
 Update this in the same PR as any completed task. Session context should read this file
 first, then the rest of `docs/`.
 
-**Current milestone:** M1 (weeks 1–2) — architecture, DB schema, wireframes, env setup,
-Better Auth + RBAC, profile & lifestyle modules, seed data. No AI (ADR-007).
+**Current milestone:** M2 (real skin assessment/scoring/routine engine) is underway —
+see the dated entry at the top of Completed for this session's real changes. M1 (weeks
+1–2) — architecture, DB schema, wireframes, env setup, Better Auth + RBAC, profile &
+lifestyle modules, seed data — is done; M1 had no AI (ADR-007).
 **M1 status: independently verified, not just claimed complete** — a full audit
 (`audit/milestone-1-verification`, see Completed below) traced every M1 requirement
 against the live Docker Postgres/Mongo/Redis and the running backend/frontend rather
@@ -1265,6 +1267,42 @@ behind is real.
   signed-in user redirected, signed-in admin redirected to *its own* home not
   `/dashboard`, `?from=` honored). `tsc`/`eslint`/build clean; full e2e suite
   (27 specs × 2 themes) green.
+- ✔ **M2 real scoring/routine engine, first slice** — replaced three specific
+  ADR-007-era gaps behind the already-frozen `/scores`/`/routines`/`/recommendations`
+  contracts, not a rewrite: (1) `_skin_condition_score` switched from
+  mean-severity×10 to Milestone 2's tiered High(-15)/Medium(-7)/Low(0) deduction,
+  `docs/AI_ML.md` updated to match; (2) a hard safety filter —
+  `recommendations_service.list_avoided_ingredient_product_ids`, joining
+  `product_ingredients` to the already-seeded but previously-unqueried
+  `ingredient_skintype_avoid` table — now excludes unsafe products from both
+  `get_recommendations` and routine generation *before* ranking, per `docs/AI_ML.md`'s
+  own "hard safety filters are rules" principle; (3) a new Mongo `routine_logs`
+  collection (documented in `database_schemas/skinlytics_mongodb_schema_v3.txt`, one
+  doc per user per day, same shape as `lifestyle_logs`) backs a real
+  `POST /routines/steps/{step_id}/log` endpoint and a real `_routine_adherence_score`
+  (completed ÷ scheduled over the trailing 30 days), replacing the `seeded_random`
+  stub. `RoutineStepRead` now carries `completed_today`; the dashboard's
+  `RoutineChecklistCard` reads it and POSTs on toggle (optimistic update) instead of
+  tracking checked state in local `useState` that reset on reload. 10 new/updated
+  backend tests (tiered scoring, a deliberately-inserted unsafe-product safety-boundary
+  case since the curated seed catalog is already internally consistent and doesn't
+  naturally exercise it, real adherence math, an ideal-profile-scores-100.0 case) —
+  169 backend tests pass (`ruff`/`mypy --strict`/`pytest`, real Docker
+  Postgres/Mongo/Redis/MinIO); frontend `tsc`/`eslint`/`next build` clean. Verified live
+  end-to-end, not just via tests: real signup through Better Auth, a real minted JWT,
+  a real Sensitive-skin/high-severity profile via `curl` against the running FastAPI
+  backend — confirmed the score's `skin_condition` came back `85.0` (100−15), the
+  generated routine's Treatment steps never included any of the seed catalog's
+  Salicylic Acid/Retinol/Glycolic Acid/Ascorbic Acid products, toggling a step
+  persisted in a real `routine_logs` Mongo doc and survived a refetch, and
+  `routine_adherence`/`overall_score` recomputed correctly (`14.29`/`55.11` for 1 of 7
+  steps checked) — then the throwaway test user and all its rows were deleted.
+  Explicitly out of scope this pass (see the branch's own plan for why): real
+  image-based `SkinTypeClassifier`/`ConcernDetector` CNNs, the vector DB, ES ranking,
+  and an XGBoost recommender — `docs/AI_ML.md` itself scopes these as needing training
+  data/an eval harness/a model registry that don't exist yet, so they stay ADR-007
+  stubs; weekly/seasonal routines — no wireframe slot exists for a third dashboard
+  card, deferred pending its own design pass.
 
 ## Partially Completed
 
@@ -1338,17 +1376,23 @@ admin endpoint enforces `require_role("admin")` and writes an `audit_logs` row;
 operational endpoints. `app/core/storage.py` is a real `aioboto3` MinIO/S3 adapter
 (Branch 1), reused by verification-document upload and ready for profile
 images/progress photos later. `app/ai/` has the stub seeding helper + AI-contract
-schemas the recommender uses; no service package is empty except `integrations`. Seven
+schemas the recommender uses (concern *identification* and skin-type classification
+stay ADR-007 stubs — see the M2 Completed entry above for what's now real: tiered
+scoring, the `ingredient_skintype_avoid` safety filter, and real routine_adherence off
+the new Mongo `routine_logs` collection); no service package is empty except
+`integrations`. Seven
 hand-written Alembic migrations exist (`50e82a643bf9` baseline, `ccb49f9b0f47`
 ingredients, `44cfa8e6d5d4` products/routines/scoring, `0f62a9b1cdf4` professional
 verification, `a7e9f4e50c45` consulting/notifications/billing, `c21b3568fc1a` drop
 `user_profiles` identity drift, `a1e009276345` appearance preferences) — all applied
 against the live Docker Postgres.
-159 backend tests pass (`ruff`/`mypy --strict`/`pytest`), the large majority added
+169 backend tests pass (`ruff`/`mypy --strict`/`pytest`), the large majority added
 during the foundation-expansion phase's real-DB-fixture pattern (`tests/conftest.py`'s
 `db_session`/`test_user_id`, rollback-safe, verified to leave zero trace) rather than
 `dependency_overrides` mocking — Postgres/Mongo/Redis/MinIO are all live in Docker and
-were used directly for this phase's tests.
+were used directly for this phase's tests (the M2 slice's 10 new/updated tests follow
+the same pattern, plus a manual-cleanup fixture for the new Mongo `routine_logs` writes,
+same shape as the existing `lifestyle_logs` cleanup).
 
 ## Frontend status
 
