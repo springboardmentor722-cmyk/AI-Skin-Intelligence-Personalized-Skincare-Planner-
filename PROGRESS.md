@@ -1335,6 +1335,22 @@ behind is real.
   have silently mislabeled a Weekly routine as "Evening protocol"). `web/lib/
   nav-config.ts`'s "My Routine" entry no longer has `built: false`. 170 backend
   tests pass; frontend `tsc`/`eslint`/`next build` clean.
+- ✔ **Playwright e2e coverage for the skin profile & lifestyle, assessment,
+  dashboard, recommendations, progress, and /routine screens** — previously
+  manual-only, unlike the app-shell/auth screens (Pending, since resolved).
+  `tests/e2e/user-journey.spec.ts`: one chained real journey (signup → assessment
+  wizard, real save on mount → dashboard → /routine → /recommendations → /profile
+  edit round-trip), same "real backend, no mocks" shape as
+  `cross-role-verification-journey.spec.ts` rather than six separate per-screen
+  files. Deliberately picks "Sensitive" skin type so the safety filter is also
+  proven through the real UI, not just `curl` like this session's earlier manual
+  checks. Found and fixed a real gap along the way: `tests/e2e/helpers.ts`'s
+  `deleteTestUser` never cleaned up `skin_profiles`/`routines`/`skin_scores`/Mongo
+  `lifestyle_logs`/`routine_logs` — any e2e run touching these would have leaked
+  rows into the shared dev database forever; added the missing deletes plus a new
+  `deleteMongoLogsForUser` helper (`mongodb` added as a devDependency). Full
+  56-test suite passes both `chromium-light`/`-dark` projects, no rate-limit
+  interference; confirmed zero leftover rows in Postgres and Mongo after a run.
 
 ## Partially Completed
 
@@ -1354,10 +1370,6 @@ behind is real.
   `AGENTS.md`'s User sidebar nav list itself, so it's unreachable from inside the
   authenticated app shell (only from "/"); adding it there would need an `AGENTS.md`
   nav-list update, a bigger, deliberate call this pass didn't make unprompted.
-- ☐ Playwright e2e coverage for the skin profile & lifestyle, assessment, dashboard,
-  recommendations, and progress screens — all verified manually (real browser, both
-  themes; mocked-API for the three newest), no automated test suite written yet, unlike
-  the app-shell/auth screens' coverage.
 - ☐ Full product/ingredient seeding from Kaggle (the real ingestion pipeline, not the
   curated placeholder set in `seed.py`, which *is* idempotent and now actually run
   against the live DB — see the Milestone 1 audit entry) is separate, larger scope
