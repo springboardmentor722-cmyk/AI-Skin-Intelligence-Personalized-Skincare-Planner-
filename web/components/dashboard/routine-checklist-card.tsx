@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { Checkbox } from "@/components/ui/checkbox";
+import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import type { components } from "@/lib/api-types";
 
@@ -13,15 +14,43 @@ interface RoutineChecklistCardProps {
 }
 
 // docs/WIREFRAMES.md screen 3 "today's checklist / personalized routine (AM/PM steps)".
-// Check state is client-side only, reset on reload — no `checklist_step_done` persistence
-// exists anywhere in the documented schema (routines has no completion-tracking table),
-// which is exactly why the Scoring service stubs `routine_adherence` (PROGRESS.md) rather
-// than computing it from real data. This card is honest about that: it's today's plan,
-// not a saved log.
+// Check state is real, persisted state (Milestone 2's Mongo routine_logs collection,
+// backend/app/services/routines/service.py) — each step's `completed_today` comes
+// straight from GET /routines/me, and toggling POSTs to
+// /routines/steps/{step_id}/log, not a client-only guess that resets on reload.
 export function RoutineChecklistCard({ routines }: RoutineChecklistCardProps) {
-  const [checked, setChecked] = useState<Record<number, boolean>>({});
+  const queryClient = useQueryClient();
 
-  const toggle = (stepId: number) => setChecked((prev) => ({ ...prev, [stepId]: !prev[stepId] }));
+  const toggleMutation = useMutation({
+    mutationFn: async ({ stepId, completed }: { stepId: number; completed: boolean }) => {
+      const { error } = await api.POST("/api/v1/routines/steps/{step_id}/log", {
+        params: { path: { step_id: stepId } },
+        body: { completed },
+      });
+      if (error) throw new Error("Couldn't save that step.");
+    },
+    onMutate: async ({ stepId, completed }) => {
+      await queryClient.cancelQueries({ queryKey: ["routines", "me"] });
+      const previous = queryClient.getQueryData<RoutineRead[]>(["routines", "me"]);
+      queryClient.setQueryData<RoutineRead[]>(["routines", "me"], (current) =>
+        current?.map((routine) => ({
+          ...routine,
+          steps: routine.steps.map((step) =>
+            step.step_id === stepId ? { ...step, completed_today: completed } : step
+          ),
+        }))
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["routines", "me"], context.previous);
+      }
+    },
+  });
+
+  const toggle = (stepId: number, completed: boolean) =>
+    toggleMutation.mutate({ stepId, completed });
 
   if (routines.length === 0) {
     return (
@@ -39,7 +68,7 @@ export function RoutineChecklistCard({ routines }: RoutineChecklistCardProps) {
       <h3 className="font-heading text-on-surface mb-5 text-lg font-semibold">Today&apos;s routine</h3>
       <div className="flex flex-col gap-6">
         {routines.map((routine) => {
-          const doneCount = routine.steps.filter((s) => checked[s.step_id]).length;
+          const doneCount = routine.steps.filter((s) => s.completed_today).length;
           return (
             <div key={routine.routine_id}>
               <div className="mb-3 flex items-center justify-between">
@@ -52,7 +81,7 @@ export function RoutineChecklistCard({ routines }: RoutineChecklistCardProps) {
               </div>
               <div className="flex flex-col gap-2.5">
                 {routine.steps.map((step) => {
-                  const isChecked = !!checked[step.step_id];
+                  const isChecked = step.completed_today;
                   return (
                     <label
                       key={step.step_id}
@@ -60,7 +89,7 @@ export function RoutineChecklistCard({ routines }: RoutineChecklistCardProps) {
                     >
                       <Checkbox
                         checked={isChecked}
-                        onCheckedChange={() => toggle(step.step_id)}
+                        onCheckedChange={() => toggle(step.step_id, !isChecked)}
                         className="size-5 rounded-full border-2 border-on-surface/20 data-checked:border-secondary data-checked:bg-secondary group-hover:border-secondary"
                       />
                       <span
