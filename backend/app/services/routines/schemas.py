@@ -24,6 +24,24 @@ class StepCompletionUpdate(BaseModel):
     completed: bool
 
 
+class StepReorderUpdate(BaseModel):
+    # The full ordered set of step_ids for one routine — service.py verifies this is
+    # exactly the routine's existing step-id set (no silent drop/add) before applying.
+    step_ids: list[int]
+
+
+class StepCreate(BaseModel):
+    step_name: str
+    product_id: int
+
+
+class StepUpdate(BaseModel):
+    # All optional — a partial update (PATCH), not a full replace.
+    step_name: str | None = None
+    product_id: int | None = None
+    usage_notes: str | None = None
+
+
 class RoutineRead(BaseModel):
     routine_id: int
     routine_name: str | None
