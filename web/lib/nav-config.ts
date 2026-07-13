@@ -64,7 +64,7 @@ interface RawNavItem {
 const RAW_NAV_ITEMS: Record<Role, RawNavItem[]> = {
   user: [
     { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
-    { label: "My Routine", path: "/routine", icon: ClipboardList, built: false },
+    { label: "My Routine", path: "/routine", icon: ClipboardList },
     { label: "Daily Check-in", path: "/check-in", icon: CalendarCheck, built: false },
     // Milestone 1 audit: repointed at the real, built Product Recommendations screen
     // (app/(user)/recommendations) instead of a nonexistent /products catalog page —
