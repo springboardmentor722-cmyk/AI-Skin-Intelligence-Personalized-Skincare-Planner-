@@ -8,6 +8,7 @@ from app.core.errors import register_exception_handlers
 from app.core.logging import RequestIdMiddleware, configure_logging
 from app.core.rate_limit import RateLimitMiddleware
 from app.services.admin.router import router as admin_router
+from app.services.clinical_review.router import router as clinical_review_router
 from app.services.consultant_profile.router import router as consultant_profile_router
 from app.services.dermatologist_profile.router import router as dermatologist_profile_router
 from app.services.progress.router import router as progress_router
@@ -73,6 +74,10 @@ def create_app() -> FastAPI:
     api_v1.include_router(consultant_profile_router, tags=["consultant-profiles"])
     # dermatologist_profile_router already declares prefix="/dermatologist-profiles".
     api_v1.include_router(dermatologist_profile_router, tags=["dermatologist-profiles"])
+    # Consultant/Dermatologist clinical review — shared by both roles (docs/
+    # ARCHITECTURE.md §2's role table), not consultant-only despite consultant_
+    # -prefixed table names.
+    api_v1.include_router(clinical_review_router, tags=["clinical-review"])
     app.include_router(api_v1)
 
     return app
