@@ -1,9 +1,7 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-
 import { Checkbox } from "@/components/ui/checkbox";
-import { api } from "@/lib/api";
+import { useToggleRoutineStep } from "@/lib/hooks/use-toggle-routine-step";
 import { cn } from "@/lib/utils";
 import type { components } from "@/lib/api-types";
 
@@ -13,41 +11,16 @@ interface RoutineChecklistCardProps {
   routines: RoutineRead[];
 }
 
-// docs/WIREFRAMES.md screen 3 "today's checklist / personalized routine (AM/PM steps)".
-// Check state is real, persisted state (Milestone 2's Mongo routine_logs collection,
-// backend/app/services/routines/service.py) — each step's `completed_today` comes
-// straight from GET /routines/me, and toggling POSTs to
-// /routines/steps/{step_id}/log, not a client-only guess that resets on reload.
-export function RoutineChecklistCard({ routines }: RoutineChecklistCardProps) {
-  const queryClient = useQueryClient();
-
-  const toggleMutation = useMutation({
-    mutationFn: async ({ stepId, completed }: { stepId: number; completed: boolean }) => {
-      const { error } = await api.POST("/api/v1/routines/steps/{step_id}/log", {
-        params: { path: { step_id: stepId } },
-        body: { completed },
-      });
-      if (error) throw new Error("Couldn't save that step.");
-    },
-    onMutate: async ({ stepId, completed }) => {
-      await queryClient.cancelQueries({ queryKey: ["routines", "me"] });
-      const previous = queryClient.getQueryData<RoutineRead[]>(["routines", "me"]);
-      queryClient.setQueryData<RoutineRead[]>(["routines", "me"], (current) =>
-        current?.map((routine) => ({
-          ...routine,
-          steps: routine.steps.map((step) =>
-            step.step_id === stepId ? { ...step, completed_today: completed } : step
-          ),
-        }))
-      );
-      return { previous };
-    },
-    onError: (_err, _vars, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(["routines", "me"], context.previous);
-      }
-    },
-  });
+// docs/WIREFRAMES.md screen 3 "today's checklist / personalized routine (AM/PM steps)"
+// — AM/PM only, by design; Weekly Care (Milestone 2) lives on the dedicated
+// /routine screen, not this daily-checklist card. Check state is real, persisted
+// state (Mongo routine_logs, backend/app/services/routines/service.py) — each
+// step's `completed_today` comes straight from GET /routines/me, and toggling
+// (useToggleRoutineStep) POSTs to /routines/steps/{step_id}/log, not a client-only
+// guess that resets on reload.
+export function RoutineChecklistCard({ routines: allRoutines }: RoutineChecklistCardProps) {
+  const toggleMutation = useToggleRoutineStep();
+  const routines = allRoutines.filter((r) => r.routine_type === "AM" || r.routine_type === "PM");
 
   const toggle = (stepId: number, completed: boolean) =>
     toggleMutation.mutate({ stepId, completed });
