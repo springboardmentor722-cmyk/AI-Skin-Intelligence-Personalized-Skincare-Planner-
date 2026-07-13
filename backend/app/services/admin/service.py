@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.storage import get_presigned_url
 from app.services.admin.models import AuditLog, VerificationDocument
 from app.services.admin.schemas import ProfessionalRole
+from app.services.clinical_review import service as clinical_review_service
 from app.services.consultant_profile.models import ConsultantProfile
 from app.services.dermatologist_profile.models import DermatologistProfile
 
@@ -200,6 +201,26 @@ async def get_document_view_url(
     if document is None:
         return None
     return await get_presigned_url(document.storage_key, expires_in=600)
+
+
+async def assign_client(
+    db: AsyncSession, *, actor_user_id: str, professional_id: str, user_id: str
+) -> None:
+    """No self-service "request a consultant/dermatologist" flow exists yet
+    (docs/CONVENTIONS.md/ARCHITECTURE.md don't describe one) — this is the only way
+    a real consultant_clients row gets created today. Reuses
+    clinical_review_service's own creation function (ADR-005: never touch another
+    service's models directly)."""
+    await clinical_review_service.create_assignment(db, professional_id, user_id)
+    await write_audit_log(
+        db,
+        actor_user_id=actor_user_id,
+        action="consultant_client_assign",
+        target_type="consultant_clients",
+        target_id=user_id,
+        metadata={"professional_id": professional_id},
+    )
+    await db.commit()
 
 
 async def write_audit_log(
