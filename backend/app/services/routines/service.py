@@ -1,12 +1,18 @@
+import datetime
+from typing import Any
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.ai.seeding import seeded_random
+from app.db.mongo import get_mongo_db
 from app.services.recommendations import service as recommendations_service
 from app.services.recommendations.schemas import ProductRead
 from app.services.routines.models import Routine, RoutineProduct, RoutineStep
 from app.services.routines.schemas import RoutineProductRead, RoutineRead, RoutineStepRead
 from app.services.skin_profile import service as skin_profile_service
+
+_ROUTINE_LOGS_COLLECTION = "routine_logs"
 
 _STEP_INSTRUCTIONS = {
     "Cleanser": "Massage onto damp skin for 30-60 seconds, then rinse with lukewarm water.",
@@ -25,6 +31,9 @@ async def _read_with_steps(db: AsyncSession, routine: Routine) -> RoutineRead:
         .order_by(RoutineStep.step_order)
     )
     steps = list(steps_result.scalars().all())
+    completed_today = await get_completed_step_ids(
+        routine.user_id, datetime.datetime.now(datetime.UTC).date()
+    )
 
     step_reads = []
     for step in steps:
@@ -43,6 +52,7 @@ async def _read_with_steps(db: AsyncSession, routine: Routine) -> RoutineRead:
                 step_name=step.step_name,
                 instruction=step.instruction,
                 duration_minutes=step.duration_minutes,
+                completed_today=step.step_id in completed_today,
                 products=[
                     RoutineProductRead(
                         product=ProductRead.model_validate(products_by_id[rp.product_id]),
@@ -73,6 +83,13 @@ async def _generate_routine(
     concern_ids: list[int],
 ) -> Routine:
     rng = seeded_random(user_id, "routine", routine_type)
+    # Hard safety filter (Milestone 2 Step 4 / docs/AI_ML.md Principle 3) — never
+    # generate a step around a product carrying an ingredient flagged unsafe for this
+    # skin type (e.g. strong exfoliants avoid-flagged for Sensitive skin,
+    # backend/app/db/seed.py). Applied before candidate selection, not after.
+    avoided_product_ids = await recommendations_service.list_avoided_ingredient_product_ids(
+        db, skin_type_id
+    )
 
     routine = Routine(
         user_id=user_id,
@@ -89,6 +106,7 @@ async def _generate_routine(
         candidates = await recommendations_service.list_products_for_skin_type(
             db, skin_type_id, category=category
         )
+        candidates = [p for p in candidates if p.product_id not in avoided_product_ids]
         if not candidates:
             continue
         product_concerns = await recommendations_service.list_concern_ids_for_products(
@@ -153,3 +171,69 @@ async def get_or_generate_routines(db: AsyncSession, user_id: str) -> list[Routi
     await db.refresh(pm)
 
     return [await _read_with_steps(db, am), await _read_with_steps(db, pm)]
+
+
+# --- Routine completion logs (Mongo, M2) ---
+# Milestone 2 Step 1.2/5.2: real checklist persistence, one doc per user per day —
+# same shape/pattern as skin_profile/service.py's lifestyle_logs. Backs both the
+# dashboard's persisted checkbox state (RoutineStepRead.completed_today above) and the
+# real routine_adherence Skin Health Score component (scores/service.py).
+
+
+def _day_start(day: datetime.date) -> datetime.datetime:
+    return datetime.datetime.combine(day, datetime.time.min)
+
+
+async def get_completed_step_ids(user_id: str, log_date: datetime.date) -> set[int]:
+    collection = get_mongo_db()[_ROUTINE_LOGS_COLLECTION]
+    doc = await collection.find_one({"user_id": user_id, "log_date": _day_start(log_date)})
+    if doc is None:
+        return set()
+    return {entry["routine_step_id"] for entry in doc.get("completed_steps", [])}
+
+
+async def toggle_step_completion(user_id: str, step_id: int, completed: bool) -> None:
+    collection = get_mongo_db()[_ROUTINE_LOGS_COLLECTION]
+    today = _day_start(datetime.datetime.now(datetime.UTC).date())
+    # Pull any existing entry for this step first so re-checking the same step twice
+    # in one day can't create duplicate completed_steps rows — upsert=True here also
+    # covers "first toggle of the day" (no doc exists yet).
+    await collection.update_one(
+        {"user_id": user_id, "log_date": today},
+        {"$pull": {"completed_steps": {"routine_step_id": step_id}}},
+        upsert=True,
+    )
+    if completed:
+        await collection.update_one(
+            {"user_id": user_id, "log_date": today},
+            {
+                "$push": {
+                    "completed_steps": {
+                        "routine_step_id": step_id,
+                        "completed_at": datetime.datetime.now(datetime.UTC),
+                    }
+                }
+            },
+        )
+
+
+async def list_recent_routine_logs(user_id: str, days: int = 30) -> list[dict[str, Any]]:
+    collection = get_mongo_db()[_ROUTINE_LOGS_COLLECTION]
+    since = _day_start(
+        datetime.datetime.now(datetime.UTC).date() - datetime.timedelta(days=days - 1)
+    )
+    cursor = collection.find({"user_id": user_id, "log_date": {"$gte": since}}).sort(
+        "log_date", -1
+    )
+    return [doc async for doc in cursor]
+
+
+async def list_active_step_ids(db: AsyncSession, user_id: str) -> list[int]:
+    """Interface function (ADR-005) — scores/service.py reads the scheduled-step count
+    for routine_adherence through this, never `routine_steps` directly."""
+    result = await db.execute(
+        select(RoutineStep.step_id)
+        .join(Routine, Routine.routine_id == RoutineStep.routine_id)
+        .where(Routine.user_id == user_id, Routine.is_active.is_(True))
+    )
+    return list(result.scalars().all())
