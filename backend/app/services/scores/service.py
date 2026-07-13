@@ -4,7 +4,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.ai.seeding import seeded_random
+from app.services.routines import service as routines_service
 from app.services.scores.models import ScoringWeights, SkinScore
 from app.services.scores.schemas import ScoreRead, ScoreWeightsRead
 from app.services.skin_profile import service as skin_profile_service
@@ -18,16 +18,28 @@ async def get_active_weights(db: AsyncSession) -> ScoringWeights:
     return weights
 
 
+_HIGH_SEVERITY_DEDUCTION = 15.0
+_MEDIUM_SEVERITY_DEDUCTION = 7.0
+
+
 def _skin_condition_score(concerns: list[Any]) -> float:
-    """docs/AI_ML.md: '100 - mean(active concern severities scaled x10)'. M1 has no
-    real assessment yet (Skin Assessment is separate scope, ADR-007) — the stubbed
-    ConcernDetector 'echoes the profile's declared concerns with fixed severities'
-    (AI_ML.md stub semantics), so the declared skin_profile_concerns severities *are*
-    that stub's output; no extra randomization layered on top."""
+    """Milestone 2 Step 3.1's tiered deduction: start at 100, subtract 15 pts per
+    High-severity concern (severity_rating 8-10) and 7 pts per Medium (4-7); Low (1-3)
+    costs nothing. Missing severity defaults to 5 (Medium), matching the prior
+    formula's same default. Concern *identification* itself stays the ADR-007 stub
+    (ConcernDetector echoes the profile's declared concerns) — this only changes how
+    the declared severities convert into a condition score, per docs/AI_ML.md (updated
+    to match)."""
     if not concerns:
         return 100.0
-    mean_severity = sum(c.severity_rating or 5 for c in concerns) / len(concerns)
-    return max(0.0, 100.0 - mean_severity * 10)
+    deduction = 0.0
+    for c in concerns:
+        severity = c.severity_rating or 5
+        if severity >= 8:
+            deduction += _HIGH_SEVERITY_DEDUCTION
+        elif severity >= 4:
+            deduction += _MEDIUM_SEVERITY_DEDUCTION
+    return max(0.0, 100.0 - deduction)
 
 
 def _lifestyle_score(logs: list[dict[str, Any]]) -> float:
@@ -80,13 +92,29 @@ def _hydration_score(logs: list[dict[str, Any]]) -> float:
     return total / len(window)
 
 
-def _routine_adherence_score(user_id: str) -> float:
-    """No completed-checklist-steps tracking exists anywhere in the documented schema
-    (database_schemas/ — routines/routine_steps have no completion state, no Mongo
-    collection for it either) — treated as an ADR-007 deterministic stub, the same
-    pattern the docs already sanction for unbuilt AI/data surfaces, rather than
-    inventing new persistence here. Tracked as a known gap in PROGRESS.md."""
-    return seeded_random(user_id, "routine_adherence").uniform(40.0, 90.0)
+async def _routine_adherence_score(db: AsyncSession, user_id: str) -> float:
+    """docs/AI_ML.md: 'completed checklist steps / scheduled steps, trailing 30 days'.
+    Real implementation now that routine_logs (Mongo, M2) persists checklist
+    completion (routines/service.py's toggle_step_completion) — replaces the ADR-007
+    seeded_random stub. No active routine yet, or a routine with no logged days in the
+    trailing-30-day window, stays a neutral 50.0 — the same "no data" convention
+    _lifestyle_score/_sleep_quality_score/_hydration_score above already use in this
+    file, not a punitive 0 or a random guess."""
+    step_ids = await routines_service.list_active_step_ids(db, user_id)
+    if not step_ids:
+        return 50.0
+    logs = await routines_service.list_recent_routine_logs(user_id, days=30)
+    if not logs:
+        return 50.0
+    active_step_ids = set(step_ids)
+    completed_count = sum(
+        1
+        for log in logs
+        for entry in log.get("completed_steps", [])
+        if entry.get("routine_step_id") in active_step_ids
+    )
+    scheduled = len(step_ids) * len(logs)
+    return min(100.0, (completed_count / scheduled) * 100) if scheduled else 50.0
 
 
 async def compute_and_store_score(db: AsyncSession, user_id: str) -> ScoreRead:
@@ -101,7 +129,7 @@ async def compute_and_store_score(db: AsyncSession, user_id: str) -> ScoreRead:
     lifestyle = _lifestyle_score(logs)
     sleep_quality = _sleep_quality_score(logs)
     hydration = _hydration_score(logs)
-    routine_adherence = _routine_adherence_score(user_id)
+    routine_adherence = await _routine_adherence_score(db, user_id)
 
     overall = (
         float(weights.skin_condition_weight) * skin_condition

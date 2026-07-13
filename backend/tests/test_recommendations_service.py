@@ -6,16 +6,21 @@ around). Redis is real too (tests/conftest.py disposes/clears cached clients per
 behavior worth covering, not incidental plumbing.
 """
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.redis import get_redis
+from app.services.ingredients.models import Ingredient
+from app.services.recommendations.models import Product, ProductIngredient
 from app.services.recommendations.service import (
     get_products_by_ids,
     get_recommendations,
     list_all_products,
+    list_avoided_ingredient_product_ids,
     list_concern_ids_for_products,
     list_products_for_skin_type,
 )
+from app.services.skin_profile.models import SkinType
 from app.services.skin_profile.schemas import SkinProfileConcernInput, SkinProfileCreate
 from app.services.skin_profile.service import create_profile
 
@@ -113,6 +118,69 @@ async def test_saving_a_new_profile_invalidates_the_recommendation_cache(
     )
 
     assert await get_redis().get(f"recommendation:cache:{test_user_id}") is None
+
+
+# --- list_avoided_ingredient_product_ids — Milestone 2 Step 4's hard safety filter ---
+
+
+async def test_list_avoided_ingredient_product_ids_flags_a_real_avoid_flagged_ingredient(
+    db_session: AsyncSession,
+) -> None:
+    # Real seeded rows (backend/app/db/seed.py): "Salicylic Acid" is avoid-flagged for
+    # "Sensitive" skin. No product in the curated catalog happens to pair that
+    # ingredient with a Sensitive skin-type tag (the seed data is already internally
+    # consistent), so this inserts one minimal real row — same real-DB-round-trip
+    # pattern test_skin_profile_service.py's own cross-user test already uses for an
+    # ad hoc row — to exercise the exact adversarial case the filter exists to catch.
+    sensitive = (
+        await db_session.execute(select(SkinType).where(SkinType.skin_type_name == "Sensitive"))
+    ).scalar_one()
+    salicylic_acid = (
+        await db_session.execute(
+            select(Ingredient).where(Ingredient.ingredient_name == "Salicylic Acid")
+        )
+    ).scalar_one()
+
+    product = Product(
+        brand_name="Test Only", product_name="Unsafe-for-Sensitive Treatment", category="Treatment"
+    )
+    db_session.add(product)
+    await db_session.flush()
+    db_session.add(
+        ProductIngredient(product_id=product.product_id, ingredient_id=salicylic_acid.ingredient_id)
+    )
+    await db_session.flush()
+
+    avoided = await list_avoided_ingredient_product_ids(db_session, sensitive.skin_type_id)
+
+    assert product.product_id in avoided
+
+
+async def test_list_avoided_ingredient_product_ids_empty_for_a_safe_ingredient(
+    db_session: AsyncSession,
+) -> None:
+    # "Niacinamide" has an empty avoid_for list in seed.py — a product built only from
+    # it must never show up in any skin type's avoid-set.
+    sensitive = (
+        await db_session.execute(select(SkinType).where(SkinType.skin_type_name == "Sensitive"))
+    ).scalar_one()
+    niacinamide = (
+        await db_session.execute(
+            select(Ingredient).where(Ingredient.ingredient_name == "Niacinamide")
+        )
+    ).scalar_one()
+
+    product = Product(brand_name="Test Only", product_name="Safe Treatment", category="Treatment")
+    db_session.add(product)
+    await db_session.flush()
+    db_session.add(
+        ProductIngredient(product_id=product.product_id, ingredient_id=niacinamide.ingredient_id)
+    )
+    await db_session.flush()
+
+    avoided = await list_avoided_ingredient_product_ids(db_session, sensitive.skin_type_id)
+
+    assert product.product_id not in avoided
 
 
 async def test_list_all_products_paginates_over_real_seeded_data(

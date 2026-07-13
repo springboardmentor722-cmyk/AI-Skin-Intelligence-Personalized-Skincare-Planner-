@@ -232,6 +232,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/routines/steps/{step_id}/log": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Log Step Completion */
+        post: operations["log_step_completion_api_v1_routines_steps__step_id__log_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/recommendations/me": {
         parameters: {
             query?: never;
@@ -1248,6 +1265,8 @@ export interface components {
             duration_minutes: number | null;
             /** Products */
             products: components["schemas"]["RoutineProductRead"][];
+            /** Completed Today */
+            completed_today: boolean;
         };
         /** ScoreRead */
         ScoreRead: {
@@ -1359,6 +1378,11 @@ export interface components {
             skin_type_name: string;
             /** Description */
             description: string | null;
+        };
+        /** StepCompletionUpdate */
+        StepCompletionUpdate: {
+            /** Completed */
+            completed: boolean;
         };
         /** UserMeResponse */
         UserMeResponse: {
@@ -1879,6 +1903,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RoutineRead"][];
+                };
+            };
+        };
+    };
+    log_step_completion_api_v1_routines_steps__step_id__log_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                step_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StepCompletionUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
