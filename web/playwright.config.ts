@@ -1,9 +1,10 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// e2e config for the M1 screens (docs/WIREFRAMES.md). Individual screens aren't built
-// yet (PROGRESS.md) — the scaffold smoke test and the app-shell tests are what exist so
-// far. Reduced-transparency emulation isn't a native Playwright context option; cover it
-// with a manual `prefers-reduced-transparency` media-query CSS check instead.
+// e2e config, shared by every spec in tests/e2e/ — see that directory's own files for
+// what's covered (auth/app-shell/admin/onboarding per-feature specs,
+// user-journey.spec.ts for the chained real M2 screens flow). Reduced-transparency
+// emulation isn't a native Playwright context option; cover it with a manual
+// `prefers-reduced-transparency` media-query CSS check instead.
 export default defineConfig({
   testDir: "./tests/e2e",
   // Branch 8 (feature/testing) finding: this suite hits a real, shared backend —
