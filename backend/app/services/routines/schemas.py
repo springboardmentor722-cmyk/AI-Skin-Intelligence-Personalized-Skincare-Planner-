@@ -15,6 +15,13 @@ class RoutineStepRead(BaseModel):
     instruction: str | None
     duration_minutes: int | None
     products: list[RoutineProductRead]
+    # Real persisted state from Mongo routine_logs (M2) — today's completion, not
+    # client-side-only state that resets on reload.
+    completed_today: bool
+
+
+class StepCompletionUpdate(BaseModel):
+    completed: bool
 
 
 class RoutineRead(BaseModel):
