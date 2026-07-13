@@ -1383,6 +1383,53 @@ behind is real.
   real hydration error — fixed by making the outer card a `role="button"` `<div>`
   with keyboard support instead. 179 backend tests pass; frontend
   `tsc`/`eslint`/`next build` clean.
+- ✔ **Clinical review workflow — client/patient list + detail (Consultant &
+  Dermatologist)** — `consultant_clients`/`consultant_notes` existed since the M1
+  foundation expansion but had no real assessment data to review until this
+  session's M2 work. Scoped to list+detail only (Pending records what's still
+  deferred). New `backend/app/services/clinical_review/` (shared by both
+  professional roles despite the `consultant_`-prefixed table names — no separate
+  dermatologist tables exist): `GET /clients/me`, `GET /clients/{user_id}`,
+  `GET`/`POST /clients/{user_id}/notes`, all gated by `require_verified_professional`
+  (`core/security.py` — existed since Branch 4/5, this is its first real
+  consumer) plus a `consultant_clients`-based ownership check
+  (`docs/CONVENTIONS.md` had already anticipated this exact check). No
+  self-service "request a consultant" flow exists, so a minimal
+  `POST /admin/consultant-clients` (audit-logged, admin service) is the only way
+  a real assignment gets created today — no dedicated Admin UI for it yet (see
+  Pending). **Doc drift fixed:** `docs/ARCHITECTURE.md` §2 called the assignment
+  table `consultant_assignments`; the real DDL says `consultant_clients` —
+  corrected, and the doc's audit-logging claim narrowed to what's actually real
+  (mutations are audit-logged, a professional's own reads of assigned clients
+  are ownership-checked but not themselves audit-logged).
+  `backend/app/db/postgres.py`'s `external_user_table` gained a `name` column
+  (confirmed nullable against the real live table) — the first backend service
+  needing a real display name, not just email.
+  Same fabricated-content precedent as the last two branches: the wireframes'
+  bottom "bento" stats (Critical Alerts, Cohort Adherence, "AI Confidence 99.4%",
+  "Sync Latency 12ms") are omitted; `consultant-client-detail.html`'s "Diagnostic
+  Analysis" invents an entirely different scoring taxonomy (Hydration/Texture/
+  Pigmentation/Elasticity/Sensitivity, with invented prose like "Suggest chemical
+  exfoliation") that doesn't match the real Skin Health Score model at all —
+  replaced with the real 5-component breakdown, not reproduced;
+  `derm-patient-detail.html`'s "Affected Area Mapping"/"AI Insights"/"Risk Factor
+  Index"/"Clinical Photos" have no backing table, model, or upload feature
+  anywhere and are all omitted — Dermatologist gets the same real
+  profile/score/routine/notes content Consultant gets, not a fabricated version.
+  `web/components/clinical-review/{client-list-table,client-detail-view}.tsx`
+  shared by both `app/consultant/clients/` and `app/dermatologist/patients/`
+  (same cross-role component-sharing precedent as
+  `components/settings/appearance-settings.tsx`). Found a real Postgres
+  behavior while writing tests: `now()`/`CURRENT_TIMESTAMP` is stable for an
+  entire transaction, so two notes added in quick succession inside one test's
+  wrapped transaction got an identical `created_at` — list_notes now orders by
+  `note_id` (monotonic `SERIAL`) instead, correct in both tests and production.
+  187 backend tests pass; frontend `tsc`/`eslint`/`next build` clean. Verified
+  live end-to-end: real consultant + client + admin accounts, a real
+  Sensitive-skin assessment, a real admin-created assignment, the consultant
+  seeing the real client list and detail view (real score breakdown, real
+  routine compliance, real notes), a real 404 for an unassigned user, and a
+  real 403 for a non-professional role.
 
 ## Partially Completed
 
@@ -1424,10 +1471,14 @@ behind is real.
   either way. Found during the Milestone 1 audit.
 - ☐ Graphify setup (ADR-006) — explicitly deferred by product owner, revisit later
   (2026-07-08 decision, see Known Issues)
-- ☐ Consultant/Dermatologist *clinical* review workflow — `consultant_clients`/
-  `consultant_notes` tables exist and are ready, but their UI needs real assessment
-  data to review against (M2+ territory); the identity/onboarding/verification layer
-  they'll sit behind is now real (see Completed).
+- ☐ **Clinical review workflow — list+detail shipped, see Completed; the rest
+  deliberately deferred.** `Recommendations`/`Reports` (Consultant) and
+  `Treatment Plans`/`Analytics` (Dermatologist) nav items still `built: false` —
+  each needs its own schema/data model (none exists for consultant-authored
+  recommendations, generated reports, or aggregate analytics) and its own design
+  pass, not an extension of this branch. A dedicated Admin UI for
+  consultant-client assignment is also still just a backend endpoint
+  (`POST /admin/consultant-clients`) — no screen built for it yet.
 - ☐ A dynamic permission-matrix editor — deliberately not built; the fixed 4-role
   model has no concrete case requiring per-permission granularity yet. Role
   Management is a real role-*assignment* view (Better Auth's `set-role`), not a
