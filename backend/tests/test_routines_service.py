@@ -5,12 +5,22 @@ since generation reads through recommendations_service's real product-lookup que
 faking that would mean testing against data shaped nothing like production.
 """
 
+import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.postgres import external_user_table
 from app.services.ingredients.models import Ingredient
 from app.services.recommendations.models import Product, ProductIngredient, ProductSkinType
-from app.services.routines.service import get_or_generate_routines
+from app.services.routines.service import (
+    UnsafeProductError,
+    add_step,
+    delete_step,
+    get_or_generate_routines,
+    reorder_steps,
+    search_products_for_edit,
+    update_step,
+)
 from app.services.skin_profile.models import SkinType
 from app.services.skin_profile.schemas import SkinProfileConcernInput, SkinProfileCreate
 from app.services.skin_profile.service import create_profile
@@ -181,3 +191,216 @@ async def test_generation_is_deterministic_for_the_same_user_and_profile(
     for routine in routines:
         for step in routine.steps:
             assert len(step.products) == 1
+
+
+# --- Routine edit/reorder (deferred half of the My Routine screen) ---
+
+
+async def test_reorder_steps_persists_new_order(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+    routines = await get_or_generate_routines(db_session, test_user_id)
+    am = next(r for r in routines if r.routine_type == "AM")
+    original_step_ids = [s.step_id for s in am.steps]
+    reversed_ids = list(reversed(original_step_ids))
+
+    updated = await reorder_steps(db_session, test_user_id, am.routine_id, reversed_ids)
+
+    assert [s.step_id for s in updated.steps] == reversed_ids
+    assert [s.step_order for s in updated.steps] == list(range(1, len(reversed_ids) + 1))
+
+
+async def test_reorder_steps_rejects_mismatched_step_id_set(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+    routines = await get_or_generate_routines(db_session, test_user_id)
+    am = next(r for r in routines if r.routine_type == "AM")
+
+    with pytest.raises(ValueError, match="must match"):
+        await reorder_steps(db_session, test_user_id, am.routine_id, [am.steps[0].step_id])
+
+
+async def test_reorder_steps_rejects_a_different_users_routine(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    other_user_id = f"test-other-{test_user_id}"
+    await db_session.execute(
+        external_user_table.insert().values(id=other_user_id, email=f"{other_user_id}@test.invalid")
+    )
+    await db_session.flush()
+
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+    routines = await get_or_generate_routines(db_session, test_user_id)
+    am = next(r for r in routines if r.routine_type == "AM")
+
+    with pytest.raises(ValueError, match="not found"):
+        await reorder_steps(
+            db_session, other_user_id, am.routine_id, [s.step_id for s in am.steps]
+        )
+
+
+async def test_add_step_persists_with_a_real_product(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+    routines = await get_or_generate_routines(db_session, test_user_id)
+    pm = next(r for r in routines if r.routine_type == "PM")
+    products = await search_products_for_edit(
+        db_session, test_user_id, "Sunscreen", ""
+    )
+    assert products, "seed catalog should have at least one Sunscreen product"
+
+    updated = await add_step(
+        db_session, test_user_id, pm.routine_id, "Sunscreen", products[0].product_id
+    )
+
+    new_step = next(s for s in updated.steps if s.step_name == "Sunscreen")
+    assert new_step.products[0].product.product_id == products[0].product_id
+    assert new_step.step_order == len(updated.steps)
+
+
+async def test_add_step_rejects_an_avoid_flagged_product(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    sensitive = (
+        await db_session.execute(select(SkinType).where(SkinType.skin_type_name == "Sensitive"))
+    ).scalar_one()
+    salicylic_acid = (
+        await db_session.execute(
+            select(Ingredient).where(Ingredient.ingredient_name == "Salicylic Acid")
+        )
+    ).scalar_one()
+    unsafe_product = Product(
+        brand_name="Test Only", product_name="Unsafe Treatment", category="Treatment"
+    )
+    db_session.add(unsafe_product)
+    await db_session.flush()
+    db_session.add(
+        ProductIngredient(
+            product_id=unsafe_product.product_id, ingredient_id=salicylic_acid.ingredient_id
+        )
+    )
+    await db_session.flush()
+
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=sensitive.skin_type_id)
+    )
+    routines = await get_or_generate_routines(db_session, test_user_id)
+    am = next(r for r in routines if r.routine_type == "AM")
+
+    with pytest.raises(UnsafeProductError):
+        await add_step(
+            db_session, test_user_id, am.routine_id, "Treatment", unsafe_product.product_id
+        )
+
+
+async def test_delete_step_renumbers_remaining_steps(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+    routines = await get_or_generate_routines(db_session, test_user_id)
+    am = next(r for r in routines if r.routine_type == "AM")
+    first_step_id = am.steps[0].step_id
+
+    updated = await delete_step(db_session, test_user_id, first_step_id)
+
+    assert first_step_id not in {s.step_id for s in updated.steps}
+    assert [s.step_order for s in updated.steps] == list(range(1, len(updated.steps) + 1))
+
+
+async def test_update_step_swaps_product_and_usage_notes(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+    routines = await get_or_generate_routines(db_session, test_user_id)
+    am = next(r for r in routines if r.routine_type == "AM")
+    cleanser_step = next(s for s in am.steps if s.step_name == "Cleanser")
+    candidates = await search_products_for_edit(db_session, test_user_id, "Cleanser", "")
+    other_product = next(
+        p for p in candidates if p.product_id != cleanser_step.products[0].product.product_id
+    )
+
+    updated = await update_step(
+        db_session,
+        test_user_id,
+        cleanser_step.step_id,
+        step_name=None,
+        product_id=other_product.product_id,
+        usage_notes="Use lukewarm water only.",
+    )
+
+    updated_step = next(s for s in updated.steps if s.step_id == cleanser_step.step_id)
+    assert updated_step.products[0].product.product_id == other_product.product_id
+    assert updated_step.products[0].usage_notes == "Use lukewarm water only."
+
+
+async def test_update_step_rejects_an_avoid_flagged_product_swap(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    sensitive = (
+        await db_session.execute(select(SkinType).where(SkinType.skin_type_name == "Sensitive"))
+    ).scalar_one()
+    salicylic_acid = (
+        await db_session.execute(
+            select(Ingredient).where(Ingredient.ingredient_name == "Salicylic Acid")
+        )
+    ).scalar_one()
+    unsafe_product = Product(
+        brand_name="Test Only", product_name="Unsafe Treatment 2", category="Treatment"
+    )
+    db_session.add(unsafe_product)
+    await db_session.flush()
+    db_session.add(
+        ProductIngredient(
+            product_id=unsafe_product.product_id, ingredient_id=salicylic_acid.ingredient_id
+        )
+    )
+    await db_session.flush()
+
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=sensitive.skin_type_id)
+    )
+    routines = await get_or_generate_routines(db_session, test_user_id)
+    am = next(r for r in routines if r.routine_type == "AM")
+    treatment_step = next(s for s in am.steps if s.step_name == "Treatment")
+
+    with pytest.raises(UnsafeProductError):
+        await update_step(
+            db_session,
+            test_user_id,
+            treatment_step.step_id,
+            step_name=None,
+            product_id=unsafe_product.product_id,
+            usage_notes=None,
+        )
+
+
+async def test_search_products_for_edit_excludes_avoid_flagged_and_respects_category(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    sensitive = (
+        await db_session.execute(select(SkinType).where(SkinType.skin_type_name == "Sensitive"))
+    ).scalar_one()
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=sensitive.skin_type_id)
+    )
+
+    treatment_results = await search_products_for_edit(db_session, test_user_id, "Treatment", "")
+
+    assert treatment_results, "Sensitive skin should have safe Treatment candidates"
+    assert all(p.category == "Treatment" for p in treatment_results)
+    assert not any("Salicylic" in (p.product_name or "") for p in treatment_results)
