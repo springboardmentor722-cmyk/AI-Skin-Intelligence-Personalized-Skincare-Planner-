@@ -73,8 +73,9 @@ overall = 0.35·skin_condition + 0.20·lifestyle + 0.15·sleep_quality
 ```
 
 Component normalization (each 0–100):
-- **skin_condition** = 100 − mean(active concern severities scaled ×10), from the latest
-  assessment.
+- **skin_condition** = 100 − tiered deduction over active concerns: −15 pts per High
+  severity (severity_rating 8–10), −7 pts per Medium (4–7), 0 for Low (1–3), from the
+  latest assessment.
 - **lifestyle** = weighted sub-index of exercise frequency, stress (inverted), diet
   quality, sun-exposure hygiene from `lifestyle_logs` (30-day window).
 - **sleep_quality** = 60% duration score (7–9 h band = 100, linear falloff) + 40%
