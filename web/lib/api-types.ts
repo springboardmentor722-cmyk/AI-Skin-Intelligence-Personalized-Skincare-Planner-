@@ -506,6 +506,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/consultant-clients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Assign Consultant Client */
+        post: operations["assign_consultant_client_api_v1_admin_consultant_clients_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/dashboard-stats": {
         parameters: {
             query?: never;
@@ -697,6 +714,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/clients/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Clients */
+        get: operations["get_my_clients_api_v1_clients_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/clients/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Client */
+        get: operations["get_client_api_v1_clients__user_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/clients/{user_id}/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Client Notes */
+        get: operations["get_client_notes_api_v1_clients__user_id__notes_get"];
+        put?: never;
+        /** Add Client Note */
+        post: operations["add_client_note_api_v1_clients__user_id__notes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -807,6 +876,91 @@ export interface components {
             document_type: "government_id" | "professional_certificate" | "medical_license" | "supporting_document";
             /** File */
             file: string;
+        };
+        /** ClientDetailRead */
+        ClientDetailRead: {
+            /** User Id */
+            user_id: string;
+            /** Name */
+            name: string | null;
+            /** Email */
+            email: string;
+            skin_profile: components["schemas"]["SkinProfileRead"] | null;
+            score: components["schemas"]["ClientScoreRead"] | null;
+            /** Routines */
+            routines: components["schemas"]["RoutineRead"][];
+            /** Notes */
+            notes: components["schemas"]["ConsultantNoteRead"][];
+        };
+        /**
+         * ClientScoreRead
+         * @description A read-only projection of the client's latest real skin_scores row (via
+         *     scores_service.get_recent_scores) — never recomputed on a professional's
+         *     behalf. Deliberately doesn't reuse scores/schemas.py's ScoreRead: that schema
+         *     requires the nested scoring_weights row, which isn't needed for a clinical
+         *     review view of the five component scores + overall.
+         */
+        ClientScoreRead: {
+            /** Score Id */
+            score_id: number;
+            /** Skin Condition Score */
+            skin_condition_score: number | null;
+            /** Lifestyle Score */
+            lifestyle_score: number | null;
+            /** Sleep Quality Score */
+            sleep_quality_score: number | null;
+            /** Hydration Score */
+            hydration_score: number | null;
+            /** Routine Adherence Score */
+            routine_adherence_score: number | null;
+            /** Overall Score */
+            overall_score: number | null;
+            /** Calculated At */
+            calculated_at: string | null;
+        };
+        /** ClientSummaryRead */
+        ClientSummaryRead: {
+            /** User Id */
+            user_id: string;
+            /** Name */
+            name: string | null;
+            /** Email */
+            email: string;
+            /** Skin Type Name */
+            skin_type_name: string | null;
+            /** Primary Concern Name */
+            primary_concern_name: string | null;
+            /** Overall Score */
+            overall_score: number | null;
+            /** Routine Adherence Score */
+            routine_adherence_score: number | null;
+            /** Score Trend */
+            score_trend: number[];
+            /** Last Sync */
+            last_sync: string | null;
+        };
+        /** ConsultantClientAssignmentRequest */
+        ConsultantClientAssignmentRequest: {
+            /** Professional Id */
+            professional_id: string;
+            /** User Id */
+            user_id: string;
+        };
+        /** ConsultantNoteCreate */
+        ConsultantNoteCreate: {
+            /** Note Text */
+            note_text: string;
+        };
+        /** ConsultantNoteRead */
+        ConsultantNoteRead: {
+            /** Note Id */
+            note_id: number;
+            /** Note Text */
+            note_text: string | null;
+            /** Created At */
+            created_at: string | null;
+            /** Updated At */
+            updated_at: string | null;
         };
         /** ConsultantProfileDetail */
         ConsultantProfileDetail: {
@@ -2594,6 +2748,37 @@ export interface operations {
             };
         };
     };
+    assign_consultant_client_api_v1_admin_consultant_clients_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConsultantClientAssignmentRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_dashboard_stats_api_v1_admin_dashboard_stats_get: {
         parameters: {
             query?: never;
@@ -3002,6 +3187,123 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_my_clients_api_v1_clients_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientSummaryRead"][];
+                };
+            };
+        };
+    };
+    get_client_api_v1_clients__user_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientDetailRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_client_notes_api_v1_clients__user_id__notes_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConsultantNoteRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_client_note_api_v1_clients__user_id__notes_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConsultantNoteCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConsultantNoteRead"];
+                };
             };
             /** @description Validation Error */
             422: {
