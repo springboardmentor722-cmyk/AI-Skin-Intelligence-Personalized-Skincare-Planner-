@@ -42,8 +42,14 @@ targets — tune with load tests before M4, see `SUGGESTIONS.md`):
 
 Roles are defined in Better Auth's admin plugin (`createAccessControl`), travel as a JWT
 claim, and are **re-checked on every FastAPI endpoint** via a dependency (§6). Consultants
-and dermatologists see only *assigned* users (Postgres `consultant_assignments`); any
-access to another person's skin data is written to the audit log (§9).
+and dermatologists see only *assigned* users (Postgres `consultant_clients` — this doc
+previously called it `consultant_assignments`, a name that was never the real table;
+corrected when the clinical review workflow was built, M2+). Assignment itself is
+admin-only and audit-logged (`POST /admin/consultant-clients`); a professional's own
+*reads* of an assigned client's data are ownership-checked (`clinical_review/service.py`'s
+`_verify_assignment`) but not currently written to the audit log themselves — only
+mutating admin actions are, matching this codebase's existing `audit_logs` usage
+elsewhere (§9). Audit-logging read access would be a separate, larger addition.
 
 ## 3. High-level architecture (matches the system diagram)
 

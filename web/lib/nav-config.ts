@@ -82,7 +82,7 @@ const RAW_NAV_ITEMS: Record<Role, RawNavItem[]> = {
   ],
   consultant: [
     { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
-    { label: "Clients", path: "/clients", icon: Users, built: false },
+    { label: "Clients", path: "/clients", icon: Users },
     { label: "Assessments", path: "/assessments", icon: ClipboardCheck, built: false },
     { label: "Recommendations", path: "/recommendations", icon: Sparkles, built: false },
     { label: "Reports", path: "/reports", icon: FileText, built: false },
@@ -90,7 +90,7 @@ const RAW_NAV_ITEMS: Record<Role, RawNavItem[]> = {
   ],
   dermatologist: [
     { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
-    { label: "Patients", path: "/patients", icon: UserRound, built: false },
+    { label: "Patients", path: "/patients", icon: UserRound },
     {
       label: "Condition Reports",
       path: "/condition-reports",

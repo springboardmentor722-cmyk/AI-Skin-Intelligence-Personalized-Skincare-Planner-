@@ -22,12 +22,18 @@ class Base(DeclarativeBase):
 # inserting a throwaway row (nothing else ever writes through this Table object — the
 # app never creates real users, Better Auth does, directly, outside Alembic/this
 # engine entirely); env.py's `include_object` excludes it from autogenerate so Alembic
-# never tries to create/alter it.
+# never tries to create/alter it. `name` added for clinical_review/service.py — the
+# first backend service needing a real display name, not just email (mirrors what
+# web/app/api/admin/users/route.ts already reads from Better Auth's own admin API on
+# the frontend side). Nullable here to match the real live column exactly (confirmed
+# via `\d "user"` against the real Docker Postgres) — existing test inserts that don't
+# supply a name stay valid.
 external_user_table = Table(
     "user",
     Base.metadata,
     Column("id", Text, primary_key=True),
     Column("email", Text, nullable=False),
+    Column("name", Text, nullable=True),
 )
 
 
