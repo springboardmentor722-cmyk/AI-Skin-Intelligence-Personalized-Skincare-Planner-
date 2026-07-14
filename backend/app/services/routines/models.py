@@ -20,7 +20,8 @@ class Routine(Base):
     routine_id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[str] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
     routine_name: Mapped[str | None] = mapped_column(default=None)
-    routine_type: Mapped[str | None] = mapped_column(default=None)  # "AM" | "PM"
+    routine_type: Mapped[str | None] = mapped_column(default=None)
+    # "AM" | "PM" | "Weekly" | "Seasonal"
     description: Mapped[str | None] = mapped_column(Text, default=None)
     is_active: Mapped[bool | None] = mapped_column(default=True)
     generated_by_ai: Mapped[bool | None] = mapped_column(default=True)
@@ -33,9 +34,7 @@ class RoutineStep(Base):
     __table_args__ = (Index("idx_routine_steps_routine", "routine_id"),)
 
     step_id: Mapped[int] = mapped_column(primary_key=True)
-    routine_id: Mapped[int] = mapped_column(
-        ForeignKey("routines.routine_id", ondelete="CASCADE")
-    )
+    routine_id: Mapped[int] = mapped_column(ForeignKey("routines.routine_id", ondelete="CASCADE"))
     step_order: Mapped[int | None] = mapped_column(default=None)
     step_name: Mapped[str | None] = mapped_column(default=None)
     instruction: Mapped[str | None] = mapped_column(Text, default=None)
@@ -48,11 +47,7 @@ class RoutineProduct(Base):
     __tablename__ = "routine_products"
 
     routine_product_id: Mapped[int] = mapped_column(primary_key=True)
-    routine_id: Mapped[int] = mapped_column(
-        ForeignKey("routines.routine_id", ondelete="CASCADE")
-    )
+    routine_id: Mapped[int] = mapped_column(ForeignKey("routines.routine_id", ondelete="CASCADE"))
     product_id: Mapped[int] = mapped_column(ForeignKey("products.product_id"))
-    step_id: Mapped[int | None] = mapped_column(
-        ForeignKey("routine_steps.step_id"), default=None
-    )
+    step_id: Mapped[int | None] = mapped_column(ForeignKey("routine_steps.step_id"), default=None)
     usage_notes: Mapped[str | None] = mapped_column(Text, default=None)
