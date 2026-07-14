@@ -53,7 +53,9 @@ async def client_user_id(db_session: AsyncSession) -> AsyncGenerator[str, None]:
 async def test_list_my_clients_is_empty_with_no_assignments(
     db_session: AsyncSession, professional_id: str
 ) -> None:
-    assert await list_my_clients(db_session, professional_id) == []
+    items, total = await list_my_clients(db_session, professional_id)
+    assert items == []
+    assert total == 0
 
 
 async def test_get_client_detail_rejects_an_unassigned_user(
@@ -84,8 +86,9 @@ async def test_assigned_client_appears_with_real_data(
     await compute_and_store_score(db_session, client_user_id)
     await create_assignment(db_session, professional_id, client_user_id)
 
-    clients = await list_my_clients(db_session, professional_id)
+    clients, total = await list_my_clients(db_session, professional_id)
 
+    assert total == 1
     assert len(clients) == 1
     summary = clients[0]
     assert summary.user_id == client_user_id
@@ -133,9 +136,10 @@ async def test_create_assignment_is_idempotent(
     await create_assignment(db_session, professional_id, client_user_id)
     await create_assignment(db_session, professional_id, client_user_id)
 
-    clients = await list_my_clients(db_session, professional_id)
+    clients, total = await list_my_clients(db_session, professional_id)
 
     assert len(clients) == 1
+    assert total == 1
 
 
 async def test_a_different_professionals_client_never_leaks_across(
@@ -150,6 +154,42 @@ async def test_a_different_professionals_client_never_leaks_across(
     await db_session.flush()
     await create_assignment(db_session, professional_id, client_user_id)
 
-    assert await list_my_clients(db_session, other_professional_id) == []
+    other_items, other_total = await list_my_clients(db_session, other_professional_id)
+    assert other_items == []
+    assert other_total == 0
     with pytest.raises(ValueError, match="isn.t assigned"):
         await get_client_detail(db_session, other_professional_id, client_user_id)
+
+
+async def test_list_my_clients_pagination_is_real(
+    db_session: AsyncSession, professional_id: str
+) -> None:
+    """Production-readiness audit finding: list_my_clients had no LIMIT at all —
+    every active assignment, unbounded, on every call. Real, non-trivial data: 3
+    real assigned clients, page_size=2 — confirms page 1 returns exactly 2, page 2
+    returns the remaining 1, total is always the true full count regardless of
+    page, and no client appears on both pages (a real slicing bug, not just a
+    count check)."""
+    client_ids = []
+    for i in range(3):
+        client_id = f"test-page-client-{i}-{uuid.uuid4().hex[:12]}"
+        await db_session.execute(
+            external_user_table.insert().values(
+                id=client_id, email=f"{client_id}@test.invalid", name=f"Client {i}"
+            )
+        )
+        await db_session.flush()
+        await create_assignment(db_session, professional_id, client_id)
+        client_ids.append(client_id)
+
+    page_one, total_one = await list_my_clients(db_session, professional_id, page=1, page_size=2)
+    page_two, total_two = await list_my_clients(db_session, professional_id, page=2, page_size=2)
+
+    assert total_one == 3
+    assert total_two == 3
+    assert len(page_one) == 2
+    assert len(page_two) == 1
+    page_one_ids = {c.user_id for c in page_one}
+    page_two_ids = {c.user_id for c in page_two}
+    assert page_one_ids.isdisjoint(page_two_ids)
+    assert page_one_ids | page_two_ids == set(client_ids)
