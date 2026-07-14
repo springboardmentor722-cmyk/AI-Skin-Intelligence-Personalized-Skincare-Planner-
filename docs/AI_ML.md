@@ -84,7 +84,11 @@ Component normalization (each 0–100):
   a side effect of scoring, so it's a no-op when no OpenUV reading was ever captured.
 - **sleep_quality** = 60% duration score (7–9 h band = 100, linear falloff) + 40%
   self-rated quality.
-- **routine_adherence** = completed checklist steps ÷ scheduled steps, trailing 30 days.
+- **routine_adherence** = completed checklist steps ÷ scheduled steps, trailing 7 days
+  (mile_2.docx Step 3.1's literal "last 7 days of routine logs" — corrected 2026-07-14
+  from this doc's prior 30-day paraphrase, a real mismatch against the docx's literal
+  text, not a documentation-only fix; see PROGRESS.md and
+  docs/milestones/milestone_2/MASTER_PROMPT.md Phase 2).
 - **hydration** = min(100, glasses/day ÷ 8 × 100), 7-day average.
 
 `SkinHealthScoringService` reads the active weight row; experiments are a DB update.
