@@ -1,5 +1,6 @@
 import datetime
 import json
+from typing import Any
 
 from app.db.mongo import get_mongo_db
 from app.db.redis import get_redis
@@ -73,3 +74,26 @@ async def get_weather_uv(user_id: str, lat: float, lon: float) -> WeatherUVRead:
         )
 
     return result
+
+
+async def get_latest_uv_index(user_id: str) -> float | None:
+    """Interface function (ADR-005) for other services — scores/service.py's
+    lifestyle component reads real UV data through this, never `weather_uv_logs`
+    directly. Best-effort against whatever the topbar's own geolocation-triggered
+    `get_weather_uv` call most recently captured for this user; never fetches live
+    from OpenUV itself — a score computation shouldn't have a side effect of
+    triggering an external API call, same principle as `routines.score_id`'s
+    best-effort (not force-computed) link. Returns None if no reading was ever
+    captured (e.g. OPENUV_API_KEY unset, or the user never opened a page with the
+    topbar chip) — an honest "no data", not a fabricated value."""
+    cursor = (
+        get_mongo_db()[_MONGO_COLLECTION]
+        .find({"user_id": user_id, "uv_index": {"$ne": None}})
+        .sort("captured_at", -1)
+        .limit(1)
+    )
+    docs: list[dict[str, Any]] = await cursor.to_list(length=1)
+    if not docs:
+        return None
+    uv_index = docs[0].get("uv_index")
+    return float(uv_index) if uv_index is not None else None
