@@ -8,6 +8,7 @@ faking that would mean testing against data shaped nothing like production.
 import datetime
 
 import pytest
+from sqlalchemy import event as sa_event
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -573,3 +574,48 @@ async def test_routines_link_to_the_most_recently_computed_score(
     routines = await get_or_generate_routines(db_session, test_user_id)
 
     assert all(r.score_id == score.score_id for r in routines)
+
+
+# --- Performance: no N+1 in _read_with_steps (production-readiness audit) ---
+
+
+async def test_get_or_generate_routines_does_not_n_plus_one_per_step(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    """Regression test for a real N+1 in `_read_with_steps` specifically (the
+    generation path in `_generate_routine` has its own, separate per-category
+    queries and isn't what this test measures): it used to run 2 extra queries
+    *per step* (a RoutineProduct lookup, then a get_products_by_ids call) instead
+    of batching once across the whole routine. Isolated by generating routines
+    first (uncounted), then counting only the *second* call — `core and not
+    needs_seasonal_refresh` returns early with pure reads, no `_generate_routine`
+    calls at all — via a real query-execution event listener (sa_event, the same
+    tool tests/conftest.py already uses), not a mock."""
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+    await get_or_generate_routines(db_session, test_user_id)  # first call: generates, uncounted
+
+    query_count = 0
+
+    def _count_query(*_args: object, **_kwargs: object) -> None:
+        nonlocal query_count
+        query_count += 1
+
+    sa_event.listen(db_session.sync_session.bind, "before_cursor_execute", _count_query)
+    try:
+        routines = await get_or_generate_routines(db_session, test_user_id)  # pure read path
+    finally:
+        sa_event.remove(db_session.sync_session.bind, "before_cursor_execute", _count_query)
+
+    total_steps = sum(len(r.steps) for r in routines)
+    assert total_steps >= 8  # AM(4) + PM(3) + Weekly(1) + Seasonal(>=3), sanity check
+
+    # Fixed cost: 1 query to fetch the existing routines, + 3 per routine read
+    # (steps, routine_products, products) — independent of step count. A generous
+    # ceiling, not a brittle exact count: this asserts "doesn't scale with step
+    # count", not "exactly N queries".
+    assert query_count < 25, (
+        f"{query_count} queries to read {total_steps} already-generated steps "
+        "looks like an N+1, not a fixed per-routine cost"
+    )
