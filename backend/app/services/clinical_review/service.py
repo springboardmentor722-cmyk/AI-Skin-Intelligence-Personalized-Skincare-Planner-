@@ -102,9 +102,7 @@ async def list_my_clients(db: AsyncSession, professional_id: str) -> list[Client
                 primary_concern_name=primary_concern_name,
                 overall_score=latest.overall_score if latest else None,
                 routine_adherence_score=latest.routine_adherence_score if latest else None,
-                score_trend=[
-                    float(s.overall_score) for s in scores if s.overall_score is not None
-                ],
+                score_trend=[float(s.overall_score) for s in scores if s.overall_score is not None],
                 last_sync=latest.calculated_at if latest else None,
             )
         )
@@ -140,9 +138,7 @@ async def list_notes(
     await _verify_assignment(db, professional_id, user_id)
     result = await db.execute(
         select(ConsultantNote)
-        .where(
-            ConsultantNote.consultant_id == professional_id, ConsultantNote.user_id == user_id
-        )
+        .where(ConsultantNote.consultant_id == professional_id, ConsultantNote.user_id == user_id)
         # note_id (monotonic SERIAL), not created_at — Postgres's now()/
         # CURRENT_TIMESTAMP is stable for the whole transaction, so two notes added
         # in quick succession (e.g. within the same request-scoped session) can get
