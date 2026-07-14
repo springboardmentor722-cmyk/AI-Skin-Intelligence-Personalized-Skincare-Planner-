@@ -40,7 +40,10 @@ class ScoringWeights(Base):
 
 
 class SkinScore(Base):
-    __tablename__ = "skin_scores"
+    # Renamed from skin_scores to skin_assessments (2026-07-14) to match
+    # mile_2.docx's literal table name — see docs/milestones/milestone_2/MASTER_PROMPT.md
+    # Phase 1. Class name kept as SkinScore; only the DB-facing table name changed.
+    __tablename__ = "skin_assessments"
     __table_args__ = (Index("idx_skin_scores_user_time", "user_id", "calculated_at"),)
 
     score_id: Mapped[int] = mapped_column(primary_key=True)

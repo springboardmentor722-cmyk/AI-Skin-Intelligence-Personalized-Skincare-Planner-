@@ -46,23 +46,25 @@ export async function deleteTestUser(userId: string): Promise<void> {
     await db.query("delete from user_appearance_preferences where user_id = $1", [userId]);
     // M2 (Milestone 2 e2e journey) — routines/scores/skin_profiles weren't created by
     // any e2e spec before this, so nothing cleaned these up. FK-safe order: children
-    // before parents (routine_products/routine_steps -> routines,
-    // skin_profile_concerns -> skin_profiles).
+    // before parents (routine_products/routine_steps -> skincare_routines,
+    // skin_profile_concerns -> skin_profiles). Table names updated 2026-07-14 to
+    // match mile_2.docx's literal skin_assessments/skincare_routines rename
+    // (docs/milestones/milestone_2/MASTER_PROMPT.md Phase 1).
     await db.query(
-      "delete from routine_products where routine_id in (select routine_id from routines where user_id = $1)",
+      "delete from routine_products where routine_id in (select routine_id from skincare_routines where user_id = $1)",
       [userId]
     );
     await db.query(
-      "delete from routine_steps where routine_id in (select routine_id from routines where user_id = $1)",
+      "delete from routine_steps where routine_id in (select routine_id from skincare_routines where user_id = $1)",
       [userId]
     );
-    await db.query("delete from routines where user_id = $1", [userId]);
+    await db.query("delete from skincare_routines where user_id = $1", [userId]);
     await db.query(
       "delete from skin_profile_concerns where skin_profile_id in (select skin_profile_id from skin_profiles where user_id = $1)",
       [userId]
     );
     await db.query("delete from skin_profiles where user_id = $1", [userId]);
-    await db.query("delete from skin_scores where user_id = $1", [userId]);
+    await db.query("delete from skin_assessments where user_id = $1", [userId]);
     await db.query('delete from session where "userId" = $1', [userId]);
     await db.query('delete from account where "userId" = $1', [userId]);
     await db.query('delete from "user" where id = $1', [userId]);
