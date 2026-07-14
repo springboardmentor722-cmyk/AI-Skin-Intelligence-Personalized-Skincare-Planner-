@@ -2030,6 +2030,59 @@ behind is real.
   dev database. `database_schemas/skinlytics_postgresql_schema_v3.sql`
   updated to match.
 
+- **2026-07-14 — Production-readiness audit, round 4, second fix:
+  `perf/paginate-clinical-review-clients`.** `clinical_review.list_my_clients`
+  (backs `GET /clients/me`, the Consultant "Clients" and Dermatologist
+  "Patients" screens) had no `LIMIT` at all — every active assignment for a
+  professional, unbounded, on every call, each one also driving 3 further
+  queries (`_get_user_row`/`get_current_profile`/`get_recent_scores`) in the
+  per-assignment loop below. Paginated at the real SQL level
+  (`LIMIT`/`OFFSET` on the initial `ConsultantClient` query, plus a
+  `SELECT count(*)` for the true total) rather than the fetch-everything-
+  then-Python-slice pattern `admin/service.py::list_verification_queue`
+  already established — deliberately better than that precedent here because
+  it also bounds the per-assignment N+1's blast radius to one page instead of
+  a professional's entire client count; the N+1 itself is a real, separate
+  finding, not fixed this pass (noted below). New schemas
+  `ClientListPage`/`ClientListPageMeta` (duplicated, not imported, from
+  admin's own `PageMeta` shape — ADR-005's "services never import another
+  service's models" extended to schemas too, since importing across a
+  service boundary for a two-field shape isn't worth the coupling). Router
+  gained `page`/`page_size` query params matching the established convention
+  (`ge=1`; `page_size` `le=100`, default 20). 6 backend tests updated for the
+  new `(items, total)` tuple return, 1 new test
+  (`test_list_my_clients_pagination_is_real`) proving real page-boundary
+  slicing (3 real assigned clients, `page_size=2`: page 1 returns exactly 2,
+  page 2 the remaining 1, `total` stays 3 on both, no client ever appears on
+  both pages) — full suite 238 passed. Frontend: `web/app/consultant/clients/page.tsx`
+  and `web/app/dermatologist/patients/page.tsx` updated to consume
+  `data.items`; no page-switching UI added, matching the admin verification
+  queue's own precedent of a paginated response with only the first page
+  wired up. `web/lib/api-types.ts` regenerated via `make openapi`, confirmed
+  additive-only. Live-verified twice: (1) a real
+  `clinical_review.list_my_clients` call against 5 real throwaway assigned
+  clients confirms `total` is stable across all 3 pages and every client
+  appears exactly once across `page_size=2` pages; (2) the full 56-test
+  Playwright suite (`chromium-light` + `chromium-dark`) passes against a real
+  production build with no regression from the response-shape change.
+  **Real environment bug found and fixed along the way, unrelated to this
+  branch's own diff:** a `next dev` process left running from earlier in
+  this session (not the production `next build && next start` the e2e
+  config's own `webServer` block specifies) was still bound to :3000, so
+  Playwright's `reuseExistingServer` silently reused it instead of building
+  fresh. Dev mode's Strict Mode double-effect invocation raced
+  `useSubmitAssessment`'s `firedRef` guard against a real unmount/remount,
+  leaving `assessment/results` stuck on "Analyzing your skin profile..."
+  forever even though every backend call it fired actually succeeded (traced
+  via a standalone Playwright repro script logging every `/api/v1/*`
+  request/response — all 200/201, real score payload came back, UI just
+  never left the loading state). Not a real product bug — confirmed clean
+  against the actual production build once the stale dev process was killed.
+  Deferred, still open: the `_get_user_row`/`get_current_profile`/
+  `get_recent_scores` N+1 inside `list_my_clients`'s per-assignment loop
+  (pagination bounds it, doesn't eliminate it), and `list_notes` (same
+  service) is also still unbounded.
+
 ## Partially Completed
 
 - ◐ `docker-compose.yml` — `minio` now added (Branch 1); still missing `web`, `api`,
