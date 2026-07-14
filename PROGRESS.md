@@ -1671,6 +1671,28 @@ behind is real.
   themes, the changed spec included, confirming the real score flows correctly
   from the wizard through to the dashboard/routine screens that already
   consumed it.
+- **2026-07-14 — Step 6 audit: both mandated unit tests confirmed, 6.2's manual
+  integration checklist re-run fresh against current `dev` (no code changes,
+  audit only).** 6.1 Test 1 (`test_compute_and_store_score_is_perfect_for_an_ideal_profile`,
+  `test_scores_service.py`) and Test 2
+  (`test_sensitive_skin_routine_never_includes_an_avoid_flagged_product`,
+  `test_routines_service.py`) both already exist, are explicitly labeled
+  "Milestone 2 Step 6.1 Test 1/2" in their own docstrings/comments, and both
+  pass. Re-ran 6.2's 5-step manual checklist live end-to-end on current `dev`
+  rather than citing older branches' verifications, since real schema/routes
+  have changed materially since (decision matrix, `score_id`, real UV signal,
+  `POST /routines/generate`, the real assessment score): real signup + JWT,
+  real `POST /skin-profiles`, real `GET /scores/me` (`score_id: 272`,
+  `overall_score: 65.05`), confirmed live in `skin_scores` via `psql`, real
+  `POST /routines/generate` returning both AM and PM (plus Weekly/Seasonal),
+  toggled a real step's completion via `POST /routines/steps/{id}/log`,
+  confirmed live in Mongo `routine_logs.completed_steps` and reflected back as
+  `completed_today: true` on a refetch — then the throwaway user and all its
+  Postgres/Mongo rows deleted. (Caught and corrected a mistake mid-check: the
+  first toggle attempt used a routine_id instead of a step_id — Mongo has no
+  FK to validate this, so it silently wrote a bogus `routine_step_id` entry;
+  redone with the real step_id, both entries were cleaned up together with
+  the rest of the throwaway user's data.)
 
 ## Partially Completed
 
