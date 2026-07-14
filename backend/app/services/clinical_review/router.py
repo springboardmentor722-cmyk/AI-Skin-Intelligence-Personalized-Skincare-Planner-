@@ -1,6 +1,6 @@
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import require_verified_professional
@@ -8,7 +8,8 @@ from app.db.postgres import get_db
 from app.services.clinical_review import service
 from app.services.clinical_review.schemas import (
     ClientDetailRead,
-    ClientSummaryRead,
+    ClientListPage,
+    ClientListPageMeta,
     ConsultantNoteCreate,
     ConsultantNoteRead,
 )
@@ -26,8 +27,15 @@ _professional = require_verified_professional("consultant", "dermatologist")
 async def get_my_clients(
     professional: Annotated[dict[str, Any], Depends(_professional)],
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> list[ClientSummaryRead]:
-    return await service.list_my_clients(db, professional["id"])
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
+) -> ClientListPage:
+    items, total = await service.list_my_clients(
+        db, professional["id"], page=page, page_size=page_size
+    )
+    return ClientListPage(
+        items=items, meta=ClientListPageMeta(page=page, page_size=page_size, total=total)
+    )
 
 
 @router.get("/clients/{user_id}")
