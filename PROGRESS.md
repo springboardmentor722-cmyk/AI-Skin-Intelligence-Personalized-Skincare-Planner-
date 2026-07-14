@@ -1430,6 +1430,66 @@ behind is real.
   seeing the real client list and detail view (real score breakdown, real
   routine compliance, real notes), a real 404 for an unassigned user, and a
   real 403 for a non-professional role.
+- **2026-07-14 — External data integrations (`docs/DATASETS_AND_APIS.md`), the last
+  Milestone 2 item.** Read both `docs/milestones/milestone_2/mile_2.docx` and
+  `dataset_and_API_reference/AI_Skin_Datasets_APIs_Research.docx` in full before
+  starting, per the doc's own registry of sources/adapters/env vars/resilience
+  contract. Built the resilience contract itself first, since every adapter needs
+  it: `backend/app/integrations/base.py` — `CircuitBreaker` (opens after 5
+  consecutive failures, half-open probe after 60s) and `call_with_resilience()`
+  (10s timeout, 3 retries with exponential backoff+jitter), tested in isolation
+  (success, retry-then-succeed, exhausted retries, breaker open/half-open) rather
+  than only through a real adapter call.
+  Real **OpenWeather + OpenUV** adapters (`backend/app/integrations/{openweather,openuv}.py`)
+  on top of that contract, a `weather` service (`backend/app/services/weather/`,
+  Redis-cached 30 min, also logs to the real `weather_uv_logs` Mongo collection
+  matching its documented schema exactly), `GET /api/v1/weather-uv`, and the
+  topbar's UV chip wired to it (`web/lib/hooks/use-weather-uv.ts`, real
+  `navigator.geolocation`) — replacing the honest `—` stub with a real value once
+  keys exist. Both adapters return `None`/`available: false` today because
+  `OPENWEATHER_API_KEY`/`OPENUV_API_KEY` are genuinely blank in `.env` (verified,
+  not assumed) — the "unconfigured → honest None" convention is itself covered by
+  a real (unmocked) test.
+  A real **PubMed** adapter (`backend/app/integrations/pubmed.py`, esearch+efetch,
+  no key required) and `backend/app/db/ingest_knowledge.py`, actually run against
+  the 10 real seeded `skin_concerns`: 30 upserts, 25 unique `knowledge_articles`
+  documents (5 articles matched more than one concern's search). Found and fixed a
+  real bug live: the initial `$set` on `tags`/`related_conditions` overwrote
+  instead of merged, so an overlapping article's tags only showed the
+  last-processed concern; moved those two fields to `$addToSet`, deleted and
+  re-ingested, confirmed multi-tag articles now carry merged arrays like
+  `['Hyperpigmentation', 'Redness']`.
+  A real **Kaggle Sephora product/ingredient** pipeline
+  (`backend/app/services/admin/ingest/products.py`): download → `normalize_rows()`
+  (dedupe by brand+name+size, reject rows missing mandatory fields, parse
+  ingredient lists and mL sizes) → idempotent upsert into the real
+  `products`/`ingredients`/`product_ingredients` tables, plus a JSON run-manifest
+  in `training_dataset/processed/` (source/source_url/license/ingested_at) since
+  no such columns exist on `products` and inventing them wasn't in scope. Found
+  and fixed a real bug live via the actual test run: a `None` cell became pandas
+  `float('nan')`, and `str(nan or "")` evaluated to the non-empty string `"nan"`
+  because NaN is truthy in Python — the mandatory-field check silently passed a
+  missing `product_name`. Added `_safe_str()` using `pd.isna()` explicitly.
+  `download_dataset()` itself is confirmed credential-blocked
+  (`KAGGLE_USERNAME`/`KAGGLE_KEY` blank), raising a clear `KaggleCredentialsError`
+  rather than a deep, opaque `kaggle`-package error — verified via a real attempted
+  run, not just code inspection.
+  Declined per the doc's own ToS guidance: no scraping of INCIDecoder/COSDNA/
+  DermNet/AAD/Google Scholar (explicitly "no API — do not scrape"); no CNN/image
+  model training (ISIC etc.), out of scope for this branch and undocumented
+  anywhere as required — both reasons recorded in `training_dataset/README.md`
+  rather than silently skipped.
+  New `training_dataset/` folder (`raw/`, `processed/`, gitignored contents with
+  `.gitkeep`s and a README status table) is the one place all of this lands, per
+  the task's explicit instruction. `pyproject.toml`'s `[tool.mypy] python_version`
+  fixed from `"3.11"` to `"3.12"` to match the real `.venv` interpreter (was
+  producing a real numpy-stub syntax error, not scope creep). 206 backend tests
+  pass (25 new); `ruff`/`mypy --strict` clean; frontend `tsc`/`next build` clean.
+  Executed under explicit one-time user authorization to skip the usual plan-
+  approval and merge-approval gates for this specific task ("work on it without my
+  any approval... merge back to dev after development... work completely on auto
+  mode") — every other branch this session waited for an explicit "merge it into
+  dev" message; this one didn't, per that instruction.
 
 ## Partially Completed
 
@@ -1449,18 +1509,19 @@ behind is real.
   `AGENTS.md`'s User sidebar nav list itself, so it's unreachable from inside the
   authenticated app shell (only from "/"); adding it there would need an `AGENTS.md`
   nav-list update, a bigger, deliberate call this pass didn't make unprompted.
-- ☐ Full product/ingredient seeding from Kaggle (the real ingestion pipeline, not the
-  curated placeholder set in `seed.py`, which *is* idempotent and now actually run
-  against the live DB — see the Milestone 1 audit entry) is separate, larger scope
-  (`docs/DATASETS_AND_APIS.md`) blocked on a Kaggle API token.
+- ☐ **Full product/ingredient seeding from Kaggle — code-complete, credential-blocked
+  (see Completed).** `backend/app/services/admin/ingest/products.py` is a real,
+  tested pipeline (download → normalize → idempotent upsert); it isn't run because
+  `KAGGLE_USERNAME`/`KAGGLE_KEY` are still blank in `.env`
+  (`training_dataset/README.md` tracks exactly this). Nothing left to build — just a
+  real token, then `make ingest-products`.
+- ☐ **OpenWeather/OpenUV live data — code-complete, credential-blocked (see
+  Completed).** Adapters, the `weather` service, `GET /api/v1/weather-uv`, and the
+  topbar UV chip are all real and wired end-to-end; they degrade to `available:
+  false` because `OPENWEATHER_API_KEY`/`OPENUV_API_KEY` are still blank in `.env`
+  (same class of blocker as Kaggle above, not a code gap). Needs real keys, no
+  further code.
 - ☐ `api`/`web` Dockerfiles + docker-compose entries — needs a Docker-available session
-- ☐ **OpenWeather/OpenUV adapters never built** — `backend/app/integrations/` is empty
-  (just `__init__.py`), despite `docs/DATASETS_AND_APIS.md`'s own milestone mapping
-  naming this as M1 scope ("wire OpenWeather/OpenUV adapters (cached)"). Blocked on
-  missing `OPENWEATHER_API_KEY`/`OPENUV_API_KEY` (confirmed blank in `.env`) — same
-  class of external-credential blocker as the Kaggle item above, not a code gap.
-  Topbar's weather/UV chip is already an honest stub (`—`), not faked. Found during the
-  Milestone 1 audit; wasn't tracked here before that.
 - ☐ **ADR-010's outbox table doesn't exist** — the ADR commits to it existing "from M1,
   day one" regardless of whether the worker consumes it yet, but no `outbox` table
   appears anywhere (not the SQL schema doc, not a migration, no model). Elasticsearch/
