@@ -29,6 +29,7 @@ from app.services.scores.service import (
     get_active_weights,
 )
 from app.services.skin_profile.schemas import (
+    EnvironmentalExposure,
     LifestyleLogCreate,
     SkinProfileConcernInput,
     SkinProfileCreate,
@@ -112,6 +113,41 @@ def test_lifestyle_score_sun_hygiene_penalizes_sun_hours() -> None:
     log = {"environmental_exposure": {"sun_hours": 10}}
     score = _lifestyle_score([log])
     assert 0.0 <= score < 50.0
+
+
+# --- _lifestyle_score's uv_index param — Milestone 2 Step 3.1's real "high
+# unprotected UV index exposure" signal (weather_service.get_latest_uv_index) ---
+
+
+def test_lifestyle_score_high_uv_with_sun_exposure_applies_extra_penalty() -> None:
+    log = {
+        "exercise_frequency": 5,
+        "stress_level": 1,
+        "diet_quality": 10,
+        "environmental_exposure": {"sun_hours": 1},
+    }
+    without_uv = _lifestyle_score([log])
+    with_high_uv = _lifestyle_score([log], uv_index=8.0)  # WHO "Very High"
+    assert with_high_uv == pytest.approx(without_uv - 20.0)
+
+
+def test_lifestyle_score_moderate_uv_applies_no_extra_penalty() -> None:
+    log = {"environmental_exposure": {"sun_hours": 1}}
+    # 5.0 is WHO "Moderate", below the 6.0 "High" threshold this component uses.
+    assert _lifestyle_score([log], uv_index=5.0) == _lifestyle_score([log], uv_index=None)
+
+
+def test_lifestyle_score_high_uv_with_no_sun_exposure_applies_no_extra_penalty() -> None:
+    # A real high UV reading doesn't matter if the user reported zero sun exposure —
+    # "unprotected exposure" requires both signals, not UV index alone.
+    log = {"environmental_exposure": {"sun_hours": 0}}
+    assert _lifestyle_score([log], uv_index=9.0) == _lifestyle_score([log], uv_index=None)
+
+
+def test_lifestyle_score_uv_index_none_is_unchanged_from_before() -> None:
+    # The honest-degrade case: no OpenUV reading was ever captured for this user.
+    log = {"exercise_frequency": 3, "stress_level": 4, "diet_quality": 6}
+    assert _lifestyle_score([log], uv_index=None) == _lifestyle_score([log])
 
 
 # --- _sleep_quality_score — 60% duration (7-9h band) + 40% self-rated quality ---
@@ -323,6 +359,51 @@ async def test_compute_and_store_score_is_perfect_for_an_ideal_profile(
     result = await compute_and_store_score(db_session, scored_test_user_id)
 
     assert result.overall_score == pytest.approx(100.0)
+
+
+async def test_compute_and_store_score_reflects_a_real_captured_uv_reading(
+    db_session: AsyncSession, scored_test_user_id: str
+) -> None:
+    """End-to-end: a real weather_uv_logs document (as weather/service.py's own
+    get_weather_uv would have written) measurably lowers the stored lifestyle_score
+    once real sun exposure is also logged — not just the pure-function unit tests
+    above."""
+    await create_profile(
+        db_session,
+        scored_test_user_id,
+        SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS),
+    )
+    await upsert_lifestyle_log(
+        scored_test_user_id,
+        LifestyleLogCreate(
+            log_date=datetime.datetime.now(datetime.UTC).date(),
+            sleep_hours=8,
+            sleep_quality=10,
+            water_intake_liters=2.0,
+            stress_level=1,
+            diet_quality=10,
+            exercise_frequency=5,
+            environmental_exposure=EnvironmentalExposure(sun_hours=2),
+        ),
+    )
+
+    try:
+        without_uv = await compute_and_store_score(db_session, scored_test_user_id)
+
+        await get_mongo_db()["weather_uv_logs"].insert_one(
+            {
+                "user_id": scored_test_user_id,
+                "location": "12.9,77.6",
+                "uv_index": 9.0,
+                "captured_at": datetime.datetime.now(datetime.UTC),
+            }
+        )
+        with_uv = await compute_and_store_score(db_session, scored_test_user_id)
+
+        assert without_uv.lifestyle_score is not None
+        assert with_uv.lifestyle_score == pytest.approx(without_uv.lifestyle_score - 20.0)
+    finally:
+        await get_mongo_db()["weather_uv_logs"].delete_many({"user_id": scored_test_user_id})
 
 
 async def test_compute_and_store_score_upserts_same_day_instead_of_duplicating(
