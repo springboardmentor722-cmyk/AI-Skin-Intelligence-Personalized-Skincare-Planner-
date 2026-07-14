@@ -944,6 +944,29 @@ export interface components {
             notes: components["schemas"]["ConsultantNoteRead"][];
         };
         /**
+         * ClientListPage
+         * @description Production-readiness audit finding: list_my_clients had no LIMIT at all —
+         *     every active assignment, unbounded, on every call. A busy professional's real
+         *     client list genuinely grows into the hundreds over time. Same page/page_size/
+         *     total shape as admin/schemas.py's PageMeta-based *Page schemas, kept as its own
+         *     small type here rather than importing across services (ADR-005's own-exposed-
+         *     interface spirit, applied to schemas too, not just models).
+         */
+        ClientListPage: {
+            /** Items */
+            items: components["schemas"]["ClientSummaryRead"][];
+            meta: components["schemas"]["ClientListPageMeta"];
+        };
+        /** ClientListPageMeta */
+        ClientListPageMeta: {
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Total */
+            total: number;
+        };
+        /**
          * ClientScoreRead
          * @description A read-only projection of the client's latest real skin_scores row (via
          *     scores_service.get_recent_scores) — never recomputed on a professional's
@@ -3309,7 +3332,10 @@ export interface operations {
     };
     get_my_clients_api_v1_clients_me_get: {
         parameters: {
-            query?: never;
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3322,7 +3348,16 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ClientSummaryRead"][];
+                    "application/json": components["schemas"]["ClientListPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
