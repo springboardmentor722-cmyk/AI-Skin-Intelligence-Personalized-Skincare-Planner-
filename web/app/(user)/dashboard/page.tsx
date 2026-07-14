@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
+import { SCORE_COMPONENTS } from "@/lib/score-components";
 
 // Dynamically imported (not a static import) — recharts is this app's single heaviest
 // dependency, and lazy-loading it here keeps it out of Dashboard's own first-visit dev
@@ -31,13 +32,6 @@ const SkinScoreTrendChart = dynamic(
 // wireframe HTML's own weather/reminders/AI-insight modules aren't in WIREFRAMES.md's
 // component list and have no backing endpoint — dropped rather than invented
 // (CONVENTIONS.md "raw exports never ship").
-const SCORE_COMPONENTS = [
-  { key: "skin_condition_score", label: "Condition", weight: "skin_condition_weight" },
-  { key: "lifestyle_score", label: "Lifestyle", weight: "lifestyle_weight" },
-  { key: "routine_adherence_score", label: "Routine", weight: "routine_adherence_weight" },
-  { key: "sleep_quality_score", label: "Sleep", weight: "sleep_quality_weight" },
-  { key: "hydration_score", label: "Hydration", weight: "hydration_weight" },
-] as const;
 
 // Both the greeting (depends on the viewer's local hour) and today's date (can render
 // with a different weekday/month order depending on the environment's default locale)
