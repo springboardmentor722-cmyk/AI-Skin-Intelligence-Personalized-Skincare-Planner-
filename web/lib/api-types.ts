@@ -1025,6 +1025,28 @@ export interface components {
             /** Note Text */
             note_text: string;
         };
+        /**
+         * ConsultantNoteListPage
+         * @description Production-readiness audit finding (round 4): list_notes had no LIMIT
+         *     either — same unbounded-per-relationship shape list_my_clients had, just for
+         *     a client's note history instead of a professional's client roster. Same
+         *     page/page_size/total shape as ClientListPage above, kept separate rather than
+         *     reused since the two wrap different item types.
+         */
+        ConsultantNoteListPage: {
+            /** Items */
+            items: components["schemas"]["ConsultantNoteRead"][];
+            meta: components["schemas"]["ConsultantNoteListPageMeta"];
+        };
+        /** ConsultantNoteListPageMeta */
+        ConsultantNoteListPageMeta: {
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Total */
+            total: number;
+        };
         /** ConsultantNoteRead */
         ConsultantNoteRead: {
             /** Note Id */
@@ -3395,7 +3417,10 @@ export interface operations {
     };
     get_client_notes_api_v1_clients__user_id__notes_get: {
         parameters: {
-            query?: never;
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
             header?: never;
             path: {
                 user_id: string;
@@ -3410,7 +3435,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ConsultantNoteRead"][];
+                    "application/json": components["schemas"]["ConsultantNoteListPage"];
                 };
             };
             /** @description Validation Error */

@@ -143,7 +143,11 @@ async def get_client_detail(
     scores = await scores_service.get_recent_scores(db, user_id, days=30)
     latest = scores[-1] if scores else None
     routines = await routines_service.get_or_generate_routines(db, user_id)
-    notes = await list_notes(db, professional_id, user_id)
+    # Detail view shows recent history, not the full note archive — the standalone
+    # GET /clients/{user_id}/notes endpoint is the real paginated surface for that.
+    notes, _total_notes = await list_notes(
+        db, professional_id, user_id, page=1, page_size=_DETAIL_VIEW_NOTES_PAGE_SIZE
+    )
 
     return ClientDetailRead(
         user_id=user_id,
@@ -156,10 +160,23 @@ async def get_client_detail(
     )
 
 
+_DETAIL_VIEW_NOTES_PAGE_SIZE = 50
+
+
 async def list_notes(
-    db: AsyncSession, professional_id: str, user_id: str
-) -> list[ConsultantNoteRead]:
+    db: AsyncSession, professional_id: str, user_id: str, *, page: int = 1, page_size: int = 20
+) -> tuple[list[ConsultantNoteRead], int]:
+    """Production-readiness audit finding (round 4): this had no LIMIT either —
+    every note ever added for a client, unbounded, on every call. Same real
+    LIMIT/OFFSET + count(*) pattern as list_my_clients above."""
     await _verify_assignment(db, professional_id, user_id)
+    count_result = await db.execute(
+        select(func.count())
+        .select_from(ConsultantNote)
+        .where(ConsultantNote.consultant_id == professional_id, ConsultantNote.user_id == user_id)
+    )
+    total = count_result.scalar_one()
+
     result = await db.execute(
         select(ConsultantNote)
         .where(ConsultantNote.consultant_id == professional_id, ConsultantNote.user_id == user_id)
@@ -168,8 +185,10 @@ async def list_notes(
         # in quick succession (e.g. within the same request-scoped session) can get
         # an identical created_at; note_id always reflects real insertion order.
         .order_by(ConsultantNote.note_id.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
     )
-    return [
+    notes = [
         ConsultantNoteRead(
             note_id=n.note_id,
             note_text=n.note_text,
@@ -178,6 +197,7 @@ async def list_notes(
         )
         for n in result.scalars().all()
     ]
+    return notes, total
 
 
 async def add_note(
