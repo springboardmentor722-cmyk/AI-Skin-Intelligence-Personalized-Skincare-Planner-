@@ -406,7 +406,7 @@ async def toggle_step_completion(user_id: str, step_id: int, completed: bool) ->
         )
 
 
-async def list_recent_routine_logs(user_id: str, days: int = 30) -> list[dict[str, Any]]:
+async def list_recent_routine_logs(user_id: str, days: int = 7) -> list[dict[str, Any]]:
     collection = get_mongo_db()[_ROUTINE_LOGS_COLLECTION]
     since = _day_start(
         datetime.datetime.now(datetime.UTC).date() - datetime.timedelta(days=days - 1)
