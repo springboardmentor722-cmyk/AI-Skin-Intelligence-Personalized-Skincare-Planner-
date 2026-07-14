@@ -11,9 +11,14 @@ const securityHeaders = [
   // This app is never legitimately framed by another origin.
   { key: "X-Frame-Options", value: "DENY" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  // Disable browser features this app doesn't use — narrows the attack surface for
-  // any future third-party script without having to revisit this file.
-  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+  // camera/microphone stay fully disabled — this app never uses either. geolocation
+  // is scoped to `self`, not disabled: lib/hooks/use-weather-uv.ts's real
+  // navigator.geolocation call (the topbar's weather/UV chip, built later than this
+  // header) was silently broken by the original `geolocation=()` — confirmed live via
+  // a real browser context (PERMISSION_DENIED, "Geolocation has been disabled in this
+  // document by permissions policy"), not just inspection. `self` still blocks any
+  // third-party-framed content from using it, same narrowed-attack-surface intent.
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(self)" },
 ];
 
 const nextConfig: NextConfig = {
