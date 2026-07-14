@@ -69,6 +69,23 @@ class ConsultantNoteRead(BaseModel):
     updated_at: datetime.datetime | None
 
 
+class ConsultantNoteListPageMeta(BaseModel):
+    page: int
+    page_size: int
+    total: int
+
+
+class ConsultantNoteListPage(BaseModel):
+    """Production-readiness audit finding (round 4): list_notes had no LIMIT
+    either — same unbounded-per-relationship shape list_my_clients had, just for
+    a client's note history instead of a professional's client roster. Same
+    page/page_size/total shape as ClientListPage above, kept separate rather than
+    reused since the two wrap different item types."""
+
+    items: list[ConsultantNoteRead]
+    meta: ConsultantNoteListPageMeta
+
+
 class ClientDetailRead(BaseModel):
     user_id: str
     name: str | None

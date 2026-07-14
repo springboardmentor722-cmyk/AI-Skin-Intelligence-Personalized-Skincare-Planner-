@@ -2080,8 +2080,46 @@ behind is real.
   against the actual production build once the stale dev process was killed.
   Deferred, still open: the `_get_user_row`/`get_current_profile`/
   `get_recent_scores` N+1 inside `list_my_clients`'s per-assignment loop
-  (pagination bounds it, doesn't eliminate it), and `list_notes` (same
-  service) is also still unbounded.
+  (pagination bounds it, doesn't eliminate it).
+
+- **2026-07-14 — Production-readiness audit, round 4, third fix (closes out
+  round 4's unbounded-list-endpoints scope):
+  `perf/paginate-clinical-review-notes`.** `list_notes` (backs
+  `GET /clients/{user_id}/notes`) had the same shape of bug as
+  `list_my_clients` above — every note ever added for a client, unbounded,
+  on every call. A systematic sweep of every `list_*`/`-> list[...]` service
+  function in `backend/app/services/*/service.py` confirmed this was the
+  only genuinely unbounded one left — `list_verification_queue`,
+  `list_audit_logs`, `list_all_products`, and `list_all_ingredients` were
+  already paginated from earlier work; `get_recent_scores`,
+  `list_recent_routine_logs`, and `list_recent_lifestyle_logs` are already
+  time-windowed (`days=30`); `list_products_for_skin_type` is an internal
+  ADR-005 interface function bounded by the seeded catalog, not a
+  directly-exposed "list everything" surface. Same real `LIMIT`/`OFFSET` +
+  `count(*)` pattern as `list_my_clients`, same `page`/`page_size`
+  convention. New `ConsultantNoteListPage`/`ConsultantNoteListPageMeta`
+  schemas. `get_client_detail`'s embedded `notes` field (shown inline on the
+  client detail view) now fetches only the most recent 50
+  (`_DETAIL_VIEW_NOTES_PAGE_SIZE`) rather than the full history — a detail
+  view shows recent context, not an archive; the standalone paginated
+  endpoint is the real surface for full history, though nothing in the
+  frontend calls it directly yet (`client-detail-view.tsx` only calls the
+  `POST` to add a note, confirmed via grep — so this fix has no frontend
+  call site to update, unlike the `list_my_clients` fix). One new
+  regression test (`test_list_notes_pagination_is_real`) proving real page
+  slicing against 3 real notes; verified it actually catches the bug by
+  temporarily reverting the fix (`git stash`) and confirming the test
+  collection drops back to the pre-fix count with the old plain-list
+  behavior, then restoring. Full suite: 239 passed. `web/lib/api-types.ts`
+  regenerated, confirmed additive-only (new schemas, the one `GET` route's
+  query params and response type). Live-verified twice: (1) a real
+  `list_notes` call against 5 real notes for a real throwaway assignment
+  confirms newest-first ordering holds across page boundaries and every
+  note appears exactly once across 3 pages of `page_size=2`; (2) the full
+  56-test Playwright suite passes against a real production build with the
+  real backend running (this round's earlier stale-dev-server lesson
+  applied: killed any process on :3000 before each run and confirmed the
+  port was clean again after).
 
 ## Partially Completed
 
