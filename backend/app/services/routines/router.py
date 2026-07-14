@@ -28,6 +28,19 @@ async def get_my_routines(
     return await service.get_or_generate_routines(db, user["id"])
 
 
+@router.post("/routines/generate")
+async def generate_my_routines(
+    # Milestone 2 Step 4.1's explicit "POST /routine/generate" — GET /routines/me
+    # already generates-if-none-exist as a side effect of a read (the same real
+    # get_or_generate_routines call, no duplicated logic), but the doc names a
+    # dedicated action route too. Same idempotent semantics: returns the existing
+    # routines if generation isn't needed, generates (or refreshes Seasonal) if it is.
+    user: Annotated[dict[str, Any], Depends(require_role("user"))],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> list[RoutineRead]:
+    return await service.get_or_generate_routines(db, user["id"])
+
+
 @router.post("/routines/steps/{step_id}/log", status_code=204)
 async def log_step_completion(
     step_id: int,
