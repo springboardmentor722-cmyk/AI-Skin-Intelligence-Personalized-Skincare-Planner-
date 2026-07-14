@@ -23,9 +23,14 @@ export default function ConsultantClientsPage() {
   const clientsQuery = useQuery({
     queryKey: ["clinical-review", "my-clients"],
     queryFn: async () => {
+      // Production-readiness audit: GET /clients/me is now paginated (a busy
+      // professional's real client list can grow into the hundreds) — this page
+      // consumes only the first page's .items for now, same minimal-integration
+      // level as the admin verification queue's own paginated response (no page-
+      // switching UI built yet there either).
       const { data, error } = await api.GET("/api/v1/clients/me");
       if (error) throw new Error("Couldn't load your clients.");
-      return data;
+      return data.items;
     },
   });
 
