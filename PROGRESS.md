@@ -1759,6 +1759,62 @@ behind is real.
     confirmed in `skin_scores` via `psql`, a real AM+PM (+Weekly+Seasonal)
     routine fetched, a real step toggled and confirmed in Mongo
     `routine_logs.completed_steps`.
+- **2026-07-14 — Production-readiness audit, round 1.** Explicit instruction to
+  audit the whole project (code quality, security, performance, CI/CD,
+  dependencies, docs) and fix what's real via the mandated
+  branch-per-fix/`dev`-merge workflow. Three real, verified issues closed so far:
+  - **`security/backend-response-headers`** — the browser calls this FastAPI
+    backend directly (`web/lib/api.ts`'s `NEXT_PUBLIC_API_URL`, not proxied
+    through Next.js), so it had none of the security headers
+    (`X-Content-Type-Options`/`X-Frame-Options`/`Referrer-Policy`)
+    `web/next.config.ts` already sets on the frontend's own responses. New
+    `SecurityHeadersMiddleware`, added outermost so it wraps every response path
+    — confirmed live on `/health`, a 404, and a CORS `OPTIONS` preflight.
+  - **`fix/geolocation-permissions-policy`** — a real, live bug: `next.config.ts`'s
+    `Permissions-Policy: geolocation=()` (set during the M1 audit, before the
+    weather/UV chip existed) completely disabled `navigator.geolocation` for the
+    app's *own* first-party code, silently breaking
+    `lib/hooks/use-weather-uv.ts`. Confirmed broken via a real Playwright browser
+    context (`PERMISSION_DENIED`, "Geolocation has been disabled in this document
+    by permissions policy") — nobody had ever actually tested the frontend
+    geolocation call through a real browser before now (prior verification was
+    curl-only, which bypasses browser permissions policy entirely). Fixed to
+    `geolocation=(self)`; re-verified working live, full 56-spec e2e suite
+    re-run clean across both themes (one unrelated pre-existing flake in
+    `user-journey.spec.ts`'s Weekly-Care-checkbox-after-reload assertion, passes
+    reliably in isolation — not caused by this change, not chased further this
+    round).
+  - **`fix/seed-skin-types-and-concerns`** — a real, significant gap:
+    `database_schemas/skinlytics_postgresql_schema_v3.sql`'s own "SEED DATA"
+    section (`scoring_weights`, `skin_types`, `skin_concerns` — 16 rows the
+    entire assessment/scoring/routine engine depends on) was never actually
+    applied by anything automated (not Alembic, not the Makefile, not
+    `setup.sh`) — the one environment this whole session has used was
+    bootstrapped once, manually, outside any tracked process (confirmed by
+    migration `50e82a643bf9`'s own docstring). `app/db/seed.py`'s docstring
+    vaguely called this "a separate, pending task" but it was never actually
+    tracked here. Confirmed live: a genuinely fresh, from-scratch Postgres
+    database run through `alembic upgrade head` alone left `scoring_weights`
+    empty too — same class of gap as `skin_types`/`skin_concerns`, just not yet
+    noticed. New idempotent data migration
+    (`a9c3d2f81b47_seed_reference_data.py`, `ON CONFLICT` on the real UNIQUE
+    constraints / the existing partial unique index on `scoring_weights.is_active`)
+    closes it. Found and fixed a real bug in the migration's own `downgrade()`
+    while verifying: a plain Python `float` (0.35 isn't exactly representable in
+    binary floating-point) compared against the `DECIMAL(4,2)` column silently
+    failed to match, so the row survived a downgrade — fixed with `Decimal`.
+    Verified exhaustively against a genuinely fresh, throwaway Postgres
+    container (not just the already-seeded dev DB): full migration chain from
+    empty, all 16 rows land correctly, idempotent on a second `upgrade head`,
+    correct `downgrade`/re-`upgrade` cycle, and — the strongest proof — the
+    **full 225-test backend suite passes end-to-end against that fresh database
+    using nothing but the real `alembic upgrade head` + `python -m app.db.seed`
+    bootstrap sequence**. Also applied to and verified as a safe no-op against
+    the real dev database. `app/db/seed.py`'s docstring updated to stop
+    pointing at a vague, untracked "pending task" and instead name the real
+    migration; also fixed a second stale claim in the same docstring (the
+    Kaggle product pipeline was described as "not built yet" — it's been
+    code-complete, credential-blocked since an earlier branch this session).
 
 ## Partially Completed
 
