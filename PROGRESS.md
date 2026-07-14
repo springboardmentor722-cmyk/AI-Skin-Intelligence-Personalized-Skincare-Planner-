@@ -1815,6 +1815,45 @@ behind is real.
     migration; also fixed a second stale claim in the same docstring (the
     Kaggle product pipeline was described as "not built yet" — it's been
     code-complete, credential-blocked since an earlier branch this session).
+  - **`ci/add-github-actions`** — no `.github/workflows` existed at all, despite
+    an extensive real test suite (225 pytest, ruff, mypy --strict, tsc, eslint,
+    next build) that only ever ran manually. `backend-ci.yml`: real Postgres/
+    Redis/Mongo service containers, the exact bootstrap sequence
+    (`alembic upgrade head` + `python -m app.db.seed`) just proven against a
+    fresh database above. `frontend-ci.yml`: `.env.example` (no real secrets)
+    plus a placeholder `BETTER_AUTH_SECRET` is enough since `next build` never
+    touches a real database (protected routes render dynamically, not
+    statically). Every step of both workflows was verified locally first —
+    the backend steps against a real throwaway Postgres container, the
+    frontend steps by temporarily swapping `web/.env`'s symlink for a
+    CI-equivalent file and restoring it after (real secrets never copied
+    anywhere, confirmed after the safety classifier flagged an early, wrong
+    approach) — not shipped blind. Gating a new `ruff format --check` step
+    required first fixing 8 pre-existing files that were lint-clean but never
+    formatter-clean (`ruff check` and `ruff format` are different tools) —
+    a purely mechanical fix, re-verified with the full suite after.
+  - **`deps/safe-patch-upgrades`** — patch/minor bumps only, each re-verified
+    with the full local suite (backend: anyio, mypy, ruff, websockets;
+    frontend: eslint, prettier, lucide-react, recharts, react/react-dom).
+    Major-version jumps (`typescript` 5→7, `@types/node` 20→26, `aiobotocore`
+    2→3, `wrapt` 1→2) were deliberately left alone — real, riskier work, not
+    "safe." Caught a real, unintended policy change mid-branch: `npm install`
+    rewrote `react`/`react-dom` from this project's existing exact-pin
+    convention (`"19.2.4"`, matching Next.js scaffolding's own default) to a
+    caret range (`"^19.2.7"`) — restored the exact pin before committing. Full
+    56-spec e2e suite re-run across both themes as the final check, since
+    `recharts` (Dashboard/Progress trend charts) was one of the bumped
+    packages — all pass, including a test that had flaked once earlier this
+    session and passed cleanly every other time (confirmed as a pre-existing
+    flake, not caused by any of this round's changes).
+  - **Repo cleanup**: found and removed a fully-merged, stale worktree+branch
+    (`feature/m2-assessment-engine`) left over from the very start of this
+    session, before an earlier context compaction — `git log dev..<branch>`
+    confirmed zero unmerged commits before removal. Local branches now:
+    `dev`, `main` only, matching this round's own "end with only `dev`" rule.
+  - **ruff/mypy/pytest** (225 backend), **tsc/eslint/next build**, and the
+    **full 56-spec Playwright e2e suite across both themes** all pass on `dev`
+    as of the last commit in this round.
 
 ## Partially Completed
 
