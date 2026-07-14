@@ -47,4 +47,5 @@ class RoutineRead(BaseModel):
     routine_name: str | None
     routine_type: str | None
     description: str | None
+    score_id: int | None
     steps: list[RoutineStepRead]

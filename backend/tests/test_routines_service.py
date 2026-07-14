@@ -18,6 +18,7 @@ from app.services.routines import service as routines_service
 from app.services.routines.models import Routine
 from app.services.routines.service import (
     UnsafeProductError,
+    _am_pm_categories_for_skin_type,
     _current_season,
     add_step,
     delete_step,
@@ -26,6 +27,7 @@ from app.services.routines.service import (
     search_products_for_edit,
     update_step,
 )
+from app.services.scores.service import compute_and_store_score
 from app.services.skin_profile.models import SkinType
 from app.services.skin_profile.schemas import SkinProfileConcernInput, SkinProfileCreate
 from app.services.skin_profile.service import create_profile
@@ -363,8 +365,13 @@ async def test_update_step_rejects_an_avoid_flagged_product_swap(
             select(Ingredient).where(Ingredient.ingredient_name == "Salicylic Acid")
         )
     ).scalar_one()
+    # category="Moisturizer" not "Treatment": under the skin-type decision matrix
+    # (_SKIN_TYPE_STEP_MATRIX), Sensitive's AM routine has no Treatment step at all —
+    # update_step/_assert_product_is_safe only check ingredient safety, not category
+    # match, so swapping into the real Moisturizer step still exercises the same
+    # avoid-flagged-ingredient rejection this test is actually about.
     unsafe_product = Product(
-        brand_name="Test Only", product_name="Unsafe Treatment 2", category="Treatment"
+        brand_name="Test Only", product_name="Unsafe Moisturizer 2", category="Moisturizer"
     )
     db_session.add(unsafe_product)
     await db_session.flush()
@@ -380,13 +387,13 @@ async def test_update_step_rejects_an_avoid_flagged_product_swap(
     )
     routines = await get_or_generate_routines(db_session, test_user_id)
     am = next(r for r in routines if r.routine_type == "AM")
-    treatment_step = next(s for s in am.steps if s.step_name == "Treatment")
+    moisturizer_step = next(s for s in am.steps if s.step_name == "Moisturizer")
 
     with pytest.raises(UnsafeProductError):
         await update_step(
             db_session,
             test_user_id,
-            treatment_step.step_id,
+            moisturizer_step.step_id,
             step_name=None,
             product_id=unsafe_product.product_id,
             usage_notes=None,
@@ -474,3 +481,95 @@ async def test_seasonal_routine_is_stable_within_the_same_season(
     second = await get_or_generate_routines(db_session, test_user_id)
 
     assert {r.routine_id for r in first} == {r.routine_id for r in second}
+
+
+# --- Skin-type decision matrix (Milestone 2 Step 1.3) ---
+
+
+def test_am_pm_categories_matrix_for_documented_examples() -> None:
+    # mile_2.docx's own two literal examples — Oily and Sensitive get a
+    # *structurally* different step list, not just a different product.
+    assert _am_pm_categories_for_skin_type("Oily") == (
+        ["Cleanser", "Treatment", "Sunscreen"],
+        ["Cleanser", "Treatment", "Moisturizer"],
+    )
+    assert _am_pm_categories_for_skin_type("Sensitive") == (
+        ["Cleanser", "Moisturizer", "Sunscreen"],
+        ["Cleanser", "Moisturizer"],
+    )
+
+
+def test_am_pm_categories_matrix_defaults_for_unspecified_types() -> None:
+    # Normal/Dry/Combination aren't named in the doc's examples — default to the
+    # existing universal structure rather than inventing a difference.
+    standard = (
+        ["Cleanser", "Treatment", "Moisturizer", "Sunscreen"],
+        ["Cleanser", "Treatment", "Moisturizer"],
+    )
+    for name in ["Normal", "Dry", "Combination", "Unknown Type", None]:
+        assert _am_pm_categories_for_skin_type(name) == standard
+
+
+async def test_sensitive_routine_never_generates_a_treatment_step(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    sensitive = (
+        await db_session.execute(select(SkinType).where(SkinType.skin_type_name == "Sensitive"))
+    ).scalar_one()
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=sensitive.skin_type_id)
+    )
+
+    routines = await get_or_generate_routines(db_session, test_user_id)
+    am = next(r for r in routines if r.routine_type == "AM")
+    pm = next(r for r in routines if r.routine_type == "PM")
+
+    assert {s.step_name for s in am.steps} == {"Cleanser", "Moisturizer", "Sunscreen"}
+    assert {s.step_name for s in pm.steps} == {"Cleanser", "Moisturizer"}
+    # Weekly is unaffected by the matrix — it's not named in 1.3's AM/PM-only scope.
+    weekly = next(r for r in routines if r.routine_type == "Weekly")
+    assert {s.step_name for s in weekly.steps} == {"Treatment"}
+
+
+async def test_oily_am_routine_has_no_moisturizer_step(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    oily = (
+        await db_session.execute(select(SkinType).where(SkinType.skin_type_name == "Oily"))
+    ).scalar_one()
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=oily.skin_type_id)
+    )
+
+    routines = await get_or_generate_routines(db_session, test_user_id)
+    am = next(r for r in routines if r.routine_type == "AM")
+
+    assert {s.step_name for s in am.steps} == {"Cleanser", "Treatment", "Sunscreen"}
+
+
+# --- Assessment-to-routine traceability (Milestone 2 Step 1.1's "assessment_id") ---
+
+
+async def test_routines_have_no_score_id_when_no_score_was_ever_computed(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+
+    routines = await get_or_generate_routines(db_session, test_user_id)
+
+    assert all(r.score_id is None for r in routines)
+
+
+async def test_routines_link_to_the_most_recently_computed_score(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+    score = await compute_and_store_score(db_session, test_user_id)
+
+    routines = await get_or_generate_routines(db_session, test_user_id)
+
+    assert all(r.score_id == score.score_id for r in routines)
