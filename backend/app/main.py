@@ -18,6 +18,7 @@ from app.services.scores.router import router as scores_router
 from app.services.skin_profile.router import lifestyle_router
 from app.services.skin_profile.router import router as skin_profile_router
 from app.services.user.router import router as user_router
+from app.services.weather.router import router as weather_router
 
 
 @asynccontextmanager
@@ -78,6 +79,9 @@ def create_app() -> FastAPI:
     # ARCHITECTURE.md §2's role table), not consultant-only despite consultant_
     # -prefixed table names.
     api_v1.include_router(clinical_review_router, tags=["clinical-review"])
+    # Real OpenWeather/OpenUV adapters (docs/DATASETS_AND_APIS.md) behind the
+    # topbar's existing "UV —" stub chip.
+    api_v1.include_router(weather_router, tags=["weather"])
     app.include_router(api_v1)
 
     return app
