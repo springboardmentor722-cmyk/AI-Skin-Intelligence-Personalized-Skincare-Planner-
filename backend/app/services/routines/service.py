@@ -1,4 +1,5 @@
 import datetime
+from collections import defaultdict
 from typing import Any
 
 from sqlalchemy import delete, func, select
@@ -94,6 +95,15 @@ def _current_season(today: datetime.date | None = None) -> str:
 
 
 async def _read_with_steps(db: AsyncSession, routine: Routine) -> RoutineRead:
+    """Production-readiness audit finding: this used to do 2 extra DB round trips
+    *per step* (a RoutineProduct query, then a get_products_by_ids call) instead of
+    batching once across the whole routine — a real N+1, and this function runs
+    once per routine returned by get_or_generate_routines (up to 4: AM/PM/Weekly/
+    Seasonal) on every GET /routines/me, one of the most frequently-hit endpoints
+    in the app. Now 3 queries total regardless of step count: steps, all their
+    routine_products in one IN(...), all their products in one IN(...)
+    (get_products_by_ids already batches — it just wasn't being called at the
+    right granularity)."""
     steps_result = await db.execute(
         select(RoutineStep)
         .where(RoutineStep.routine_id == routine.routine_id)
@@ -104,34 +114,38 @@ async def _read_with_steps(db: AsyncSession, routine: Routine) -> RoutineRead:
         routine.user_id, datetime.datetime.now(datetime.UTC).date()
     )
 
-    step_reads = []
-    for step in steps:
+    step_ids = [step.step_id for step in steps]
+    routine_products_by_step: dict[int, list[RoutineProduct]] = defaultdict(list)
+    if step_ids:
         rp_result = await db.execute(
-            select(RoutineProduct).where(RoutineProduct.step_id == step.step_id)
+            select(RoutineProduct).where(RoutineProduct.step_id.in_(step_ids))
         )
-        routine_products = list(rp_result.scalars().all())
-        products_by_id = await recommendations_service.get_products_by_ids(
-            db, [rp.product_id for rp in routine_products]
-        )
+        for rp in rp_result.scalars().all():
+            if rp.step_id is not None:  # always true here (filtered by a real step_id list)
+                routine_products_by_step[rp.step_id].append(rp)
 
-        step_reads.append(
-            RoutineStepRead(
-                step_id=step.step_id,
-                step_order=step.step_order,
-                step_name=step.step_name,
-                instruction=step.instruction,
-                duration_minutes=step.duration_minutes,
-                completed_today=step.step_id in completed_today,
-                products=[
-                    RoutineProductRead(
-                        product=ProductRead.model_validate(products_by_id[rp.product_id]),
-                        usage_notes=rp.usage_notes,
-                    )
-                    for rp in routine_products
-                    if rp.product_id in products_by_id
-                ],
-            )
+    all_product_ids = [rp.product_id for rps in routine_products_by_step.values() for rp in rps]
+    products_by_id = await recommendations_service.get_products_by_ids(db, all_product_ids)
+
+    step_reads = [
+        RoutineStepRead(
+            step_id=step.step_id,
+            step_order=step.step_order,
+            step_name=step.step_name,
+            instruction=step.instruction,
+            duration_minutes=step.duration_minutes,
+            completed_today=step.step_id in completed_today,
+            products=[
+                RoutineProductRead(
+                    product=ProductRead.model_validate(products_by_id[rp.product_id]),
+                    usage_notes=rp.usage_notes,
+                )
+                for rp in routine_products_by_step[step.step_id]
+                if rp.product_id in products_by_id
+            ],
         )
+        for step in steps
+    ]
 
     return RoutineRead(
         routine_id=routine.routine_id,
