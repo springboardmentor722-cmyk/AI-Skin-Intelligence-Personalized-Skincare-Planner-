@@ -25,6 +25,12 @@ class Routine(Base):
     description: Mapped[str | None] = mapped_column(Text, default=None)
     is_active: Mapped[bool | None] = mapped_column(default=True)
     generated_by_ai: Mapped[bool | None] = mapped_column(default=True)
+    # Milestone 2 Step 1.1's "assessment_id" — best-effort link to whichever
+    # skin_scores row was the most recently computed one when this routine was
+    # generated (nullable: a user can generate routines before ever computing a
+    # score). Never force-computes a score as a side effect of routine generation —
+    # see routines/service.py::get_or_generate_routines.
+    score_id: Mapped[int | None] = mapped_column(ForeignKey("skin_scores.score_id"), default=None)
     created_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
 
