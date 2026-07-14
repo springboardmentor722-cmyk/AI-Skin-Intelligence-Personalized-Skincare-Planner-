@@ -188,6 +188,9 @@ CREATE TABLE routines (
     description TEXT,
     is_active BOOLEAN DEFAULT TRUE,
     generated_by_ai BOOLEAN DEFAULT TRUE,
+    score_id INTEGER REFERENCES skin_scores(score_id),  -- nullable, best-effort: the
+        -- most recently computed score at generation time (Milestone 2 Step 1.1's
+        -- "assessment_id" traceability; migration f2a6c1d09b3e)
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
