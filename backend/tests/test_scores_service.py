@@ -19,12 +19,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.mongo import get_mongo_db
 from app.services.routines.service import get_or_generate_routines, toggle_step_completion
 from app.services.scores.models import SkinScore
-from app.services.scores.service import (
+from app.services.scores.scoring_engine import (
     _hydration_score,
     _lifestyle_score,
     _routine_adherence_score,
     _skin_condition_score,
     _sleep_quality_score,
+)
+from app.services.scores.service import (
     compute_and_store_score,
     get_active_weights,
 )

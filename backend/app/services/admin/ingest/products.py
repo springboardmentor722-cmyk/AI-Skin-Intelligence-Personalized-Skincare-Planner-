@@ -78,17 +78,36 @@ def download_dataset() -> Path:
     return _RAW_DIR / _PRIMARY_CSV
 
 
+_MAX_INGREDIENT_NAME_LENGTH = 150  # ingredients.ingredient_name is VARCHAR(150)
+
+
 def _parse_ingredients(raw: Any) -> list[str]:
     """docs/DATASETS_AND_APIS.md §2's own rule: "INCI lists are messy — strip
-    parentheticals, split on commas, canonicalize casing"."""
+    parentheticals, split on commas, canonicalize casing". The real Sephora dataset
+    also uses semicolons for some rows' sub-lists (a product's shade variants each
+    carrying their own semicolon-separated INCI list, joined by commas at the top
+    level) — comma-only splitting left those as one multi-hundred-char "ingredient",
+    which then blew past ingredients.ingredient_name's real VARCHAR(150) column limit
+    on the live database. Found live, not by inspection: no fixture ever exercised a
+    semicolon-delimited row. Splitting on both never breaks a normal comma-only row
+    (no semicolons present, `.split(";")`-then-flatten is a no-op there).
+
+    A row can still legitimately contain a single, unsplittable fragment over 150
+    chars (or one instance where an ingredient description just is that long) — that
+    fragment is rejected here rather than silently truncated (a truncated INCI name is
+    worse than a dropped one for a canonical, unique-constrained ingredient table)."""
     if not isinstance(raw, str) or not raw.strip():
         return []
     text = raw.strip()
     # The Kaggle column is usually a Python-list-literal string, e.g. "['Water, ...']"
     text = text.strip("[]'\"")
     without_parens = re.sub(r"\([^)]*\)", "", text)
-    parts = [p.strip().strip("'\"").title() for p in without_parens.split(",")]
-    return [p for p in parts if p and len(p) > 1]
+    parts = [
+        p.strip().strip("'\"").title()
+        for chunk in without_parens.split(",")
+        for p in chunk.split(";")
+    ]
+    return [p for p in parts if p and 1 < len(p) <= _MAX_INGREDIENT_NAME_LENGTH]
 
 
 def _parse_size_ml(raw: Any) -> int | None:
@@ -187,7 +206,13 @@ async def load_into_database(db: AsyncSession, products: list[dict[str, Any]]) -
         db.add(product)
         await db.flush()
 
-        for ingredient_name in entry["ingredients"]:
+        # dict.fromkeys dedupes while preserving order — a single product's own INCI
+        # list can repeat the same canonicalized ingredient name (e.g. two entries
+        # that both title-case to "Water"), which otherwise tries to insert the same
+        # (product_id, ingredient_id) pair twice and hits product_ingredients' unique
+        # constraint. Found live: the real Sephora dataset triggers this on its first
+        # full run, no fixture ever exercised it.
+        for ingredient_name in dict.fromkeys(entry["ingredients"]):
             if ingredient_name not in ingredient_ids:
                 ingredient = Ingredient(ingredient_name=ingredient_name)
                 db.add(ingredient)
