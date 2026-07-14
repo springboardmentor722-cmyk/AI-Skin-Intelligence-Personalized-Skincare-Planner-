@@ -141,9 +141,8 @@ async def test_document_upload_list_and_delete_round_trip(
         db_session,
         user_id=test_user_id,
         document_type="professional_certificate",
-        data=b"fake certificate bytes",
+        data=b"%PDF-1.4\nfake certificate bytes",
         filename="certificate.pdf",
-        content_type="application/pdf",
     )
 
     try:
@@ -155,7 +154,7 @@ async def test_document_upload_list_and_delete_round_trip(
         async with httpx.AsyncClient() as client:
             response = await client.get(url)
         assert response.status_code == 200
-        assert response.content == b"fake certificate bytes"
+        assert response.content == b"%PDF-1.4\nfake certificate bytes"
 
         deleted = await delete_own_document(
             db_session, user_id=test_user_id, document_id=document.document_id
