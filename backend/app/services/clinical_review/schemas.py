@@ -40,6 +40,24 @@ class ClientSummaryRead(BaseModel):
     last_sync: datetime.datetime | None
 
 
+class ClientListPageMeta(BaseModel):
+    page: int
+    page_size: int
+    total: int
+
+
+class ClientListPage(BaseModel):
+    """Production-readiness audit finding: list_my_clients had no LIMIT at all —
+    every active assignment, unbounded, on every call. A busy professional's real
+    client list genuinely grows into the hundreds over time. Same page/page_size/
+    total shape as admin/schemas.py's PageMeta-based *Page schemas, kept as its own
+    small type here rather than importing across services (ADR-005's own-exposed-
+    interface spirit, applied to schemas too, not just models)."""
+
+    items: list[ClientSummaryRead]
+    meta: ClientListPageMeta
+
+
 class ConsultantNoteCreate(BaseModel):
     note_text: str
 
