@@ -23,12 +23,19 @@ async def list_products_for_skin_type(
     db: AsyncSession, skin_type_id: int, category: str | None = None
 ) -> list[Product]:
     """Interface function (ADR-005) — other services (e.g. Routine Planner) read
-    candidate products through this, never `products`/`product_skin_types` directly."""
+    candidate products through this, never `products`/`product_skin_types` directly.
+    Explicit `ORDER BY product_id` — routines/service.py's `_generate_routine` calls
+    this with `category=None` (fetch every candidate once, filter by category in
+    Python) as a real N+1 fix; without an explicit order, Postgres doesn't guarantee
+    row order is identical between a category-filtered query and an unfiltered one,
+    which would make `_generate_routine`'s seeded_random choice among candidates
+    silently unstable depending on which query shape ran."""
     stmt = (
         select(Product)
         .join(ProductSkinType, ProductSkinType.product_id == Product.product_id)
         .where(ProductSkinType.skin_type_id == skin_type_id, Product.is_active.is_(True))
         .distinct()
+        .order_by(Product.product_id)
     )
     if category:
         stmt = stmt.where(Product.category == category)
