@@ -4,8 +4,15 @@ Canonical task-state doc, per `docs/CONVENTIONS.md` and `docs/ARCHITECTURE.md`'s
 Update this in the same PR as any completed task. Session context should read this file
 first, then the rest of `docs/`.
 
-**Current milestone:** M2 (real skin assessment/scoring/routine engine) is underway —
-see the dated entry at the top of Completed for this session's real changes. M1 (weeks
+**Current milestone:** M2 (real skin assessment/scoring/routine engine) — all core
+deliverables from `docs/milestones/milestone_2/mile_2.docx` are done and verified
+(assessment engine, weighted scoring model, routine generation with the sensitive-skin
+safety filter, the assessment wizard + dashboard checklist, both mandated unit test
+classes, live end-to-end verification). The one open item is external live data:
+OpenWeather/OpenUV and the Kaggle product-dataset pipeline are code-complete but
+credential-blocked (`OPENWEATHER_API_KEY`/`OPENUV_API_KEY`/`KAGGLE_USERNAME`/
+`KAGGLE_KEY` are blank in `.env`) — see the dated Completed entries below for detail.
+M1 (weeks
 1–2) — architecture, DB schema, wireframes, env setup, Better Auth + RBAC, profile &
 lifestyle modules, seed data — is done; M1 had no AI (ADR-007).
 **M1 status: independently verified, not just claimed complete** — a full audit
