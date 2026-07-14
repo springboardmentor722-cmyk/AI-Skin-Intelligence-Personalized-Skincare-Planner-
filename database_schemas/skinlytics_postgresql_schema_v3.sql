@@ -551,6 +551,14 @@ CREATE INDEX idx_notifications_user_unread ON notifications(user_id, is_read);
 CREATE INDEX idx_reminders_user_active ON reminders(user_id, is_active);
 CREATE INDEX idx_subscriptions_user_status ON subscriptions(user_id, status);
 CREATE INDEX idx_payments_user ON payments(user_id);
+-- Production-readiness audit (migration c4f7e1a92d3b): routine_products had no
+-- index beyond its own PK despite being queried by step_id on every routine read;
+-- routine_id indexed too for the ON DELETE CASCADE FK's own lookup efficiency.
+-- products.category has no supporting index either -- masked by the small seed
+-- catalog today, a real cost once the real Kaggle product pipeline runs.
+CREATE INDEX idx_routine_products_step ON routine_products(step_id);
+CREATE INDEX idx_routine_products_routine ON routine_products(routine_id);
+CREATE INDEX idx_products_category ON products(category);
 
 -- ============================================================
 -- SEED DATA  (roles are NOT seeded here — Better Auth admin plugin owns user.role)
