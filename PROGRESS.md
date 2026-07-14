@@ -2121,6 +2121,34 @@ behind is real.
   applied: killed any process on :3000 before each run and confirmed the
   port was clean again after).
 
+- **2026-07-14 — Production-readiness audit, round 5, first fix:
+  `security/dependency-vuln-scan`.** Real vulnerability scans, not guessed:
+  `npm audit` found one moderate (CVSS 6.1, CWE-79 XSS via unescaped
+  `</style>` in CSS stringify output, GHSA-qx2v-qp2m-jg93) finding — but it
+  was nested inside Next.js's own internal bundle
+  (`node_modules/next/node_modules/postcss@8.4.31`), not something this
+  project's own dependencies pull in (`npm ls postcss` showed
+  `@tailwindcss/postcss` and `shadcn` already on the patched `8.5.16`).
+  `npm audit fix --force`'s own suggested fix was wrong for this
+  codebase — it wants to downgrade `next` to `9.3.3`, a pre-App-Router
+  version that would break the entire app. Fixed properly instead: a
+  `package.json` `overrides` entry pinning `postcss` to `^8.5.10` across
+  every resolution path, including the nested one — confirmed via
+  `npm ls postcss` that all three instances now dedupe to `8.5.19`, `next`
+  itself untouched at `16.2.10`, `npm audit` now reports 0 vulnerabilities.
+  Backend: `uv run --with pip-audit pip-audit` against every real installed
+  dependency found 0 known vulnerabilities — no fix needed there. Verified
+  the postcss bump didn't regress anything: `tsc`/`eslint`/`next build`
+  clean, full 56-test Playwright suite run twice (56/56, then a targeted
+  rerun of the two specs that flaked once — both passed clean on rerun).
+  One dark-mode-only flake reproduced in `user-journey.spec.ts`'s
+  Weekly-Care-checkbox-after-reload assertion during this — this is the
+  same pre-existing flake already on this file's backlog from an earlier
+  round (confirmed unrelated to this branch: a build-tool-only transitive
+  dependency bump can't plausibly cause a runtime checkbox-persistence
+  flake, and the other two specs that failed alongside it in the same run
+  passed clean on an immediate rerun with nothing else changed).
+
 ## Partially Completed
 
 - ◐ `docker-compose.yml` — `minio` now added (Branch 1); still missing `web`, `api`,
