@@ -766,6 +766,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/weather-uv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Weather Uv */
+        get: operations["get_my_weather_uv_api_v1_weather_uv_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1742,6 +1759,21 @@ export interface components {
             profile: components["schemas"]["ConsultantProfileDetail"] | components["schemas"]["DermatologistProfileDetail"];
             /** Documents */
             documents: components["schemas"]["app__services__admin__schemas__VerificationDocumentRead"][];
+        };
+        /** WeatherUVRead */
+        WeatherUVRead: {
+            /** Available */
+            available: boolean;
+            /** Temperature */
+            temperature: number | null;
+            /** Humidity */
+            humidity: number | null;
+            /** Uv Index */
+            uv_index: number | null;
+            /** Weather Condition */
+            weather_condition: string | null;
+            /** Cached */
+            cached: boolean;
         };
         /** VerificationDocumentRead */
         app__services__admin__schemas__VerificationDocumentRead: {
@@ -3303,6 +3335,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ConsultantNoteRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_my_weather_uv_api_v1_weather_uv_get: {
+        parameters: {
+            query: {
+                lat: number;
+                lon: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WeatherUVRead"];
                 };
             };
             /** @description Validation Error */
