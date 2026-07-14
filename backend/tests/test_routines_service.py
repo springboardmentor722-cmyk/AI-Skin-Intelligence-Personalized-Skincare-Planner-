@@ -5,6 +5,8 @@ since generation reads through recommendations_service's real product-lookup que
 faking that would mean testing against data shaped nothing like production.
 """
 
+import datetime
+
 import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,8 +14,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.postgres import external_user_table
 from app.services.ingredients.models import Ingredient
 from app.services.recommendations.models import Product, ProductIngredient, ProductSkinType
+from app.services.routines import service as routines_service
+from app.services.routines.models import Routine
 from app.services.routines.service import (
     UnsafeProductError,
+    _current_season,
     add_step,
     delete_step,
     get_or_generate_routines,
@@ -34,7 +39,7 @@ async def test_no_routines_before_a_skin_profile_exists(
     assert await get_or_generate_routines(db_session, test_user_id) == []
 
 
-async def test_generates_am_pm_and_weekly_routines(
+async def test_generates_am_pm_weekly_and_seasonal_routines(
     db_session: AsyncSession, test_user_id: str
 ) -> None:
     await create_profile(
@@ -49,7 +54,10 @@ async def test_generates_am_pm_and_weekly_routines(
     routines = await get_or_generate_routines(db_session, test_user_id)
 
     types = {r.routine_type for r in routines}
-    assert types == {"AM", "PM", "Weekly"}
+    assert types == {"AM", "PM", "Weekly", "Seasonal"}
+    seasonal = next(r for r in routines if r.routine_type == "Seasonal")
+    assert seasonal.routine_name in {"Winter Care", "Spring Care", "Summer Care", "Fall Care"}
+    assert seasonal.steps  # real steps generated, same as AM/PM/Weekly
 
 
 async def test_weekly_routine_is_treatment_only(
@@ -242,9 +250,7 @@ async def test_reorder_steps_rejects_a_different_users_routine(
     am = next(r for r in routines if r.routine_type == "AM")
 
     with pytest.raises(ValueError, match="not found"):
-        await reorder_steps(
-            db_session, other_user_id, am.routine_id, [s.step_id for s in am.steps]
-        )
+        await reorder_steps(db_session, other_user_id, am.routine_id, [s.step_id for s in am.steps])
 
 
 async def test_add_step_persists_with_a_real_product(
@@ -255,9 +261,7 @@ async def test_add_step_persists_with_a_real_product(
     )
     routines = await get_or_generate_routines(db_session, test_user_id)
     pm = next(r for r in routines if r.routine_type == "PM")
-    products = await search_products_for_edit(
-        db_session, test_user_id, "Sunscreen", ""
-    )
+    products = await search_products_for_edit(db_session, test_user_id, "Sunscreen", "")
     assert products, "seed catalog should have at least one Sunscreen product"
 
     updated = await add_step(
@@ -404,3 +408,69 @@ async def test_search_products_for_edit_excludes_avoid_flagged_and_respects_cate
     assert treatment_results, "Sensitive skin should have safe Treatment candidates"
     assert all(p.category == "Treatment" for p in treatment_results)
     assert not any("Salicylic" in (p.product_name or "") for p in treatment_results)
+
+
+# --- Seasonal routines (Milestone 2, calendar-quarter swap) ---
+
+
+def test_current_season_covers_every_month() -> None:
+    expected = {
+        1: "Winter",
+        2: "Winter",
+        12: "Winter",
+        3: "Spring",
+        4: "Spring",
+        5: "Spring",
+        6: "Summer",
+        7: "Summer",
+        8: "Summer",
+        9: "Fall",
+        10: "Fall",
+        11: "Fall",
+    }
+    for month, season in expected.items():
+        assert _current_season(datetime.date(2026, month, 15)) == season
+
+
+async def test_seasonal_routine_regenerates_when_the_season_changes(
+    db_session: AsyncSession, test_user_id: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+
+    monkeypatch.setattr(routines_service, "_current_season", lambda: "Winter")
+    first = await get_or_generate_routines(db_session, test_user_id)
+    first_by_type = {r.routine_type: r for r in first}
+    assert first_by_type["Seasonal"].routine_name == "Winter Care"
+
+    monkeypatch.setattr(routines_service, "_current_season", lambda: "Summer")
+    second = await get_or_generate_routines(db_session, test_user_id)
+    second_by_type = {r.routine_type: r for r in second}
+
+    # AM/PM/Weekly are untouched by a season change.
+    assert second_by_type["AM"].routine_id == first_by_type["AM"].routine_id
+    assert second_by_type["PM"].routine_id == first_by_type["PM"].routine_id
+    assert second_by_type["Weekly"].routine_id == first_by_type["Weekly"].routine_id
+
+    # Seasonal is a real, different row — the old one deactivated, not deleted.
+    assert second_by_type["Seasonal"].routine_id != first_by_type["Seasonal"].routine_id
+    assert second_by_type["Seasonal"].routine_name == "Summer Care"
+
+    old_seasonal = await db_session.get(Routine, first_by_type["Seasonal"].routine_id)
+    assert old_seasonal is not None
+    assert old_seasonal.is_active is False
+
+
+async def test_seasonal_routine_is_stable_within_the_same_season(
+    db_session: AsyncSession, test_user_id: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(routines_service, "_current_season", lambda: "Fall")
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+
+    first = await get_or_generate_routines(db_session, test_user_id)
+    second = await get_or_generate_routines(db_session, test_user_id)
+
+    assert {r.routine_id for r in first} == {r.routine_id for r in second}

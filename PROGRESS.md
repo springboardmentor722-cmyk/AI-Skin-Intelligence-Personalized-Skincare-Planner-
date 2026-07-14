@@ -1333,7 +1333,11 @@ behind is real.
   data — no weather/season integration exists, no step-edit backend exists either,
   the latter deferred to its own branch alongside `app-routine-edit.html`), and the
   wireframe's PM tab, which is a literal unfinished placeholder ("PM Routine details
-  are loading...") — the real PM tab renders real steps, same as AM. The optimistic
+  are loading...") — the real PM tab renders real steps, same as AM. **Update, see
+  the `feature/m2-seasonal-routines` entry below:** a real (non-fabricated) Seasonal
+  routine now exists — the wireframe's specific banner copy was still never
+  reproduced, but the underlying gap is closed. "Regenerate with AI" is still
+  fabricated (no such action exists anywhere) and stays omitted. The optimistic
   toggle-mutation logic used to live only in `RoutineChecklistCard`; extracted to
   `web/lib/hooks/use-toggle-routine-step.ts` so both it and the new page share one
   implementation — `RoutineChecklistCard` itself now filters to AM/PM only (Weekly
@@ -1497,6 +1501,46 @@ behind is real.
   any approval... merge back to dev after development... work completely on auto
   mode") — every other branch this session waited for an explicit "merge it into
   dev" message; this one didn't, per that instruction.
+- **2026-07-14 — Seasonal routines (`feature/m2-seasonal-routines`), closing the
+  last open gap against `mile_2.docx`'s literal routine-generation deliverable
+  ("morning, evening, weekly, and even seasonal").** Found via a fresh audit against
+  actual code (not the prior "M2 core done" claim taken at face value) that AM/PM/
+  Weekly were real but Seasonal was never built — the wireframe's "winter
+  adjustments ready" banner was fabricated copy this session had already, correctly,
+  declined to reproduce (see the "My Routine" screen entry above). Rather than
+  invent a mechanic, scoped it with the user first: no design spec or wireframe
+  exists for what "seasonal" should actually do, and the real schema has no
+  ingredient-weight tagging (`ingredients.category` only holds active-ingredient
+  types — AHAs/BHAs, Retinoids, etc. — not Occlusive/Humectant), so a
+  dermatologist-grade "heavier winter moisturizer" swap isn't honestly buildable
+  today. User picked "calendar-quarter swap": a real 4th routine
+  (`routine_type="Seasonal"`) using only the real `products.category` field
+  (Cleanser/Sunscreen/Moisturizer/Treatment) — Winter emphasizes Moisturizer+
+  Treatment, Summer emphasizes Sunscreen+Treatment, Spring/Fall are transitional —
+  generated via the same `_generate_routine` core (safety filter, seeded candidate
+  selection) AM/PM/Weekly already use, no new selection logic invented.
+  `routines/service.py::get_or_generate_routines` restructured so Seasonal is the
+  one exception to the existing "generate once, reuse forever" rule: it's
+  regenerated (old row deactivated via `is_active=False`, not deleted) whenever the
+  real current calendar season no longer matches the season the existing Seasonal
+  routine's `routine_name` (e.g. "Winter Care") was generated for — AM/PM/Weekly are
+  untouched by a season change. Frontend: `/routine`'s tab list now includes a
+  Seasonal tab whenever the backend returns one, labeled from the real
+  `routine_name` it returns rather than a hardcoded string (so the tab always
+  reflects whichever season is actually current). A pre-existing test in
+  `test_clinical_review_service.py` asserted the client-detail routine set as
+  exactly `{AM, PM, Weekly}` — a real, caught regression once Seasonal shipped, not
+  a pre-existing bug; updated to include `Seasonal`. 209 backend tests pass (3 new:
+  `_current_season` month-boundary coverage, season-change regeneration keeping
+  AM/PM/Weekly's `routine_id`s stable while Seasonal's changes, same-season
+  stability); `ruff`/`mypy --strict` clean; frontend `tsc`/`eslint`/`next build`
+  clean. Verified live end-to-end: a real signup through Better Auth (Next.js dev
+  server + FastAPI backend both started for this check), a real minted JWT, a real
+  skin profile via `curl`, confirmed `GET /routines/me` returned 4 routines
+  including `"routine_name": "Summer Care"` for today's real date (July → Summer),
+  confirmed a second call returned the identical `routine_id` (stable within a
+  season), then deleted the throwaway user/profile/routines and stopped both dev
+  servers.
 
 ## Partially Completed
 
