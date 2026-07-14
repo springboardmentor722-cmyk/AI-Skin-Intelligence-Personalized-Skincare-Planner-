@@ -22,7 +22,7 @@ type ScoreRead = components["schemas"]["ScoreRead"];
 // Saves the wizard's answers to the real skin-profile/lifestyle-log endpoints (see
 // web/lib/assessment/save.ts for the field-by-field mapping and its gaps), generates
 // real routines, then fetches the real, backend-computed Skin Health Score — the
-// score this page shows is the same one GET /scores/me returns everywhere else in
+// score this page shows is the same one GET /api/v1/assessment/score returns everywhere else in
 // the app, not a separate client-side estimate. Fired once per mount, after
 // `hydrated` flips true — not on the very first render, since AssessmentProvider
 // (lib/assessment/context.tsx) mounts with DEFAULT_STATE and only loads the real
@@ -56,9 +56,9 @@ function useSubmitAssessment(state: AssessmentState, hydrated: boolean) {
         .POST("/api/v1/lifestyle-logs", { body: assessmentToLifestyleLogPayload(state) })
         .then(() => queryClient.invalidateQueries({ queryKey: ["lifestyle-logs", "me"] }))
         .catch(() => {});
-      await api.POST("/api/v1/routines/generate").catch(() => {});
+      await api.POST("/api/v1/routine/generate").catch(() => {});
 
-      const { data: score, error: scoreError } = await api.GET("/api/v1/scores/me");
+      const { data: score, error: scoreError } = await api.GET("/api/v1/assessment/score");
       if (scoreError || !score) throw new Error("Couldn't calculate your Skin Health Score.");
       return score;
     },
