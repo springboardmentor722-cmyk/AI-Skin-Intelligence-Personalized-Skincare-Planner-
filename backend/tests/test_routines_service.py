@@ -619,3 +619,48 @@ async def test_get_or_generate_routines_does_not_n_plus_one_per_step(
         f"{query_count} queries to read {total_steps} already-generated steps "
         "looks like an N+1, not a fixed per-routine cost"
     )
+
+
+async def test_first_time_generation_does_not_n_plus_one_per_category(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    """Regression test for a real N+1 in `_generate_routine`'s generation path
+    (separate from the read-path fix above): it used to run 2 extra queries *per
+    category* (list_products_for_skin_type, list_concern_ids_for_products) across
+    up to 4 routine types x up to 4 categories each — up to ~24 queries for a
+    single user's first-ever generation. Fixed by fetching every candidate
+    product once (category=None) and every concern mapping once, filtering by
+    category in Python. Counts real SQL statements via the same event-listener
+    tool as the read-path test above."""
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+
+    query_count = 0
+
+    def _count_query(*_args: object, **_kwargs: object) -> None:
+        nonlocal query_count
+        query_count += 1
+
+    sa_event.listen(db_session.sync_session.bind, "before_cursor_execute", _count_query)
+    try:
+        routines = await get_or_generate_routines(db_session, test_user_id)  # first call: generates
+    finally:
+        sa_event.remove(db_session.sync_session.bind, "before_cursor_execute", _count_query)
+
+    total_categories = sum(len(r.steps) for r in routines)
+    assert total_categories >= 8  # sanity check, same shape as the read-path test
+
+    # Most of this call's real query volume is legitimate, necessary per-row work
+    # (one INSERT per RoutineStep/RoutineProduct created — that scales with step
+    # count by nature, not a bug). The N+1 this fixes is specifically the
+    # candidate/concern *SELECT* queries: empirically measured at 75 for this exact
+    # scenario against the old per-category-query code (temporarily reverted
+    # locally to confirm), 61 against the fix — a real ~14-query reduction. The
+    # ceiling here sits between the two: comfortably above 61 to avoid flaking on
+    # incidental variation, comfortably below 75 to still catch a real regression
+    # back to the old per-category pattern.
+    assert query_count < 68, (
+        f"{query_count} queries to generate {total_categories} steps across 4 "
+        "routine types looks like a regression back toward the old per-category N+1"
+    )
