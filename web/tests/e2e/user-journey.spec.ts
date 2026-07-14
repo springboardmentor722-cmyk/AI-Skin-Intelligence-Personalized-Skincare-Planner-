@@ -80,9 +80,16 @@ test("signup -> assessment wizard -> dashboard/routine/recommendations/profile, 
     await page.getByRole("button", { name: "Fragrance" }).click();
     await page.getByRole("button", { name: "Continue" }).click();
 
-    // --- results: real save fires on mount (useSaveAssessmentToProfile) ---
+    // --- results: real save + real score computation fires on mount
+    // (useSubmitAssessment) — the ring/breakdown render the actual GET /scores/me
+    // result, not a client-side estimate. ---
     await page.waitForURL("**/assessment/results");
-    await expect(page.getByText(/saved to your skin profile/i)).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole("heading", { name: "Diagnostic overview" })).toBeVisible({
+      timeout: 10_000,
+    });
+    for (const label of ["Condition", "Lifestyle", "Routine", "Sleep", "Hydration"]) {
+      await expect(page.getByText(new RegExp(`${label} \\(\\d+%\\)`, "i"))).toBeVisible();
+    }
 
     // --- Dashboard: real score, real routine, real recommendations ---
     await page.goto("/dashboard");
