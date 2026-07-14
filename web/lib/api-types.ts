@@ -232,6 +232,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/routines/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate My Routines */
+        post: operations["generate_my_routines_api_v1_routines_generate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/routines/steps/{step_id}/log": {
         parameters: {
             query?: never;
@@ -2166,6 +2183,26 @@ export interface operations {
         };
     };
     get_my_routines_api_v1_routines_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoutineRead"][];
+                };
+            };
+        };
+    };
+    generate_my_routines_api_v1_routines_generate_post: {
         parameters: {
             query?: never;
             header?: never;
