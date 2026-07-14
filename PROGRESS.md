@@ -179,6 +179,28 @@ window-boundary-sensitive; no fixture values needed changing. `ruff`/`mypy --str
 clean, `pytest` 234 passed / 5 pre-existing unrelated MinIO failures (unchanged from
 Phase 1).
 
+**Milestone 2 Phase 4 — frontend behavior verification (docx Step 5) — DONE
+(2026-07-15).** Checked every Step 5 ask against the live build, not from memory:
+multi-step wizard with step counter/progress/per-step validation
+(`assessment-shell.tsx` + `app/assessment/*`) — re-exercised live by re-running the
+full cross-theme Playwright `user-journey.spec.ts` after Phase 1 and again after
+Phase 2 (both **2 passed**, `chromium-light`/`chromium-dark`), not just re-read.
+Loading-state copy is an exact match to the docx's literal
+`"Analyzing your skin profile..."` already (`assessment/results/page.tsx`) — no
+change needed. Error banner (`StateCard tone="destructive"` + Retry button, wrapping
+the same `useMutation` that calls the renamed endpoints — the try/catch logic itself
+is untouched by a URL rename) confirmed still wired correctly by inspection, not
+independently e2e-tested for the failure path (no existing spec drives a forced
+network failure; the plan didn't ask for a new one, only to re-verify what's already
+built). Three already-settled decisions reconfirmed unchanged, per the plan's own
+default not to reopen them as a side effect of this rename: draft persistence via
+`sessionStorage` (not the docx's `localStorage`), success routing via a manual
+"Go to dashboard" button (not automatic), and the dashboard's combined AM+PM
+`RoutineChecklistCard` + separate `/routine` page for Weekly (not the docx's literal
+3-card grid). Skipped taking fresh screenshots beyond the e2e runs' own
+light/dark coverage — redundant with two passing cross-theme functional runs, not
+worth the extra step for a rename that touches no visual markup.
+
 M1 (weeks
 1–2) — architecture, DB schema, wireframes, env setup, Better Auth + RBAC, profile &
 lifestyle modules, seed data — is done; M1 had no AI (ADR-007).
