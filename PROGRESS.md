@@ -1639,6 +1639,38 @@ behind is real.
   `POST /routines/generate` returned 4 real routines on first call and the
   identical `routine_id`s on a second call (idempotent) — then the throwaway user
   and all its rows deleted.
+- **2026-07-14 — Real Skin Health Score on the assessment results page
+  (`feature/m2-real-assessment-score`), closing the one real gap from a Step 5
+  audit.** `app/assessment/results/page.tsx` computed its own client-side
+  duplicate of the scoring formula (`computeResults()`) instead of calling the
+  real backend — its own comment said *"No Skin Assessment backend exists
+  yet"*, which was stale: this session's Step 3 work already built and verified
+  the real engine. A user could finish the wizard and see a score the real
+  engine never actually computed. `useSubmitAssessment` replaces
+  `useSaveAssessmentToProfile`: saves the real skin profile (required — score
+  computation needs one), best-effort saves the lifestyle log and calls
+  `POST /routines/generate` (score computation degrades gracefully without
+  either), then fetches the real `GET /scores/me` and renders *that* —
+  `SCORE_COMPONENTS` extracted to `lib/score-components.ts`, shared with the
+  Dashboard so both surfaces render the identical real breakdown, never two
+  copies drifting apart. Real loading state ("Analyzing your skin profile...",
+  Milestone 2's own literal wording) and a real error state (retry button) now
+  exist — previously errors were silent (a toast) and results always rendered
+  regardless of save outcome. Auto-redirect-to-dashboard and a literal red
+  error banner (vs. this app's real `StateCard` destructive-tone pattern,
+  already used everywhere else in the codebase) were raised in the audit but
+  intentionally left as-is — the manual "Go to dashboard" button and
+  `StateCard` are consistent with how every other real error/CTA surface in
+  this app already works, not gaps worth inventing new patterns to close.
+  Frontend `tsc`/`eslint`/`next build` clean (no backend change, no API
+  contract change). The existing real e2e journey spec
+  (`tests/e2e/user-journey.spec.ts`, chained signup → wizard → dashboard →
+  routine → recommendations → profile) had its results-page assertion updated
+  from the old toast text to the real score breakdown rendering, then the full
+  suite was run and verified: 56/56 specs pass across both light and dark
+  themes, the changed spec included, confirming the real score flows correctly
+  from the wizard through to the dashboard/routine screens that already
+  consumed it.
 
 ## Partially Completed
 
