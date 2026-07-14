@@ -19,7 +19,12 @@ from app.services.routines.service import UnsafeProductError
 router = APIRouter()
 
 
+# mile_2.docx Step 5.2/Step 6 name GET /api/v1/routine and POST /api/v1/routine/generate
+# as the canonical routes. /routines/me and /routines/generate are kept as deprecated
+# aliases for existing frontend callers — remove once Phase 1.4's frontend pass
+# confirms nothing still calls them (MASTER_PROMPT.md Phase 1.3).
 @router.get("/routines/me")
+@router.get("/routine")
 async def get_my_routines(
     # Routine Planner is a `user`-role feature (ARCHITECTURE.md §2).
     user: Annotated[dict[str, Any], Depends(require_role("user"))],
@@ -29,6 +34,7 @@ async def get_my_routines(
 
 
 @router.post("/routines/generate")
+@router.post("/routine/generate")
 async def generate_my_routines(
     # Milestone 2 Step 4.1's explicit "POST /routine/generate" — GET /routines/me
     # already generates-if-none-exist as a side effect of a read (the same real

@@ -15,7 +15,7 @@ interface RoutineChecklistCardProps {
 // — AM/PM only, by design; Weekly Care (Milestone 2) lives on the dedicated
 // /routine screen, not this daily-checklist card. Check state is real, persisted
 // state (Mongo routine_logs, backend/app/services/routines/service.py) — each
-// step's `completed_today` comes straight from GET /routines/me, and toggling
+// step's `completed_today` comes straight from GET /api/v1/routine, and toggling
 // (useToggleRoutineStep) POSTs to /routines/steps/{step_id}/log, not a client-only
 // guess that resets on reload.
 export function RoutineChecklistCard({ routines: allRoutines }: RoutineChecklistCardProps) {

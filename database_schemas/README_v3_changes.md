@@ -31,3 +31,17 @@ create fresh from v3 rather than writing INTEGER→TEXT ALTERs.
 Everything else (skin taxonomy, ingredients + junctions, routines/products, scoring,
 progress, consulting, notifications/billing, indexes, seeds) is identical to v2 apart from
 the id type of user references.
+
+## 2026-07-14 — Milestone 2 literal rename
+
+`skin_scores` → `skin_assessments`, `routines` → `skincare_routines` (FK references
+and index target updated to match; index *names* left as-is). This matches
+`docs/milestones/milestone_2/mile_2.docx`'s literal table names — the project owner
+reviewed the docx directly and decided literal names should win over the internal
+architecture's original choice, which is documented in full in `PROGRESS.md` and
+`docs/milestones/milestone_2/MASTER_PROMPT.md` Phase 1. Applied live via Alembic
+migration `5e91a4c7d2b8` (`op.rename_table`, non-destructive — preserves existing
+rows/FKs). No `detected_concerns` column was added to `skin_assessments` despite the
+docx's illustrative schema naming one: it's derivable via a join against
+`skin_profile_concerns`, so a denormalized duplicate wasn't added (AGENTS.md's
+"don't invent a column" rule).

@@ -258,7 +258,7 @@ async def get_or_generate_routines(db: AsyncSession, user_id: str) -> list[Routi
     Milestone 2 Step 1.3's decision matrix (`_SKIN_TYPE_STEP_MATRIX`) — e.g. Sensitive
     skips the Treatment step entirely rather than filling it with a gentler product.
     Each generated routine also carries `score_id`, a best-effort link to whichever
-    `skin_scores` row was most recently computed for this user (Milestone 2 Step 1.1's
+    `skin_assessments` row was most recently computed for this user (Milestone 2 Step 1.1's
     "assessment_id" traceability) — null if no score has ever been computed; this
     function never computes one itself as a side effect.
 

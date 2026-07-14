@@ -7,7 +7,7 @@ from app.services.skin_profile.schemas import SkinProfileRead
 
 
 class ClientScoreRead(BaseModel):
-    """A read-only projection of the client's latest real skin_scores row (via
+    """A read-only projection of the client's latest real skin_assessments row (via
     scores_service.get_recent_scores) — never recomputed on a professional's
     behalf. Deliberately doesn't reuse scores/schemas.py's ScoreRead: that schema
     requires the nested scoring_weights row, which isn't needed for a clinical
@@ -34,7 +34,7 @@ class ClientSummaryRead(BaseModel):
     overall_score: float | None
     routine_adherence_score: float | None
     # Trailing overall_score history (oldest -> newest), for a trend sparkline —
-    # real history from skin_scores via scores_service.get_recent_scores, not a
+    # real history from skin_assessments via scores_service.get_recent_scores, not a
     # fabricated "AI Confidence" style stat.
     score_trend: list[float]
     last_sync: datetime.datetime | None
