@@ -16,9 +16,7 @@ async def get_or_create_profile(db: AsyncSession, user_id: str) -> UserProfile:
     return profile
 
 
-async def update_profile(
-    db: AsyncSession, user_id: str, data: UserProfileUpdate
-) -> UserProfile:
+async def update_profile(db: AsyncSession, user_id: str, data: UserProfileUpdate) -> UserProfile:
     profile = await get_or_create_profile(db, user_id)
     for field, value in data.model_dump(exclude_unset=True).items():
         setattr(profile, field, value)

@@ -109,9 +109,7 @@ def _hydration_score(logs: list[dict[str, Any]]) -> float:
     window = logs[:7]
     if not window:
         return 50.0
-    total = sum(
-        min(100.0, ((log.get("water_intake_liters") or 0) / 2.0) * 100) for log in window
-    )
+    total = sum(min(100.0, ((log.get("water_intake_liters") or 0) / 2.0) * 100) for log in window)
     return total / len(window)
 
 
@@ -216,9 +214,7 @@ async def compute_and_store_score(db: AsyncSession, user_id: str) -> ScoreRead:
 async def get_recent_scores(db: AsyncSession, user_id: str, days: int = 30) -> list[SkinScore]:
     """Interface function (ADR-005) — Progress Tracking's dashboard summary reads
     score history through this, never the `skin_scores` table directly."""
-    since = datetime.datetime.now(datetime.UTC).replace(tzinfo=None) - datetime.timedelta(
-        days=days
-    )
+    since = datetime.datetime.now(datetime.UTC).replace(tzinfo=None) - datetime.timedelta(days=days)
     result = await db.execute(
         select(SkinScore)
         .where(SkinScore.user_id == user_id, SkinScore.calculated_at >= since)
