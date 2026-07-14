@@ -1889,6 +1889,36 @@ behind is real.
   real 400 ("File exceeds the 10 MB limit") — then the throwaway account and
   its rows deleted.
 
+- **2026-07-14 — Production-readiness audit, round 2, second fix:
+  `perf/routines-n-plus-one`.** Real N+1 found by re-reading
+  `routines/service.py::_read_with_steps`: for each step in a routine, it ran a
+  separate `RoutineProduct` query and a separate `get_products_by_ids` call
+  (which already batches via `IN(...)` — just wasn't being called at the right
+  granularity). This function runs once per routine returned by
+  `get_or_generate_routines` (up to 4: AM/PM/Weekly/Seasonal) on every
+  `GET /routines/me`, one of the most frequently-hit endpoints in the app.
+  Fixed: one `IN(...)` query for all a routine's `routine_products`, one
+  `IN(...)` query for all their `products`, grouped in Python — 3 queries total
+  per routine regardless of step count. Added a real regression test that
+  counts actual SQL statements via a query-execution event listener (the same
+  tool `tests/conftest.py` already uses for its savepoint-restart logic), not a
+  mock — isolated to the pure-read path (a second `get_or_generate_routines`
+  call, since the first call's generation path has its own, separate
+  per-category N+1 in `_generate_routine` not touched by this fix). Verified
+  the test actually catches the regression, not just tautologically passes:
+  temporarily reverted the fix locally, confirmed the test fails (27 queries
+  for 11 steps against a `<25` ceiling), restored the fix, confirmed it passes
+  again. 232 backend tests pass; `ruff`/`ruff format --check`/`mypy --strict`
+  clean. Verified live against the real running API: a real account, a real
+  4-routine/11-step generation, confirmed every step still resolves a real
+  product (output unchanged, only the query pattern improved) — then cleaned
+  up. `_generate_routine`'s own separate per-category N+1 (list_products_for_
+  skin_type / list_avoided_ingredient_product_ids / list_concern_ids_for_
+  products, once per category per routine) was found but not fixed this
+  round — only exercised once per user (routines are generated once and
+  reused), a real but much lower-value target than the read path that runs on
+  every dashboard/routine-page load.
+
 ## Partially Completed
 
 - ◐ `docker-compose.yml` — `minio` now added (Branch 1); still missing `web`, `api`,
