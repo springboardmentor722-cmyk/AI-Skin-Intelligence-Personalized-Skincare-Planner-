@@ -81,7 +81,7 @@ test("signup -> assessment wizard -> dashboard/routine/recommendations/profile, 
     await page.getByRole("button", { name: "Continue" }).click();
 
     // --- results: real save + real score computation fires on mount
-    // (useSubmitAssessment) — the ring/breakdown render the actual GET /scores/me
+    // (useSubmitAssessment) — the ring/breakdown render the actual GET /api/v1/assessment/score
     // result, not a client-side estimate. ---
     await page.waitForURL("**/assessment/results");
     await expect(page.getByRole("heading", { name: "Diagnostic overview" })).toBeVisible({

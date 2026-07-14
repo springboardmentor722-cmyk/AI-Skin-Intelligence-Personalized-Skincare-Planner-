@@ -99,7 +99,7 @@ export default function UserDashboardPage() {
   const scoreQuery = useQuery({
     queryKey: ["scores", "me"],
     queryFn: async () => {
-      const { data, response } = await api.GET("/api/v1/scores/me");
+      const { data, response } = await api.GET("/api/v1/assessment/score");
       if (response.status === 404) return null;
       return data ?? null;
     },
@@ -108,7 +108,7 @@ export default function UserDashboardPage() {
   const routinesQuery = useQuery({
     queryKey: ["routines", "me"],
     queryFn: async () => {
-      const { data } = await api.GET("/api/v1/routines/me");
+      const { data } = await api.GET("/api/v1/routine");
       return data ?? [];
     },
     enabled: scoreQuery.data !== null,

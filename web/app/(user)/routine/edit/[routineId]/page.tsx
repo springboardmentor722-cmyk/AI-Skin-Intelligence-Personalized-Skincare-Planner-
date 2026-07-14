@@ -147,7 +147,7 @@ export default function EditRoutinePage() {
   const routinesQuery = useQuery({
     queryKey: ["routines", "me"],
     queryFn: async () => {
-      const { data } = await api.GET("/api/v1/routines/me");
+      const { data } = await api.GET("/api/v1/routine");
       return data ?? [];
     },
   });
