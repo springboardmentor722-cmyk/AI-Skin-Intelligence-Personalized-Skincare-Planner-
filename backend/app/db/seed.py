@@ -2,9 +2,10 @@
 
 Seeds a small placeholder product catalog plus a curated ingredient master. Real product
 data is a separate Kaggle ingestion pipeline (docs/DATASETS_AND_APIS.md §2,
-`backend/app/services/admin/ingest/products.py` — not built yet); this is a stand-in so
-routines/recommendations have real `products` rows to reference end-to-end before that
-pipeline exists. Swapped out, not mixed in, once it lands.
+`backend/app/services/admin/ingest/products.py` — code-complete, credential-blocked on
+a real `KAGGLE_USERNAME`/`KAGGLE_KEY`, see `training_dataset/README.md`); this is a
+stand-in so routines/recommendations have real `products` rows to reference end-to-end
+regardless. Swapped out, not mixed in, once real credentials exist.
 
 The ingredient master below is **hand-curated common dermatological knowledge** (INCI
 names, treats/avoid relationships), not scraped from INCIDecoder/COSDNA — exactly the
@@ -14,10 +15,10 @@ PDF's 8 named categories: Retinoids, Niacinamide, Vitamin C, Hyaluronic Acid, Sa
 Acid, Ceramides, Peptides, AHAs/BHAs. A larger, automated ingredient feed is out of scope
 until a licensed source is available.
 
-skin_types/skin_concerns aren't seeded here — they already exist in every environment
-loaded from database_schemas/skinlytics_postgresql_schema_v3.sql's own INSERT
-statements; a Python seed script for those remains a separate, pending task
-(PROGRESS.md).
+skin_types/skin_concerns aren't seeded here — they're a real Alembic data migration now
+(`a9c3d2f81b47_seed_skin_types_and_concerns.py`, production-readiness audit), not a
+Python seed script: no environment before that migration had any automated way to get
+this foundational reference data at all.
 """
 
 import asyncio
