@@ -37,6 +37,14 @@ build/
 # --- Generated (regenerate with `make openapi`; web/lib/api-types.ts IS committed) ---
 /openapi.json
 
+# --- Downloaded/generated datasets (training_dataset/README.md) — a local working
+# directory, not a data store; the folder structure + README are committed, real
+# downloaded data never is. ---
+/training_dataset/raw/*
+!/training_dataset/raw/.gitkeep
+/training_dataset/processed/*
+!/training_dataset/processed/.gitkeep
+
 # --- OS / editor ---
 .DS_Store
 Thumbs.db
