@@ -177,6 +177,27 @@ async def _generate_routine(
         db, skin_type_id
     )
 
+    # Production-readiness audit: used to run 2 extra queries *per category*
+    # (list_products_for_skin_type, list_concern_ids_for_products) instead of
+    # fetching every candidate across all categories once and filtering in Python —
+    # both helpers already support exactly this (category=None / a full product_id
+    # list). Only runs once per user (routines are generated once and reused), so
+    # lower-value than the read-path N+1 fixed earlier, but still real: up to 4
+    # routine types x up to 4 categories each meant up to ~24 queries for a single
+    # user's first-time generation. The per-category rng.choice() call order/count
+    # below is unchanged — this only removes redundant *queries*, not any of the
+    # deterministic selection logic.
+    all_candidates = await recommendations_service.list_products_for_skin_type(
+        db, skin_type_id, category=None
+    )
+    candidates_by_category: dict[str, list[Any]] = defaultdict(list)
+    for product in all_candidates:
+        if product.product_id not in avoided_product_ids:
+            candidates_by_category[product.category or ""].append(product)
+    product_concerns = await recommendations_service.list_concern_ids_for_products(
+        db, [p.product_id for p in all_candidates]
+    )
+
     routine = Routine(
         user_id=user_id,
         routine_name=routine_name,
@@ -190,15 +211,9 @@ async def _generate_routine(
     await db.flush()  # assigns routine.routine_id without committing yet
 
     for order, category in enumerate(categories, start=1):
-        candidates = await recommendations_service.list_products_for_skin_type(
-            db, skin_type_id, category=category
-        )
-        candidates = [p for p in candidates if p.product_id not in avoided_product_ids]
+        candidates = candidates_by_category[category]
         if not candidates:
             continue
-        product_concerns = await recommendations_service.list_concern_ids_for_products(
-            db, [p.product_id for p in candidates]
-        )
         concern_matches = [
             p for p in candidates if set(product_concerns.get(p.product_id, [])) & set(concern_ids)
         ]
