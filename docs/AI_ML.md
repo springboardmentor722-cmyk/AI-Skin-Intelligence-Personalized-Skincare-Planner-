@@ -77,7 +77,11 @@ Component normalization (each 0–100):
   severity (severity_rating 8–10), −7 pts per Medium (4–7), 0 for Low (1–3), from the
   latest assessment.
 - **lifestyle** = weighted sub-index of exercise frequency, stress (inverted), diet
-  quality, sun-exposure hygiene from `lifestyle_logs` (30-day window).
+  quality, sun-exposure hygiene from `lifestyle_logs` (30-day window), plus a real
+  unprotected-high-UV-exposure penalty (Milestone 2 Step 3.1) when OpenUV data exists
+  for the user (`weather_service.get_latest_uv_index`, WHO UV Index ≥6 "High" +
+  reported sun exposure in the most recent log) — best-effort, never fetched live as
+  a side effect of scoring, so it's a no-op when no OpenUV reading was ever captured.
 - **sleep_quality** = 60% duration score (7–9 h band = 100, linear falloff) + 40%
   self-rated quality.
 - **routine_adherence** = completed checklist steps ÷ scheduled steps, trailing 30 days.
