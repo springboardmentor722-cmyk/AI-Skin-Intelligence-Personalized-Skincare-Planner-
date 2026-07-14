@@ -1,13 +1,13 @@
 """backend/app/services/admin/ingest/products.py's normalize_rows() — the one part of
-the Kaggle product pipeline that's fully testable without live KAGGLE_USERNAME/
-KAGGLE_KEY (blank in this environment, training_dataset/README.md tracks the real
-credential blocker). A small fixture DataFrame matching the Sephora dataset's
-publicly-documented product_info.csv columns, not a live download.
+the Kaggle product pipeline that's fully testable without a live download. A small
+fixture DataFrame matching the Sephora dataset's publicly-documented
+product_info.csv columns, not a live download.
 """
 
 import pandas as pd
 import pytest
 
+from app.core.config import settings
 from app.services.admin.ingest.products import (
     KaggleCredentialsError,
     _parse_ingredients,
@@ -84,9 +84,16 @@ def test_parse_size_ml_returns_none_for_non_ml_units() -> None:
     assert _parse_size_ml(None) is None
 
 
-def test_download_dataset_raises_clear_error_without_credentials() -> None:
-    # Real in this environment: KAGGLE_USERNAME/KAGGLE_KEY are blank
-    # (training_dataset/README.md). Confirms the pipeline fails fast and legibly
-    # instead of the `kaggle` package erroring deep inside a network call.
+def test_download_dataset_raises_clear_error_without_credentials(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Explicitly blanked here rather than relying on the ambient environment (real
+    # KAGGLE_USERNAME/KAGGLE_KEY now exist in .env once the Kaggle pipeline was
+    # actually unblocked — this test's job is the credential-check branch itself, not
+    # whichever credentials happen to be configured this session). Confirms the
+    # pipeline fails fast and legibly instead of the `kaggle` package erroring deep
+    # inside a network call.
+    monkeypatch.setattr(settings, "kaggle_username", "")
+    monkeypatch.setattr(settings, "kaggle_key", "")
     with pytest.raises(KaggleCredentialsError):
         download_dataset()
