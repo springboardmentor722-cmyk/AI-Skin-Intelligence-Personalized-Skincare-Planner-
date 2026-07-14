@@ -1,13 +1,19 @@
+import asyncio
 from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from sqlalchemy import text
 
 from app.core.config import settings
 from app.core.errors import register_exception_handlers
 from app.core.logging import RequestIdMiddleware, configure_logging
 from app.core.rate_limit import RateLimitMiddleware
 from app.core.security_headers import SecurityHeadersMiddleware
+from app.db.mongo import get_mongo_db
+from app.db.postgres import engine
+from app.db.redis import get_redis
 from app.services.admin.router import router as admin_router
 from app.services.clinical_review.router import router as clinical_review_router
 from app.services.consultant_profile.router import router as consultant_profile_router
@@ -66,6 +72,48 @@ def create_app() -> FastAPI:
     @app.get("/health")
     async def health() -> dict[str, str]:
         return {"status": "ok"}
+
+    # Production-readiness audit finding: /health always returned 200 regardless of
+    # whether Postgres/Redis/Mongo were actually reachable — useless as an
+    # orchestrator (k8s/ECS) signal to route traffic away from an instance that
+    # can't really serve requests. Standard split: /health stays a fast, unconditional
+    # liveness probe (unchanged above — "is the process alive", not "can it serve
+    # traffic"); /health/ready does the real work. Each check gets its own short
+    # timeout so one hung dependency can't make the readiness probe itself hang
+    # indefinitely (which would be worse than a fast, honest 503).
+    @app.get("/health/ready")
+    async def health_ready() -> JSONResponse:
+        checks: dict[str, str] = {}
+
+        async def _check_postgres() -> None:
+            async with engine.connect() as conn:
+                await conn.execute(text("SELECT 1"))
+
+        async def _check_redis() -> None:
+            await get_redis().ping()
+
+        async def _check_mongo() -> None:
+            await get_mongo_db().command("ping")
+
+        for name, check in (
+            ("postgres", _check_postgres),
+            ("redis", _check_redis),
+            ("mongo", _check_mongo),
+        ):
+            try:
+                # Intentionally broad — for a readiness probe, any failure from a
+                # dependency (connection refused, timeout, auth error, ...) means
+                # the same thing: not ready. Never raises past this point.
+                await asyncio.wait_for(check(), timeout=3.0)
+                checks[name] = "ok"
+            except Exception as exc:
+                checks[name] = f"error: {exc.__class__.__name__}"
+
+        healthy = all(status == "ok" for status in checks.values())
+        return JSONResponse(
+            status_code=200 if healthy else 503,
+            content={"status": "ok" if healthy else "degraded", "checks": checks},
+        )
 
     api_v1 = APIRouter(prefix="/api/v1")
     api_v1.include_router(user_router, prefix="/users", tags=["users"])

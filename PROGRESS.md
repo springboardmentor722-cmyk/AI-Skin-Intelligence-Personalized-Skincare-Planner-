@@ -1973,6 +1973,40 @@ behind is real.
   resolves a real, safe product (output unchanged, only the query pattern
   improved) — then cleaned up.
 
+- **2026-07-14 — Production-readiness audit, round 3, second fix (started as a
+  readiness-check feature, uncovered a much more serious bug while verifying
+  it live): `feature/health-readiness-check`.** `/health` always returned 200
+  regardless of whether Postgres/Redis/Mongo were actually reachable — useless
+  as an orchestrator (k8s/ECS) signal. Added `/health/ready`: real per-
+  dependency checks (`SELECT 1`, `PING`, `command("ping")`), each with its own
+  3s timeout, `/health` itself left unchanged as a fast liveness probe.
+  **While live-verifying this** (real `docker stop` on the Redis container,
+  not simulated), found a much bigger, real bug: `RateLimitMiddleware` had
+  *zero* error handling around its Redis calls — a real Redis outage took
+  down the **entire API** with a raw 500 on every non-`/health` request, not
+  just rate limiting. Confirmed via the actual traceback
+  (`redis.exceptions.ConnectionError` propagating straight out of
+  `rate_limit.py`'s `await redis.incr(key)`, uncaught). Fixed: catches
+  `RedisError` and fails open (lets the request through, logs a warning) —
+  losing throttling protection temporarily is a far smaller problem than
+  losing all availability. Also exempted `/health/ready` from rate limiting,
+  matching the existing `/health` exemption. No test file existed for
+  `rate_limit.py` at all before this, despite it gating every non-health
+  request in the app — new `test_rate_limit.py` covers healthy pass-through,
+  health-path exemption under sustained heavy polling, and the fail-open path
+  using a real, genuinely unreachable port (not a mock). Verified this
+  regression test actually catches the bug: temporarily reverted the
+  try/except locally, confirmed it fails with the exact real
+  `ConnectionError`, restored the fix, confirmed it passes. 237 backend tests
+  pass; `ruff`/`ruff format --check`/`mypy --strict` clean; `api-types.ts`
+  regenerated (purely additive — the new endpoint's types only). Verified
+  live end-to-end with a real Redis outage: `/health/ready` correctly
+  reported `"status": "degraded"` / 503 with `"redis": "error:
+  ConnectionError"`, and an ordinary route
+  (`GET /api/v1/scores/me`) that used to 500 during the same outage now
+  correctly reached its real handler and returned a real 401 — then Redis
+  was restarted and full health confirmed restored.
+
 ## Partially Completed
 
 - ◐ `docker-compose.yml` — `minio` now added (Branch 1); still missing `web`, `api`,
