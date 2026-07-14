@@ -1488,6 +1488,8 @@ export interface components {
             routine_type: string | null;
             /** Description */
             description: string | null;
+            /** Score Id */
+            score_id: number | null;
             /** Steps */
             steps: components["schemas"]["RoutineStepRead"][];
         };
