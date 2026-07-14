@@ -1919,6 +1919,35 @@ behind is real.
   reused), a real but much lower-value target than the read path that runs on
   every dashboard/routine-page load.
 
+- **2026-07-14 — Production-readiness audit, round 2, remaining recon: JWT/
+  session lifecycle, SSRF surface, dead code/unused dependencies — all came
+  back clean, verified not assumed (no code changes).**
+  - **JWT/session**: `core/security.py::_decode` does real JWKS-based
+    signature verification (`algorithms=["EdDSA", "RS256"]` only — no `none`/
+    HS256, so no algorithm-confusion risk), requires `exp`/`iss`/`aud`, and
+    checks a real Redis-backed revocation blacklist (`jti`). No gap found.
+  - **SSRF**: only 3 modules use `httpx` at all
+    (`integrations/{openweather,openuv,pubmed}.py`), and all three hit fixed,
+    hardcoded external hostnames — only numeric query params (lat/lon,
+    search terms) ever vary, never a user-controlled URL or hostname. No
+    outbound-request surface exists for a real SSRF.
+  - **Unused dependencies**: `npx depcheck` flagged 7 frontend packages
+    (`shadcn`, `tw-animate-css`, `@tailwindcss/postcss`, `@types/node`,
+    `@types/react-dom`, `prettier-plugin-tailwindcss`, `tailwindcss`) — every
+    one individually verified as a real false positive (depcheck only scans
+    JS/TS `import` statements; these are used via the shadcn CLI
+    (`components.json`), a CSS `@import` (`app/globals.css`), PostCSS config
+    (`postcss.config.ts`), Prettier config (`.prettierrc.json`), and ambient
+    TypeScript types with no import statement needed). Backend: all 16
+    `pyproject.toml` dependencies checked against real usage —
+    `cryptography` looked unused (no direct `import cryptography` anywhere)
+    but is a genuine, load-bearing dependency: PyJWT requires it to verify
+    RS256/EdDSA signatures, exactly what `security.py`'s `_decode` does.
+    Nothing removed — there was nothing real to remove.
+  - **Dead code**: no `TODO`/`FIXME`/`XXX` markers anywhere in either
+    codebase (this project tracks open work in `PROGRESS.md`, not inline
+    comments) — nothing to clean up.
+
 ## Partially Completed
 
 - ◐ `docker-compose.yml` — `minio` now added (Branch 1); still missing `web`, `api`,
