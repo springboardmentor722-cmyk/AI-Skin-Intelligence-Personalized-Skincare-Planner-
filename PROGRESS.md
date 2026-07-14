@@ -1618,6 +1618,27 @@ behind is real.
   in this environment); `GET /scores/me` again → `lifestyle_score: 75.0`, exactly
   the expected 20-point drop, `overall_score` recomputed correctly (85.0) — then
   the throwaway user and all its rows deleted.
+- **2026-07-14 — `POST /routines/generate` (`feature/m2-routine-generate-endpoint`),
+  closing the one real gap from a Step 4.1 audit.** `GET /routines/me` already
+  generated-if-none-exist as a side effect of a read; `mile_2.docx` names a
+  dedicated `POST /api/v1/routine/generate` action route too, which didn't exist.
+  New endpoint calls the exact same, already-tested `get_or_generate_routines` —
+  no new generation logic, no duplicated code, same idempotent semantics (returns
+  existing routines if regeneration isn't needed, generates/refreshes Seasonal if
+  it is). Audit also flagged that candidate/product matching uses all declared
+  concerns (any-overlap) rather than 4.1's literal "the prioritized primary
+  concern" — left as-is per explicit user decision, treating the doc's wording as
+  already satisfied in spirit (concerns do drive matching; a real single "primary
+  concern" concept already exists elsewhere in the codebase — clinical_review's
+  `max(priority_level)` — just not required here). Added to `test_rbac.py`'s
+  existing `user`-only-route parametrize list (wrong-role 403, the same pattern
+  every other `/me`-scoped route already uses) rather than a new test file — the
+  route has no logic of its own to unit test beyond auth. 224 backend tests pass;
+  `ruff`/`mypy --strict` clean; frontend `tsc`/`next build` clean (api-types.ts
+  regenerated). Verified live end-to-end: a real account, a real skin profile,
+  `POST /routines/generate` returned 4 real routines on first call and the
+  identical `routine_id`s on a second call (idempotent) — then the throwaway user
+  and all its rows deleted.
 
 ## Partially Completed
 
