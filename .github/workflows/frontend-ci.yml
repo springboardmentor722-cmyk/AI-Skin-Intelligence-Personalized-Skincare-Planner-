@@ -1,0 +1,52 @@
+name: frontend-ci
+
+# Production-readiness audit finding: no CI/CD existed at all despite this
+# project's own tsc/eslint/next build gates only ever being run manually.
+# `next build` doesn't touch a real database (dashboard/protected routes render
+# dynamically, not statically) — .env.example, already checked in with no real
+# secrets, is enough to satisfy env-var reads at build time. Only
+# BETTER_AUTH_SECRET needs a non-empty override (Better Auth validates this at
+# import time); every other value is intentionally blank in .env.example,
+# matching this project's own "credential-blocked, degrades gracefully"
+# convention for every external integration.
+
+on:
+  push:
+    branches: [dev, main]
+    paths: ["web/**", ".github/workflows/frontend-ci.yml"]
+  pull_request:
+    branches: [dev, main]
+    paths: ["web/**", ".github/workflows/frontend-ci.yml"]
+
+defaults:
+  run:
+    working-directory: web
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npx eslint .
+
+      - name: Prepare build-time env
+        run: |
+          cp ../.env.example .env
+          echo "BETTER_AUTH_SECRET=ci-build-time-placeholder-not-a-real-secret" >> .env
+
+      - name: Build
+        run: npm run build
