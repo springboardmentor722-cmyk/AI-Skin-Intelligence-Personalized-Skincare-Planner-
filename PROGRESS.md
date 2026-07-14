@@ -1541,6 +1541,52 @@ behind is real.
   confirmed a second call returned the identical `routine_id` (stable within a
   season), then deleted the throwaway user/profile/routines and stopped both dev
   servers.
+- **2026-07-14 — Skin-type decision matrix + assessment-to-routine traceability
+  (`feature/m2-decision-matrix-and-traceability`), closing Step 1.1's `assessment_id`
+  gap and Step 1.3's decision-matrix gap found by a fresh line-by-line audit of
+  `mile_2.docx`'s Step 1.** The prior "M2 core done" claim hadn't checked these two
+  specifically — this audit did, against live DB state, not code inspection alone.
+  **1.3 decision matrix:** `routines/service.py::_SKIN_TYPE_STEP_MATRIX` — before
+  this, `skin_type_id` only ever filtered which *product* filled a step, never
+  whether the step existed; every skin type got the identical AM/PM structure. Now
+  Oily and Sensitive (`mile_2.docx`'s own two literal examples) get a real
+  structurally different step list: Oily AM drops Moisturizer
+  (`["Cleanser","Treatment","Sunscreen"]`), Sensitive drops Treatment entirely in
+  both AM (`["Cleanser","Moisturizer","Sunscreen"]`) and PM
+  (`["Cleanser","Moisturizer"]`) rather than just getting a gentler product in that
+  slot. The doc's Oily PM names a "Night Care" step with no real product-category
+  equivalent (`products.category`: Cleanser/Sunscreen/Moisturizer/Treatment only) —
+  mapped onto Moisturizer, documented as a substitution, not invented as a new
+  category. Normal/Dry/Combination aren't named in the doc's examples, so they
+  default to the pre-existing universal structure rather than guessing a difference
+  the doc never specified. Weekly/Seasonal are unaffected — 1.3 only ever names
+  AM/PM steps. **1.1 traceability:** new nullable `routines.score_id` column
+  (migration `f2a6c1d09b3e`, `database_schemas/skinlytics_postgresql_schema_v3.sql`
+  updated to match) — best-effort link to whichever `skin_scores` row was most
+  recently computed when a routine batch was generated; never forces a fresh score
+  computation as a side effect of a GET-triggered routine generation, so a user who
+  generates routines before ever computing a score correctly gets `score_id: null`,
+  not a fabricated score. Exposed on `RoutineRead` so the frontend/API surface can
+  actually see it, not just the DB. Broke the module boundary in an interesting way:
+  `scores/service.py` already imports `routines/service.py` (for the
+  `routine_adherence` component), so a module-level import the other way would be
+  circular — fixed with a local import inside `get_or_generate_routines`, documented
+  inline rather than silently worked around. Found and fixed a real regression this
+  caused: `test_update_step_rejects_an_avoid_flagged_product_swap` assumed every
+  skin type's AM routine has a Treatment step and broke the moment Sensitive's
+  structure changed — retargeted to the Moisturizer step Sensitive still generates
+  (`_assert_product_is_safe` only checks ingredient safety, not category match, so
+  the test's real intent is unaffected). 215 backend tests pass (6 new: the matrix's
+  two documented examples, the Normal/Dry/Combination default, Sensitive's real
+  AM/PM step sets, Oily's real AM step set, `score_id` null-before/set-after a real
+  computed score); `ruff`/`mypy --strict` clean; frontend `tsc`/`eslint`/`next build`
+  clean. Verified live end-to-end with two real throwaway accounts: a Sensitive
+  profile with no score yet (`GET /routines/me` → `score_id: null` on all 4
+  routines, AM/PM step sets exactly matching the matrix, Weekly still real
+  Treatment), and an Oily profile after a real `GET /scores/me` call
+  (`score_id: 214`) confirming every generated routine carried that same real
+  `score_id` and Oily's AM correctly excluded Moisturizer — then both throwaway
+  users and all their rows deleted, both dev servers stopped.
 
 ## Partially Completed
 
