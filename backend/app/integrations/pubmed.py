@@ -33,9 +33,7 @@ def _extract_article(article_el: ET.Element) -> PubMedArticle | None:
     if pmid_el is None or pmid_el.text is None or title_el is None:
         return None
 
-    abstract_parts = [
-        (node.text or "") for node in article_el.findall(".//AbstractText")
-    ]
+    abstract_parts = [(node.text or "") for node in article_el.findall(".//AbstractText")]
     abstract = " ".join(part.strip() for part in abstract_parts if part.strip())
 
     year_el = article_el.find(".//PubDate/Year")

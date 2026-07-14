@@ -39,9 +39,7 @@ class ProductSkinType(Base):
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    product_id: Mapped[int] = mapped_column(
-        ForeignKey("products.product_id", ondelete="CASCADE")
-    )
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.product_id", ondelete="CASCADE"))
     skin_type_id: Mapped[int] = mapped_column(ForeignKey("skin_types.skin_type_id"))
 
 
@@ -53,9 +51,7 @@ class ProductConcern(Base):
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    product_id: Mapped[int] = mapped_column(
-        ForeignKey("products.product_id", ondelete="CASCADE")
-    )
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.product_id", ondelete="CASCADE"))
     concern_id: Mapped[int] = mapped_column(ForeignKey("skin_concerns.concern_id"))
 
 
@@ -64,8 +60,6 @@ class ProductIngredient(Base):
     __table_args__ = (UniqueConstraint("product_id", "ingredient_id"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    product_id: Mapped[int] = mapped_column(
-        ForeignKey("products.product_id", ondelete="CASCADE")
-    )
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.product_id", ondelete="CASCADE"))
     ingredient_id: Mapped[int] = mapped_column(ForeignKey("ingredients.ingredient_id"))
     concentration_notes: Mapped[str | None] = mapped_column(default=None)
