@@ -8,6 +8,7 @@ from app.services.routines import service as routines_service
 from app.services.scores.models import ScoringWeights, SkinScore
 from app.services.scores.schemas import ScoreRead, ScoreWeightsRead
 from app.services.skin_profile import service as skin_profile_service
+from app.services.weather import service as weather_service
 
 
 async def get_active_weights(db: AsyncSession) -> ScoringWeights:
@@ -42,10 +43,27 @@ def _skin_condition_score(concerns: list[Any]) -> float:
     return max(0.0, 100.0 - deduction)
 
 
-def _lifestyle_score(logs: list[dict[str, Any]]) -> float:
+_HIGH_UV_INDEX_THRESHOLD = 6.0  # WHO UV Index scale: 0-2 Low, 3-5 Moderate, 6-7 High,
+# 8-10 Very High, 11+ Extreme — a real, external standard, not an invented cutoff.
+_UNPROTECTED_HIGH_UV_DEDUCTION = 20.0
+
+
+def _lifestyle_score(logs: list[dict[str, Any]], uv_index: float | None = None) -> float:
     """docs/AI_ML.md names the 4 components (exercise, stress inverted, diet quality,
     sun-exposure hygiene) but not their sub-weights — equal-weighted here, a documented
-    assumption (PROGRESS.md), not an invented schema field."""
+    assumption (PROGRESS.md), not an invented schema field.
+
+    `uv_index` is Milestone 2 Step 3.1's "high unprotected UV index exposure" signal —
+    the real value most recently captured by weather/service.py's OpenUV integration
+    for this user (`weather_service.get_latest_uv_index`), not a live fetch triggered
+    by score computation itself. `None` when no reading was ever captured (unconfigured
+    key, or the user never opened a page with the topbar chip) — behaves identically to
+    before this existed, an honest degrade rather than a fabricated reading. When a real
+    high UV Index (WHO scale, >=6 "High") coincides with reported sun exposure in the
+    most recent log, applies an additional flat deduction — "unprotected" is
+    approximated as "spent measurable time outdoors on a real high-UV day" (no
+    sunscreen-usage cross-reference exists to know for certain, so this doesn't claim
+    to)."""
     if not logs:
         return 50.0
     total = 0.0
@@ -56,7 +74,12 @@ def _lifestyle_score(logs: list[dict[str, Any]]) -> float:
         sun_hours = (log.get("environmental_exposure") or {}).get("sun_hours") or 0
         sun_hygiene = max(0.0, 100.0 - sun_hours * 10)
         total += (exercise + stress + diet + sun_hygiene) / 4
-    return total / len(logs)
+    score = total / len(logs)
+
+    latest_sun_hours = (logs[0].get("environmental_exposure") or {}).get("sun_hours") or 0
+    if uv_index is not None and uv_index >= _HIGH_UV_INDEX_THRESHOLD and latest_sun_hours > 0:
+        score = max(0.0, score - _UNPROTECTED_HIGH_UV_DEDUCTION)
+    return score
 
 
 def _sleep_quality_score(logs: list[dict[str, Any]]) -> float:
@@ -124,9 +147,10 @@ async def compute_and_store_score(db: AsyncSession, user_id: str) -> ScoreRead:
 
     weights = await get_active_weights(db)
     logs = await skin_profile_service.list_recent_lifestyle_logs(user_id, limit=30)
+    uv_index = await weather_service.get_latest_uv_index(user_id)
 
     skin_condition = _skin_condition_score(profile.concerns)
-    lifestyle = _lifestyle_score(logs)
+    lifestyle = _lifestyle_score(logs, uv_index=uv_index)
     sleep_quality = _sleep_quality_score(logs)
     hydration = _hydration_score(logs)
     routine_adherence = await _routine_adherence_score(db, user_id)

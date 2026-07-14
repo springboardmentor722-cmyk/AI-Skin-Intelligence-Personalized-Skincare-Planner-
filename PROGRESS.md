@@ -1587,6 +1587,37 @@ behind is real.
   (`score_id: 214`) confirming every generated routine carried that same real
   `score_id` and Oily's AM correctly excluded Moisturizer — then both throwaway
   users and all their rows deleted, both dev servers stopped.
+- **2026-07-14 — Real UV index wired into the lifestyle score
+  (`feature/m2-uv-lifestyle-score`), closing the one real gap from a Step 3 audit.**
+  `_lifestyle_score` previously only ever used self-reported `sun_hours` — the
+  literal "high unprotected UV index exposure" signal `mile_2.docx`'s $L_{habits}$
+  names was never wired up, despite this session's earlier branch already building a
+  fully working OpenUV integration for the topbar chip. New
+  `weather_service.get_latest_uv_index(user_id)` (ADR-005 interface function) reads
+  the most recently captured `weather_uv_logs` document — best-effort, never fetches
+  live from OpenUV itself (a score computation shouldn't have the side effect of
+  triggering an external API call, same principle as `routines.score_id`'s
+  best-effort link). `_lifestyle_score` applies an extra 20-point deduction only
+  when a real UV Index ≥6 (WHO "High", an external standard, not an invented
+  cutoff) coincides with reported sun exposure in the most recent lifestyle log —
+  "unprotected" approximated as "measurable outdoor time on a real high-UV day",
+  since no sunscreen-usage cross-reference exists to know for certain. `None` (no
+  reading ever captured — the common case here, since `OPENUV_API_KEY` is still
+  blank) behaves identically to before this existed. `docs/AI_ML.md` updated to
+  document the new sub-component. 8 new tests (4 pure-function cases: high-UV+
+  exposure penalizes, moderate-UV doesn't, high-UV+zero-exposure doesn't, `None` is
+  a no-op; 3 for `get_latest_uv_index` against real Mongo docs including a
+  UV-missing-but-weather-present reading; 1 real end-to-end
+  `compute_and_store_score` test proving the stored `lifestyle_score` actually
+  drops by 20 once a real Mongo document exists) — 223 backend tests pass;
+  `ruff`/`mypy --strict` clean; frontend build clean (no API contract change).
+  Verified live end-to-end: a real signup, a real skin profile + lifestyle log (2h
+  reported sun exposure), `GET /scores/me` → `lifestyle_score: 95.0` baseline; a
+  real-shaped `weather_uv_logs` document inserted (uv_index=9.0, simulating what a
+  live OpenUV fetch would have written, since the key itself is credential-blocked
+  in this environment); `GET /scores/me` again → `lifestyle_score: 75.0`, exactly
+  the expected 20-point drop, `overall_score` recomputed correctly (85.0) — then
+  the throwaway user and all its rows deleted.
 
 ## Partially Completed
 
