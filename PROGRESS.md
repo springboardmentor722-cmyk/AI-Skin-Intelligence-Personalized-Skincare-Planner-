@@ -4,7 +4,9 @@ Canonical task-state doc, per `docs/CONVENTIONS.md` and `docs/ARCHITECTURE.md`'s
 Update this in the same PR as any completed task. Session context should read this file
 first, then the rest of `docs/`.
 
-**Milestone 2: DELIVERED (2026-07-14), naming reconciliation reopened (2026-07-14).**
+**Milestone 2: DELIVERED (2026-07-14), naming reconciliation DONE (2026-07-15) —
+see `## Milestone 2 Phase 1`–`Phase 5` entries below for the full rename/reconciliation
+account; this top section is left as the historical record of the decision itself.**
 Every item in `mile_2.docx`'s "Delivered at the End of Milestone 2" checklist was
 built and independently verified against live code (see the dated
 `## Milestone 2 — Delivered` entry near the end of Completed) — but that closure pass
@@ -29,10 +31,11 @@ tested decision — not a bug being fixed. Concretely, as of this entry:
   `/api/v1/assessment/score` / `/api/v1/routine/generate` / `/api/v1/routine`, a new
   Alembic migration, updating `database_schemas/skinlytics_postgresql_schema_v3.sql`
   itself to match (so it stays canonical rather than drifting), regenerating
-  `web/lib/api-types.ts`, and updating every test/doc that names the old tables — is
-  **not done yet**. It's real, multi-file surgery on tables that already hold live
-  tested data, written up as an explicit phased plan rather than attempted blind:
-  `docs/milestones/milestone_2/MASTER_PROMPT.md`.
+  `web/lib/api-types.ts`, and updating every test/doc that names the old tables — was
+  real, multi-file surgery on tables that already held live tested data, written up
+  as an explicit phased plan rather than attempted blind
+  (`docs/milestones/milestone_2/MASTER_PROMPT.md`) and **completed 2026-07-15** — see
+  the dated `Milestone 2 Phase 1`–`Phase 5` entries below for the full account.
 - **Real Kaggle credentials added and all 3 datasets ingested/downloaded, live
   against Docker Postgres (which turned out to be genuinely running this session —
   `docker ps` confirmed postgres/mongo/redis/minio/elasticsearch all up).**
@@ -200,6 +203,42 @@ default not to reopen them as a side effect of this rename: draft persistence vi
 3-card grid). Skipped taking fresh screenshots beyond the e2e runs' own
 light/dark coverage — redundant with two passing cross-theme functional runs, not
 worth the extra step for a rename that touches no visual markup.
+
+**Milestone 2 Phase 5 — tests & manual verification (docx Step 6) — DONE
+(2026-07-14/15), full-auto run complete.** Both Step 6.1-mandated unit tests
+(`test_compute_and_store_score_is_perfect_for_an_ideal_profile`, the sensitive-skin
+routine safety pair) re-ran and passed after Phase 1/2's changes (see those phases'
+entries). Re-ran the manual Step 6.2 checklist fresh against the renamed endpoints —
+via curl against a real `next start`/`uvicorn` pair (not just re-citing the e2e
+runs), with real command output at every step, then cleaned the throwaway user up
+the same way `web/tests/e2e/helpers.ts::deleteTestUser` does:
+1. Real sign-up (`POST localhost:3000/api/auth/sign-up/email`) → `200`, real Better
+   Auth session + `PxkfBPytf23ypqP4lactNodbVmAtl8Kg` user id. Minted a JWT via
+   `GET /api/auth/token` (same mechanism `web/lib/api.ts` uses).
+2. `POST /api/v1/assessment/evaluate` (the docx-literal path, not the deprecated
+   alias) → `200`, `{"score_id":578,...,"overall_score":67.5,...}`. Confirmed via a
+   direct query against the running Postgres: `SELECT score_id, user_id,
+   overall_score, calculated_at FROM skin_assessments WHERE score_id = 578` →
+   `(578, 'PxkfBPytf23ypqP4lactNodbVmAtl8Kg', Decimal('67.50'), datetime(2026, 7, 14,
+   18, 39, 9, 441341))` — a real row, in the new table name, not the old one.
+3. `GET /api/v1/routine` (the docx-literal path) → `200`, `routine_type` values
+   `['AM', 'PM', 'Weekly', 'Seasonal']`, each with real `step_id`s.
+4. `POST /api/v1/routines/steps/21502/log` (`{"completed": true}`) → `204`. Confirmed
+   via a direct Mongo query: `db.routine_logs.find_one({"user_id":
+   "PxkfBPytf23ypqP4lactNodbVmAtl8Kg"})` →
+   `{'log_date': ..., 'completed_steps': [{'routine_step_id': 21502, 'completed_at':
+   ...}]}` — the checked task really did get securely logged.
+
+This closes all 6 phases of `docs/milestones/milestone_2/MASTER_PROMPT.md`. Every
+phase ran in its own branch and merged to `dev` (`chore/m2-scoring-engine-and-ingest-
+prep` [the prior session's uncommitted work, landed first so Phase 1 started clean],
+`feature/m2-docx-literal-rename`, `fix/m2-routine-consistency-7-day-window`,
+`feature/m2-phase4-frontend-behavior-verification`,
+`docs/m2-phase5-manual-verification-close-out`). No hard stops were hit — the
+migration was a non-destructive rename throughout, no external credential/dataset was
+missing without a workaround (`BETTER_AUTH_SECRET` was blank but is a local secret,
+not a third-party one, so generating it wasn't a hard-stop case), and no destructive
+git operation was needed.
 
 M1 (weeks
 1–2) — architecture, DB schema, wireframes, env setup, Better Auth + RBAC, profile &
