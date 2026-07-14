@@ -7,6 +7,7 @@ from app.core.config import settings
 from app.core.errors import register_exception_handlers
 from app.core.logging import RequestIdMiddleware, configure_logging
 from app.core.rate_limit import RateLimitMiddleware
+from app.core.security_headers import SecurityHeadersMiddleware
 from app.services.admin.router import router as admin_router
 from app.services.clinical_review.router import router as clinical_review_router
 from app.services.consultant_profile.router import router as consultant_profile_router
@@ -30,16 +31,23 @@ async def lifespan(app: FastAPI):  # type: ignore[no-untyped-def]
 def create_app() -> FastAPI:
     app = FastAPI(title="Skinlytics API", version="0.1.0", lifespan=lifespan)
 
-    # Gateway concerns (docs/ARCHITECTURE.md §3): CORS -> request-id -> rate limit ->
-    # JWT verify (per-route, app.core.security) -> validation (per-route Pydantic
-    # schemas). Starlette's add_middleware() inserts each call at the *front* of the
-    # stack (starlette/applications.py), so the most-recently-added middleware runs
-    # first — added here in reverse of that execution order (RateLimit first, CORS
-    # last) so CORS preflight (OPTIONS) is handled before rate limiting counts it,
-    # and RequestIdMiddleware has already set request_id before RateLimitMiddleware
-    # needs it for a 429's error envelope. Milestone 1 audit: rate limiting was a
-    # reserved comment ("lands with the Authentication task") with nothing actually
-    # wired — Redis was sitting there unused for this.
+    # Gateway concerns (docs/ARCHITECTURE.md §3): SecurityHeaders -> CORS ->
+    # request-id -> rate limit -> JWT verify (per-route, app.core.security) ->
+    # validation (per-route Pydantic schemas). Starlette's add_middleware() inserts
+    # each call at the *front* of the stack (starlette/applications.py), so the
+    # most-recently-added middleware runs first — added here in reverse of that
+    # execution order (RateLimit first, ..., SecurityHeaders last) so CORS preflight
+    # (OPTIONS) is handled before rate limiting counts it, RequestIdMiddleware has
+    # already set request_id before RateLimitMiddleware needs it for a 429's error
+    # envelope, and SecurityHeaders — outermost, added last — wraps every possible
+    # response path (including a CORS preflight or a rate-limit 429) so nothing can
+    # leave this API missing its security headers. Milestone 1 audit: rate limiting
+    # was a reserved comment ("lands with the Authentication task") with nothing
+    # actually wired — Redis was sitting there unused for this. Production-readiness
+    # audit: the browser hits this API directly (`web/lib/api.ts`'s
+    # `NEXT_PUBLIC_API_URL`, not proxied through Next.js), so it never had any of the
+    # security headers `web/next.config.ts` already sets on the frontend's own
+    # responses — SecurityHeadersMiddleware closes that gap with the same values.
     app.add_middleware(RateLimitMiddleware)
     app.add_middleware(RequestIdMiddleware)
     app.add_middleware(
@@ -49,6 +57,7 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.add_middleware(SecurityHeadersMiddleware)
 
     register_exception_handlers(app)
 
