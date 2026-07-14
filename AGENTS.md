@@ -18,6 +18,19 @@ If what you need isn't in any of these, say so and ask — don't guess and proce
 
 > `docs/` and `database_schemas/` are referenced throughout as top-level folders. If your actual paths differ, correct them here once, in this file, rather than letting every agent guess independently.
 
+### 0.1 Milestone rubric docs are a fourth source of truth
+
+`docs/milestones/<milestone>/` holds the actual graded requirement doc for that milestone (e.g. `docs/milestones/milestone_2/mile_2.docx` + its extracted `.md`), handed down externally — treat it the same as the three sources above: read the real doc before building against a milestone, don't rely on a prior session's summary of it or on general "what a skincare app milestone probably needs" reasoning. If a milestone doc's literal names (tables, endpoints, file names) conflict with what's already built or with `database_schemas/`'s canonical schema, that's a real conflict to flag and resolve with the user, not something to silently reconcile in either direction — see `PROGRESS.md` for how the Milestone 2 conflict (mile_2.docx's `skin_assessments`/`skincare_routines` vs. the already-built `skin_scores`/`routines`) was resolved, as precedent for the next one.
+
+### 0.2 Missing data or credentials get a conversation, not a workaround
+
+If a task depends on a dataset, file, or credential that isn't actually present in the repo/`.env*` — not "probably fine," actually check — **stop and ask the user to provide or download it**, the same way `backend/app/services/admin/ingest/products.py`'s `KaggleCredentialsError` already fails loudly instead of letting a missing Kaggle token surface as an opaque network error three layers down. Never any of:
+- Silently stub the missing data and let a later step quietly consume the stub as if it were real.
+- Claim a data-dependent feature/pipeline is "done" in `PROGRESS.md` or in chat when the actual data was never present to run it against.
+- Fabricate rows, files, or API responses to unblock yourself.
+
+`training_dataset/MANIFEST.md` is the canonical list of what dataset should exist where — check it before assuming a file is (or isn't) there.
+
 ---
 
 ## 1. What Skinlytics is
@@ -52,7 +65,19 @@ Skinlytics
 │   ├── GRAPHIFY_SETUP.md
 │   ├── Skinlytics_Stitch_UI_Prompt_Pack_v2.md
 │   ├── SUGGESTIONS.md
-│   └── WIREFRAMES.md
+│   ├── WIREFRAMES.md
+│   └── milestones
+│       └── milestone_2
+│           ├── mile_2.docx                ← the actual graded M2 requirement doc
+│           └── AI Skin Intelligence & Personalized Skincare Planner .md  ← its extracted text
+├── dataset_and_API_reference
+│   └── AI_Skin_Datasets_APIs_Research.docx  ← dataset/API research doc (§0.1)
+├── training_dataset
+│   ├── MANIFEST.md                        ← exact folder/filename per dataset (§0.2)
+│   ├── README.md
+│   ├── raw/                               ← gitignored downloads, one subfolder per dataset
+│   └── processed/                         ← gitignored intermediate normalized files
+├── backend                                ← FastAPI modular monolith (§4)
 ├── web
 │   └── designs
 │       └── wireframes

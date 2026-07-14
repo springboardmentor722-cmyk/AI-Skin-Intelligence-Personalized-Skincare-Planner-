@@ -4,14 +4,100 @@ Canonical task-state doc, per `docs/CONVENTIONS.md` and `docs/ARCHITECTURE.md`'s
 Update this in the same PR as any completed task. Session context should read this file
 first, then the rest of `docs/`.
 
-**Milestone 2: DELIVERED (2026-07-14).** Every item in `mile_2.docx`'s "Delivered at
-the End of Milestone 2" checklist is built and independently verified against live
-code, not just claimed — see the dated `## Milestone 2 — Delivered` entry near the
-end of Completed for the full section-by-section closure audit (backend engine,
-frontend wizard/dashboard, QA). The one open item is external live data:
-OpenWeather/OpenUV and the Kaggle product-dataset pipeline are code-complete but
-credential-blocked (`OPENWEATHER_API_KEY`/`OPENUV_API_KEY`/`KAGGLE_USERNAME`/
-`KAGGLE_KEY` are blank in `.env`) — not part of the doc's own delivery checklist.
+**Milestone 2: DELIVERED (2026-07-14), naming reconciliation reopened (2026-07-14).**
+Every item in `mile_2.docx`'s "Delivered at the End of Milestone 2" checklist was
+built and independently verified against live code (see the dated
+`## Milestone 2 — Delivered` entry near the end of Completed) — but that closure pass
+made an explicit choice to **keep** the already-built names (`skin_scores`/`routines`,
+`/scores/me`/`/routines/me`, the logic living in `scores/service.py`) over the docx's
+illustrative literal names (`skin_assessments`/`skincare_routines`, `/assessment/*`,
+`/routine/*`, a dedicated `scoring_engine.py`), on the reasoning that
+`database_schemas/skinlytics_postgresql_schema_v3.sql` is the real canonical schema
+and the docx's names are just its example. **The project owner has since reviewed
+`docs/milestones/milestone_2/mile_2.docx` directly (not a prior session's summary of
+it) and decided the opposite: rename to match the docx's literal names**, since this
+doc is an external graded rubric and literal names are safer for grading than an
+internal architecture judgment call. This reverses a previously deliberate,
+tested decision — not a bug being fixed. Concretely, as of this entry:
+- `scoring_engine.py` now exists for real
+  (`backend/app/services/scores/scoring_engine.py`) — the five sub-score functions
+  and the weighted-sum equation (`calculate_skin_health_score`, a NumPy dot product)
+  were moved out of `scores/service.py` into it verbatim, `service.py` now imports
+  from it. Verified: `ruff`/`mypy --strict` clean.
+- The larger rename — `skin_scores`→`skin_assessments`, `routines`→
+  `skincare_routines`, endpoint paths to `/api/v1/assessment/evaluate` /
+  `/api/v1/assessment/score` / `/api/v1/routine/generate` / `/api/v1/routine`, a new
+  Alembic migration, updating `database_schemas/skinlytics_postgresql_schema_v3.sql`
+  itself to match (so it stays canonical rather than drifting), regenerating
+  `web/lib/api-types.ts`, and updating every test/doc that names the old tables — is
+  **not done yet**. It's real, multi-file surgery on tables that already hold live
+  tested data, written up as an explicit phased plan rather than attempted blind:
+  `docs/milestones/milestone_2/MASTER_PROMPT.md`.
+- **Real Kaggle credentials added and all 3 datasets ingested/downloaded, live
+  against Docker Postgres (which turned out to be genuinely running this session —
+  `docker ps` confirmed postgres/mongo/redis/minio/elasticsearch all up).**
+  `training_dataset/MANIFEST.md` (new) names the exact folder/filename expected for
+  each dataset; `AGENTS.md` §0.1/§0.2 now state explicitly that a milestone rubric doc
+  is a fourth source of truth and that missing data/credentials get a conversation,
+  never a silent stub or a claimed-done feature.
+  - Found and fixed a real bug along the way: `backend/app/core/config.py` loads
+    secrets from the **repo-root** `.env`, not `.env.development` — root `.env` was a
+    stray CI/e2e test placeholder (`ENVIRONMENT=test`, ports 5433/27018/6380) with no
+    `KAGGLE_*` keys at all, left over from an unrelated earlier session. Regenerated
+    root `.env` from `.env.development` (confirmed with the user first) so the real
+    dev ports and the new Kaggle credentials actually reach the app.
+  - `make ingest-products` (Sephora) ran for real and hit **two genuine bugs in
+    already-existing code**, found by actually running it against the live dataset
+    for the first time — no fixture ever exercised either:
+    1. `load_into_database` didn't dedupe ingredient names *within* a single
+       product's own parsed list, so a product whose INCI text repeats the same
+       canonicalized name twice tried to insert the same `(product_id,
+       ingredient_id)` row twice and hit `product_ingredients`' unique constraint.
+       Fixed with `dict.fromkeys(...)` to dedupe while preserving order.
+    2. `_parse_ingredients` split only on commas; the real dataset also uses
+       semicolons for some rows' sub-lists (shade variants each carrying their own
+       semicolon-separated INCI list), which produced multi-hundred-character
+       "ingredient" fragments that blew past `ingredients.ingredient_name`'s real
+       `VARCHAR(150)` column — a `StringDataRightTruncationError`. Fixed by
+       splitting on both commas and semicolons, and rejecting (not truncating) any
+       genuinely unsplittable fragment still over 150 chars — 0 of ~261k parsed
+       fragments exceed it after the fix (was 56 before).
+    Both fixes verified: `ruff`/`mypy --strict` clean, all 8
+    `tests/test_products_ingest.py` tests pass (one test rewritten to explicitly
+    monkeypatch blank credentials via `pytest.MonkeyPatch` instead of relying on the
+    ambient environment actually having no credentials — no longer true once real
+    ones were added).
+  - **Live result:** 8,464 new products ingested (30 rejected — missing
+    brand/name/price — 0 already present). Final table counts, queried directly via
+    the app's own async DB session (`app.db.postgres.async_session_factory`, not
+    `docker exec` — that specific command consistently got deferred/backgrounded by
+    this session's harness for reasons unrelated to the query itself):
+    `products`=8480, `ingredients`=16303, `product_ingredients`=227657.
+  - Cosmetics dataset (`kingabzpro/cosmetics-datasets`) downloaded — `cosmetics.csv`,
+    ~1.1MB, landing only, no pipeline built (not required for M2).
+  - ISIC 2019 (Kaggle mirror) downloaded — 9.2GB, all 8 lesion classes
+    (AK/BCC/BKL/DF/MEL/NV/SCC/VASC) + ground-truth/metadata CSVs, landing only (out
+    of scope for M2 per its own dataset entry above). Took 3 attempts: my own initial
+    size estimate (~5.1MB, from `KaggleApi.dataset_list_files`) was badly wrong — the
+    real zip is 9.77GB and extraction needs ~20GB peak free space (zip + extracted
+    simultaneously) — first two attempts hit a real disk-full condition
+    (`ENNOSPC`/`No space left on device`) mid-download and mid-extraction
+    respectively; both partial downloads were deleted before retrying, succeeded on
+    the third attempt once the user freed enough headroom.
+  - **Full backend suite re-run after all of the above:** `ruff`/`mypy --strict`
+    clean; `pytest` — 234 passed, 5 failed. All 5 failures are pre-existing and
+    unrelated (`InvalidAccessKeyId` on MinIO storage tests — `.env.development`'s
+    `S3_ACCESS_KEY_ID`/`S3_SECRET_ACCESS_KEY` have always been blank while
+    `docker-compose.yml`'s MinIO container uses hardcoded dev-only
+    `skinlytics`/`skinlytics_dev_only`; not fixed here — storage backs
+    consultant/dermatologist verification documents, not the M2 assessment engine —
+    flagged for whoever picks that up next).
+
+The one other open item is external live data: OpenWeather/OpenUV are code-complete
+but still credential-blocked (`OPENWEATHER_API_KEY`/`OPENUV_API_KEY` blank in `.env`)
+— not part of the doc's own delivery checklist. The Kaggle product-dataset pipeline
+was credential-blocked too but is now unblocked and run for real (see above,
+2026-07-14).
 M1 (weeks
 1–2) — architecture, DB schema, wireframes, env setup, Better Auth + RBAC, profile &
 lifestyle modules, seed data — is done; M1 had no AI (ADR-007).
