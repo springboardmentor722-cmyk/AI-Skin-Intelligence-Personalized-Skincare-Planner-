@@ -115,17 +115,21 @@ def _hydration_score(logs: list[dict[str, Any]]) -> float:
 
 
 async def _routine_adherence_score(db: AsyncSession, user_id: str) -> float:
-    """docs/AI_ML.md: 'completed checklist steps / scheduled steps, trailing 30 days'.
-    Real implementation now that routine_logs (Mongo, M2) persists checklist
-    completion (routines/service.py's toggle_step_completion) — replaces the ADR-007
-    seeded_random stub. No active routine yet, or a routine with no logged days in the
-    trailing-30-day window, stays a neutral 50.0 — the same "no data" convention
-    _lifestyle_score/_sleep_quality_score/_hydration_score above already use in this
-    file, not a punitive 0 or a random guess."""
+    """mile_2.docx Step 3.1: 'Fetch the last 7 days of routine logs from MongoDB.
+    Calculate the percentage of checks completed.' (docs/AI_ML.md corrected 2026-07-14
+    to match — it previously paraphrased this as a 30-day window, a real mismatch
+    against the docx's literal text, not a superset like the Sleep/Lifestyle
+    deviations documented elsewhere in this file). Real implementation now that
+    routine_logs (Mongo, M2) persists checklist completion (routines/service.py's
+    toggle_step_completion) — replaces the ADR-007 seeded_random stub. No active
+    routine yet, or a routine with no logged days in the trailing-7-day window, stays
+    a neutral 50.0 — the same "no data" convention _lifestyle_score/
+    _sleep_quality_score/_hydration_score above already use in this file, not a
+    punitive 0 or a random guess."""
     step_ids = await routines_service.list_active_step_ids(db, user_id)
     if not step_ids:
         return 50.0
-    logs = await routines_service.list_recent_routine_logs(user_id, days=30)
+    logs = await routines_service.list_recent_routine_logs(user_id, days=7)
     if not logs:
         return 50.0
     active_step_ids = set(step_ids)

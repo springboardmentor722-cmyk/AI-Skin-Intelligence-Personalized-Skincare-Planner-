@@ -154,6 +154,31 @@ signup → assessment wizard → dashboard (real score via the new
 `/api/v1/assessment/score` alias path) → routine (`/api/v1/routine`) →
 recommendations → profile, **2 passed**.
 
+**Milestone 2 Phase 2 — scoring formula reconciliation — DONE (2026-07-14/15).**
+Checked all 5 `scoring_engine.py` sub-scores against `mile_2.docx` Step 3.1's literal
+text (not `docs/AI_ML.md`'s paraphrase): Skin Condition (tiered -15/-7 deduction) and
+Hydration (glasses/day standard) already matched exactly. Sleep (7-9h band + 40%
+self-rated quality, a richer superset of the docx's flat `hours/8`) and Lifestyle (4-part
+index + UV deduction, a superset of the docx's UV-only ask) are documented, deliberate
+supersets — kept as-is per the plan's own default, since a superset can't produce a
+narrower/contradictory answer than the docx's minimal spec. **Routine Consistency was a
+real mismatch, not a superset:** the docx says "last 7 days," the existing
+`_routine_adherence_score` used a 30-day window — a 30-day average can materially dilute
+a bad recent week with three good older ones, a genuinely different number, not a richer
+version of the same one. Fixed to 7 days
+(`scoring_engine.py::_routine_adherence_score`'s `list_recent_routine_logs(user_id,
+days=7)` call, plus that function's own default in `routines/service.py` — only caller
+already passed the value explicitly, changed for clarity, not correctness) and corrected
+`docs/AI_ML.md`'s own paraphrase to match. Re-ran the two Step 6.1 unit tests this
+change is expected to touch
+(`test_compute_and_store_score_is_perfect_for_an_ideal_profile`,
+`test_sensitive_skin_routine_never_includes_an_avoid_flagged_product` +
+`test_sensitive_routine_never_generates_a_treatment_step`) plus the full suite — all
+existing routine-adherence fixtures only ever log "today," so none were
+window-boundary-sensitive; no fixture values needed changing. `ruff`/`mypy --strict`
+clean, `pytest` 234 passed / 5 pre-existing unrelated MinIO failures (unchanged from
+Phase 1).
+
 M1 (weeks
 1–2) — architecture, DB schema, wireframes, env setup, Better Auth + RBAC, profile &
 lifestyle modules, seed data — is done; M1 had no AI (ADR-007).
