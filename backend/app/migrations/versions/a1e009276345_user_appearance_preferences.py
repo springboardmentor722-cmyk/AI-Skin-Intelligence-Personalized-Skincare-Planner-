@@ -26,9 +26,7 @@ down_revision: str | Sequence[str] | None = "0f62a9b1cdf4"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
-_PALETTE_VALUES = (
-    "('default', 'emerald', 'ocean', 'lavender', 'sunset', 'slate', 'rose', 'forest')"
-)
+_PALETTE_VALUES = "('default', 'emerald', 'ocean', 'lavender', 'sunset', 'slate', 'rose', 'forest')"
 _MODE_VALUES = "('light', 'dark', 'system')"
 
 
