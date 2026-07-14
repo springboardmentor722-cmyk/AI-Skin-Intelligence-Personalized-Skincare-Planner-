@@ -3,7 +3,7 @@ import datetime
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.storage import build_key, upload
+from app.core.storage import VERIFICATION_DOCUMENT_CONTENT_TYPES, build_key, upload
 from app.core.storage import delete as delete_object
 from app.services.admin import service as admin_service
 from app.services.admin.models import VerificationDocument
@@ -103,10 +103,9 @@ async def upload_document(
     document_type: str,
     data: bytes,
     filename: str,
-    content_type: str | None,
 ) -> VerificationDocument:
     key = build_key(prefix="verification-documents", owner_user_id=user_id, filename=filename)
-    await upload(key, data, content_type=content_type)
+    await upload(key, data, allowed_content_types=VERIFICATION_DOCUMENT_CONTENT_TYPES)
     return await admin_service.create_document(
         db,
         owner_user_id=user_id,

@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, s
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import require_role
+from app.core.storage import MAX_UPLOAD_BYTES, FileValidationError
 from app.db.postgres import get_db
 from app.services.consultant_profile import service
 from app.services.consultant_profile.schemas import (
@@ -76,15 +77,19 @@ async def upload_my_document(
     document_type: Annotated[DocumentType, Form()],
     file: Annotated[UploadFile, File()],
 ) -> VerificationDocumentRead:
-    data = await file.read()
-    document = await service.upload_document(
-        db,
-        user_id=user["id"],
-        document_type=document_type,
-        data=data,
-        filename=file.filename or "document",
-        content_type=file.content_type,
-    )
+    # Bounded read (MAX_UPLOAD_BYTES + 1, one call) — never buffers an unbounded
+    # body into memory before rejecting an oversized upload.
+    data = await file.read(MAX_UPLOAD_BYTES + 1)
+    try:
+        document = await service.upload_document(
+            db,
+            user_id=user["id"],
+            document_type=document_type,
+            data=data,
+            filename=file.filename or "document",
+        )
+    except FileValidationError as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
     return VerificationDocumentRead.model_validate(document)
 
 
