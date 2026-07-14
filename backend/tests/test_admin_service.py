@@ -329,7 +329,9 @@ async def test_get_document_view_url_returns_a_working_presigned_url(
     key = build_key(
         prefix="verification-documents", owner_user_id=test_user_id, filename="cert.pdf"
     )
-    await upload(key, b"admin review test bytes", content_type="application/pdf")
+    await upload(
+        key, b"%PDF-1.4\nadmin review test bytes", allowed_content_types={"application/pdf"}
+    )
     document = await create_document(
         db_session,
         owner_user_id=test_user_id,
@@ -347,7 +349,7 @@ async def test_get_document_view_url_returns_a_working_presigned_url(
         async with httpx.AsyncClient() as client:
             response = await client.get(url)
         assert response.status_code == 200
-        assert response.content == b"admin review test bytes"
+        assert response.content == b"%PDF-1.4\nadmin review test bytes"
     finally:
         await delete_object(document.storage_key)
 
