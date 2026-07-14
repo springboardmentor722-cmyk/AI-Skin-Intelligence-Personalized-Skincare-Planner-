@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.postgres import external_user_table
@@ -66,15 +66,39 @@ async def _verify_assignment(
     return assignment
 
 
-async def list_my_clients(db: AsyncSession, professional_id: str) -> list[ClientSummaryRead]:
-    result = await db.execute(
-        select(ConsultantClient).where(
+async def list_my_clients(
+    db: AsyncSession, professional_id: str, *, page: int = 1, page_size: int = 20
+) -> tuple[list[ClientSummaryRead], int]:
+    """Production-readiness audit finding: this had no LIMIT at all — every active
+    assignment, unbounded, on every call, each one also driving 3 further queries
+    (_get_user_row/get_current_profile/get_recent_scores) in the loop below — a
+    real N+1 whose blast radius scales with a professional's *entire* client
+    count. Paginated at the SQL level (LIMIT/OFFSET on the initial query, not
+    fetch-everything-then-slice in Python like admin/service.py's own precedent)
+    so an unpaginated professional's full client count never gets fetched or
+    processed for a single page — bounds both the response size and the N+1's
+    real cost per call, though the N+1 itself isn't fixed this pass."""
+    count_result = await db.execute(
+        select(func.count())
+        .select_from(ConsultantClient)
+        .where(
             ConsultantClient.consultant_id == professional_id, ConsultantClient.status == "active"
         )
     )
+    total = count_result.scalar_one()
+
+    result = await db.execute(
+        select(ConsultantClient)
+        .where(
+            ConsultantClient.consultant_id == professional_id, ConsultantClient.status == "active"
+        )
+        .order_by(ConsultantClient.assignment_id)
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+    )
     assignments = list(result.scalars().all())
     if not assignments:
-        return []
+        return [], total
 
     all_skin_types = await skin_profile_service.list_skin_types(db)
     skin_types = {t.skin_type_id: t.skin_type_name for t in all_skin_types}
@@ -106,7 +130,7 @@ async def list_my_clients(db: AsyncSession, professional_id: str) -> list[Client
                 last_sync=latest.calculated_at if latest else None,
             )
         )
-    return summaries
+    return summaries, total
 
 
 async def get_client_detail(
