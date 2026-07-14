@@ -2007,6 +2007,29 @@ behind is real.
   correctly reached its real handler and returned a real 401 — then Redis
   was restarted and full health confirmed restored.
 
+- **2026-07-14 — Production-readiness audit, round 4, first fix:
+  `perf/add-missing-indexes`.** Real database index audit (every table's real
+  indexes inventoried via `pg_index`, not guessed) found `routine_products`
+  had zero indexes beyond its own PK — confirmed via a real `EXPLAIN ANALYZE`
+  that `WHERE step_id IN (...)` (queried on every `GET /routines/me`, per the
+  N+1 fixes earlier this round) does a real `Seq Scan`. Invisible at today's
+  ~7-row seed scale (Postgres correctly prefers seq scan for tiny tables —
+  confirmed the new index is real and usable by forcing the planner via
+  `SET enable_seqscan = off`, not just trusting `CREATE INDEX` succeeded).
+  Added indexes on `routine_products.step_id` (the actual query pattern) and
+  `.routine_id` (the `ON DELETE CASCADE` FK's own lookup efficiency, standard
+  practice independent of app-level queries). Also added
+  `products.category` (used by `list_products_for_skin_type`, called on every
+  routine generation and recommendation fetch) — masked today by the ~16-row
+  seed catalog, a real cost the moment the already-built, credential-blocked
+  Kaggle product pipeline runs and brings in thousands of real rows; a
+  data-volume increase this project has already built the ingestion code
+  for, not a hypothetical. New migration `c4f7e1a92d3b`, verified against a
+  genuinely fresh Postgres container (full chain from empty, correct
+  downgrade/re-upgrade, full 237-test suite passing) and applied to the real
+  dev database. `database_schemas/skinlytics_postgresql_schema_v3.sql`
+  updated to match.
+
 ## Partially Completed
 
 - ◐ `docker-compose.yml` — `minio` now added (Branch 1); still missing `web`, `api`,
