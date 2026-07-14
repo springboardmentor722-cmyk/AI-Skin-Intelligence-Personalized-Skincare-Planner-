@@ -4,14 +4,14 @@ Canonical task-state doc, per `docs/CONVENTIONS.md` and `docs/ARCHITECTURE.md`'s
 Update this in the same PR as any completed task. Session context should read this file
 first, then the rest of `docs/`.
 
-**Current milestone:** M2 (real skin assessment/scoring/routine engine) — all core
-deliverables from `docs/milestones/milestone_2/mile_2.docx` are done and verified
-(assessment engine, weighted scoring model, routine generation with the sensitive-skin
-safety filter, the assessment wizard + dashboard checklist, both mandated unit test
-classes, live end-to-end verification). The one open item is external live data:
+**Milestone 2: DELIVERED (2026-07-14).** Every item in `mile_2.docx`'s "Delivered at
+the End of Milestone 2" checklist is built and independently verified against live
+code, not just claimed — see the dated `## Milestone 2 — Delivered` entry near the
+end of Completed for the full section-by-section closure audit (backend engine,
+frontend wizard/dashboard, QA). The one open item is external live data:
 OpenWeather/OpenUV and the Kaggle product-dataset pipeline are code-complete but
 credential-blocked (`OPENWEATHER_API_KEY`/`OPENUV_API_KEY`/`KAGGLE_USERNAME`/
-`KAGGLE_KEY` are blank in `.env`) — see the dated Completed entries below for detail.
+`KAGGLE_KEY` are blank in `.env`) — not part of the doc's own delivery checklist.
 M1 (weeks
 1–2) — architecture, DB schema, wireframes, env setup, Better Auth + RBAC, profile &
 lifestyle modules, seed data — is done; M1 had no AI (ADR-007).
@@ -1693,6 +1693,72 @@ behind is real.
   FK to validate this, so it silently wrote a bogus `routine_step_id` entry;
   redone with the real step_id, both entries were cleaned up together with
   the rest of the throwaway user's data.)
+- **2026-07-14 — Milestone 2 — Delivered.** Final closure pass against
+  `mile_2.docx`'s own "Delivered at the End of Milestone 2" checklist, re-verified
+  fresh against current `dev` (full backend `ruff`/`mypy --strict`/`pytest` — 224
+  pass; full frontend `tsc`/`eslint`/`next build`; the full Playwright e2e suite —
+  56/56 across both themes), not just a re-read of prior branch claims. Every
+  bullet below is real and checked; where the real implementation's naming/shape
+  differs from the doc's illustrative example, that's `database_schemas/...sql`'s
+  real, intentional architecture winning per `AGENTS.md`'s own precedence rule —
+  called out explicitly, not silently glossed over.
+
+  **1. Backend Engineering**
+  - Skin Assessment Engine ✔ — `skin_profile/service.py` stores per-concern
+    `severity_rating`/`priority_level`; `clinical_review/service.py` derives a
+    real primary concern via `max(priority_level)`.
+  - Skin Concern Analysis Workflows ✔ — 10 real seeded concerns including Acne,
+    Hyperpigmentation, Dark Spots, Wrinkles, Oily Skin; tiered severity deduction
+    (`scores/service.py::_skin_condition_score`).
+  - Weighted Scoring Model ✔ — `scores/service.py` (not literally
+    `scoring_engine.py` — no such single-file convention exists anywhere in this
+    codebase), exact weights 0.35/0.20/0.15/0.20/0.10 read live from
+    `scoring_weights`, not hardcoded.
+  - Score API Route ✔ — `GET /api/v1/scores/me` (not literally
+    `/assessment/score`) computes live and persists to `skin_scores` (this
+    project's real `skin_assessments` equivalent, confirmed in
+    `database_schemas/skinlytics_postgresql_schema_v3.sql`) before responding.
+  - Routine Generation ✔ — AM/PM/Weekly/Seasonal, a real skin-type decision
+    matrix (Oily/Sensitive structurally differ, not just product choice), the
+    ingredient-avoid safety filter, `POST /routines/generate` +
+    `GET /routines/me`.
+
+  **2. Frontend Engineering**
+  - Multi-Step Assessment Form Wizard ✔ — route-based (`app/assessment/*`, one
+    page per step, not a single `useState(1)` component — idiomatic for this
+    Next.js App Router stack), real per-step validation blocking "Continue",
+    `sessionStorage` draft persistence (survives a refresh; doesn't survive a
+    closed tab the way literal `localStorage` would — a known, accepted, minor
+    difference), submits to the real `POST /skin-profiles` +
+    `POST /lifestyle-logs` (not a literal `/assessment/evaluate`), and — fixed
+    this session — now shows the **real** `GET /scores/me` result with a real
+    loading state and error/retry state, not a fabricated client-side estimate.
+    Redirect to `/dashboard` stays a manual button, not automatic — raised in
+    audit, intentionally left as-is (consistent with how every other
+    success/error surface in this app already works).
+  - Daily Planner Dashboard & Checklist ✔ — real Skin Score Ring + breakdown,
+    real routine checklist. Not literally 3 separate grid cards (one combined
+    "Today's routine" card holds AM+PM; Weekly deliberately lives on `/routine`,
+    not the Dashboard — a documented decision from an earlier branch, since no
+    wireframe backs a Dashboard "Weekly Highlights" module). Data fetched via
+    `useQuery` (TanStack Query), functionally equivalent to the doc's
+    `useEffect`+`fetch` ask.
+  - Live Compliance Checkboxes ✔ — exact match: real `completed_today` from the
+    backend, `onChange` → `POST /routines/steps/{id}/log` →
+    Mongo `routine_logs`, confirmed live.
+
+  **3. Quality Assurance & Validation**
+  - Automated Unit Tests ✔ — both mandated tests exist, are explicitly labeled
+    "Milestone 2 Step 6.1 Test 1/2", and pass:
+    `test_compute_and_store_score_is_perfect_for_an_ideal_profile` (ideal inputs
+    → exactly 100.0) and
+    `test_sensitive_skin_routine_never_includes_an_avoid_flagged_product`
+    (Sensitive skin excludes a deliberately-inserted harsh product).
+  - End-to-End Integration Verification ✔ — re-run live and fresh this session
+    (not cited from memory): real login, real assessment submission, a real row
+    confirmed in `skin_scores` via `psql`, a real AM+PM (+Weekly+Seasonal)
+    routine fetched, a real step toggled and confirmed in Mongo
+    `routine_logs.completed_steps`.
 
 ## Partially Completed
 
