@@ -215,6 +215,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/assessment/evaluate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Get My Score */
+        post: operations["get_my_score_api_v1_assessment_evaluate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assessment/score": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Score */
+        get: operations["get_my_score_api_v1_assessment_score_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/scores/me": {
         parameters: {
             query?: never;
@@ -224,6 +258,23 @@ export interface paths {
         };
         /** Get My Score */
         get: operations["get_my_score_api_v1_scores_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/routine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Routines */
+        get: operations["get_my_routines_api_v1_routine_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -243,6 +294,23 @@ export interface paths {
         get: operations["get_my_routines_api_v1_routines_me_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/routine/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate My Routines */
+        post: operations["generate_my_routines_api_v1_routine_generate_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -968,7 +1036,7 @@ export interface components {
         };
         /**
          * ClientScoreRead
-         * @description A read-only projection of the client's latest real skin_scores row (via
+         * @description A read-only projection of the client's latest real skin_assessments row (via
          *     scores_service.get_recent_scores) — never recomputed on a professional's
          *     behalf. Deliberately doesn't reuse scores/schemas.py's ScoreRead: that schema
          *     requires the nested scoring_weights row, which isn't needed for a clinical
@@ -2244,6 +2312,46 @@ export interface operations {
             };
         };
     };
+    get_my_score_api_v1_assessment_evaluate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScoreRead"];
+                };
+            };
+        };
+    };
+    get_my_score_api_v1_assessment_score_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScoreRead"];
+                };
+            };
+        };
+    };
     get_my_score_api_v1_scores_me_get: {
         parameters: {
             query?: never;
@@ -2264,7 +2372,47 @@ export interface operations {
             };
         };
     };
+    get_my_routines_api_v1_routine_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoutineRead"][];
+                };
+            };
+        };
+    };
     get_my_routines_api_v1_routines_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoutineRead"][];
+                };
+            };
+        };
+    };
+    generate_my_routines_api_v1_routine_generate_post: {
         parameters: {
             query?: never;
             header?: never;

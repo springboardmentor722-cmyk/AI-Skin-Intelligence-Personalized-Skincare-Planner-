@@ -98,6 +98,62 @@ but still credential-blocked (`OPENWEATHER_API_KEY`/`OPENUV_API_KEY` blank in `.
 — not part of the doc's own delivery checklist. The Kaggle product-dataset pipeline
 was credential-blocked too but is now unblocked and run for real (see above,
 2026-07-14).
+
+**Milestone 2 Phase 1 — literal rename — DONE (2026-07-14), full-auto run per
+`docs/milestones/milestone_2/MASTER_PROMPT.md`.** `skin_scores`→`skin_assessments`,
+`routines`→`skincare_routines` in `scores/models.py`/`routines/models.py` (class names
+kept, only `__tablename__`/FK targets changed), the canonical
+`database_schemas/skinlytics_postgresql_schema_v3.sql` (same rename, dated note in
+`README_v3_changes.md`), and a new non-destructive Alembic migration
+(`5e91a4c7d2b8`, `op.rename_table` — preserves every existing row/FK, no drop/recreate)
+applied live against the running dev Postgres. Did **not** add a `detected_concerns`
+JSONB column to `skin_assessments` despite the docx's illustrative schema naming one —
+it's derivable via a join against `skin_profile_concerns`, so a denormalized duplicate
+wasn't added (AGENTS.md's "don't invent a column" rule; this was the plan's own stated
+default). New docx-literal endpoints added as the canonical routes —
+`GET /api/v1/assessment/score`, `POST /api/v1/assessment/evaluate` (scores/router.py,
+same handler as the old route — this app has no separate submit-a-whole-profile-inline
+endpoint, the Skin Profile service already owns profile writes), `GET /api/v1/routine`,
+`POST /api/v1/routine/generate` (routines/router.py) — old `/scores/me`, `/routines/me`,
+`/routines/generate` kept as deprecated aliases (same handler, multiple route
+decorators) since Phase 1.4 needed them alive while updating every consumer; remove
+once nothing calls them. Frontend consumers updated exactly per the plan's own grep:
+`web/app/(user)/routine/page.tsx`, `web/app/assessment/results/page.tsx`,
+`web/app/(user)/routine/edit/[routineId]/page.tsx`, `web/app/(user)/dashboard/page.tsx`,
+`web/components/dashboard/routine-checklist-card.tsx` (comment only),
+`web/lib/api-types.ts` (regenerated via `make openapi`, not hand-edited). One gap the
+plan's own grep missed (scoped to `web/app web/components web/lib`, not
+`web/tests`): `web/tests/e2e/helpers.ts`'s `deleteTestUser` ran raw SQL against
+`routines`/`skin_scores` directly — fixed to the new names, plus a comment in
+`user-journey.spec.ts`.
+
+Found and fixed one real, unrelated pre-existing bug while verifying live: root
+`.env`'s `BETTER_AUTH_SECRET` was blank (also blank in `.env.development` and
+`web/.env.ci-verify-backup`) — harmless in `next dev` but a hard crash
+(`BetterAuthError: You are using the default secret`) under the production build
+Playwright's `webServer` runs. Unlike Kaggle/OpenWeather, this isn't a third-party
+credential with no workaround (AGENTS.md §0.2's hard-stop bar) — it's a local signing
+secret anyone can generate, and root `.env`'s own header comment says as much
+("generate/obtain them... put the real values in a gitignored `.env`"). Generated one
+locally (`openssl rand -base64 32`) and set it — `.env` is gitignored, nothing
+committed. That in turn made the single stale `jwks` row (encrypted under the old
+blank secret) undecryptable — cleared it (1 row, a regenerable signing key, not user
+data) per Better Auth's own suggested fix.
+
+**Verified live, not just unit-tested:** `ruff`/`mypy --strict` clean, `pytest` 234
+passed / 5 failed (same pre-existing unrelated MinIO failures as before this phase —
+`InvalidAccessKeyId`, nothing to do with this rename). Frontend `tsc --noEmit`, `next
+build`, and a scoped `eslint` run (targeting `app`/`components`/`lib` — a stray local
+`playwright-report/` directory, gitignored generated test output, pollutes an
+unscoped `eslint .`/`npm run lint` with thousands of unrelated warnings from a minified
+bundle; not fixed here, pre-existing eslint-config gap, out of this phase's scope) all
+clean. Ran the real cross-theme Playwright e2e journey
+(`tests/e2e/user-journey.spec.ts`, both `chromium-light`/`chromium-dark`) against a
+live backend (`uvicorn`, port 8000) and the renamed tables/endpoints end-to-end —
+signup → assessment wizard → dashboard (real score via the new
+`/api/v1/assessment/score` alias path) → routine (`/api/v1/routine`) →
+recommendations → profile, **2 passed**.
+
 M1 (weeks
 1–2) — architecture, DB schema, wireframes, env setup, Better Auth + RBAC, profile &
 lifestyle modules, seed data — is done; M1 had no AI (ADR-007).
