@@ -27,12 +27,37 @@ _STEP_INSTRUCTIONS = {
 _WEEKLY_STEP_INSTRUCTIONS = {
     "Treatment": "Use 2-3 times per week, not daily — allow skin to rest in between applications.",
 }
-_AM_CATEGORIES = ["Cleanser", "Treatment", "Moisturizer", "Sunscreen"]
-_PM_CATEGORIES = ["Cleanser", "Treatment", "Moisturizer"]
+_STANDARD_AM_CATEGORIES = ["Cleanser", "Treatment", "Moisturizer", "Sunscreen"]
+_STANDARD_PM_CATEGORIES = ["Cleanser", "Treatment", "Moisturizer"]
 # The seed catalog (backend/app/db/seed.py) has no dedicated exfoliant/mask product
 # category — Weekly Care's one real, non-invented category is Treatment, the same
 # actives AM/PM already draw from, just at a lower cadence (see _WEEKLY_STEP_INSTRUCTIONS).
 _WEEKLY_CATEGORIES = ["Treatment"]
+
+# Milestone 2 Step 1.3's own literal examples: Oily and Sensitive get a
+# *structurally* different AM/PM step list, not just a different product within an
+# identical step list. The doc's Oily PM names a "Night Care" step — no such product
+# category exists in the real catalog (products.category: Cleanser/Sunscreen/
+# Moisturizer/Treatment, the same real-catalog constraint Weekly Care's own comment
+# above documents) — mapped onto Moisturizer, the closest real equivalent (a richer
+# product used only at night), not invented as a new category. Normal/Dry/
+# Combination aren't named in the doc's two examples, so they default to the
+# standard structure above rather than guessing a difference the doc never specified.
+_SKIN_TYPE_STEP_MATRIX: dict[str, dict[str, list[str]]] = {
+    "Oily": {"AM": ["Cleanser", "Treatment", "Sunscreen"], "PM": _STANDARD_PM_CATEGORIES},
+    "Sensitive": {
+        "AM": ["Cleanser", "Moisturizer", "Sunscreen"],
+        "PM": ["Cleanser", "Moisturizer"],
+    },
+}
+
+
+def _am_pm_categories_for_skin_type(skin_type_name: str | None) -> tuple[list[str], list[str]]:
+    entry = _SKIN_TYPE_STEP_MATRIX.get(skin_type_name or "")
+    if entry is None:
+        return _STANDARD_AM_CATEGORIES, _STANDARD_PM_CATEGORIES
+    return entry["AM"], entry["PM"]
+
 
 # Milestone 2's own deliverable list names "seasonal" routines explicitly, but there's
 # no wireframe/AI_ML.md spec for the mechanic and no ingredient-weight tagging
@@ -113,6 +138,7 @@ async def _read_with_steps(db: AsyncSession, routine: Routine) -> RoutineRead:
         routine_name=routine.routine_name,
         routine_type=routine.routine_type,
         description=routine.description,
+        score_id=routine.score_id,
         steps=step_reads,
     )
 
@@ -126,6 +152,7 @@ async def _generate_routine(
     skin_type_id: int,
     concern_ids: list[int],
     step_instructions: dict[str, str] = _STEP_INSTRUCTIONS,
+    score_id: int | None = None,
 ) -> Routine:
     rng = seeded_random(user_id, "routine", routine_type)
     # Hard safety filter (Milestone 2 Step 4 / docs/AI_ML.md Principle 3) — never
@@ -143,6 +170,7 @@ async def _generate_routine(
         description=f"Starter {routine_type} routine based on your skin profile.",
         is_active=True,
         generated_by_ai=True,
+        score_id=score_id,
     )
     db.add(routine)
     await db.flush()  # assigns routine.routine_id without committing yet
@@ -197,6 +225,14 @@ async def get_or_generate_routines(db: AsyncSession, user_id: str) -> list[Routi
     deactivated, not deleted, matching this file's existing `is_active` pattern
     elsewhere. AM/PM/Weekly are untouched by a season change.
 
+    AM/PM step *structure* (not just product choice) now varies by skin type per
+    Milestone 2 Step 1.3's decision matrix (`_SKIN_TYPE_STEP_MATRIX`) — e.g. Sensitive
+    skips the Treatment step entirely rather than filling it with a gentler product.
+    Each generated routine also carries `score_id`, a best-effort link to whichever
+    `skin_scores` row was most recently computed for this user (Milestone 2 Step 1.1's
+    "assessment_id" traceability) — null if no score has ever been computed; this
+    function never computes one itself as a side effect.
+
     Regenerating AM/PM/Weekly automatically after a skin-profile update isn't built yet
     (routines has no skin_profile_id column to key off — database_schemas/...sql) — a
     known M1 gap, tracked in PROGRESS.md."""
@@ -220,12 +256,42 @@ async def get_or_generate_routines(db: AsyncSession, user_id: str) -> list[Routi
         return [await _read_with_steps(db, r) for r in existing]
     concern_ids = [c.concern_id for c in profile.concerns]
 
+    skin_types = await skin_profile_service.list_skin_types(db)
+    skin_type_name = next(
+        (t.skin_type_name for t in skin_types if t.skin_type_id == profile.skin_type_id), None
+    )
+    am_categories, pm_categories = _am_pm_categories_for_skin_type(skin_type_name)
+
+    # Local import: scores/service.py already imports routines/service.py (for the
+    # routine_adherence score component), so a module-level import here would be
+    # circular. Best-effort only — never computes a fresh score as a side effect of
+    # this (a GET-triggered) routine generation, see the score_id column's own comment
+    # in routines/models.py.
+    from app.services.scores import service as scores_service
+
+    recent_scores = await scores_service.get_recent_scores(db, user_id)
+    score_id = recent_scores[-1].score_id if recent_scores else None
+
     if not core:
         am = await _generate_routine(
-            db, user_id, "AM", "Morning Routine", _AM_CATEGORIES, profile.skin_type_id, concern_ids
+            db,
+            user_id,
+            "AM",
+            "Morning Routine",
+            am_categories,
+            profile.skin_type_id,
+            concern_ids,
+            score_id=score_id,
         )
         pm = await _generate_routine(
-            db, user_id, "PM", "Evening Routine", _PM_CATEGORIES, profile.skin_type_id, concern_ids
+            db,
+            user_id,
+            "PM",
+            "Evening Routine",
+            pm_categories,
+            profile.skin_type_id,
+            concern_ids,
+            score_id=score_id,
         )
         weekly = await _generate_routine(
             db,
@@ -236,6 +302,7 @@ async def get_or_generate_routines(db: AsyncSession, user_id: str) -> list[Routi
             profile.skin_type_id,
             concern_ids,
             step_instructions=_WEEKLY_STEP_INSTRUCTIONS,
+            score_id=score_id,
         )
         core = [am, pm, weekly]
 
@@ -250,6 +317,7 @@ async def get_or_generate_routines(db: AsyncSession, user_id: str) -> list[Routi
             _SEASON_CATEGORIES[season],
             profile.skin_type_id,
             concern_ids,
+            score_id=score_id,
         )
 
     # Guaranteed non-None here: the `core and not needs_seasonal_refresh` branch above
