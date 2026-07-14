@@ -11,6 +11,8 @@ from app.services.clinical_review.schemas import (
     ClientListPage,
     ClientListPageMeta,
     ConsultantNoteCreate,
+    ConsultantNoteListPage,
+    ConsultantNoteListPageMeta,
     ConsultantNoteRead,
 )
 
@@ -55,11 +57,18 @@ async def get_client_notes(
     user_id: str,
     professional: Annotated[dict[str, Any], Depends(_professional)],
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> list[ConsultantNoteRead]:
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
+) -> ConsultantNoteListPage:
     try:
-        return await service.list_notes(db, professional["id"], user_id)
+        items, total = await service.list_notes(
+            db, professional["id"], user_id, page=page, page_size=page_size
+        )
     except ValueError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+    return ConsultantNoteListPage(
+        items=items, meta=ConsultantNoteListPageMeta(page=page, page_size=page_size, total=total)
+    )
 
 
 @router.post("/clients/{user_id}/notes")

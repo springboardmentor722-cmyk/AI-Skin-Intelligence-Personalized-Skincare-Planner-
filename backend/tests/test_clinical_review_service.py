@@ -125,9 +125,35 @@ async def test_add_and_list_notes_for_an_assigned_client(
     await add_note(db_session, professional_id, client_user_id, "First note")
     await add_note(db_session, professional_id, client_user_id, "Second note")
 
-    notes = await list_notes(db_session, professional_id, client_user_id)
+    notes, total = await list_notes(db_session, professional_id, client_user_id)
 
+    assert total == 2
     assert [n.note_text for n in notes] == ["Second note", "First note"]
+
+
+async def test_list_notes_pagination_is_real(
+    db_session: AsyncSession, professional_id: str, client_user_id: str
+) -> None:
+    """Production-readiness audit finding (round 4): list_notes had no LIMIT
+    either — same shape as list_my_clients's own pagination bug and test."""
+    await create_assignment(db_session, professional_id, client_user_id)
+    for i in range(3):
+        await add_note(db_session, professional_id, client_user_id, f"Note {i}")
+
+    page_one, total_one = await list_notes(
+        db_session, professional_id, client_user_id, page=1, page_size=2
+    )
+    page_two, total_two = await list_notes(
+        db_session, professional_id, client_user_id, page=2, page_size=2
+    )
+
+    assert total_one == 3
+    assert total_two == 3
+    assert len(page_one) == 2
+    assert len(page_two) == 1
+    page_one_ids = {n.note_id for n in page_one}
+    page_two_ids = {n.note_id for n in page_two}
+    assert page_one_ids.isdisjoint(page_two_ids)
 
 
 async def test_create_assignment_is_idempotent(
