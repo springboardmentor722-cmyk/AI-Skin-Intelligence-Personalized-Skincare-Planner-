@@ -34,6 +34,39 @@ _PM_CATEGORIES = ["Cleanser", "Treatment", "Moisturizer"]
 # actives AM/PM already draw from, just at a lower cadence (see _WEEKLY_STEP_INSTRUCTIONS).
 _WEEKLY_CATEGORIES = ["Treatment"]
 
+# Milestone 2's own deliverable list names "seasonal" routines explicitly, but there's
+# no wireframe/AI_ML.md spec for the mechanic and no ingredient-weight tagging
+# (Occlusive/Humectant/etc.) in the real schema (database_schemas/...sql's
+# `ingredients.category` only holds active-ingredient types: AHAs/BHAs, Retinoids,
+# etc.) — so this can't honestly swap "heavier vs lighter" products the way a real
+# dermatologist would. What IS real: `products.category` (Cleanser/Sunscreen/
+# Moisturizer/Treatment). A calendar-quarter swap of *which categories* a season's
+# routine emphasizes is the honest version of this feature, using only that field.
+_SEASON_CATEGORIES: dict[str, list[str]] = {
+    "Winter": ["Cleanser", "Moisturizer", "Treatment"],
+    "Spring": ["Cleanser", "Moisturizer", "Sunscreen"],
+    "Summer": ["Cleanser", "Sunscreen", "Treatment"],
+    "Fall": ["Cleanser", "Moisturizer", "Sunscreen"],
+}
+_SEASON_BY_MONTH: dict[int, str] = {
+    12: "Winter",
+    1: "Winter",
+    2: "Winter",
+    3: "Spring",
+    4: "Spring",
+    5: "Spring",
+    6: "Summer",
+    7: "Summer",
+    8: "Summer",
+    9: "Fall",
+    10: "Fall",
+    11: "Fall",
+}
+
+
+def _current_season(today: datetime.date | None = None) -> str:
+    return _SEASON_BY_MONTH[(today or datetime.datetime.now(datetime.UTC).date()).month]
+
 
 async def _read_with_steps(db: AsyncSession, routine: Routine) -> RoutineRead:
     steps_result = await db.execute(
@@ -125,9 +158,7 @@ async def _generate_routine(
             db, [p.product_id for p in candidates]
         )
         concern_matches = [
-            p
-            for p in candidates
-            if set(product_concerns.get(p.product_id, [])) & set(concern_ids)
+            p for p in candidates if set(product_concerns.get(p.product_id, [])) & set(concern_ids)
         ]
         chosen = rng.choice(concern_matches or candidates)
 
@@ -156,50 +187,82 @@ async def get_or_generate_routines(db: AsyncSession, user_id: str) -> list[Routi
     surfaces don't include one), so this is rule-based candidate selection over the
     skin_type/concern junction tables (ADR-001: relationship queries are indexed joins,
     not a graph DB), with a seeded pick where multiple products qualify. Generates AM,
-    PM, and Weekly Care (Milestone 2) — three real routines, not the Dashboard's
-    AM/PM-only checklist.
+    PM, Weekly Care, and Seasonal Care (Milestone 2) — four real routines, not the
+    Dashboard's AM/PM-only checklist.
 
-    Generated once per user and reused on subsequent reads. Regenerating automatically
-    after a skin-profile update isn't built yet (routines has no skin_profile_id column
-    to key off — database_schemas/...sql) — a known M1 gap, tracked in PROGRESS.md."""
-    existing = await db.execute(
+    AM/PM/Weekly are generated once per user and reused on subsequent reads, same as
+    before. Seasonal is the one exception: it's regenerated whenever the current
+    calendar season (see `_current_season`) no longer matches the season its
+    `routine_name` (e.g. "Winter Care") was generated for — the old Seasonal row is
+    deactivated, not deleted, matching this file's existing `is_active` pattern
+    elsewhere. AM/PM/Weekly are untouched by a season change.
+
+    Regenerating AM/PM/Weekly automatically after a skin-profile update isn't built yet
+    (routines has no skin_profile_id column to key off — database_schemas/...sql) — a
+    known M1 gap, tracked in PROGRESS.md."""
+    existing_result = await db.execute(
         select(Routine).where(Routine.user_id == user_id, Routine.is_active.is_(True))
     )
-    routines = list(existing.scalars().all())
-    if routines:
-        return [await _read_with_steps(db, r) for r in routines]
+    existing = list(existing_result.scalars().all())
+    core = [r for r in existing if r.routine_type != "Seasonal"]
+    seasonal = next((r for r in existing if r.routine_type == "Seasonal"), None)
+
+    season = _current_season()
+    seasonal_name = f"{season} Care"
+    needs_seasonal_refresh = seasonal is None or seasonal.routine_name != seasonal_name
+
+    if core and not needs_seasonal_refresh:
+        return [await _read_with_steps(db, r) for r in existing]
 
     profile = await skin_profile_service.get_current_profile(db, user_id)
     if profile is None:
-        return []
+        # Nothing to (re)generate against — return whatever already exists as-is.
+        return [await _read_with_steps(db, r) for r in existing]
     concern_ids = [c.concern_id for c in profile.concerns]
 
-    am = await _generate_routine(
-        db, user_id, "AM", "Morning Routine", _AM_CATEGORIES, profile.skin_type_id, concern_ids
-    )
-    pm = await _generate_routine(
-        db, user_id, "PM", "Evening Routine", _PM_CATEGORIES, profile.skin_type_id, concern_ids
-    )
-    weekly = await _generate_routine(
-        db,
-        user_id,
-        "Weekly",
-        "Weekly Care",
-        _WEEKLY_CATEGORIES,
-        profile.skin_type_id,
-        concern_ids,
-        step_instructions=_WEEKLY_STEP_INSTRUCTIONS,
-    )
-    await db.commit()
-    await db.refresh(am)
-    await db.refresh(pm)
-    await db.refresh(weekly)
+    if not core:
+        am = await _generate_routine(
+            db, user_id, "AM", "Morning Routine", _AM_CATEGORIES, profile.skin_type_id, concern_ids
+        )
+        pm = await _generate_routine(
+            db, user_id, "PM", "Evening Routine", _PM_CATEGORIES, profile.skin_type_id, concern_ids
+        )
+        weekly = await _generate_routine(
+            db,
+            user_id,
+            "Weekly",
+            "Weekly Care",
+            _WEEKLY_CATEGORIES,
+            profile.skin_type_id,
+            concern_ids,
+            step_instructions=_WEEKLY_STEP_INSTRUCTIONS,
+        )
+        core = [am, pm, weekly]
 
-    return [
-        await _read_with_steps(db, am),
-        await _read_with_steps(db, pm),
-        await _read_with_steps(db, weekly),
-    ]
+    if needs_seasonal_refresh:
+        if seasonal is not None:
+            seasonal.is_active = False
+        seasonal = await _generate_routine(
+            db,
+            user_id,
+            "Seasonal",
+            seasonal_name,
+            _SEASON_CATEGORIES[season],
+            profile.skin_type_id,
+            concern_ids,
+        )
+
+    # Guaranteed non-None here: the `core and not needs_seasonal_refresh` branch above
+    # already returned early otherwise, and needs_seasonal_refresh=True always runs the
+    # generation block just above, which assigns a real Routine to `seasonal`.
+    assert seasonal is not None
+
+    await db.commit()
+    all_routines = [*core, seasonal]
+    for routine in all_routines:
+        await db.refresh(routine)
+
+    return [await _read_with_steps(db, routine) for routine in all_routines]
 
 
 # --- Routine completion logs (Mongo, M2) ---
@@ -251,9 +314,7 @@ async def list_recent_routine_logs(user_id: str, days: int = 30) -> list[dict[st
     since = _day_start(
         datetime.datetime.now(datetime.UTC).date() - datetime.timedelta(days=days - 1)
     )
-    cursor = collection.find({"user_id": user_id, "log_date": {"$gte": since}}).sort(
-        "log_date", -1
-    )
+    cursor = collection.find({"user_id": user_id, "log_date": {"$gte": since}}).sort("log_date", -1)
     return [doc async for doc in cursor]
 
 
@@ -324,9 +385,7 @@ async def reorder_steps(
     db: AsyncSession, user_id: str, routine_id: int, step_ids: list[int]
 ) -> RoutineRead:
     routine = await _get_owned_routine(db, user_id, routine_id)
-    steps_result = await db.execute(
-        select(RoutineStep).where(RoutineStep.routine_id == routine_id)
-    )
+    steps_result = await db.execute(select(RoutineStep).where(RoutineStep.routine_id == routine_id))
     steps_by_id = {s.step_id: s for s in steps_result.scalars().all()}
     if set(step_ids) != set(steps_by_id):
         raise ValueError("step_ids must match the routine's existing steps exactly")
@@ -407,9 +466,7 @@ async def update_step(
         routine_product = rp_result.scalars().first()
         if routine_product is None:
             db.add(
-                RoutineProduct(
-                    routine_id=step.routine_id, product_id=product_id, step_id=step_id
-                )
+                RoutineProduct(routine_id=step.routine_id, product_id=product_id, step_id=step_id)
             )
         else:
             routine_product.product_id = product_id
