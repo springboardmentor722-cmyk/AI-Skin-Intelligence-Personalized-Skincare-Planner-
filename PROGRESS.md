@@ -1948,6 +1948,31 @@ behind is real.
     codebase (this project tracks open work in `PROGRESS.md`, not inline
     comments) — nothing to clean up.
 
+- **2026-07-14 — Production-readiness audit, round 3, first fix:
+  `perf/generate-routine-n-plus-one`.** Closes round 2's own recorded
+  recommendation: `_generate_routine`'s per-category loop ran 2 extra queries
+  per category (`list_products_for_skin_type`, `list_concern_ids_for_products`)
+  instead of fetching every candidate once and filtering in Python — both
+  helpers already supported this (`category=None` / a full `product_id` list).
+  Lower-value than the read-path fix (only runs once per user; routines are
+  generated once and reused), but real and empirically measured, not
+  estimated: 75 queries with the old code, 61 with the fix, for an identical
+  scenario (temporarily reverted the fix locally to get the "before" number,
+  same discipline as the read-path fix). Added an explicit
+  `ORDER BY product_id` to `list_products_for_skin_type` — without it,
+  fetching all candidates unfiltered vs. category-filtered isn't guaranteed to
+  return the same relative row order, which would make the seeded_random
+  choice among candidates silently unstable depending on which query shape
+  ran; verified no test anywhere asserts *which specific* product
+  `_generate_routine` picks (only "a real product exists" or "the unsafe one
+  never appears"), so this is safe. New regression test with a ceiling set
+  between the two empirically-measured numbers (61 and 75) — tight enough to
+  catch a real regression, loose enough not to flake. 233 backend tests pass;
+  `ruff`/`ruff format --check`/`mypy --strict` clean. Verified live: a real
+  Sensitive-skin profile, real routine generation, confirmed every step still
+  resolves a real, safe product (output unchanged, only the query pattern
+  improved) — then cleaned up.
+
 ## Partially Completed
 
 - ◐ `docker-compose.yml` — `minio` now added (Branch 1); still missing `web`, `api`,
