@@ -111,7 +111,7 @@ async def test_get_client_detail_returns_real_profile_score_and_routines(
     assert detail.skin_profile.skin_type_id == _SKIN_TYPE_WITH_SEEDED_PRODUCTS
     assert detail.score is not None
     assert detail.score.overall_score is not None
-    assert {r.routine_type for r in detail.routines} == {"AM", "PM", "Weekly"}
+    assert {r.routine_type for r in detail.routines} == {"AM", "PM", "Weekly", "Seasonal"}
 
 
 async def test_add_and_list_notes_for_an_assigned_client(

@@ -6,6 +6,7 @@ import { useState } from "react";
 import {
   CalendarDays,
   FlaskConical,
+  Leaf,
   Moon,
   Pencil,
   RotateCw,
@@ -31,7 +32,7 @@ import type { components } from "@/lib/api-types";
 
 type RoutineRead = components["schemas"]["RoutineRead"];
 type RoutineStepRead = components["schemas"]["RoutineStepRead"];
-type RoutineType = "AM" | "PM" | "Weekly";
+type RoutineType = "AM" | "PM" | "Weekly" | "Seasonal";
 
 // web/designs/wireframes/app-routine{,-dark}.html — the "My Routine" screen
 // (web/lib/nav-config.ts's own "My Routine" entry, previously built: false).
@@ -40,14 +41,15 @@ type RoutineType = "AM" | "PM" | "Weekly";
 // Two things in the raw wireframe are deliberately NOT reproduced here, same
 // "raw exports never ship" precedent the Dashboard already established for its own
 // wireframe's undocumented, no-backing-data modules:
-//   - The Seasonal banner ("winter adjustments ready...") and "Regenerate with AI"
-//     button — no weather/season integration exists (OPENWEATHER_API_KEY/
-//     OPENUV_API_KEY are unset, PROGRESS.md). Fabricating this copy would be exactly
-//     the fake-AI-output problem AGENTS.md §4 warns against. "Edit routine" itself
-//     is real now (routine/edit/[routineId]/page.tsx) — the deferred half shipped.
+//   - The wireframe's "Regenerate with AI" button — no such regeneration action
+//     exists ("Edit routine" itself is real, routine/edit/[routineId]/page.tsx). The
+//     wireframe's own Seasonal banner copy ("winter adjustments ready...") was
+//     fabricated too, but a real seasonal routine now exists (backend
+//     routines/service.py, quarter-based: Winter/Spring/Summer/Fall by calendar
+//     month) — its tab below renders that real data, not the wireframe's copy.
 //   - The wireframe's PM tab content is a literal unfinished placeholder ("PM Routine
 //     details are loading..."). The real PM tab renders real step cards, same as AM.
-const TABS: { type: RoutineType; label: string; icon: typeof Sun }[] = [
+const CORE_TABS: { type: "AM" | "PM" | "Weekly"; label: string; icon: typeof Sun }[] = [
   { type: "AM", label: "AM Routine", icon: Sun },
   { type: "PM", label: "PM Routine", icon: Moon },
   { type: "Weekly", label: "Weekly Care", icon: CalendarDays },
@@ -186,6 +188,16 @@ export default function MyRoutinePage() {
 
   const routines = routinesQuery.data ?? [];
   const totalSteps = routines.reduce((sum, r) => sum + r.steps.length, 0);
+  const seasonalRoutine = routines.find((r) => r.routine_type === "Seasonal");
+  // Seasonal's label is real backend data (e.g. "Winter Care", quarter-based —
+  // routines/service.py::_current_season), not a hardcoded string, since which
+  // season is current changes over the year.
+  const tabs = [
+    ...CORE_TABS,
+    ...(seasonalRoutine
+      ? [{ type: "Seasonal" as const, label: seasonalRoutine.routine_name ?? "Seasonal Care", icon: Leaf }]
+      : []),
+  ];
 
   return (
     <div className="flex flex-col gap-8">
@@ -193,7 +205,7 @@ export default function MyRoutinePage() {
         <h1 className="font-heading text-on-surface text-2xl font-bold">My Routine</h1>
         <p className="text-on-surface-variant mt-1 font-sans text-sm">
           {totalSteps > 0
-            ? `Personalized morning, evening, and weekly care — ${totalSteps} steps in total.`
+            ? `Personalized morning, evening, weekly, and seasonal care — ${totalSteps} steps in total.`
             : "Your personalized routine, generated from your skin profile."}
         </p>
       </div>
@@ -214,7 +226,7 @@ export default function MyRoutinePage() {
       ) : (
         <div>
           <div className="border-border mb-6 flex gap-8 border-b">
-            {TABS.map(({ type, label, icon: Icon }) => (
+            {tabs.map(({ type, label, icon: Icon }) => (
               <button
                 key={type}
                 onClick={() => setActiveTab(type)}
