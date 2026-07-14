@@ -1855,6 +1855,40 @@ behind is real.
     **full 56-spec Playwright e2e suite across both themes** all pass on `dev`
     as of the last commit in this round.
 
+- **2026-07-14 — Production-readiness audit, round 2, first fix:
+  `security/upload-content-validation`.** Real, previously-undocumented-as-fixed
+  gap found by re-reading `database_schemas/skinlytics_infrastructure_layer_v2.txt`
+  §2's own "Upload constraints (enforced at the API gateway)" — "content-type
+  validated server-side, never trusted from the client" and "max 10 MB" were both
+  already documented requirements, never implemented. `core/storage.py::upload()`
+  passed the client's spoofable `Content-Type` header straight into the stored
+  S3 object's own `ContentType`; the admin verification-queue UI
+  (`web/app/admin/users/verification/[role]/[userId]/page.tsx`) opens presigned
+  URLs directly via `window.open` — a malicious unverified consultant/
+  dermatologist applicant could have uploaded `text/html`/`image/svg+xml`
+  content that executes when an admin reviews it. Fixed with real magic-byte
+  sniffing (`sniff_content_type`, pure Python, no new dependency) — the stored
+  content-type is always derived from the file's real bytes, never the
+  caller's claim; callers pass their own allowlist
+  (`VERIFICATION_DOCUMENT_CONTENT_TYPES` = PDF + the doc's own jpg/png/webp
+  list — PDF added since government IDs/licenses are routinely PDF scans, a
+  flagged, reasoned addition, not silently invented). Size capped at the
+  documented 10 MB via a single bounded `file.read(MAX_UPLOAD_BYTES + 1)` in
+  both routers — never buffers an unbounded body into memory before rejecting
+  an oversized upload, a real DoS consideration beyond just the content-type
+  fix. 6 new tests (real format recognition, HTML-claiming-PDF rejected, a
+  real image rejected against a PDF-only allowlist, oversized rejected) plus 3
+  existing round-trip tests updated (their fixture bytes weren't real file
+  signatures and would now correctly fail). 231 backend tests pass;
+  `ruff`/`ruff format --check`/`mypy --strict` clean; no API contract change
+  (`api-types.ts` regenerated, empty diff, confirming the fix is fully
+  transparent to the frontend). Verified live end-to-end against the real
+  running API, not just pytest: a real consultant account, a real multipart
+  upload of HTML claiming `Content-Type: application/pdf` → real 400
+  ("Unsupported file type"); a real valid PDF → real 201; an 11 MB real PDF →
+  real 400 ("File exceeds the 10 MB limit") — then the throwaway account and
+  its rows deleted.
+
 ## Partially Completed
 
 - ◐ `docker-compose.yml` — `minio` now added (Branch 1); still missing `web`, `api`,
