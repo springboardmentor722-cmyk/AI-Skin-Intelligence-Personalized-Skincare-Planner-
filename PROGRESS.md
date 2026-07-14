@@ -2149,6 +2149,47 @@ behind is real.
   flake, and the other two specs that failed alongside it in the same run
   passed clean on an immediate rerun with nothing else changed).
 
+- **2026-07-14 — Production-readiness audit, round 5, second fix:
+  `security/session-cookie-audit`.** Real session-cookie/CSRF posture audit
+  against Better Auth's actual installed source
+  (`node_modules/better-auth/dist/`), not assumed defaults, plus a live
+  curl-based check against a real running server. Findings, all verified,
+  not guessed:
+  - `httpOnly: true` is hardcoded in Better Auth's cookie builder — not
+    configurable, always on. Confirmed live: a real signup's `Set-Cookie`
+    response header showed `HttpOnly; SameSite=Lax`.
+  - `sameSite` defaults to `"lax"` — also confirmed in the same live header.
+  - `secure` is derived **statically** from whether `BETTER_AUTH_URL`
+    (passed as a plain string in `lib/auth.ts`, not the dynamic-baseURL
+    object form) starts with `"https://"` — traced through
+    `cookies/index.mjs`'s `dynamicProtocol`/`secureCookiePrefix` logic. This
+    is not vulnerable to `X-Forwarded-Proto` spoofing (it never reads
+    per-request headers for this decision) but it does mean the *entire*
+    Secure-flag decision rests on one env var being right. `.env.production`
+    (the real template) already correctly uses `https://app.skinlytics.example`
+    — but `.env.example`, the copy-from template every new environment
+    starts from, had no comment explaining *why* this matters, so a future
+    deploy that copies `.env.example` verbatim and only swaps in real
+    secrets could silently ship session cookies without `Secure`. Fixed:
+    added an explicit warning comment on `BETTER_AUTH_URL`/
+    `NEXT_PUBLIC_APP_URL` in `.env.example` explaining the mechanism and the
+    requirement, so the reasoning travels with the template, not just in
+    this file.
+  - CSRF: Better Auth's `origin-check` middleware validates the `Origin`
+    header (falling back to `Referer`) against `trustedOrigins` for every
+    non-GET request that carries a cookie — `trustedOrigins` isn't set
+    explicitly in `lib/auth.ts`, so it defaults to exactly
+    `BETTER_AUTH_URL`'s own origin (traced through
+    `context/helpers.mjs::getTrustedOrigins`), not an overly-permissive
+    wildcard. **Live-verified, not just read from source:** a real
+    `POST /api/auth/sign-out` with a forged `Origin: https://evil-attacker.example`
+    header and a cookie present was rejected with a real
+    `403 {"code":"INVALID_ORIGIN"}` — the same request without the forged
+    header (or same-origin) is the path every real signup/signin this
+    session has used successfully. No code fix needed here — this
+    protection was already real and active; the only gap found was the
+    undocumented `.env.example` assumption above.
+
 ## Partially Completed
 
 - ◐ `docker-compose.yml` — `minio` now added (Branch 1); still missing `web`, `api`,
