@@ -26,6 +26,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
+import { useWeatherUV } from "@/lib/hooks/use-weather-uv";
 import { EXTRA_TITLES, NAV_ITEMS, ROLE_LABELS, type Role } from "@/lib/nav-config";
 import { useCurrentUser } from "@/lib/use-current-user";
 
@@ -37,14 +38,21 @@ interface GlassTopbarProps {
 }
 
 // Glass topbar: page title, ⌘K search, weather/UV chip, notification bell, theme
-// toggle, account menu — docs/WIREFRAMES.md "App shell". Weather/UV and notification
-// count are stubs (no adapter/service wired yet, ADR-007-style placeholder) — never
-// invented data, just an explicit "—" until the real endpoint exists.
+// toggle, account menu — docs/WIREFRAMES.md "App shell". The weather/UV chip is now
+// real (GET /api/v1/weather-uv, real OpenWeather/OpenUV adapters,
+// docs/DATASETS_AND_APIS.md) — still renders the same honest "UV —" whenever
+// location isn't granted or the backend's API keys aren't configured, never a
+// fabricated number. Notification count stays a stub (no adapter/service wired yet).
 export function GlassTopbar({ role, userName, title }: GlassTopbarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [searchOpen, setSearchOpen] = useState(false);
   const user = useCurrentUser(userName);
+  const weatherQuery = useWeatherUV();
+  const uvLabel =
+    weatherQuery.data?.available && weatherQuery.data.uv_index != null
+      ? Math.round(weatherQuery.data.uv_index * 10) / 10
+      : "—";
 
   const pageTitle =
     title ??
@@ -94,10 +102,12 @@ export function GlassTopbar({ role, userName, title }: GlassTopbarProps) {
             </kbd>
           </button>
 
-          {/* Weather/UV stub — real data via OpenWeather/OpenUV adapters, docs/DATASETS_AND_APIS.md */}
+          {/* Real OpenWeather/OpenUV adapters, docs/DATASETS_AND_APIS.md — "—" is an
+              honest "not available" (no location permission or no API key configured),
+              never a fabricated reading. */}
           <div className="bg-tertiary-container font-geist text-on-tertiary-container hidden items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium md:flex">
             <SunMedium className="size-3.5" strokeWidth={1.5} />
-            <span>UV —</span>
+            <span>UV {uvLabel}</span>
           </div>
 
           <button
