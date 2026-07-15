@@ -4,6 +4,53 @@ Canonical task-state doc, per `docs/CONVENTIONS.md` and `docs/ARCHITECTURE.md`'s
 Update this in the same PR as any completed task. Session context should read this file
 first, then the rest of `docs/`.
 
+**Bug fix (2026-07-15): `/assessment/results` stuck forever on "Analyzing your skin
+profile..." after a real signup + real wizard completion**, reported live against
+`backend_run.py`/`web_run.py` (dev-mode `uvicorn --reload` + `next dev`/Turbopack) — the
+backend logs showed every call succeeding (`201`/`200` all the way through
+`POST /api/v1/assessment/evaluate`), so this was a pure frontend bug, not a backend one.
+Root-caused via a live Playwright reproduction against the running dev server (see
+`superpowers:systematic-debugging`'s process) — a `page.goto()`-per-step repro
+worked fine, but real "Continue"-button clicks (client-side `router.push`, matching how
+an actual user navigates the wizard) reproduced it 100% of the time. Diagnostic logging
+showed `useMutation`'s `mutate()` firing and completing successfully
+(`onSuccess`/`onSettled` both fired with the real score) — on a mutation observer from
+one render, while the render that actually got committed to the DOM held a *different*,
+fresh `useMutation()` object (mutations return a new observer every render) that never
+got its own `mutate()` call, since the `firedRef` guard was already flipped. Next.js App
+Router's client-side navigation renders the target page more than once before final
+commit, which a full page load (`page.goto`) never does — explaining why this only
+reproduced via real in-app navigation. **Fix:** `web/app/assessment/results/page.tsx`'s
+`useSubmitAssessment` now uses `useQuery` (cached in the shared `QueryClient`, not
+per-render) instead of `useMutation` + a manual ref-guarded `useEffect` — TanStack
+Query's own documented recommendation for "run once on mount" side effects, precisely
+because `useQuery`'s result survives however many times React re-renders the component
+before committing. Query key scoped by the signed-in user's id
+(`["assessment-submit", userId]`) since the `QueryClient`'s cache persists across
+client-side navigation for the whole SPA session — an unscoped key could otherwise hand
+a different signed-in user this browser tab's previously cached score. Verified: 3/3
+clean passes of a live-dev-server repro via real Continue clicks (was 0/1 before the
+fix), the full existing `user-journey.spec.ts` e2e spec (light+dark) still passes,
+`tsc --noEmit`/scoped `eslint` clean.
+
+**Separate finding while investigating, not fixed (real, but not a code bug):** the
+real user's Postgres data showed `skin_assessments`/`skin_profiles` rows the above bug
+explains (repeated resubmission attempts). Chasing an unrelated *new* test failure
+(`test_compute_and_store_score_upserts_same_day_instead_of_duplicating`, previously
+passing, now failing 5/5 deterministically) traced to an **~8-hour clock skew between
+the host machine and the Docker Postgres container** — direct evidence: the DB's own
+`now() AT TIME ZONE 'UTC'` returned `2026-07-14 20:10`, the host's
+`datetime.now(UTC)` returned `2026-07-15 04:10`, confirmed independently by MinIO's
+S3 requests failing with `RequestTimeTooSkewed` in the same test run (a completely
+different subsystem hitting the same root cause). This is a known Docker Desktop VM
+clock-drift issue (the Linux VM under Docker Desktop for Mac doesn't always resync
+after the host sleeps/wakes) — not something to patch around in application code
+(the same-day dedup comparison in `scores/service.py::compute_and_store_score` is
+correct given synced clocks; "fixing" it to tolerate skew would mask real day-boundary
+bugs later). **Remedy: restart Docker Desktop** (or otherwise resync the VM clock) —
+not done here since it would disrupt the user's own live Postgres/Mongo/Redis
+containers mid-session; flagging for the user to do when convenient.
+
 **Milestone 2: DELIVERED (2026-07-14), naming reconciliation DONE (2026-07-15) —
 see `## Milestone 2 Phase 1`–`Phase 5` entries below for the full rename/reconciliation
 account; this top section is left as the historical record of the decision itself.**
