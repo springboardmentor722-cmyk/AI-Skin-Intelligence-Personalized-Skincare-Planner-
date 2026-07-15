@@ -73,13 +73,22 @@ overall = 0.35·skin_condition + 0.20·lifestyle + 0.15·sleep_quality
 ```
 
 Component normalization (each 0–100):
-- **skin_condition** = 100 − mean(active concern severities scaled ×10), from the latest
-  assessment.
+- **skin_condition** = 100 − tiered deduction over active concerns: −15 pts per High
+  severity (severity_rating 8–10), −7 pts per Medium (4–7), 0 for Low (1–3), from the
+  latest assessment.
 - **lifestyle** = weighted sub-index of exercise frequency, stress (inverted), diet
-  quality, sun-exposure hygiene from `lifestyle_logs` (30-day window).
+  quality, sun-exposure hygiene from `lifestyle_logs` (30-day window), plus a real
+  unprotected-high-UV-exposure penalty (Milestone 2 Step 3.1) when OpenUV data exists
+  for the user (`weather_service.get_latest_uv_index`, WHO UV Index ≥6 "High" +
+  reported sun exposure in the most recent log) — best-effort, never fetched live as
+  a side effect of scoring, so it's a no-op when no OpenUV reading was ever captured.
 - **sleep_quality** = 60% duration score (7–9 h band = 100, linear falloff) + 40%
   self-rated quality.
-- **routine_adherence** = completed checklist steps ÷ scheduled steps, trailing 30 days.
+- **routine_adherence** = completed checklist steps ÷ scheduled steps, trailing 7 days
+  (mile_2.docx Step 3.1's literal "last 7 days of routine logs" — corrected 2026-07-14
+  from this doc's prior 30-day paraphrase, a real mismatch against the docx's literal
+  text, not a documentation-only fix; see PROGRESS.md and
+  docs/milestones/milestone_2/MASTER_PROMPT.md Phase 2).
 - **hydration** = min(100, glasses/day ÷ 8 × 100), 7-day average.
 
 `SkinHealthScoringService` reads the active weight row; experiments are a DB update.

@@ -180,7 +180,7 @@ CREATE TABLE ingredient_skintype_avoid (
 -- ROUTINES & PRODUCTS
 -- ============================================================
 
-CREATE TABLE routines (
+CREATE TABLE skincare_routines (
     routine_id SERIAL PRIMARY KEY,
     user_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
     routine_name VARCHAR(100),
@@ -188,13 +188,16 @@ CREATE TABLE routines (
     description TEXT,
     is_active BOOLEAN DEFAULT TRUE,
     generated_by_ai BOOLEAN DEFAULT TRUE,
+    score_id INTEGER REFERENCES skin_assessments(score_id),  -- nullable, best-effort: the
+        -- most recently computed score at generation time (Milestone 2 Step 1.1's
+        -- "assessment_id" traceability; migration f2a6c1d09b3e)
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE routine_steps (
     step_id SERIAL PRIMARY KEY,
-    routine_id INTEGER NOT NULL REFERENCES routines(routine_id) ON DELETE CASCADE,
+    routine_id INTEGER NOT NULL REFERENCES skincare_routines(routine_id) ON DELETE CASCADE,
     step_order INTEGER,
     step_name VARCHAR(100),
     instruction TEXT,
@@ -243,7 +246,7 @@ CREATE TABLE product_concerns (
 
 CREATE TABLE routine_products (
     routine_product_id SERIAL PRIMARY KEY,
-    routine_id INTEGER NOT NULL REFERENCES routines(routine_id) ON DELETE CASCADE,
+    routine_id INTEGER NOT NULL REFERENCES skincare_routines(routine_id) ON DELETE CASCADE,
     product_id INTEGER NOT NULL REFERENCES products(product_id),
     step_id INTEGER REFERENCES routine_steps(step_id),
     usage_notes TEXT
@@ -268,7 +271,7 @@ CREATE TABLE scoring_weights (
     )
 );
 
-CREATE TABLE skin_scores (
+CREATE TABLE skin_assessments (
     score_id SERIAL PRIMARY KEY,
     user_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
     skin_condition_score DECIMAL(5,2),
@@ -526,14 +529,14 @@ CREATE INDEX idx_account_user ON account("userId");
 CREATE INDEX idx_user_profiles_user ON user_profiles(user_id);
 CREATE INDEX idx_skin_profiles_user ON skin_profiles(user_id);
 CREATE INDEX idx_skin_profile_concerns_profile ON skin_profile_concerns(skin_profile_id);
-CREATE INDEX idx_routines_user ON routines(user_id);
-CREATE INDEX idx_routines_user_active ON routines(user_id, is_active);
+CREATE INDEX idx_routines_user ON skincare_routines(user_id);
+CREATE INDEX idx_routines_user_active ON skincare_routines(user_id, is_active);
 CREATE INDEX idx_routine_steps_routine ON routine_steps(routine_id);
 CREATE INDEX idx_product_ingredients_product ON product_ingredients(product_id);
 CREATE INDEX idx_product_ingredients_ingredient ON product_ingredients(ingredient_id);
 CREATE INDEX idx_product_skin_types_product ON product_skin_types(product_id);
 CREATE INDEX idx_product_concerns_product ON product_concerns(product_id);
-CREATE INDEX idx_skin_scores_user_time ON skin_scores(user_id, calculated_at);
+CREATE INDEX idx_skin_scores_user_time ON skin_assessments(user_id, calculated_at);
 CREATE INDEX idx_progress_images_user ON progress_images(user_id);
 CREATE INDEX idx_product_recommendations_user ON product_recommendations(user_id);
 CREATE INDEX idx_consultant_clients_consultant ON consultant_clients(consultant_id);
@@ -548,6 +551,14 @@ CREATE INDEX idx_notifications_user_unread ON notifications(user_id, is_read);
 CREATE INDEX idx_reminders_user_active ON reminders(user_id, is_active);
 CREATE INDEX idx_subscriptions_user_status ON subscriptions(user_id, status);
 CREATE INDEX idx_payments_user ON payments(user_id);
+-- Production-readiness audit (migration c4f7e1a92d3b): routine_products had no
+-- index beyond its own PK despite being queried by step_id on every routine read;
+-- routine_id indexed too for the ON DELETE CASCADE FK's own lookup efficiency.
+-- products.category has no supporting index either -- masked by the small seed
+-- catalog today, a real cost once the real Kaggle product pipeline runs.
+CREATE INDEX idx_routine_products_step ON routine_products(step_id);
+CREATE INDEX idx_routine_products_routine ON routine_products(routine_id);
+CREATE INDEX idx_products_category ON products(category);
 
 -- ============================================================
 -- SEED DATA  (roles are NOT seeded here — Better Auth admin plugin owns user.role)

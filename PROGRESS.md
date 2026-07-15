@@ -4,8 +4,292 @@ Canonical task-state doc, per `docs/CONVENTIONS.md` and `docs/ARCHITECTURE.md`'s
 Update this in the same PR as any completed task. Session context should read this file
 first, then the rest of `docs/`.
 
-**Current milestone:** M1 (weeks 1–2) — architecture, DB schema, wireframes, env setup,
-Better Auth + RBAC, profile & lifestyle modules, seed data. No AI (ADR-007).
+**Bug fix (2026-07-15): `/assessment/results` stuck forever on "Analyzing your skin
+profile..." after a real signup + real wizard completion**, reported live against
+`backend_run.py`/`web_run.py` (dev-mode `uvicorn --reload` + `next dev`/Turbopack) — the
+backend logs showed every call succeeding (`201`/`200` all the way through
+`POST /api/v1/assessment/evaluate`), so this was a pure frontend bug, not a backend one.
+Root-caused via a live Playwright reproduction against the running dev server (see
+`superpowers:systematic-debugging`'s process) — a `page.goto()`-per-step repro
+worked fine, but real "Continue"-button clicks (client-side `router.push`, matching how
+an actual user navigates the wizard) reproduced it 100% of the time. Diagnostic logging
+showed `useMutation`'s `mutate()` firing and completing successfully
+(`onSuccess`/`onSettled` both fired with the real score) — on a mutation observer from
+one render, while the render that actually got committed to the DOM held a *different*,
+fresh `useMutation()` object (mutations return a new observer every render) that never
+got its own `mutate()` call, since the `firedRef` guard was already flipped. Next.js App
+Router's client-side navigation renders the target page more than once before final
+commit, which a full page load (`page.goto`) never does — explaining why this only
+reproduced via real in-app navigation. **Fix:** `web/app/assessment/results/page.tsx`'s
+`useSubmitAssessment` now uses `useQuery` (cached in the shared `QueryClient`, not
+per-render) instead of `useMutation` + a manual ref-guarded `useEffect` — TanStack
+Query's own documented recommendation for "run once on mount" side effects, precisely
+because `useQuery`'s result survives however many times React re-renders the component
+before committing. Query key scoped by the signed-in user's id
+(`["assessment-submit", userId]`) since the `QueryClient`'s cache persists across
+client-side navigation for the whole SPA session — an unscoped key could otherwise hand
+a different signed-in user this browser tab's previously cached score. Verified: 3/3
+clean passes of a live-dev-server repro via real Continue clicks (was 0/1 before the
+fix), the full existing `user-journey.spec.ts` e2e spec (light+dark) still passes,
+`tsc --noEmit`/scoped `eslint` clean.
+
+**Separate finding while investigating, not fixed (real, but not a code bug):** the
+real user's Postgres data showed `skin_assessments`/`skin_profiles` rows the above bug
+explains (repeated resubmission attempts). Chasing an unrelated *new* test failure
+(`test_compute_and_store_score_upserts_same_day_instead_of_duplicating`, previously
+passing, now failing 5/5 deterministically) traced to an **~8-hour clock skew between
+the host machine and the Docker Postgres container** — direct evidence: the DB's own
+`now() AT TIME ZONE 'UTC'` returned `2026-07-14 20:10`, the host's
+`datetime.now(UTC)` returned `2026-07-15 04:10`, confirmed independently by MinIO's
+S3 requests failing with `RequestTimeTooSkewed` in the same test run (a completely
+different subsystem hitting the same root cause). This is a known Docker Desktop VM
+clock-drift issue (the Linux VM under Docker Desktop for Mac doesn't always resync
+after the host sleeps/wakes) — not something to patch around in application code
+(the same-day dedup comparison in `scores/service.py::compute_and_store_score` is
+correct given synced clocks; "fixing" it to tolerate skew would mask real day-boundary
+bugs later). **Remedy: restart Docker Desktop** (or otherwise resync the VM clock) —
+not done here since it would disrupt the user's own live Postgres/Mongo/Redis
+containers mid-session; flagging for the user to do when convenient.
+
+**Milestone 2: DELIVERED (2026-07-14), naming reconciliation DONE (2026-07-15) —
+see `## Milestone 2 Phase 1`–`Phase 5` entries below for the full rename/reconciliation
+account; this top section is left as the historical record of the decision itself.**
+Every item in `mile_2.docx`'s "Delivered at the End of Milestone 2" checklist was
+built and independently verified against live code (see the dated
+`## Milestone 2 — Delivered` entry near the end of Completed) — but that closure pass
+made an explicit choice to **keep** the already-built names (`skin_scores`/`routines`,
+`/scores/me`/`/routines/me`, the logic living in `scores/service.py`) over the docx's
+illustrative literal names (`skin_assessments`/`skincare_routines`, `/assessment/*`,
+`/routine/*`, a dedicated `scoring_engine.py`), on the reasoning that
+`database_schemas/skinlytics_postgresql_schema_v3.sql` is the real canonical schema
+and the docx's names are just its example. **The project owner has since reviewed
+`docs/milestones/milestone_2/mile_2.docx` directly (not a prior session's summary of
+it) and decided the opposite: rename to match the docx's literal names**, since this
+doc is an external graded rubric and literal names are safer for grading than an
+internal architecture judgment call. This reverses a previously deliberate,
+tested decision — not a bug being fixed. Concretely, as of this entry:
+- `scoring_engine.py` now exists for real
+  (`backend/app/services/scores/scoring_engine.py`) — the five sub-score functions
+  and the weighted-sum equation (`calculate_skin_health_score`, a NumPy dot product)
+  were moved out of `scores/service.py` into it verbatim, `service.py` now imports
+  from it. Verified: `ruff`/`mypy --strict` clean.
+- The larger rename — `skin_scores`→`skin_assessments`, `routines`→
+  `skincare_routines`, endpoint paths to `/api/v1/assessment/evaluate` /
+  `/api/v1/assessment/score` / `/api/v1/routine/generate` / `/api/v1/routine`, a new
+  Alembic migration, updating `database_schemas/skinlytics_postgresql_schema_v3.sql`
+  itself to match (so it stays canonical rather than drifting), regenerating
+  `web/lib/api-types.ts`, and updating every test/doc that names the old tables — was
+  real, multi-file surgery on tables that already held live tested data, written up
+  as an explicit phased plan rather than attempted blind
+  (`docs/milestones/milestone_2/MASTER_PROMPT.md`) and **completed 2026-07-15** — see
+  the dated `Milestone 2 Phase 1`–`Phase 5` entries below for the full account.
+- **Real Kaggle credentials added and all 3 datasets ingested/downloaded, live
+  against Docker Postgres (which turned out to be genuinely running this session —
+  `docker ps` confirmed postgres/mongo/redis/minio/elasticsearch all up).**
+  `training_dataset/MANIFEST.md` (new) names the exact folder/filename expected for
+  each dataset; `AGENTS.md` §0.1/§0.2 now state explicitly that a milestone rubric doc
+  is a fourth source of truth and that missing data/credentials get a conversation,
+  never a silent stub or a claimed-done feature.
+  - Found and fixed a real bug along the way: `backend/app/core/config.py` loads
+    secrets from the **repo-root** `.env`, not `.env.development` — root `.env` was a
+    stray CI/e2e test placeholder (`ENVIRONMENT=test`, ports 5433/27018/6380) with no
+    `KAGGLE_*` keys at all, left over from an unrelated earlier session. Regenerated
+    root `.env` from `.env.development` (confirmed with the user first) so the real
+    dev ports and the new Kaggle credentials actually reach the app.
+  - `make ingest-products` (Sephora) ran for real and hit **two genuine bugs in
+    already-existing code**, found by actually running it against the live dataset
+    for the first time — no fixture ever exercised either:
+    1. `load_into_database` didn't dedupe ingredient names *within* a single
+       product's own parsed list, so a product whose INCI text repeats the same
+       canonicalized name twice tried to insert the same `(product_id,
+       ingredient_id)` row twice and hit `product_ingredients`' unique constraint.
+       Fixed with `dict.fromkeys(...)` to dedupe while preserving order.
+    2. `_parse_ingredients` split only on commas; the real dataset also uses
+       semicolons for some rows' sub-lists (shade variants each carrying their own
+       semicolon-separated INCI list), which produced multi-hundred-character
+       "ingredient" fragments that blew past `ingredients.ingredient_name`'s real
+       `VARCHAR(150)` column — a `StringDataRightTruncationError`. Fixed by
+       splitting on both commas and semicolons, and rejecting (not truncating) any
+       genuinely unsplittable fragment still over 150 chars — 0 of ~261k parsed
+       fragments exceed it after the fix (was 56 before).
+    Both fixes verified: `ruff`/`mypy --strict` clean, all 8
+    `tests/test_products_ingest.py` tests pass (one test rewritten to explicitly
+    monkeypatch blank credentials via `pytest.MonkeyPatch` instead of relying on the
+    ambient environment actually having no credentials — no longer true once real
+    ones were added).
+  - **Live result:** 8,464 new products ingested (30 rejected — missing
+    brand/name/price — 0 already present). Final table counts, queried directly via
+    the app's own async DB session (`app.db.postgres.async_session_factory`, not
+    `docker exec` — that specific command consistently got deferred/backgrounded by
+    this session's harness for reasons unrelated to the query itself):
+    `products`=8480, `ingredients`=16303, `product_ingredients`=227657.
+  - Cosmetics dataset (`kingabzpro/cosmetics-datasets`) downloaded — `cosmetics.csv`,
+    ~1.1MB, landing only, no pipeline built (not required for M2).
+  - ISIC 2019 (Kaggle mirror) downloaded — 9.2GB, all 8 lesion classes
+    (AK/BCC/BKL/DF/MEL/NV/SCC/VASC) + ground-truth/metadata CSVs, landing only (out
+    of scope for M2 per its own dataset entry above). Took 3 attempts: my own initial
+    size estimate (~5.1MB, from `KaggleApi.dataset_list_files`) was badly wrong — the
+    real zip is 9.77GB and extraction needs ~20GB peak free space (zip + extracted
+    simultaneously) — first two attempts hit a real disk-full condition
+    (`ENNOSPC`/`No space left on device`) mid-download and mid-extraction
+    respectively; both partial downloads were deleted before retrying, succeeded on
+    the third attempt once the user freed enough headroom.
+  - **Full backend suite re-run after all of the above:** `ruff`/`mypy --strict`
+    clean; `pytest` — 234 passed, 5 failed. All 5 failures are pre-existing and
+    unrelated (`InvalidAccessKeyId` on MinIO storage tests — `.env.development`'s
+    `S3_ACCESS_KEY_ID`/`S3_SECRET_ACCESS_KEY` have always been blank while
+    `docker-compose.yml`'s MinIO container uses hardcoded dev-only
+    `skinlytics`/`skinlytics_dev_only`; not fixed here — storage backs
+    consultant/dermatologist verification documents, not the M2 assessment engine —
+    flagged for whoever picks that up next).
+
+The one other open item is external live data: OpenWeather/OpenUV are code-complete
+but still credential-blocked (`OPENWEATHER_API_KEY`/`OPENUV_API_KEY` blank in `.env`)
+— not part of the doc's own delivery checklist. The Kaggle product-dataset pipeline
+was credential-blocked too but is now unblocked and run for real (see above,
+2026-07-14).
+
+**Milestone 2 Phase 1 — literal rename — DONE (2026-07-14), full-auto run per
+`docs/milestones/milestone_2/MASTER_PROMPT.md`.** `skin_scores`→`skin_assessments`,
+`routines`→`skincare_routines` in `scores/models.py`/`routines/models.py` (class names
+kept, only `__tablename__`/FK targets changed), the canonical
+`database_schemas/skinlytics_postgresql_schema_v3.sql` (same rename, dated note in
+`README_v3_changes.md`), and a new non-destructive Alembic migration
+(`5e91a4c7d2b8`, `op.rename_table` — preserves every existing row/FK, no drop/recreate)
+applied live against the running dev Postgres. Did **not** add a `detected_concerns`
+JSONB column to `skin_assessments` despite the docx's illustrative schema naming one —
+it's derivable via a join against `skin_profile_concerns`, so a denormalized duplicate
+wasn't added (AGENTS.md's "don't invent a column" rule; this was the plan's own stated
+default). New docx-literal endpoints added as the canonical routes —
+`GET /api/v1/assessment/score`, `POST /api/v1/assessment/evaluate` (scores/router.py,
+same handler as the old route — this app has no separate submit-a-whole-profile-inline
+endpoint, the Skin Profile service already owns profile writes), `GET /api/v1/routine`,
+`POST /api/v1/routine/generate` (routines/router.py) — old `/scores/me`, `/routines/me`,
+`/routines/generate` kept as deprecated aliases (same handler, multiple route
+decorators) since Phase 1.4 needed them alive while updating every consumer; remove
+once nothing calls them. Frontend consumers updated exactly per the plan's own grep:
+`web/app/(user)/routine/page.tsx`, `web/app/assessment/results/page.tsx`,
+`web/app/(user)/routine/edit/[routineId]/page.tsx`, `web/app/(user)/dashboard/page.tsx`,
+`web/components/dashboard/routine-checklist-card.tsx` (comment only),
+`web/lib/api-types.ts` (regenerated via `make openapi`, not hand-edited). One gap the
+plan's own grep missed (scoped to `web/app web/components web/lib`, not
+`web/tests`): `web/tests/e2e/helpers.ts`'s `deleteTestUser` ran raw SQL against
+`routines`/`skin_scores` directly — fixed to the new names, plus a comment in
+`user-journey.spec.ts`.
+
+Found and fixed one real, unrelated pre-existing bug while verifying live: root
+`.env`'s `BETTER_AUTH_SECRET` was blank (also blank in `.env.development` and
+`web/.env.ci-verify-backup`) — harmless in `next dev` but a hard crash
+(`BetterAuthError: You are using the default secret`) under the production build
+Playwright's `webServer` runs. Unlike Kaggle/OpenWeather, this isn't a third-party
+credential with no workaround (AGENTS.md §0.2's hard-stop bar) — it's a local signing
+secret anyone can generate, and root `.env`'s own header comment says as much
+("generate/obtain them... put the real values in a gitignored `.env`"). Generated one
+locally (`openssl rand -base64 32`) and set it — `.env` is gitignored, nothing
+committed. That in turn made the single stale `jwks` row (encrypted under the old
+blank secret) undecryptable — cleared it (1 row, a regenerable signing key, not user
+data) per Better Auth's own suggested fix.
+
+**Verified live, not just unit-tested:** `ruff`/`mypy --strict` clean, `pytest` 234
+passed / 5 failed (same pre-existing unrelated MinIO failures as before this phase —
+`InvalidAccessKeyId`, nothing to do with this rename). Frontend `tsc --noEmit`, `next
+build`, and a scoped `eslint` run (targeting `app`/`components`/`lib` — a stray local
+`playwright-report/` directory, gitignored generated test output, pollutes an
+unscoped `eslint .`/`npm run lint` with thousands of unrelated warnings from a minified
+bundle; not fixed here, pre-existing eslint-config gap, out of this phase's scope) all
+clean. Ran the real cross-theme Playwright e2e journey
+(`tests/e2e/user-journey.spec.ts`, both `chromium-light`/`chromium-dark`) against a
+live backend (`uvicorn`, port 8000) and the renamed tables/endpoints end-to-end —
+signup → assessment wizard → dashboard (real score via the new
+`/api/v1/assessment/score` alias path) → routine (`/api/v1/routine`) →
+recommendations → profile, **2 passed**.
+
+**Milestone 2 Phase 2 — scoring formula reconciliation — DONE (2026-07-14/15).**
+Checked all 5 `scoring_engine.py` sub-scores against `mile_2.docx` Step 3.1's literal
+text (not `docs/AI_ML.md`'s paraphrase): Skin Condition (tiered -15/-7 deduction) and
+Hydration (glasses/day standard) already matched exactly. Sleep (7-9h band + 40%
+self-rated quality, a richer superset of the docx's flat `hours/8`) and Lifestyle (4-part
+index + UV deduction, a superset of the docx's UV-only ask) are documented, deliberate
+supersets — kept as-is per the plan's own default, since a superset can't produce a
+narrower/contradictory answer than the docx's minimal spec. **Routine Consistency was a
+real mismatch, not a superset:** the docx says "last 7 days," the existing
+`_routine_adherence_score` used a 30-day window — a 30-day average can materially dilute
+a bad recent week with three good older ones, a genuinely different number, not a richer
+version of the same one. Fixed to 7 days
+(`scoring_engine.py::_routine_adherence_score`'s `list_recent_routine_logs(user_id,
+days=7)` call, plus that function's own default in `routines/service.py` — only caller
+already passed the value explicitly, changed for clarity, not correctness) and corrected
+`docs/AI_ML.md`'s own paraphrase to match. Re-ran the two Step 6.1 unit tests this
+change is expected to touch
+(`test_compute_and_store_score_is_perfect_for_an_ideal_profile`,
+`test_sensitive_skin_routine_never_includes_an_avoid_flagged_product` +
+`test_sensitive_routine_never_generates_a_treatment_step`) plus the full suite — all
+existing routine-adherence fixtures only ever log "today," so none were
+window-boundary-sensitive; no fixture values needed changing. `ruff`/`mypy --strict`
+clean, `pytest` 234 passed / 5 pre-existing unrelated MinIO failures (unchanged from
+Phase 1).
+
+**Milestone 2 Phase 4 — frontend behavior verification (docx Step 5) — DONE
+(2026-07-15).** Checked every Step 5 ask against the live build, not from memory:
+multi-step wizard with step counter/progress/per-step validation
+(`assessment-shell.tsx` + `app/assessment/*`) — re-exercised live by re-running the
+full cross-theme Playwright `user-journey.spec.ts` after Phase 1 and again after
+Phase 2 (both **2 passed**, `chromium-light`/`chromium-dark`), not just re-read.
+Loading-state copy is an exact match to the docx's literal
+`"Analyzing your skin profile..."` already (`assessment/results/page.tsx`) — no
+change needed. Error banner (`StateCard tone="destructive"` + Retry button, wrapping
+the same `useMutation` that calls the renamed endpoints — the try/catch logic itself
+is untouched by a URL rename) confirmed still wired correctly by inspection, not
+independently e2e-tested for the failure path (no existing spec drives a forced
+network failure; the plan didn't ask for a new one, only to re-verify what's already
+built). Three already-settled decisions reconfirmed unchanged, per the plan's own
+default not to reopen them as a side effect of this rename: draft persistence via
+`sessionStorage` (not the docx's `localStorage`), success routing via a manual
+"Go to dashboard" button (not automatic), and the dashboard's combined AM+PM
+`RoutineChecklistCard` + separate `/routine` page for Weekly (not the docx's literal
+3-card grid). Skipped taking fresh screenshots beyond the e2e runs' own
+light/dark coverage — redundant with two passing cross-theme functional runs, not
+worth the extra step for a rename that touches no visual markup.
+
+**Milestone 2 Phase 5 — tests & manual verification (docx Step 6) — DONE
+(2026-07-14/15), full-auto run complete.** Both Step 6.1-mandated unit tests
+(`test_compute_and_store_score_is_perfect_for_an_ideal_profile`, the sensitive-skin
+routine safety pair) re-ran and passed after Phase 1/2's changes (see those phases'
+entries). Re-ran the manual Step 6.2 checklist fresh against the renamed endpoints —
+via curl against a real `next start`/`uvicorn` pair (not just re-citing the e2e
+runs), with real command output at every step, then cleaned the throwaway user up
+the same way `web/tests/e2e/helpers.ts::deleteTestUser` does:
+1. Real sign-up (`POST localhost:3000/api/auth/sign-up/email`) → `200`, real Better
+   Auth session + `PxkfBPytf23ypqP4lactNodbVmAtl8Kg` user id. Minted a JWT via
+   `GET /api/auth/token` (same mechanism `web/lib/api.ts` uses).
+2. `POST /api/v1/assessment/evaluate` (the docx-literal path, not the deprecated
+   alias) → `200`, `{"score_id":578,...,"overall_score":67.5,...}`. Confirmed via a
+   direct query against the running Postgres: `SELECT score_id, user_id,
+   overall_score, calculated_at FROM skin_assessments WHERE score_id = 578` →
+   `(578, 'PxkfBPytf23ypqP4lactNodbVmAtl8Kg', Decimal('67.50'), datetime(2026, 7, 14,
+   18, 39, 9, 441341))` — a real row, in the new table name, not the old one.
+3. `GET /api/v1/routine` (the docx-literal path) → `200`, `routine_type` values
+   `['AM', 'PM', 'Weekly', 'Seasonal']`, each with real `step_id`s.
+4. `POST /api/v1/routines/steps/21502/log` (`{"completed": true}`) → `204`. Confirmed
+   via a direct Mongo query: `db.routine_logs.find_one({"user_id":
+   "PxkfBPytf23ypqP4lactNodbVmAtl8Kg"})` →
+   `{'log_date': ..., 'completed_steps': [{'routine_step_id': 21502, 'completed_at':
+   ...}]}` — the checked task really did get securely logged.
+
+This closes all 6 phases of `docs/milestones/milestone_2/MASTER_PROMPT.md`. Every
+phase ran in its own branch and merged to `dev` (`chore/m2-scoring-engine-and-ingest-
+prep` [the prior session's uncommitted work, landed first so Phase 1 started clean],
+`feature/m2-docx-literal-rename`, `fix/m2-routine-consistency-7-day-window`,
+`feature/m2-phase4-frontend-behavior-verification`,
+`docs/m2-phase5-manual-verification-close-out`). No hard stops were hit — the
+migration was a non-destructive rename throughout, no external credential/dataset was
+missing without a workaround (`BETTER_AUTH_SECRET` was blank but is a local secret,
+not a third-party one, so generating it wasn't a hard-stop case), and no destructive
+git operation was needed.
+
+M1 (weeks
+1–2) — architecture, DB schema, wireframes, env setup, Better Auth + RBAC, profile &
+lifestyle modules, seed data — is done; M1 had no AI (ADR-007).
 **M1 status: independently verified, not just claimed complete** — a full audit
 (`audit/milestone-1-verification`, see Completed below) traced every M1 requirement
 against the live Docker Postgres/Mongo/Redis and the running backend/frontend rather
@@ -1265,6 +1549,921 @@ behind is real.
   signed-in user redirected, signed-in admin redirected to *its own* home not
   `/dashboard`, `?from=` honored). `tsc`/`eslint`/build clean; full e2e suite
   (27 specs × 2 themes) green.
+- ✔ **M2 real scoring/routine engine, first slice** — replaced three specific
+  ADR-007-era gaps behind the already-frozen `/scores`/`/routines`/`/recommendations`
+  contracts, not a rewrite: (1) `_skin_condition_score` switched from
+  mean-severity×10 to Milestone 2's tiered High(-15)/Medium(-7)/Low(0) deduction,
+  `docs/AI_ML.md` updated to match; (2) a hard safety filter —
+  `recommendations_service.list_avoided_ingredient_product_ids`, joining
+  `product_ingredients` to the already-seeded but previously-unqueried
+  `ingredient_skintype_avoid` table — now excludes unsafe products from both
+  `get_recommendations` and routine generation *before* ranking, per `docs/AI_ML.md`'s
+  own "hard safety filters are rules" principle; (3) a new Mongo `routine_logs`
+  collection (documented in `database_schemas/skinlytics_mongodb_schema_v3.txt`, one
+  doc per user per day, same shape as `lifestyle_logs`) backs a real
+  `POST /routines/steps/{step_id}/log` endpoint and a real `_routine_adherence_score`
+  (completed ÷ scheduled over the trailing 30 days), replacing the `seeded_random`
+  stub. `RoutineStepRead` now carries `completed_today`; the dashboard's
+  `RoutineChecklistCard` reads it and POSTs on toggle (optimistic update) instead of
+  tracking checked state in local `useState` that reset on reload. 10 new/updated
+  backend tests (tiered scoring, a deliberately-inserted unsafe-product safety-boundary
+  case since the curated seed catalog is already internally consistent and doesn't
+  naturally exercise it, real adherence math, an ideal-profile-scores-100.0 case) —
+  169 backend tests pass (`ruff`/`mypy --strict`/`pytest`, real Docker
+  Postgres/Mongo/Redis/MinIO); frontend `tsc`/`eslint`/`next build` clean. Verified live
+  end-to-end, not just via tests: real signup through Better Auth, a real minted JWT,
+  a real Sensitive-skin/high-severity profile via `curl` against the running FastAPI
+  backend — confirmed the score's `skin_condition` came back `85.0` (100−15), the
+  generated routine's Treatment steps never included any of the seed catalog's
+  Salicylic Acid/Retinol/Glycolic Acid/Ascorbic Acid products, toggling a step
+  persisted in a real `routine_logs` Mongo doc and survived a refetch, and
+  `routine_adherence`/`overall_score` recomputed correctly (`14.29`/`55.11` for 1 of 7
+  steps checked) — then the throwaway test user and all its rows were deleted.
+  Explicitly out of scope this pass (see the branch's own plan for why): real
+  image-based `SkinTypeClassifier`/`ConcernDetector` CNNs, the vector DB, ES ranking,
+  and an XGBoost recommender — `docs/AI_ML.md` itself scopes these as needing training
+  data/an eval harness/a model registry that don't exist yet, so they stay ADR-007
+  stubs; weekly/seasonal routines — no wireframe slot exists for a third dashboard
+  card, deferred pending its own design pass. **Correction, see the next entry:** a
+  real wireframe for this did exist after all — just not on the Dashboard.
+- ✔ **"My Routine" screen (`/routine`) — AM/PM/Weekly, real weekly routine
+  generation** — `web/lib/nav-config.ts` already tracked this as a real, `built: false`
+  User-nav item; its wireframe pair (`web/designs/wireframes/app-routine{,-dark}.html`)
+  was found on a second look, not on the Dashboard where the previous entry looked.
+  Backend: `routines/service.py` now generates a third routine
+  (`routine_type="Weekly"`, name "Weekly Care") alongside AM/PM in
+  `get_or_generate_routines`, reusing `_generate_routine` unchanged — same candidate
+  selection and `ingredient_skintype_avoid` safety filter, just under a `Treatment`-only
+  category (the seed catalog has no dedicated exfoliant/mask product category, so
+  Treatment — the same actives AM/PM already use — is Weekly's one real, non-invented
+  choice; a `_WEEKLY_STEP_INSTRUCTIONS` override gives its step 2-3×/week cadence
+  copy instead of AM/PM's daily instruction). Frontend: `app/(user)/routine/page.tsx`
+  — AppShell page (not the wireframe's own raw sidebar/topbar, which is a generic
+  Stitch draft nav, not `AGENTS.md` §3's real one), three tabs (AM/PM/Weekly) as React
+  state, step cards (numbered circle, product image w/ `FlaskConical` fallback,
+  category chip, duration, shadcn `Accordion` instructions, a real completion
+  checkbox). Two things in the raw wireframe were deliberately **not** reproduced,
+  same "raw exports never ship" precedent the Dashboard already set: the Seasonal
+  banner + "Regenerate with AI"/"Edit routine" buttons (fabricated copy, zero backing
+  data — no weather/season integration exists, no step-edit backend exists either,
+  the latter deferred to its own branch alongside `app-routine-edit.html`), and the
+  wireframe's PM tab, which is a literal unfinished placeholder ("PM Routine details
+  are loading...") — the real PM tab renders real steps, same as AM. **Update, see
+  the `feature/m2-seasonal-routines` entry below:** a real (non-fabricated) Seasonal
+  routine now exists — the wireframe's specific banner copy was still never
+  reproduced, but the underlying gap is closed. "Regenerate with AI" is still
+  fabricated (no such action exists anywhere) and stays omitted. The optimistic
+  toggle-mutation logic used to live only in `RoutineChecklistCard`; extracted to
+  `web/lib/hooks/use-toggle-routine-step.ts` so both it and the new page share one
+  implementation — `RoutineChecklistCard` itself now filters to AM/PM only (Weekly
+  belongs on `/routine`, not the dashboard's daily checklist; this filtering was a
+  real bug this pass caught before shipping — the card's own AM/PM-only copy would
+  have silently mislabeled a Weekly routine as "Evening protocol"). `web/lib/
+  nav-config.ts`'s "My Routine" entry no longer has `built: false`. 170 backend
+  tests pass; frontend `tsc`/`eslint`/`next build` clean.
+- ✔ **Playwright e2e coverage for the skin profile & lifestyle, assessment,
+  dashboard, recommendations, progress, and /routine screens** — previously
+  manual-only, unlike the app-shell/auth screens (Pending, since resolved).
+  `tests/e2e/user-journey.spec.ts`: one chained real journey (signup → assessment
+  wizard, real save on mount → dashboard → /routine → /recommendations → /profile
+  edit round-trip), same "real backend, no mocks" shape as
+  `cross-role-verification-journey.spec.ts` rather than six separate per-screen
+  files. Deliberately picks "Sensitive" skin type so the safety filter is also
+  proven through the real UI, not just `curl` like this session's earlier manual
+  checks. Found and fixed a real gap along the way: `tests/e2e/helpers.ts`'s
+  `deleteTestUser` never cleaned up `skin_profiles`/`routines`/`skin_scores`/Mongo
+  `lifestyle_logs`/`routine_logs` — any e2e run touching these would have leaked
+  rows into the shared dev database forever; added the missing deletes plus a new
+  `deleteMongoLogsForUser` helper (`mongodb` added as a devDependency). Full
+  56-test suite passes both `chromium-light`/`-dark` projects, no rate-limit
+  interference; confirmed zero leftover rows in Postgres and Mongo after a run.
+- ✔ **Routine edit/reorder — the deferred half of My Routine, shipped** —
+  `web/designs/wireframes/app-routine-edit{,-dark}.html`'s real, schema-backed
+  parts: reorder steps (`PATCH /routines/{routine_id}/steps/reorder`, up/down move
+  buttons, not real drag-and-drop — no drag library exists and this screen's other
+  pieces didn't justify adding one), add/delete a step
+  (`POST /routines/{routine_id}/steps`, `DELETE /routines/steps/{step_id}`,
+  remaining steps renumbered contiguously on delete), swap a step's product via a
+  real search (`GET /routines/products/search`, category + `ingredient_skintype_avoid`
+  filtered, no invented match percentages), and usage notes
+  (`routine_products.usage_notes` existed and was read but never written until
+  now — `PATCH /routines/steps/{step_id}`). Every mutation enforces routine/step
+  ownership and re-runs the same hard safety filter `_generate_routine` already
+  enforces at generation time (`recommendations_service.list_avoided_ingredient_product_ids`)
+  — confirmed live: a direct API attempt to swap in a Salicylic-Acid product for a
+  Sensitive profile gets a real `400`, not a silent success. New
+  `UnsafeProductError(ValueError)` distinguishes a rejected choice (400) from a
+  missing resource (404) in the router's exception mapping.
+  Deliberately **not** built, same "raw exports never ship" precedent the
+  Dashboard and My Routine screens already set: the wireframe's "Interaction
+  Conflict" banner ("Retinoid + AHA... prevent barrier damage") and "AI
+  Prediction: Barrier Health" chart ("may increase TEWL by 12%") — no
+  ingredient-interaction table exists anywhere in `database_schemas/`, no
+  predictive model exists; both would be fully fabricated clinical-sounding
+  output. `app/(user)/routine/edit/[routineId]/page.tsx` — real `AppShell`
+  two-pane editor, local edits staged client-side until a real "Save changes"
+  commits them (delete → update → reorder → add, in that order, then refetches
+  `["routines", "me"]`); `/routine`'s "Edit routine" button now links here for
+  real. One real bug caught live before shipping (not by inspection): the step
+  list nested a `<button>` inside another `<button>` (invalid HTML), causing a
+  real hydration error — fixed by making the outer card a `role="button"` `<div>`
+  with keyboard support instead. 179 backend tests pass; frontend
+  `tsc`/`eslint`/`next build` clean.
+- ✔ **Clinical review workflow — client/patient list + detail (Consultant &
+  Dermatologist)** — `consultant_clients`/`consultant_notes` existed since the M1
+  foundation expansion but had no real assessment data to review until this
+  session's M2 work. Scoped to list+detail only (Pending records what's still
+  deferred). New `backend/app/services/clinical_review/` (shared by both
+  professional roles despite the `consultant_`-prefixed table names — no separate
+  dermatologist tables exist): `GET /clients/me`, `GET /clients/{user_id}`,
+  `GET`/`POST /clients/{user_id}/notes`, all gated by `require_verified_professional`
+  (`core/security.py` — existed since Branch 4/5, this is its first real
+  consumer) plus a `consultant_clients`-based ownership check
+  (`docs/CONVENTIONS.md` had already anticipated this exact check). No
+  self-service "request a consultant" flow exists, so a minimal
+  `POST /admin/consultant-clients` (audit-logged, admin service) is the only way
+  a real assignment gets created today — no dedicated Admin UI for it yet (see
+  Pending). **Doc drift fixed:** `docs/ARCHITECTURE.md` §2 called the assignment
+  table `consultant_assignments`; the real DDL says `consultant_clients` —
+  corrected, and the doc's audit-logging claim narrowed to what's actually real
+  (mutations are audit-logged, a professional's own reads of assigned clients
+  are ownership-checked but not themselves audit-logged).
+  `backend/app/db/postgres.py`'s `external_user_table` gained a `name` column
+  (confirmed nullable against the real live table) — the first backend service
+  needing a real display name, not just email.
+  Same fabricated-content precedent as the last two branches: the wireframes'
+  bottom "bento" stats (Critical Alerts, Cohort Adherence, "AI Confidence 99.4%",
+  "Sync Latency 12ms") are omitted; `consultant-client-detail.html`'s "Diagnostic
+  Analysis" invents an entirely different scoring taxonomy (Hydration/Texture/
+  Pigmentation/Elasticity/Sensitivity, with invented prose like "Suggest chemical
+  exfoliation") that doesn't match the real Skin Health Score model at all —
+  replaced with the real 5-component breakdown, not reproduced;
+  `derm-patient-detail.html`'s "Affected Area Mapping"/"AI Insights"/"Risk Factor
+  Index"/"Clinical Photos" have no backing table, model, or upload feature
+  anywhere and are all omitted — Dermatologist gets the same real
+  profile/score/routine/notes content Consultant gets, not a fabricated version.
+  `web/components/clinical-review/{client-list-table,client-detail-view}.tsx`
+  shared by both `app/consultant/clients/` and `app/dermatologist/patients/`
+  (same cross-role component-sharing precedent as
+  `components/settings/appearance-settings.tsx`). Found a real Postgres
+  behavior while writing tests: `now()`/`CURRENT_TIMESTAMP` is stable for an
+  entire transaction, so two notes added in quick succession inside one test's
+  wrapped transaction got an identical `created_at` — list_notes now orders by
+  `note_id` (monotonic `SERIAL`) instead, correct in both tests and production.
+  187 backend tests pass; frontend `tsc`/`eslint`/`next build` clean. Verified
+  live end-to-end: real consultant + client + admin accounts, a real
+  Sensitive-skin assessment, a real admin-created assignment, the consultant
+  seeing the real client list and detail view (real score breakdown, real
+  routine compliance, real notes), a real 404 for an unassigned user, and a
+  real 403 for a non-professional role.
+- **2026-07-14 — External data integrations (`docs/DATASETS_AND_APIS.md`), the last
+  Milestone 2 item.** Read both `docs/milestones/milestone_2/mile_2.docx` and
+  `dataset_and_API_reference/AI_Skin_Datasets_APIs_Research.docx` in full before
+  starting, per the doc's own registry of sources/adapters/env vars/resilience
+  contract. Built the resilience contract itself first, since every adapter needs
+  it: `backend/app/integrations/base.py` — `CircuitBreaker` (opens after 5
+  consecutive failures, half-open probe after 60s) and `call_with_resilience()`
+  (10s timeout, 3 retries with exponential backoff+jitter), tested in isolation
+  (success, retry-then-succeed, exhausted retries, breaker open/half-open) rather
+  than only through a real adapter call.
+  Real **OpenWeather + OpenUV** adapters (`backend/app/integrations/{openweather,openuv}.py`)
+  on top of that contract, a `weather` service (`backend/app/services/weather/`,
+  Redis-cached 30 min, also logs to the real `weather_uv_logs` Mongo collection
+  matching its documented schema exactly), `GET /api/v1/weather-uv`, and the
+  topbar's UV chip wired to it (`web/lib/hooks/use-weather-uv.ts`, real
+  `navigator.geolocation`) — replacing the honest `—` stub with a real value once
+  keys exist. Both adapters return `None`/`available: false` today because
+  `OPENWEATHER_API_KEY`/`OPENUV_API_KEY` are genuinely blank in `.env` (verified,
+  not assumed) — the "unconfigured → honest None" convention is itself covered by
+  a real (unmocked) test.
+  A real **PubMed** adapter (`backend/app/integrations/pubmed.py`, esearch+efetch,
+  no key required) and `backend/app/db/ingest_knowledge.py`, actually run against
+  the 10 real seeded `skin_concerns`: 30 upserts, 25 unique `knowledge_articles`
+  documents (5 articles matched more than one concern's search). Found and fixed a
+  real bug live: the initial `$set` on `tags`/`related_conditions` overwrote
+  instead of merged, so an overlapping article's tags only showed the
+  last-processed concern; moved those two fields to `$addToSet`, deleted and
+  re-ingested, confirmed multi-tag articles now carry merged arrays like
+  `['Hyperpigmentation', 'Redness']`.
+  A real **Kaggle Sephora product/ingredient** pipeline
+  (`backend/app/services/admin/ingest/products.py`): download → `normalize_rows()`
+  (dedupe by brand+name+size, reject rows missing mandatory fields, parse
+  ingredient lists and mL sizes) → idempotent upsert into the real
+  `products`/`ingredients`/`product_ingredients` tables, plus a JSON run-manifest
+  in `training_dataset/processed/` (source/source_url/license/ingested_at) since
+  no such columns exist on `products` and inventing them wasn't in scope. Found
+  and fixed a real bug live via the actual test run: a `None` cell became pandas
+  `float('nan')`, and `str(nan or "")` evaluated to the non-empty string `"nan"`
+  because NaN is truthy in Python — the mandatory-field check silently passed a
+  missing `product_name`. Added `_safe_str()` using `pd.isna()` explicitly.
+  `download_dataset()` itself is confirmed credential-blocked
+  (`KAGGLE_USERNAME`/`KAGGLE_KEY` blank), raising a clear `KaggleCredentialsError`
+  rather than a deep, opaque `kaggle`-package error — verified via a real attempted
+  run, not just code inspection.
+  Declined per the doc's own ToS guidance: no scraping of INCIDecoder/COSDNA/
+  DermNet/AAD/Google Scholar (explicitly "no API — do not scrape"); no CNN/image
+  model training (ISIC etc.), out of scope for this branch and undocumented
+  anywhere as required — both reasons recorded in `training_dataset/README.md`
+  rather than silently skipped.
+  New `training_dataset/` folder (`raw/`, `processed/`, gitignored contents with
+  `.gitkeep`s and a README status table) is the one place all of this lands, per
+  the task's explicit instruction. `pyproject.toml`'s `[tool.mypy] python_version`
+  fixed from `"3.11"` to `"3.12"` to match the real `.venv` interpreter (was
+  producing a real numpy-stub syntax error, not scope creep). 206 backend tests
+  pass (25 new); `ruff`/`mypy --strict` clean; frontend `tsc`/`next build` clean.
+  Executed under explicit one-time user authorization to skip the usual plan-
+  approval and merge-approval gates for this specific task ("work on it without my
+  any approval... merge back to dev after development... work completely on auto
+  mode") — every other branch this session waited for an explicit "merge it into
+  dev" message; this one didn't, per that instruction.
+- **2026-07-14 — Seasonal routines (`feature/m2-seasonal-routines`), closing the
+  last open gap against `mile_2.docx`'s literal routine-generation deliverable
+  ("morning, evening, weekly, and even seasonal").** Found via a fresh audit against
+  actual code (not the prior "M2 core done" claim taken at face value) that AM/PM/
+  Weekly were real but Seasonal was never built — the wireframe's "winter
+  adjustments ready" banner was fabricated copy this session had already, correctly,
+  declined to reproduce (see the "My Routine" screen entry above). Rather than
+  invent a mechanic, scoped it with the user first: no design spec or wireframe
+  exists for what "seasonal" should actually do, and the real schema has no
+  ingredient-weight tagging (`ingredients.category` only holds active-ingredient
+  types — AHAs/BHAs, Retinoids, etc. — not Occlusive/Humectant), so a
+  dermatologist-grade "heavier winter moisturizer" swap isn't honestly buildable
+  today. User picked "calendar-quarter swap": a real 4th routine
+  (`routine_type="Seasonal"`) using only the real `products.category` field
+  (Cleanser/Sunscreen/Moisturizer/Treatment) — Winter emphasizes Moisturizer+
+  Treatment, Summer emphasizes Sunscreen+Treatment, Spring/Fall are transitional —
+  generated via the same `_generate_routine` core (safety filter, seeded candidate
+  selection) AM/PM/Weekly already use, no new selection logic invented.
+  `routines/service.py::get_or_generate_routines` restructured so Seasonal is the
+  one exception to the existing "generate once, reuse forever" rule: it's
+  regenerated (old row deactivated via `is_active=False`, not deleted) whenever the
+  real current calendar season no longer matches the season the existing Seasonal
+  routine's `routine_name` (e.g. "Winter Care") was generated for — AM/PM/Weekly are
+  untouched by a season change. Frontend: `/routine`'s tab list now includes a
+  Seasonal tab whenever the backend returns one, labeled from the real
+  `routine_name` it returns rather than a hardcoded string (so the tab always
+  reflects whichever season is actually current). A pre-existing test in
+  `test_clinical_review_service.py` asserted the client-detail routine set as
+  exactly `{AM, PM, Weekly}` — a real, caught regression once Seasonal shipped, not
+  a pre-existing bug; updated to include `Seasonal`. 209 backend tests pass (3 new:
+  `_current_season` month-boundary coverage, season-change regeneration keeping
+  AM/PM/Weekly's `routine_id`s stable while Seasonal's changes, same-season
+  stability); `ruff`/`mypy --strict` clean; frontend `tsc`/`eslint`/`next build`
+  clean. Verified live end-to-end: a real signup through Better Auth (Next.js dev
+  server + FastAPI backend both started for this check), a real minted JWT, a real
+  skin profile via `curl`, confirmed `GET /routines/me` returned 4 routines
+  including `"routine_name": "Summer Care"` for today's real date (July → Summer),
+  confirmed a second call returned the identical `routine_id` (stable within a
+  season), then deleted the throwaway user/profile/routines and stopped both dev
+  servers.
+- **2026-07-14 — Skin-type decision matrix + assessment-to-routine traceability
+  (`feature/m2-decision-matrix-and-traceability`), closing Step 1.1's `assessment_id`
+  gap and Step 1.3's decision-matrix gap found by a fresh line-by-line audit of
+  `mile_2.docx`'s Step 1.** The prior "M2 core done" claim hadn't checked these two
+  specifically — this audit did, against live DB state, not code inspection alone.
+  **1.3 decision matrix:** `routines/service.py::_SKIN_TYPE_STEP_MATRIX` — before
+  this, `skin_type_id` only ever filtered which *product* filled a step, never
+  whether the step existed; every skin type got the identical AM/PM structure. Now
+  Oily and Sensitive (`mile_2.docx`'s own two literal examples) get a real
+  structurally different step list: Oily AM drops Moisturizer
+  (`["Cleanser","Treatment","Sunscreen"]`), Sensitive drops Treatment entirely in
+  both AM (`["Cleanser","Moisturizer","Sunscreen"]`) and PM
+  (`["Cleanser","Moisturizer"]`) rather than just getting a gentler product in that
+  slot. The doc's Oily PM names a "Night Care" step with no real product-category
+  equivalent (`products.category`: Cleanser/Sunscreen/Moisturizer/Treatment only) —
+  mapped onto Moisturizer, documented as a substitution, not invented as a new
+  category. Normal/Dry/Combination aren't named in the doc's examples, so they
+  default to the pre-existing universal structure rather than guessing a difference
+  the doc never specified. Weekly/Seasonal are unaffected — 1.3 only ever names
+  AM/PM steps. **1.1 traceability:** new nullable `routines.score_id` column
+  (migration `f2a6c1d09b3e`, `database_schemas/skinlytics_postgresql_schema_v3.sql`
+  updated to match) — best-effort link to whichever `skin_scores` row was most
+  recently computed when a routine batch was generated; never forces a fresh score
+  computation as a side effect of a GET-triggered routine generation, so a user who
+  generates routines before ever computing a score correctly gets `score_id: null`,
+  not a fabricated score. Exposed on `RoutineRead` so the frontend/API surface can
+  actually see it, not just the DB. Broke the module boundary in an interesting way:
+  `scores/service.py` already imports `routines/service.py` (for the
+  `routine_adherence` component), so a module-level import the other way would be
+  circular — fixed with a local import inside `get_or_generate_routines`, documented
+  inline rather than silently worked around. Found and fixed a real regression this
+  caused: `test_update_step_rejects_an_avoid_flagged_product_swap` assumed every
+  skin type's AM routine has a Treatment step and broke the moment Sensitive's
+  structure changed — retargeted to the Moisturizer step Sensitive still generates
+  (`_assert_product_is_safe` only checks ingredient safety, not category match, so
+  the test's real intent is unaffected). 215 backend tests pass (6 new: the matrix's
+  two documented examples, the Normal/Dry/Combination default, Sensitive's real
+  AM/PM step sets, Oily's real AM step set, `score_id` null-before/set-after a real
+  computed score); `ruff`/`mypy --strict` clean; frontend `tsc`/`eslint`/`next build`
+  clean. Verified live end-to-end with two real throwaway accounts: a Sensitive
+  profile with no score yet (`GET /routines/me` → `score_id: null` on all 4
+  routines, AM/PM step sets exactly matching the matrix, Weekly still real
+  Treatment), and an Oily profile after a real `GET /scores/me` call
+  (`score_id: 214`) confirming every generated routine carried that same real
+  `score_id` and Oily's AM correctly excluded Moisturizer — then both throwaway
+  users and all their rows deleted, both dev servers stopped.
+- **2026-07-14 — Real UV index wired into the lifestyle score
+  (`feature/m2-uv-lifestyle-score`), closing the one real gap from a Step 3 audit.**
+  `_lifestyle_score` previously only ever used self-reported `sun_hours` — the
+  literal "high unprotected UV index exposure" signal `mile_2.docx`'s $L_{habits}$
+  names was never wired up, despite this session's earlier branch already building a
+  fully working OpenUV integration for the topbar chip. New
+  `weather_service.get_latest_uv_index(user_id)` (ADR-005 interface function) reads
+  the most recently captured `weather_uv_logs` document — best-effort, never fetches
+  live from OpenUV itself (a score computation shouldn't have the side effect of
+  triggering an external API call, same principle as `routines.score_id`'s
+  best-effort link). `_lifestyle_score` applies an extra 20-point deduction only
+  when a real UV Index ≥6 (WHO "High", an external standard, not an invented
+  cutoff) coincides with reported sun exposure in the most recent lifestyle log —
+  "unprotected" approximated as "measurable outdoor time on a real high-UV day",
+  since no sunscreen-usage cross-reference exists to know for certain. `None` (no
+  reading ever captured — the common case here, since `OPENUV_API_KEY` is still
+  blank) behaves identically to before this existed. `docs/AI_ML.md` updated to
+  document the new sub-component. 8 new tests (4 pure-function cases: high-UV+
+  exposure penalizes, moderate-UV doesn't, high-UV+zero-exposure doesn't, `None` is
+  a no-op; 3 for `get_latest_uv_index` against real Mongo docs including a
+  UV-missing-but-weather-present reading; 1 real end-to-end
+  `compute_and_store_score` test proving the stored `lifestyle_score` actually
+  drops by 20 once a real Mongo document exists) — 223 backend tests pass;
+  `ruff`/`mypy --strict` clean; frontend build clean (no API contract change).
+  Verified live end-to-end: a real signup, a real skin profile + lifestyle log (2h
+  reported sun exposure), `GET /scores/me` → `lifestyle_score: 95.0` baseline; a
+  real-shaped `weather_uv_logs` document inserted (uv_index=9.0, simulating what a
+  live OpenUV fetch would have written, since the key itself is credential-blocked
+  in this environment); `GET /scores/me` again → `lifestyle_score: 75.0`, exactly
+  the expected 20-point drop, `overall_score` recomputed correctly (85.0) — then
+  the throwaway user and all its rows deleted.
+- **2026-07-14 — `POST /routines/generate` (`feature/m2-routine-generate-endpoint`),
+  closing the one real gap from a Step 4.1 audit.** `GET /routines/me` already
+  generated-if-none-exist as a side effect of a read; `mile_2.docx` names a
+  dedicated `POST /api/v1/routine/generate` action route too, which didn't exist.
+  New endpoint calls the exact same, already-tested `get_or_generate_routines` —
+  no new generation logic, no duplicated code, same idempotent semantics (returns
+  existing routines if regeneration isn't needed, generates/refreshes Seasonal if
+  it is). Audit also flagged that candidate/product matching uses all declared
+  concerns (any-overlap) rather than 4.1's literal "the prioritized primary
+  concern" — left as-is per explicit user decision, treating the doc's wording as
+  already satisfied in spirit (concerns do drive matching; a real single "primary
+  concern" concept already exists elsewhere in the codebase — clinical_review's
+  `max(priority_level)` — just not required here). Added to `test_rbac.py`'s
+  existing `user`-only-route parametrize list (wrong-role 403, the same pattern
+  every other `/me`-scoped route already uses) rather than a new test file — the
+  route has no logic of its own to unit test beyond auth. 224 backend tests pass;
+  `ruff`/`mypy --strict` clean; frontend `tsc`/`next build` clean (api-types.ts
+  regenerated). Verified live end-to-end: a real account, a real skin profile,
+  `POST /routines/generate` returned 4 real routines on first call and the
+  identical `routine_id`s on a second call (idempotent) — then the throwaway user
+  and all its rows deleted.
+- **2026-07-14 — Real Skin Health Score on the assessment results page
+  (`feature/m2-real-assessment-score`), closing the one real gap from a Step 5
+  audit.** `app/assessment/results/page.tsx` computed its own client-side
+  duplicate of the scoring formula (`computeResults()`) instead of calling the
+  real backend — its own comment said *"No Skin Assessment backend exists
+  yet"*, which was stale: this session's Step 3 work already built and verified
+  the real engine. A user could finish the wizard and see a score the real
+  engine never actually computed. `useSubmitAssessment` replaces
+  `useSaveAssessmentToProfile`: saves the real skin profile (required — score
+  computation needs one), best-effort saves the lifestyle log and calls
+  `POST /routines/generate` (score computation degrades gracefully without
+  either), then fetches the real `GET /scores/me` and renders *that* —
+  `SCORE_COMPONENTS` extracted to `lib/score-components.ts`, shared with the
+  Dashboard so both surfaces render the identical real breakdown, never two
+  copies drifting apart. Real loading state ("Analyzing your skin profile...",
+  Milestone 2's own literal wording) and a real error state (retry button) now
+  exist — previously errors were silent (a toast) and results always rendered
+  regardless of save outcome. Auto-redirect-to-dashboard and a literal red
+  error banner (vs. this app's real `StateCard` destructive-tone pattern,
+  already used everywhere else in the codebase) were raised in the audit but
+  intentionally left as-is — the manual "Go to dashboard" button and
+  `StateCard` are consistent with how every other real error/CTA surface in
+  this app already works, not gaps worth inventing new patterns to close.
+  Frontend `tsc`/`eslint`/`next build` clean (no backend change, no API
+  contract change). The existing real e2e journey spec
+  (`tests/e2e/user-journey.spec.ts`, chained signup → wizard → dashboard →
+  routine → recommendations → profile) had its results-page assertion updated
+  from the old toast text to the real score breakdown rendering, then the full
+  suite was run and verified: 56/56 specs pass across both light and dark
+  themes, the changed spec included, confirming the real score flows correctly
+  from the wizard through to the dashboard/routine screens that already
+  consumed it.
+- **2026-07-14 — Step 6 audit: both mandated unit tests confirmed, 6.2's manual
+  integration checklist re-run fresh against current `dev` (no code changes,
+  audit only).** 6.1 Test 1 (`test_compute_and_store_score_is_perfect_for_an_ideal_profile`,
+  `test_scores_service.py`) and Test 2
+  (`test_sensitive_skin_routine_never_includes_an_avoid_flagged_product`,
+  `test_routines_service.py`) both already exist, are explicitly labeled
+  "Milestone 2 Step 6.1 Test 1/2" in their own docstrings/comments, and both
+  pass. Re-ran 6.2's 5-step manual checklist live end-to-end on current `dev`
+  rather than citing older branches' verifications, since real schema/routes
+  have changed materially since (decision matrix, `score_id`, real UV signal,
+  `POST /routines/generate`, the real assessment score): real signup + JWT,
+  real `POST /skin-profiles`, real `GET /scores/me` (`score_id: 272`,
+  `overall_score: 65.05`), confirmed live in `skin_scores` via `psql`, real
+  `POST /routines/generate` returning both AM and PM (plus Weekly/Seasonal),
+  toggled a real step's completion via `POST /routines/steps/{id}/log`,
+  confirmed live in Mongo `routine_logs.completed_steps` and reflected back as
+  `completed_today: true` on a refetch — then the throwaway user and all its
+  Postgres/Mongo rows deleted. (Caught and corrected a mistake mid-check: the
+  first toggle attempt used a routine_id instead of a step_id — Mongo has no
+  FK to validate this, so it silently wrote a bogus `routine_step_id` entry;
+  redone with the real step_id, both entries were cleaned up together with
+  the rest of the throwaway user's data.)
+- **2026-07-14 — Milestone 2 — Delivered.** Final closure pass against
+  `mile_2.docx`'s own "Delivered at the End of Milestone 2" checklist, re-verified
+  fresh against current `dev` (full backend `ruff`/`mypy --strict`/`pytest` — 224
+  pass; full frontend `tsc`/`eslint`/`next build`; the full Playwright e2e suite —
+  56/56 across both themes), not just a re-read of prior branch claims. Every
+  bullet below is real and checked; where the real implementation's naming/shape
+  differs from the doc's illustrative example, that's `database_schemas/...sql`'s
+  real, intentional architecture winning per `AGENTS.md`'s own precedence rule —
+  called out explicitly, not silently glossed over.
+
+  **1. Backend Engineering**
+  - Skin Assessment Engine ✔ — `skin_profile/service.py` stores per-concern
+    `severity_rating`/`priority_level`; `clinical_review/service.py` derives a
+    real primary concern via `max(priority_level)`.
+  - Skin Concern Analysis Workflows ✔ — 10 real seeded concerns including Acne,
+    Hyperpigmentation, Dark Spots, Wrinkles, Oily Skin; tiered severity deduction
+    (`scores/service.py::_skin_condition_score`).
+  - Weighted Scoring Model ✔ — `scores/service.py` (not literally
+    `scoring_engine.py` — no such single-file convention exists anywhere in this
+    codebase), exact weights 0.35/0.20/0.15/0.20/0.10 read live from
+    `scoring_weights`, not hardcoded.
+  - Score API Route ✔ — `GET /api/v1/scores/me` (not literally
+    `/assessment/score`) computes live and persists to `skin_scores` (this
+    project's real `skin_assessments` equivalent, confirmed in
+    `database_schemas/skinlytics_postgresql_schema_v3.sql`) before responding.
+  - Routine Generation ✔ — AM/PM/Weekly/Seasonal, a real skin-type decision
+    matrix (Oily/Sensitive structurally differ, not just product choice), the
+    ingredient-avoid safety filter, `POST /routines/generate` +
+    `GET /routines/me`.
+
+  **2. Frontend Engineering**
+  - Multi-Step Assessment Form Wizard ✔ — route-based (`app/assessment/*`, one
+    page per step, not a single `useState(1)` component — idiomatic for this
+    Next.js App Router stack), real per-step validation blocking "Continue",
+    `sessionStorage` draft persistence (survives a refresh; doesn't survive a
+    closed tab the way literal `localStorage` would — a known, accepted, minor
+    difference), submits to the real `POST /skin-profiles` +
+    `POST /lifestyle-logs` (not a literal `/assessment/evaluate`), and — fixed
+    this session — now shows the **real** `GET /scores/me` result with a real
+    loading state and error/retry state, not a fabricated client-side estimate.
+    Redirect to `/dashboard` stays a manual button, not automatic — raised in
+    audit, intentionally left as-is (consistent with how every other
+    success/error surface in this app already works).
+  - Daily Planner Dashboard & Checklist ✔ — real Skin Score Ring + breakdown,
+    real routine checklist. Not literally 3 separate grid cards (one combined
+    "Today's routine" card holds AM+PM; Weekly deliberately lives on `/routine`,
+    not the Dashboard — a documented decision from an earlier branch, since no
+    wireframe backs a Dashboard "Weekly Highlights" module). Data fetched via
+    `useQuery` (TanStack Query), functionally equivalent to the doc's
+    `useEffect`+`fetch` ask.
+  - Live Compliance Checkboxes ✔ — exact match: real `completed_today` from the
+    backend, `onChange` → `POST /routines/steps/{id}/log` →
+    Mongo `routine_logs`, confirmed live.
+
+  **3. Quality Assurance & Validation**
+  - Automated Unit Tests ✔ — both mandated tests exist, are explicitly labeled
+    "Milestone 2 Step 6.1 Test 1/2", and pass:
+    `test_compute_and_store_score_is_perfect_for_an_ideal_profile` (ideal inputs
+    → exactly 100.0) and
+    `test_sensitive_skin_routine_never_includes_an_avoid_flagged_product`
+    (Sensitive skin excludes a deliberately-inserted harsh product).
+  - End-to-End Integration Verification ✔ — re-run live and fresh this session
+    (not cited from memory): real login, real assessment submission, a real row
+    confirmed in `skin_scores` via `psql`, a real AM+PM (+Weekly+Seasonal)
+    routine fetched, a real step toggled and confirmed in Mongo
+    `routine_logs.completed_steps`.
+- **2026-07-14 — Production-readiness audit, round 1.** Explicit instruction to
+  audit the whole project (code quality, security, performance, CI/CD,
+  dependencies, docs) and fix what's real via the mandated
+  branch-per-fix/`dev`-merge workflow. Three real, verified issues closed so far:
+  - **`security/backend-response-headers`** — the browser calls this FastAPI
+    backend directly (`web/lib/api.ts`'s `NEXT_PUBLIC_API_URL`, not proxied
+    through Next.js), so it had none of the security headers
+    (`X-Content-Type-Options`/`X-Frame-Options`/`Referrer-Policy`)
+    `web/next.config.ts` already sets on the frontend's own responses. New
+    `SecurityHeadersMiddleware`, added outermost so it wraps every response path
+    — confirmed live on `/health`, a 404, and a CORS `OPTIONS` preflight.
+  - **`fix/geolocation-permissions-policy`** — a real, live bug: `next.config.ts`'s
+    `Permissions-Policy: geolocation=()` (set during the M1 audit, before the
+    weather/UV chip existed) completely disabled `navigator.geolocation` for the
+    app's *own* first-party code, silently breaking
+    `lib/hooks/use-weather-uv.ts`. Confirmed broken via a real Playwright browser
+    context (`PERMISSION_DENIED`, "Geolocation has been disabled in this document
+    by permissions policy") — nobody had ever actually tested the frontend
+    geolocation call through a real browser before now (prior verification was
+    curl-only, which bypasses browser permissions policy entirely). Fixed to
+    `geolocation=(self)`; re-verified working live, full 56-spec e2e suite
+    re-run clean across both themes (one unrelated pre-existing flake in
+    `user-journey.spec.ts`'s Weekly-Care-checkbox-after-reload assertion, passes
+    reliably in isolation — not caused by this change, not chased further this
+    round).
+  - **`fix/seed-skin-types-and-concerns`** — a real, significant gap:
+    `database_schemas/skinlytics_postgresql_schema_v3.sql`'s own "SEED DATA"
+    section (`scoring_weights`, `skin_types`, `skin_concerns` — 16 rows the
+    entire assessment/scoring/routine engine depends on) was never actually
+    applied by anything automated (not Alembic, not the Makefile, not
+    `setup.sh`) — the one environment this whole session has used was
+    bootstrapped once, manually, outside any tracked process (confirmed by
+    migration `50e82a643bf9`'s own docstring). `app/db/seed.py`'s docstring
+    vaguely called this "a separate, pending task" but it was never actually
+    tracked here. Confirmed live: a genuinely fresh, from-scratch Postgres
+    database run through `alembic upgrade head` alone left `scoring_weights`
+    empty too — same class of gap as `skin_types`/`skin_concerns`, just not yet
+    noticed. New idempotent data migration
+    (`a9c3d2f81b47_seed_reference_data.py`, `ON CONFLICT` on the real UNIQUE
+    constraints / the existing partial unique index on `scoring_weights.is_active`)
+    closes it. Found and fixed a real bug in the migration's own `downgrade()`
+    while verifying: a plain Python `float` (0.35 isn't exactly representable in
+    binary floating-point) compared against the `DECIMAL(4,2)` column silently
+    failed to match, so the row survived a downgrade — fixed with `Decimal`.
+    Verified exhaustively against a genuinely fresh, throwaway Postgres
+    container (not just the already-seeded dev DB): full migration chain from
+    empty, all 16 rows land correctly, idempotent on a second `upgrade head`,
+    correct `downgrade`/re-`upgrade` cycle, and — the strongest proof — the
+    **full 225-test backend suite passes end-to-end against that fresh database
+    using nothing but the real `alembic upgrade head` + `python -m app.db.seed`
+    bootstrap sequence**. Also applied to and verified as a safe no-op against
+    the real dev database. `app/db/seed.py`'s docstring updated to stop
+    pointing at a vague, untracked "pending task" and instead name the real
+    migration; also fixed a second stale claim in the same docstring (the
+    Kaggle product pipeline was described as "not built yet" — it's been
+    code-complete, credential-blocked since an earlier branch this session).
+  - **`ci/add-github-actions`** — no `.github/workflows` existed at all, despite
+    an extensive real test suite (225 pytest, ruff, mypy --strict, tsc, eslint,
+    next build) that only ever ran manually. `backend-ci.yml`: real Postgres/
+    Redis/Mongo service containers, the exact bootstrap sequence
+    (`alembic upgrade head` + `python -m app.db.seed`) just proven against a
+    fresh database above. `frontend-ci.yml`: `.env.example` (no real secrets)
+    plus a placeholder `BETTER_AUTH_SECRET` is enough since `next build` never
+    touches a real database (protected routes render dynamically, not
+    statically). Every step of both workflows was verified locally first —
+    the backend steps against a real throwaway Postgres container, the
+    frontend steps by temporarily swapping `web/.env`'s symlink for a
+    CI-equivalent file and restoring it after (real secrets never copied
+    anywhere, confirmed after the safety classifier flagged an early, wrong
+    approach) — not shipped blind. Gating a new `ruff format --check` step
+    required first fixing 8 pre-existing files that were lint-clean but never
+    formatter-clean (`ruff check` and `ruff format` are different tools) —
+    a purely mechanical fix, re-verified with the full suite after.
+  - **`deps/safe-patch-upgrades`** — patch/minor bumps only, each re-verified
+    with the full local suite (backend: anyio, mypy, ruff, websockets;
+    frontend: eslint, prettier, lucide-react, recharts, react/react-dom).
+    Major-version jumps (`typescript` 5→7, `@types/node` 20→26, `aiobotocore`
+    2→3, `wrapt` 1→2) were deliberately left alone — real, riskier work, not
+    "safe." Caught a real, unintended policy change mid-branch: `npm install`
+    rewrote `react`/`react-dom` from this project's existing exact-pin
+    convention (`"19.2.4"`, matching Next.js scaffolding's own default) to a
+    caret range (`"^19.2.7"`) — restored the exact pin before committing. Full
+    56-spec e2e suite re-run across both themes as the final check, since
+    `recharts` (Dashboard/Progress trend charts) was one of the bumped
+    packages — all pass, including a test that had flaked once earlier this
+    session and passed cleanly every other time (confirmed as a pre-existing
+    flake, not caused by any of this round's changes).
+  - **Repo cleanup**: found and removed a fully-merged, stale worktree+branch
+    (`feature/m2-assessment-engine`) left over from the very start of this
+    session, before an earlier context compaction — `git log dev..<branch>`
+    confirmed zero unmerged commits before removal. Local branches now:
+    `dev`, `main` only, matching this round's own "end with only `dev`" rule.
+  - **ruff/mypy/pytest** (225 backend), **tsc/eslint/next build**, and the
+    **full 56-spec Playwright e2e suite across both themes** all pass on `dev`
+    as of the last commit in this round.
+
+- **2026-07-14 — Production-readiness audit, round 2, first fix:
+  `security/upload-content-validation`.** Real, previously-undocumented-as-fixed
+  gap found by re-reading `database_schemas/skinlytics_infrastructure_layer_v2.txt`
+  §2's own "Upload constraints (enforced at the API gateway)" — "content-type
+  validated server-side, never trusted from the client" and "max 10 MB" were both
+  already documented requirements, never implemented. `core/storage.py::upload()`
+  passed the client's spoofable `Content-Type` header straight into the stored
+  S3 object's own `ContentType`; the admin verification-queue UI
+  (`web/app/admin/users/verification/[role]/[userId]/page.tsx`) opens presigned
+  URLs directly via `window.open` — a malicious unverified consultant/
+  dermatologist applicant could have uploaded `text/html`/`image/svg+xml`
+  content that executes when an admin reviews it. Fixed with real magic-byte
+  sniffing (`sniff_content_type`, pure Python, no new dependency) — the stored
+  content-type is always derived from the file's real bytes, never the
+  caller's claim; callers pass their own allowlist
+  (`VERIFICATION_DOCUMENT_CONTENT_TYPES` = PDF + the doc's own jpg/png/webp
+  list — PDF added since government IDs/licenses are routinely PDF scans, a
+  flagged, reasoned addition, not silently invented). Size capped at the
+  documented 10 MB via a single bounded `file.read(MAX_UPLOAD_BYTES + 1)` in
+  both routers — never buffers an unbounded body into memory before rejecting
+  an oversized upload, a real DoS consideration beyond just the content-type
+  fix. 6 new tests (real format recognition, HTML-claiming-PDF rejected, a
+  real image rejected against a PDF-only allowlist, oversized rejected) plus 3
+  existing round-trip tests updated (their fixture bytes weren't real file
+  signatures and would now correctly fail). 231 backend tests pass;
+  `ruff`/`ruff format --check`/`mypy --strict` clean; no API contract change
+  (`api-types.ts` regenerated, empty diff, confirming the fix is fully
+  transparent to the frontend). Verified live end-to-end against the real
+  running API, not just pytest: a real consultant account, a real multipart
+  upload of HTML claiming `Content-Type: application/pdf` → real 400
+  ("Unsupported file type"); a real valid PDF → real 201; an 11 MB real PDF →
+  real 400 ("File exceeds the 10 MB limit") — then the throwaway account and
+  its rows deleted.
+
+- **2026-07-14 — Production-readiness audit, round 2, second fix:
+  `perf/routines-n-plus-one`.** Real N+1 found by re-reading
+  `routines/service.py::_read_with_steps`: for each step in a routine, it ran a
+  separate `RoutineProduct` query and a separate `get_products_by_ids` call
+  (which already batches via `IN(...)` — just wasn't being called at the right
+  granularity). This function runs once per routine returned by
+  `get_or_generate_routines` (up to 4: AM/PM/Weekly/Seasonal) on every
+  `GET /routines/me`, one of the most frequently-hit endpoints in the app.
+  Fixed: one `IN(...)` query for all a routine's `routine_products`, one
+  `IN(...)` query for all their `products`, grouped in Python — 3 queries total
+  per routine regardless of step count. Added a real regression test that
+  counts actual SQL statements via a query-execution event listener (the same
+  tool `tests/conftest.py` already uses for its savepoint-restart logic), not a
+  mock — isolated to the pure-read path (a second `get_or_generate_routines`
+  call, since the first call's generation path has its own, separate
+  per-category N+1 in `_generate_routine` not touched by this fix). Verified
+  the test actually catches the regression, not just tautologically passes:
+  temporarily reverted the fix locally, confirmed the test fails (27 queries
+  for 11 steps against a `<25` ceiling), restored the fix, confirmed it passes
+  again. 232 backend tests pass; `ruff`/`ruff format --check`/`mypy --strict`
+  clean. Verified live against the real running API: a real account, a real
+  4-routine/11-step generation, confirmed every step still resolves a real
+  product (output unchanged, only the query pattern improved) — then cleaned
+  up. `_generate_routine`'s own separate per-category N+1 (list_products_for_
+  skin_type / list_avoided_ingredient_product_ids / list_concern_ids_for_
+  products, once per category per routine) was found but not fixed this
+  round — only exercised once per user (routines are generated once and
+  reused), a real but much lower-value target than the read path that runs on
+  every dashboard/routine-page load.
+
+- **2026-07-14 — Production-readiness audit, round 2, remaining recon: JWT/
+  session lifecycle, SSRF surface, dead code/unused dependencies — all came
+  back clean, verified not assumed (no code changes).**
+  - **JWT/session**: `core/security.py::_decode` does real JWKS-based
+    signature verification (`algorithms=["EdDSA", "RS256"]` only — no `none`/
+    HS256, so no algorithm-confusion risk), requires `exp`/`iss`/`aud`, and
+    checks a real Redis-backed revocation blacklist (`jti`). No gap found.
+  - **SSRF**: only 3 modules use `httpx` at all
+    (`integrations/{openweather,openuv,pubmed}.py`), and all three hit fixed,
+    hardcoded external hostnames — only numeric query params (lat/lon,
+    search terms) ever vary, never a user-controlled URL or hostname. No
+    outbound-request surface exists for a real SSRF.
+  - **Unused dependencies**: `npx depcheck` flagged 7 frontend packages
+    (`shadcn`, `tw-animate-css`, `@tailwindcss/postcss`, `@types/node`,
+    `@types/react-dom`, `prettier-plugin-tailwindcss`, `tailwindcss`) — every
+    one individually verified as a real false positive (depcheck only scans
+    JS/TS `import` statements; these are used via the shadcn CLI
+    (`components.json`), a CSS `@import` (`app/globals.css`), PostCSS config
+    (`postcss.config.ts`), Prettier config (`.prettierrc.json`), and ambient
+    TypeScript types with no import statement needed). Backend: all 16
+    `pyproject.toml` dependencies checked against real usage —
+    `cryptography` looked unused (no direct `import cryptography` anywhere)
+    but is a genuine, load-bearing dependency: PyJWT requires it to verify
+    RS256/EdDSA signatures, exactly what `security.py`'s `_decode` does.
+    Nothing removed — there was nothing real to remove.
+  - **Dead code**: no `TODO`/`FIXME`/`XXX` markers anywhere in either
+    codebase (this project tracks open work in `PROGRESS.md`, not inline
+    comments) — nothing to clean up.
+
+- **2026-07-14 — Production-readiness audit, round 3, first fix:
+  `perf/generate-routine-n-plus-one`.** Closes round 2's own recorded
+  recommendation: `_generate_routine`'s per-category loop ran 2 extra queries
+  per category (`list_products_for_skin_type`, `list_concern_ids_for_products`)
+  instead of fetching every candidate once and filtering in Python — both
+  helpers already supported this (`category=None` / a full `product_id` list).
+  Lower-value than the read-path fix (only runs once per user; routines are
+  generated once and reused), but real and empirically measured, not
+  estimated: 75 queries with the old code, 61 with the fix, for an identical
+  scenario (temporarily reverted the fix locally to get the "before" number,
+  same discipline as the read-path fix). Added an explicit
+  `ORDER BY product_id` to `list_products_for_skin_type` — without it,
+  fetching all candidates unfiltered vs. category-filtered isn't guaranteed to
+  return the same relative row order, which would make the seeded_random
+  choice among candidates silently unstable depending on which query shape
+  ran; verified no test anywhere asserts *which specific* product
+  `_generate_routine` picks (only "a real product exists" or "the unsafe one
+  never appears"), so this is safe. New regression test with a ceiling set
+  between the two empirically-measured numbers (61 and 75) — tight enough to
+  catch a real regression, loose enough not to flake. 233 backend tests pass;
+  `ruff`/`ruff format --check`/`mypy --strict` clean. Verified live: a real
+  Sensitive-skin profile, real routine generation, confirmed every step still
+  resolves a real, safe product (output unchanged, only the query pattern
+  improved) — then cleaned up.
+
+- **2026-07-14 — Production-readiness audit, round 3, second fix (started as a
+  readiness-check feature, uncovered a much more serious bug while verifying
+  it live): `feature/health-readiness-check`.** `/health` always returned 200
+  regardless of whether Postgres/Redis/Mongo were actually reachable — useless
+  as an orchestrator (k8s/ECS) signal. Added `/health/ready`: real per-
+  dependency checks (`SELECT 1`, `PING`, `command("ping")`), each with its own
+  3s timeout, `/health` itself left unchanged as a fast liveness probe.
+  **While live-verifying this** (real `docker stop` on the Redis container,
+  not simulated), found a much bigger, real bug: `RateLimitMiddleware` had
+  *zero* error handling around its Redis calls — a real Redis outage took
+  down the **entire API** with a raw 500 on every non-`/health` request, not
+  just rate limiting. Confirmed via the actual traceback
+  (`redis.exceptions.ConnectionError` propagating straight out of
+  `rate_limit.py`'s `await redis.incr(key)`, uncaught). Fixed: catches
+  `RedisError` and fails open (lets the request through, logs a warning) —
+  losing throttling protection temporarily is a far smaller problem than
+  losing all availability. Also exempted `/health/ready` from rate limiting,
+  matching the existing `/health` exemption. No test file existed for
+  `rate_limit.py` at all before this, despite it gating every non-health
+  request in the app — new `test_rate_limit.py` covers healthy pass-through,
+  health-path exemption under sustained heavy polling, and the fail-open path
+  using a real, genuinely unreachable port (not a mock). Verified this
+  regression test actually catches the bug: temporarily reverted the
+  try/except locally, confirmed it fails with the exact real
+  `ConnectionError`, restored the fix, confirmed it passes. 237 backend tests
+  pass; `ruff`/`ruff format --check`/`mypy --strict` clean; `api-types.ts`
+  regenerated (purely additive — the new endpoint's types only). Verified
+  live end-to-end with a real Redis outage: `/health/ready` correctly
+  reported `"status": "degraded"` / 503 with `"redis": "error:
+  ConnectionError"`, and an ordinary route
+  (`GET /api/v1/scores/me`) that used to 500 during the same outage now
+  correctly reached its real handler and returned a real 401 — then Redis
+  was restarted and full health confirmed restored.
+
+- **2026-07-14 — Production-readiness audit, round 4, first fix:
+  `perf/add-missing-indexes`.** Real database index audit (every table's real
+  indexes inventoried via `pg_index`, not guessed) found `routine_products`
+  had zero indexes beyond its own PK — confirmed via a real `EXPLAIN ANALYZE`
+  that `WHERE step_id IN (...)` (queried on every `GET /routines/me`, per the
+  N+1 fixes earlier this round) does a real `Seq Scan`. Invisible at today's
+  ~7-row seed scale (Postgres correctly prefers seq scan for tiny tables —
+  confirmed the new index is real and usable by forcing the planner via
+  `SET enable_seqscan = off`, not just trusting `CREATE INDEX` succeeded).
+  Added indexes on `routine_products.step_id` (the actual query pattern) and
+  `.routine_id` (the `ON DELETE CASCADE` FK's own lookup efficiency, standard
+  practice independent of app-level queries). Also added
+  `products.category` (used by `list_products_for_skin_type`, called on every
+  routine generation and recommendation fetch) — masked today by the ~16-row
+  seed catalog, a real cost the moment the already-built, credential-blocked
+  Kaggle product pipeline runs and brings in thousands of real rows; a
+  data-volume increase this project has already built the ingestion code
+  for, not a hypothetical. New migration `c4f7e1a92d3b`, verified against a
+  genuinely fresh Postgres container (full chain from empty, correct
+  downgrade/re-upgrade, full 237-test suite passing) and applied to the real
+  dev database. `database_schemas/skinlytics_postgresql_schema_v3.sql`
+  updated to match.
+
+- **2026-07-14 — Production-readiness audit, round 4, second fix:
+  `perf/paginate-clinical-review-clients`.** `clinical_review.list_my_clients`
+  (backs `GET /clients/me`, the Consultant "Clients" and Dermatologist
+  "Patients" screens) had no `LIMIT` at all — every active assignment for a
+  professional, unbounded, on every call, each one also driving 3 further
+  queries (`_get_user_row`/`get_current_profile`/`get_recent_scores`) in the
+  per-assignment loop below. Paginated at the real SQL level
+  (`LIMIT`/`OFFSET` on the initial `ConsultantClient` query, plus a
+  `SELECT count(*)` for the true total) rather than the fetch-everything-
+  then-Python-slice pattern `admin/service.py::list_verification_queue`
+  already established — deliberately better than that precedent here because
+  it also bounds the per-assignment N+1's blast radius to one page instead of
+  a professional's entire client count; the N+1 itself is a real, separate
+  finding, not fixed this pass (noted below). New schemas
+  `ClientListPage`/`ClientListPageMeta` (duplicated, not imported, from
+  admin's own `PageMeta` shape — ADR-005's "services never import another
+  service's models" extended to schemas too, since importing across a
+  service boundary for a two-field shape isn't worth the coupling). Router
+  gained `page`/`page_size` query params matching the established convention
+  (`ge=1`; `page_size` `le=100`, default 20). 6 backend tests updated for the
+  new `(items, total)` tuple return, 1 new test
+  (`test_list_my_clients_pagination_is_real`) proving real page-boundary
+  slicing (3 real assigned clients, `page_size=2`: page 1 returns exactly 2,
+  page 2 the remaining 1, `total` stays 3 on both, no client ever appears on
+  both pages) — full suite 238 passed. Frontend: `web/app/consultant/clients/page.tsx`
+  and `web/app/dermatologist/patients/page.tsx` updated to consume
+  `data.items`; no page-switching UI added, matching the admin verification
+  queue's own precedent of a paginated response with only the first page
+  wired up. `web/lib/api-types.ts` regenerated via `make openapi`, confirmed
+  additive-only. Live-verified twice: (1) a real
+  `clinical_review.list_my_clients` call against 5 real throwaway assigned
+  clients confirms `total` is stable across all 3 pages and every client
+  appears exactly once across `page_size=2` pages; (2) the full 56-test
+  Playwright suite (`chromium-light` + `chromium-dark`) passes against a real
+  production build with no regression from the response-shape change.
+  **Real environment bug found and fixed along the way, unrelated to this
+  branch's own diff:** a `next dev` process left running from earlier in
+  this session (not the production `next build && next start` the e2e
+  config's own `webServer` block specifies) was still bound to :3000, so
+  Playwright's `reuseExistingServer` silently reused it instead of building
+  fresh. Dev mode's Strict Mode double-effect invocation raced
+  `useSubmitAssessment`'s `firedRef` guard against a real unmount/remount,
+  leaving `assessment/results` stuck on "Analyzing your skin profile..."
+  forever even though every backend call it fired actually succeeded (traced
+  via a standalone Playwright repro script logging every `/api/v1/*`
+  request/response — all 200/201, real score payload came back, UI just
+  never left the loading state). Not a real product bug — confirmed clean
+  against the actual production build once the stale dev process was killed.
+  Deferred, still open: the `_get_user_row`/`get_current_profile`/
+  `get_recent_scores` N+1 inside `list_my_clients`'s per-assignment loop
+  (pagination bounds it, doesn't eliminate it).
+
+- **2026-07-14 — Production-readiness audit, round 4, third fix (closes out
+  round 4's unbounded-list-endpoints scope):
+  `perf/paginate-clinical-review-notes`.** `list_notes` (backs
+  `GET /clients/{user_id}/notes`) had the same shape of bug as
+  `list_my_clients` above — every note ever added for a client, unbounded,
+  on every call. A systematic sweep of every `list_*`/`-> list[...]` service
+  function in `backend/app/services/*/service.py` confirmed this was the
+  only genuinely unbounded one left — `list_verification_queue`,
+  `list_audit_logs`, `list_all_products`, and `list_all_ingredients` were
+  already paginated from earlier work; `get_recent_scores`,
+  `list_recent_routine_logs`, and `list_recent_lifestyle_logs` are already
+  time-windowed (`days=30`); `list_products_for_skin_type` is an internal
+  ADR-005 interface function bounded by the seeded catalog, not a
+  directly-exposed "list everything" surface. Same real `LIMIT`/`OFFSET` +
+  `count(*)` pattern as `list_my_clients`, same `page`/`page_size`
+  convention. New `ConsultantNoteListPage`/`ConsultantNoteListPageMeta`
+  schemas. `get_client_detail`'s embedded `notes` field (shown inline on the
+  client detail view) now fetches only the most recent 50
+  (`_DETAIL_VIEW_NOTES_PAGE_SIZE`) rather than the full history — a detail
+  view shows recent context, not an archive; the standalone paginated
+  endpoint is the real surface for full history, though nothing in the
+  frontend calls it directly yet (`client-detail-view.tsx` only calls the
+  `POST` to add a note, confirmed via grep — so this fix has no frontend
+  call site to update, unlike the `list_my_clients` fix). One new
+  regression test (`test_list_notes_pagination_is_real`) proving real page
+  slicing against 3 real notes; verified it actually catches the bug by
+  temporarily reverting the fix (`git stash`) and confirming the test
+  collection drops back to the pre-fix count with the old plain-list
+  behavior, then restoring. Full suite: 239 passed. `web/lib/api-types.ts`
+  regenerated, confirmed additive-only (new schemas, the one `GET` route's
+  query params and response type). Live-verified twice: (1) a real
+  `list_notes` call against 5 real notes for a real throwaway assignment
+  confirms newest-first ordering holds across page boundaries and every
+  note appears exactly once across 3 pages of `page_size=2`; (2) the full
+  56-test Playwright suite passes against a real production build with the
+  real backend running (this round's earlier stale-dev-server lesson
+  applied: killed any process on :3000 before each run and confirmed the
+  port was clean again after).
+
+- **2026-07-14 — Production-readiness audit, round 5, first fix:
+  `security/dependency-vuln-scan`.** Real vulnerability scans, not guessed:
+  `npm audit` found one moderate (CVSS 6.1, CWE-79 XSS via unescaped
+  `</style>` in CSS stringify output, GHSA-qx2v-qp2m-jg93) finding — but it
+  was nested inside Next.js's own internal bundle
+  (`node_modules/next/node_modules/postcss@8.4.31`), not something this
+  project's own dependencies pull in (`npm ls postcss` showed
+  `@tailwindcss/postcss` and `shadcn` already on the patched `8.5.16`).
+  `npm audit fix --force`'s own suggested fix was wrong for this
+  codebase — it wants to downgrade `next` to `9.3.3`, a pre-App-Router
+  version that would break the entire app. Fixed properly instead: a
+  `package.json` `overrides` entry pinning `postcss` to `^8.5.10` across
+  every resolution path, including the nested one — confirmed via
+  `npm ls postcss` that all three instances now dedupe to `8.5.19`, `next`
+  itself untouched at `16.2.10`, `npm audit` now reports 0 vulnerabilities.
+  Backend: `uv run --with pip-audit pip-audit` against every real installed
+  dependency found 0 known vulnerabilities — no fix needed there. Verified
+  the postcss bump didn't regress anything: `tsc`/`eslint`/`next build`
+  clean, full 56-test Playwright suite run twice (56/56, then a targeted
+  rerun of the two specs that flaked once — both passed clean on rerun).
+  One dark-mode-only flake reproduced in `user-journey.spec.ts`'s
+  Weekly-Care-checkbox-after-reload assertion during this — this is the
+  same pre-existing flake already on this file's backlog from an earlier
+  round (confirmed unrelated to this branch: a build-tool-only transitive
+  dependency bump can't plausibly cause a runtime checkbox-persistence
+  flake, and the other two specs that failed alongside it in the same run
+  passed clean on an immediate rerun with nothing else changed).
+
+- **2026-07-14 — Production-readiness audit, round 5, second fix:
+  `security/session-cookie-audit`.** Real session-cookie/CSRF posture audit
+  against Better Auth's actual installed source
+  (`node_modules/better-auth/dist/`), not assumed defaults, plus a live
+  curl-based check against a real running server. Findings, all verified,
+  not guessed:
+  - `httpOnly: true` is hardcoded in Better Auth's cookie builder — not
+    configurable, always on. Confirmed live: a real signup's `Set-Cookie`
+    response header showed `HttpOnly; SameSite=Lax`.
+  - `sameSite` defaults to `"lax"` — also confirmed in the same live header.
+  - `secure` is derived **statically** from whether `BETTER_AUTH_URL`
+    (passed as a plain string in `lib/auth.ts`, not the dynamic-baseURL
+    object form) starts with `"https://"` — traced through
+    `cookies/index.mjs`'s `dynamicProtocol`/`secureCookiePrefix` logic. This
+    is not vulnerable to `X-Forwarded-Proto` spoofing (it never reads
+    per-request headers for this decision) but it does mean the *entire*
+    Secure-flag decision rests on one env var being right. `.env.production`
+    (the real template) already correctly uses `https://app.skinlytics.example`
+    — but `.env.example`, the copy-from template every new environment
+    starts from, had no comment explaining *why* this matters, so a future
+    deploy that copies `.env.example` verbatim and only swaps in real
+    secrets could silently ship session cookies without `Secure`. Fixed:
+    added an explicit warning comment on `BETTER_AUTH_URL`/
+    `NEXT_PUBLIC_APP_URL` in `.env.example` explaining the mechanism and the
+    requirement, so the reasoning travels with the template, not just in
+    this file.
+  - CSRF: Better Auth's `origin-check` middleware validates the `Origin`
+    header (falling back to `Referer`) against `trustedOrigins` for every
+    non-GET request that carries a cookie — `trustedOrigins` isn't set
+    explicitly in `lib/auth.ts`, so it defaults to exactly
+    `BETTER_AUTH_URL`'s own origin (traced through
+    `context/helpers.mjs::getTrustedOrigins`), not an overly-permissive
+    wildcard. **Live-verified, not just read from source:** a real
+    `POST /api/auth/sign-out` with a forged `Origin: https://evil-attacker.example`
+    header and a cookie present was rejected with a real
+    `403 {"code":"INVALID_ORIGIN"}` — the same request without the forged
+    header (or same-origin) is the path every real signup/signin this
+    session has used successfully. No code fix needed here — this
+    protection was already real and active; the only gap found was the
+    undocumented `.env.example` assumption above.
 
 ## Partially Completed
 
@@ -1284,22 +2483,19 @@ behind is real.
   `AGENTS.md`'s User sidebar nav list itself, so it's unreachable from inside the
   authenticated app shell (only from "/"); adding it there would need an `AGENTS.md`
   nav-list update, a bigger, deliberate call this pass didn't make unprompted.
-- ☐ Playwright e2e coverage for the skin profile & lifestyle, assessment, dashboard,
-  recommendations, and progress screens — all verified manually (real browser, both
-  themes; mocked-API for the three newest), no automated test suite written yet, unlike
-  the app-shell/auth screens' coverage.
-- ☐ Full product/ingredient seeding from Kaggle (the real ingestion pipeline, not the
-  curated placeholder set in `seed.py`, which *is* idempotent and now actually run
-  against the live DB — see the Milestone 1 audit entry) is separate, larger scope
-  (`docs/DATASETS_AND_APIS.md`) blocked on a Kaggle API token.
+- ☐ **Full product/ingredient seeding from Kaggle — code-complete, credential-blocked
+  (see Completed).** `backend/app/services/admin/ingest/products.py` is a real,
+  tested pipeline (download → normalize → idempotent upsert); it isn't run because
+  `KAGGLE_USERNAME`/`KAGGLE_KEY` are still blank in `.env`
+  (`training_dataset/README.md` tracks exactly this). Nothing left to build — just a
+  real token, then `make ingest-products`.
+- ☐ **OpenWeather/OpenUV live data — code-complete, credential-blocked (see
+  Completed).** Adapters, the `weather` service, `GET /api/v1/weather-uv`, and the
+  topbar UV chip are all real and wired end-to-end; they degrade to `available:
+  false` because `OPENWEATHER_API_KEY`/`OPENUV_API_KEY` are still blank in `.env`
+  (same class of blocker as Kaggle above, not a code gap). Needs real keys, no
+  further code.
 - ☐ `api`/`web` Dockerfiles + docker-compose entries — needs a Docker-available session
-- ☐ **OpenWeather/OpenUV adapters never built** — `backend/app/integrations/` is empty
-  (just `__init__.py`), despite `docs/DATASETS_AND_APIS.md`'s own milestone mapping
-  naming this as M1 scope ("wire OpenWeather/OpenUV adapters (cached)"). Blocked on
-  missing `OPENWEATHER_API_KEY`/`OPENUV_API_KEY` (confirmed blank in `.env`) — same
-  class of external-credential blocker as the Kaggle item above, not a code gap.
-  Topbar's weather/UV chip is already an honest stub (`—`), not faked. Found during the
-  Milestone 1 audit; wasn't tracked here before that.
 - ☐ **ADR-010's outbox table doesn't exist** — the ADR commits to it existing "from M1,
   day one" regardless of whether the worker consumes it yet, but no `outbox` table
   appears anywhere (not the SQL schema doc, not a migration, no model). Elasticsearch/
@@ -1310,10 +2506,14 @@ behind is real.
   either way. Found during the Milestone 1 audit.
 - ☐ Graphify setup (ADR-006) — explicitly deferred by product owner, revisit later
   (2026-07-08 decision, see Known Issues)
-- ☐ Consultant/Dermatologist *clinical* review workflow — `consultant_clients`/
-  `consultant_notes` tables exist and are ready, but their UI needs real assessment
-  data to review against (M2+ territory); the identity/onboarding/verification layer
-  they'll sit behind is now real (see Completed).
+- ☐ **Clinical review workflow — list+detail shipped, see Completed; the rest
+  deliberately deferred.** `Recommendations`/`Reports` (Consultant) and
+  `Treatment Plans`/`Analytics` (Dermatologist) nav items still `built: false` —
+  each needs its own schema/data model (none exists for consultant-authored
+  recommendations, generated reports, or aggregate analytics) and its own design
+  pass, not an extension of this branch. A dedicated Admin UI for
+  consultant-client assignment is also still just a backend endpoint
+  (`POST /admin/consultant-clients`) — no screen built for it yet.
 - ☐ A dynamic permission-matrix editor — deliberately not built; the fixed 4-role
   model has no concrete case requiring per-permission granularity yet. Role
   Management is a real role-*assignment* view (Better Auth's `set-role`), not a
@@ -1338,17 +2538,23 @@ admin endpoint enforces `require_role("admin")` and writes an `audit_logs` row;
 operational endpoints. `app/core/storage.py` is a real `aioboto3` MinIO/S3 adapter
 (Branch 1), reused by verification-document upload and ready for profile
 images/progress photos later. `app/ai/` has the stub seeding helper + AI-contract
-schemas the recommender uses; no service package is empty except `integrations`. Seven
+schemas the recommender uses (concern *identification* and skin-type classification
+stay ADR-007 stubs — see the M2 Completed entry above for what's now real: tiered
+scoring, the `ingredient_skintype_avoid` safety filter, and real routine_adherence off
+the new Mongo `routine_logs` collection); no service package is empty except
+`integrations`. Seven
 hand-written Alembic migrations exist (`50e82a643bf9` baseline, `ccb49f9b0f47`
 ingredients, `44cfa8e6d5d4` products/routines/scoring, `0f62a9b1cdf4` professional
 verification, `a7e9f4e50c45` consulting/notifications/billing, `c21b3568fc1a` drop
 `user_profiles` identity drift, `a1e009276345` appearance preferences) — all applied
 against the live Docker Postgres.
-159 backend tests pass (`ruff`/`mypy --strict`/`pytest`), the large majority added
+169 backend tests pass (`ruff`/`mypy --strict`/`pytest`), the large majority added
 during the foundation-expansion phase's real-DB-fixture pattern (`tests/conftest.py`'s
 `db_session`/`test_user_id`, rollback-safe, verified to leave zero trace) rather than
 `dependency_overrides` mocking — Postgres/Mongo/Redis/MinIO are all live in Docker and
-were used directly for this phase's tests.
+were used directly for this phase's tests (the M2 slice's 10 new/updated tests follow
+the same pattern, plus a manual-cleanup fixture for the new Mongo `routine_logs` writes,
+same shape as the existing `lifestyle_logs` cleanup).
 
 ## Frontend status
 

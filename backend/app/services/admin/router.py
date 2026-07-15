@@ -10,6 +10,7 @@ from app.services.admin.schemas import (
     AuditLogCreate,
     AuditLogPage,
     AuditLogRead,
+    ConsultantClientAssignmentRequest,
     ConsultantProfileDetail,
     DashboardStats,
     DermatologistProfileDetail,
@@ -193,6 +194,20 @@ async def create_audit_log(
     await db.commit()
     await db.refresh(entry)
     return AuditLogRead.model_validate(entry)
+
+
+@router.post("/consultant-clients", status_code=status.HTTP_204_NO_CONTENT)
+async def assign_consultant_client(
+    body: ConsultantClientAssignmentRequest,
+    admin: Annotated[dict[str, Any], Depends(require_role("admin"))],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> None:
+    # No self-service "request a consultant/dermatologist" flow exists yet — this is
+    # the only way a real consultant_clients row gets created today (a dedicated
+    # Admin UI for it is a deliberate follow-up, not built this pass).
+    await service.assign_client(
+        db, actor_user_id=admin["id"], professional_id=body.professional_id, user_id=body.user_id
+    )
 
 
 @router.get("/audit-logs")

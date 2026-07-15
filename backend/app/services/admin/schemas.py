@@ -12,6 +12,11 @@ VerificationStatus = Literal[
 ]
 
 
+class ConsultantClientAssignmentRequest(BaseModel):
+    professional_id: str
+    user_id: str
+
+
 class VerificationQueueItem(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

@@ -2,7 +2,7 @@
 # Targets that depend on backend/ or web/ guard themselves with a clear message
 # until those scaffolds exist (tracked in PROGRESS.md) instead of failing silently.
 
-.PHONY: dev up down migrate seed test lint typecheck eval graph openapi
+.PHONY: dev up down migrate seed ingest-knowledge ingest-products test lint typecheck eval graph openapi
 
 up:
 	docker compose up -d
@@ -30,6 +30,20 @@ seed:
 		cd backend && uv run python -m app.db.seed; \
 	else \
 		echo "backend/ does not exist yet — nothing to seed."; \
+	fi
+
+ingest-knowledge:
+	@if [ -d backend ]; then \
+		cd backend && uv run python -m app.db.ingest_knowledge; \
+	else \
+		echo "backend/ does not exist yet — nothing to ingest."; \
+	fi
+
+ingest-products:
+	@if [ -d backend ]; then \
+		cd backend && uv run python -m app.services.admin.ingest.products; \
+	else \
+		echo "backend/ does not exist yet — nothing to ingest."; \
 	fi
 
 test:

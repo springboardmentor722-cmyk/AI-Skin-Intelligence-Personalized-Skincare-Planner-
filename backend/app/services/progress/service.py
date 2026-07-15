@@ -17,9 +17,7 @@ async def get_progress_summary(
     return ProgressSummaryRead(
         points=[
             ScoreTrendPoint(
-                date=score.calculated_at.date()
-                if score.calculated_at
-                else datetime.date.today(),
+                date=score.calculated_at.date() if score.calculated_at else datetime.date.today(),
                 overall_score=score.overall_score,
             )
             for score in scores

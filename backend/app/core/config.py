@@ -44,6 +44,16 @@ class Settings(BaseSettings):
     s3_bucket_name: str = "skinlytics-storage"
     s3_region: str = "us-east-1"
 
+    # External data sources — docs/DATASETS_AND_APIS.md is the canonical registry
+    # (access method, target store, ToS caveats) for every one of these. Blank by
+    # default (matches /.env.example) — each adapter degrades gracefully rather than
+    # erroring when its key is unset (topbar's "UV —" stub is the existing precedent).
+    kaggle_username: str = ""
+    kaggle_key: str = ""
+    openweather_api_key: str = ""
+    openuv_api_key: str = ""
+    ncbi_api_key: str = ""  # optional — raises PubMed's rate limit, not required
+
     @property
     def sqlalchemy_database_url(self) -> str:
         return self.database_url.replace("postgresql://", "postgresql+asyncpg://", 1)

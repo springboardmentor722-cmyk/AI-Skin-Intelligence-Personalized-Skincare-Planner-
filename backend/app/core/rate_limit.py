@@ -18,6 +18,7 @@ import time
 
 import jwt
 import structlog
+from redis.exceptions import RedisError
 from starlette.requests import Request
 from starlette.types import ASGIApp, Receive, Scope, Send
 
@@ -48,12 +49,15 @@ def _identity(request: Request) -> str:
     return f"ip:{client.host if client else 'unknown'}"
 
 
+_EXEMPT_PATHS = {"/health", "/health/ready"}
+
+
 class RateLimitMiddleware:
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        if scope["type"] != "http" or scope["path"] == "/health":
+        if scope["type"] != "http" or scope["path"] in _EXEMPT_PATHS:
             await self.app(scope, receive, send)
             return
 
@@ -61,10 +65,23 @@ class RateLimitMiddleware:
         identity = _identity(request)
         key = f"ratelimit:{identity}:{int(time.time() // _WINDOW_SECONDS)}"
 
-        redis = get_redis()
-        count = await redis.incr(key)
-        if count == 1:
-            await redis.expire(key, _WINDOW_SECONDS)
+        # Production-readiness audit finding: a real Redis outage (confirmed live —
+        # docker stop on the redis container) took down the *entire* API with a raw
+        # 500 on every request, not just rate limiting, since nothing here ever
+        # caught a connection failure. Fails open: if the rate limiter's own backing
+        # store is unreachable, degrade to "not rate limited" rather than "API is
+        # down" — losing throttling protection temporarily is a far smaller problem
+        # than losing all availability. Redis being flaky is exactly the kind of
+        # thing a rate limiter must be resilient to, not amplify.
+        try:
+            redis = get_redis()
+            count = await redis.incr(key)
+            if count == 1:
+                await redis.expire(key, _WINDOW_SECONDS)
+        except RedisError as exc:
+            logger.warning("rate_limit_backend_unavailable", error=str(exc))
+            await self.app(scope, receive, send)
+            return
 
         if count > settings.rate_limit_per_minute:
             logger.warning("rate_limited", identity=identity, count=count)
