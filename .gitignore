@@ -49,6 +49,16 @@ build/
 /training_dataset/processed/*
 !/training_dataset/processed/.gitkeep
 
+# --- Internal agent tooling, not part of the shipped product ---
+/AGENTS.md
+/CLAUDE.md
+/PROGRESS.md
+/Skinlytics_Antigravity_Stitch_Extraction_Prompt_Pack.md
+/docs/AGENT_WORKFLOW.md
+/docs/Skinlytics_Stitch_UI_Prompt_Pack_v2.md
+/docs/milestones/milestone_2/MASTER_PROMPT.md
+/.agents/
+
 # --- OS / editor ---
 .DS_Store
 Thumbs.db
