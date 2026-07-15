@@ -1,11 +1,7 @@
-# --- Secrets (real env files are never committed; .env.example is a template only) ---
+# --- Secrets (real env files are never committed; .env.example/.development/.production are templates only) ---
 .env
 .env.local
 .env.*.local
-.env.development
-.env.production
-.env.staging
-.env.test
 
 # --- Node / Next.js (web/) ---
 node_modules/
