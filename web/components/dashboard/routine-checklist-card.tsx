@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
-
 import { Checkbox } from "@/components/ui/checkbox";
+import { useToggleRoutineStep } from "@/lib/hooks/use-toggle-routine-step";
 import { cn } from "@/lib/utils";
 import type { components } from "@/lib/api-types";
 
@@ -12,16 +11,19 @@ interface RoutineChecklistCardProps {
   routines: RoutineRead[];
 }
 
-// docs/WIREFRAMES.md screen 3 "today's checklist / personalized routine (AM/PM steps)".
-// Check state is client-side only, reset on reload — no `checklist_step_done` persistence
-// exists anywhere in the documented schema (routines has no completion-tracking table),
-// which is exactly why the Scoring service stubs `routine_adherence` (PROGRESS.md) rather
-// than computing it from real data. This card is honest about that: it's today's plan,
-// not a saved log.
-export function RoutineChecklistCard({ routines }: RoutineChecklistCardProps) {
-  const [checked, setChecked] = useState<Record<number, boolean>>({});
+// docs/WIREFRAMES.md screen 3 "today's checklist / personalized routine (AM/PM steps)"
+// — AM/PM only, by design; Weekly Care (Milestone 2) lives on the dedicated
+// /routine screen, not this daily-checklist card. Check state is real, persisted
+// state (Mongo routine_logs, backend/app/services/routines/service.py) — each
+// step's `completed_today` comes straight from GET /api/v1/routine, and toggling
+// (useToggleRoutineStep) POSTs to /routines/steps/{step_id}/log, not a client-only
+// guess that resets on reload.
+export function RoutineChecklistCard({ routines: allRoutines }: RoutineChecklistCardProps) {
+  const toggleMutation = useToggleRoutineStep();
+  const routines = allRoutines.filter((r) => r.routine_type === "AM" || r.routine_type === "PM");
 
-  const toggle = (stepId: number) => setChecked((prev) => ({ ...prev, [stepId]: !prev[stepId] }));
+  const toggle = (stepId: number, completed: boolean) =>
+    toggleMutation.mutate({ stepId, completed });
 
   if (routines.length === 0) {
     return (
@@ -39,7 +41,7 @@ export function RoutineChecklistCard({ routines }: RoutineChecklistCardProps) {
       <h3 className="font-heading text-on-surface mb-5 text-lg font-semibold">Today&apos;s routine</h3>
       <div className="flex flex-col gap-6">
         {routines.map((routine) => {
-          const doneCount = routine.steps.filter((s) => checked[s.step_id]).length;
+          const doneCount = routine.steps.filter((s) => s.completed_today).length;
           return (
             <div key={routine.routine_id}>
               <div className="mb-3 flex items-center justify-between">
@@ -52,7 +54,7 @@ export function RoutineChecklistCard({ routines }: RoutineChecklistCardProps) {
               </div>
               <div className="flex flex-col gap-2.5">
                 {routine.steps.map((step) => {
-                  const isChecked = !!checked[step.step_id];
+                  const isChecked = step.completed_today;
                   return (
                     <label
                       key={step.step_id}
@@ -60,7 +62,7 @@ export function RoutineChecklistCard({ routines }: RoutineChecklistCardProps) {
                     >
                       <Checkbox
                         checked={isChecked}
-                        onCheckedChange={() => toggle(step.step_id)}
+                        onCheckedChange={() => toggle(step.step_id, !isChecked)}
                         className="size-5 rounded-full border-2 border-on-surface/20 data-checked:border-secondary data-checked:bg-secondary group-hover:border-secondary"
                       />
                       <span

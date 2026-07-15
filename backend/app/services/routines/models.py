@@ -11,7 +11,10 @@ from app.db.postgres import Base
 
 
 class Routine(Base):
-    __tablename__ = "routines"
+    # Renamed from routines to skincare_routines (2026-07-14) to match mile_2.docx's
+    # literal table name — see docs/milestones/milestone_2/MASTER_PROMPT.md Phase 1.
+    # Class name kept as Routine; only the DB-facing table name changed.
+    __tablename__ = "skincare_routines"
     __table_args__ = (
         Index("idx_routines_user", "user_id"),
         Index("idx_routines_user_active", "user_id", "is_active"),
@@ -20,10 +23,19 @@ class Routine(Base):
     routine_id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[str] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
     routine_name: Mapped[str | None] = mapped_column(default=None)
-    routine_type: Mapped[str | None] = mapped_column(default=None)  # "AM" | "PM"
+    routine_type: Mapped[str | None] = mapped_column(default=None)
+    # "AM" | "PM" | "Weekly" | "Seasonal"
     description: Mapped[str | None] = mapped_column(Text, default=None)
     is_active: Mapped[bool | None] = mapped_column(default=True)
     generated_by_ai: Mapped[bool | None] = mapped_column(default=True)
+    # Milestone 2 Step 1.1's "assessment_id" — best-effort link to whichever
+    # skin_assessments row was the most recently computed one when this routine was
+    # generated (nullable: a user can generate routines before ever computing a
+    # score). Never force-computes a score as a side effect of routine generation —
+    # see routines/service.py::get_or_generate_routines.
+    score_id: Mapped[int | None] = mapped_column(
+        ForeignKey("skin_assessments.score_id"), default=None
+    )
     created_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
 
@@ -34,7 +46,7 @@ class RoutineStep(Base):
 
     step_id: Mapped[int] = mapped_column(primary_key=True)
     routine_id: Mapped[int] = mapped_column(
-        ForeignKey("routines.routine_id", ondelete="CASCADE")
+        ForeignKey("skincare_routines.routine_id", ondelete="CASCADE")
     )
     step_order: Mapped[int | None] = mapped_column(default=None)
     step_name: Mapped[str | None] = mapped_column(default=None)
@@ -49,10 +61,8 @@ class RoutineProduct(Base):
 
     routine_product_id: Mapped[int] = mapped_column(primary_key=True)
     routine_id: Mapped[int] = mapped_column(
-        ForeignKey("routines.routine_id", ondelete="CASCADE")
+        ForeignKey("skincare_routines.routine_id", ondelete="CASCADE")
     )
     product_id: Mapped[int] = mapped_column(ForeignKey("products.product_id"))
-    step_id: Mapped[int | None] = mapped_column(
-        ForeignKey("routine_steps.step_id"), default=None
-    )
+    step_id: Mapped[int | None] = mapped_column(ForeignKey("routine_steps.step_id"), default=None)
     usage_notes: Mapped[str | None] = mapped_column(Text, default=None)

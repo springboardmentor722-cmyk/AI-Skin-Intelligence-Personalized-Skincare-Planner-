@@ -21,6 +21,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/health/ready": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Health Ready */
+        get: operations["health_ready_health_ready_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/users/me": {
         parameters: {
             query?: never;
@@ -198,6 +215,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/assessment/evaluate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Get My Score */
+        post: operations["get_my_score_api_v1_assessment_evaluate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assessment/score": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Score */
+        get: operations["get_my_score_api_v1_assessment_score_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/scores/me": {
         parameters: {
             query?: never;
@@ -207,6 +258,23 @@ export interface paths {
         };
         /** Get My Score */
         get: operations["get_my_score_api_v1_scores_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/routine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Routines */
+        get: operations["get_my_routines_api_v1_routine_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -230,6 +298,126 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/routine/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate My Routines */
+        post: operations["generate_my_routines_api_v1_routine_generate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/routines/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate My Routines */
+        post: operations["generate_my_routines_api_v1_routines_generate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/routines/steps/{step_id}/log": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Log Step Completion */
+        post: operations["log_step_completion_api_v1_routines_steps__step_id__log_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/routines/products/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Search Products */
+        get: operations["search_products_api_v1_routines_products_search_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/routines/{routine_id}/steps/reorder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Reorder Routine Steps */
+        patch: operations["reorder_routine_steps_api_v1_routines__routine_id__steps_reorder_patch"];
+        trace?: never;
+    };
+    "/api/v1/routines/{routine_id}/steps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Routine Step */
+        post: operations["add_routine_step_api_v1_routines__routine_id__steps_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/routines/steps/{step_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Routine Step */
+        delete: operations["delete_routine_step_api_v1_routines_steps__step_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Routine Step */
+        patch: operations["update_routine_step_api_v1_routines_steps__step_id__patch"];
         trace?: never;
     };
     "/api/v1/recommendations/me": {
@@ -414,6 +602,23 @@ export interface paths {
         put?: never;
         /** Create Audit Log */
         post: operations["create_audit_log_api_v1_admin_audit_logs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/consultant-clients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Assign Consultant Client */
+        post: operations["assign_consultant_client_api_v1_admin_consultant_clients_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -611,6 +816,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/clients/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Clients */
+        get: operations["get_my_clients_api_v1_clients_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/clients/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Client */
+        get: operations["get_client_api_v1_clients__user_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/clients/{user_id}/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Client Notes */
+        get: operations["get_client_notes_api_v1_clients__user_id__notes_get"];
+        put?: never;
+        /** Add Client Note */
+        post: operations["add_client_note_api_v1_clients__user_id__notes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weather-uv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Weather Uv */
+        get: operations["get_my_weather_uv_api_v1_weather_uv_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -721,6 +995,136 @@ export interface components {
             document_type: "government_id" | "professional_certificate" | "medical_license" | "supporting_document";
             /** File */
             file: string;
+        };
+        /** ClientDetailRead */
+        ClientDetailRead: {
+            /** User Id */
+            user_id: string;
+            /** Name */
+            name: string | null;
+            /** Email */
+            email: string;
+            skin_profile: components["schemas"]["SkinProfileRead"] | null;
+            score: components["schemas"]["ClientScoreRead"] | null;
+            /** Routines */
+            routines: components["schemas"]["RoutineRead"][];
+            /** Notes */
+            notes: components["schemas"]["ConsultantNoteRead"][];
+        };
+        /**
+         * ClientListPage
+         * @description Production-readiness audit finding: list_my_clients had no LIMIT at all —
+         *     every active assignment, unbounded, on every call. A busy professional's real
+         *     client list genuinely grows into the hundreds over time. Same page/page_size/
+         *     total shape as admin/schemas.py's PageMeta-based *Page schemas, kept as its own
+         *     small type here rather than importing across services (ADR-005's own-exposed-
+         *     interface spirit, applied to schemas too, not just models).
+         */
+        ClientListPage: {
+            /** Items */
+            items: components["schemas"]["ClientSummaryRead"][];
+            meta: components["schemas"]["ClientListPageMeta"];
+        };
+        /** ClientListPageMeta */
+        ClientListPageMeta: {
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Total */
+            total: number;
+        };
+        /**
+         * ClientScoreRead
+         * @description A read-only projection of the client's latest real skin_assessments row (via
+         *     scores_service.get_recent_scores) — never recomputed on a professional's
+         *     behalf. Deliberately doesn't reuse scores/schemas.py's ScoreRead: that schema
+         *     requires the nested scoring_weights row, which isn't needed for a clinical
+         *     review view of the five component scores + overall.
+         */
+        ClientScoreRead: {
+            /** Score Id */
+            score_id: number;
+            /** Skin Condition Score */
+            skin_condition_score: number | null;
+            /** Lifestyle Score */
+            lifestyle_score: number | null;
+            /** Sleep Quality Score */
+            sleep_quality_score: number | null;
+            /** Hydration Score */
+            hydration_score: number | null;
+            /** Routine Adherence Score */
+            routine_adherence_score: number | null;
+            /** Overall Score */
+            overall_score: number | null;
+            /** Calculated At */
+            calculated_at: string | null;
+        };
+        /** ClientSummaryRead */
+        ClientSummaryRead: {
+            /** User Id */
+            user_id: string;
+            /** Name */
+            name: string | null;
+            /** Email */
+            email: string;
+            /** Skin Type Name */
+            skin_type_name: string | null;
+            /** Primary Concern Name */
+            primary_concern_name: string | null;
+            /** Overall Score */
+            overall_score: number | null;
+            /** Routine Adherence Score */
+            routine_adherence_score: number | null;
+            /** Score Trend */
+            score_trend: number[];
+            /** Last Sync */
+            last_sync: string | null;
+        };
+        /** ConsultantClientAssignmentRequest */
+        ConsultantClientAssignmentRequest: {
+            /** Professional Id */
+            professional_id: string;
+            /** User Id */
+            user_id: string;
+        };
+        /** ConsultantNoteCreate */
+        ConsultantNoteCreate: {
+            /** Note Text */
+            note_text: string;
+        };
+        /**
+         * ConsultantNoteListPage
+         * @description Production-readiness audit finding (round 4): list_notes had no LIMIT
+         *     either — same unbounded-per-relationship shape list_my_clients had, just for
+         *     a client's note history instead of a professional's client roster. Same
+         *     page/page_size/total shape as ClientListPage above, kept separate rather than
+         *     reused since the two wrap different item types.
+         */
+        ConsultantNoteListPage: {
+            /** Items */
+            items: components["schemas"]["ConsultantNoteRead"][];
+            meta: components["schemas"]["ConsultantNoteListPageMeta"];
+        };
+        /** ConsultantNoteListPageMeta */
+        ConsultantNoteListPageMeta: {
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Total */
+            total: number;
+        };
+        /** ConsultantNoteRead */
+        ConsultantNoteRead: {
+            /** Note Id */
+            note_id: number;
+            /** Note Text */
+            note_text: string | null;
+            /** Created At */
+            created_at: string | null;
+            /** Updated At */
+            updated_at: string | null;
         };
         /** ConsultantProfileDetail */
         ConsultantProfileDetail: {
@@ -1231,6 +1635,8 @@ export interface components {
             routine_type: string | null;
             /** Description */
             description: string | null;
+            /** Score Id */
+            score_id: number | null;
             /** Steps */
             steps: components["schemas"]["RoutineStepRead"][];
         };
@@ -1248,6 +1654,8 @@ export interface components {
             duration_minutes: number | null;
             /** Products */
             products: components["schemas"]["RoutineProductRead"][];
+            /** Completed Today */
+            completed_today: boolean;
         };
         /** ScoreRead */
         ScoreRead: {
@@ -1359,6 +1767,32 @@ export interface components {
             skin_type_name: string;
             /** Description */
             description: string | null;
+        };
+        /** StepCompletionUpdate */
+        StepCompletionUpdate: {
+            /** Completed */
+            completed: boolean;
+        };
+        /** StepCreate */
+        StepCreate: {
+            /** Step Name */
+            step_name: string;
+            /** Product Id */
+            product_id: number;
+        };
+        /** StepReorderUpdate */
+        StepReorderUpdate: {
+            /** Step Ids */
+            step_ids: number[];
+        };
+        /** StepUpdate */
+        StepUpdate: {
+            /** Step Name */
+            step_name?: string | null;
+            /** Product Id */
+            product_id?: number | null;
+            /** Usage Notes */
+            usage_notes?: string | null;
         };
         /** UserMeResponse */
         UserMeResponse: {
@@ -1475,6 +1909,21 @@ export interface components {
             /** Documents */
             documents: components["schemas"]["app__services__admin__schemas__VerificationDocumentRead"][];
         };
+        /** WeatherUVRead */
+        WeatherUVRead: {
+            /** Available */
+            available: boolean;
+            /** Temperature */
+            temperature: number | null;
+            /** Humidity */
+            humidity: number | null;
+            /** Uv Index */
+            uv_index: number | null;
+            /** Weather Condition */
+            weather_condition: string | null;
+            /** Cached */
+            cached: boolean;
+        };
         /** VerificationDocumentRead */
         app__services__admin__schemas__VerificationDocumentRead: {
             /** Document Id */
@@ -1547,6 +1996,26 @@ export interface operations {
                     "application/json": {
                         [key: string]: string;
                     };
+                };
+            };
+        };
+    };
+    health_ready_health_ready_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
         };
@@ -1843,6 +2312,46 @@ export interface operations {
             };
         };
     };
+    get_my_score_api_v1_assessment_evaluate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScoreRead"];
+                };
+            };
+        };
+    };
+    get_my_score_api_v1_assessment_score_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScoreRead"];
+                };
+            };
+        };
+    };
     get_my_score_api_v1_scores_me_get: {
         parameters: {
             query?: never;
@@ -1863,6 +2372,26 @@ export interface operations {
             };
         };
     };
+    get_my_routines_api_v1_routine_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoutineRead"][];
+                };
+            };
+        };
+    };
     get_my_routines_api_v1_routines_me_get: {
         parameters: {
             query?: never;
@@ -1879,6 +2408,247 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RoutineRead"][];
+                };
+            };
+        };
+    };
+    generate_my_routines_api_v1_routine_generate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoutineRead"][];
+                };
+            };
+        };
+    };
+    generate_my_routines_api_v1_routines_generate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoutineRead"][];
+                };
+            };
+        };
+    };
+    log_step_completion_api_v1_routines_steps__step_id__log_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                step_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StepCompletionUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_products_api_v1_routines_products_search_get: {
+        parameters: {
+            query: {
+                category: string;
+                q: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reorder_routine_steps_api_v1_routines__routine_id__steps_reorder_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                routine_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StepReorderUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoutineRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_routine_step_api_v1_routines__routine_id__steps_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                routine_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StepCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoutineRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_routine_step_api_v1_routines_steps__step_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                step_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoutineRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_routine_step_api_v1_routines_steps__step_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                step_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StepUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoutineRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -2267,6 +3037,37 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["AuditLogRead"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    assign_consultant_client_api_v1_admin_consultant_clients_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConsultantClientAssignmentRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -2687,6 +3488,170 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_my_clients_api_v1_clients_me_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientListPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_client_api_v1_clients__user_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientDetailRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_client_notes_api_v1_clients__user_id__notes_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConsultantNoteListPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_client_note_api_v1_clients__user_id__notes_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConsultantNoteCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConsultantNoteRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_my_weather_uv_api_v1_weather_uv_get: {
+        parameters: {
+            query: {
+                lat: number;
+                lon: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WeatherUVRead"];
+                };
             };
             /** @description Validation Error */
             422: {

@@ -128,9 +128,7 @@ def upgrade() -> None:
             name="ck_verification_documents_type",
         ),
     )
-    op.create_index(
-        "idx_verification_documents_owner", "verification_documents", ["owner_user_id"]
-    )
+    op.create_index("idx_verification_documents_owner", "verification_documents", ["owner_user_id"])
 
     op.create_table(
         "audit_logs",

@@ -5,7 +5,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.ai.seeding import seeded_random
 from app.db.redis import get_redis
-from app.services.recommendations.models import Product, ProductConcern, ProductSkinType
+from app.services.ingredients.models import IngredientSkintypeAvoid
+from app.services.recommendations.models import (
+    Product,
+    ProductConcern,
+    ProductIngredient,
+    ProductSkinType,
+)
 from app.services.recommendations.schemas import ProductRead, RecommendationRead
 from app.services.skin_profile import service as skin_profile_service
 
@@ -17,17 +23,43 @@ async def list_products_for_skin_type(
     db: AsyncSession, skin_type_id: int, category: str | None = None
 ) -> list[Product]:
     """Interface function (ADR-005) — other services (e.g. Routine Planner) read
-    candidate products through this, never `products`/`product_skin_types` directly."""
+    candidate products through this, never `products`/`product_skin_types` directly.
+    Explicit `ORDER BY product_id` — routines/service.py's `_generate_routine` calls
+    this with `category=None` (fetch every candidate once, filter by category in
+    Python) as a real N+1 fix; without an explicit order, Postgres doesn't guarantee
+    row order is identical between a category-filtered query and an unfiltered one,
+    which would make `_generate_routine`'s seeded_random choice among candidates
+    silently unstable depending on which query shape ran."""
     stmt = (
         select(Product)
         .join(ProductSkinType, ProductSkinType.product_id == Product.product_id)
         .where(ProductSkinType.skin_type_id == skin_type_id, Product.is_active.is_(True))
         .distinct()
+        .order_by(Product.product_id)
     )
     if category:
         stmt = stmt.where(Product.category == category)
     result = await db.execute(stmt)
     return list(result.scalars().all())
+
+
+async def list_avoided_ingredient_product_ids(db: AsyncSession, skin_type_id: int) -> set[int]:
+    """Interface function (ADR-005) — the hard safety filter docs/AI_ML.md's Principle
+    3 requires ("allergy and avoid-ingredient exclusions are deterministic Postgres
+    filters applied *before* any model ranks anything"). Joins `product_ingredients` to
+    the already-seeded `ingredient_skintype_avoid` junction (backend/app/db/seed.py) —
+    no new schema, just the first consumer of a table nothing previously queried."""
+    stmt = (
+        select(ProductIngredient.product_id)
+        .join(
+            IngredientSkintypeAvoid,
+            IngredientSkintypeAvoid.ingredient_id == ProductIngredient.ingredient_id,
+        )
+        .where(IngredientSkintypeAvoid.skin_type_id == skin_type_id)
+        .distinct()
+    )
+    result = await db.execute(stmt)
+    return set(result.scalars().all())
 
 
 async def list_all_products(
@@ -95,6 +127,13 @@ async def get_recommendations(db: AsyncSession, user_id: str) -> list[Recommenda
     concern_ids = {c.concern_id for c in profile.concerns}
 
     products = await list_products_for_skin_type(db, profile.skin_type_id)
+    if not products:
+        return []
+
+    # Hard safety filter, applied before ranking (docs/AI_ML.md Principle 3) — never
+    # recommend a product carrying an ingredient flagged unsafe for this skin type.
+    avoided_product_ids = await list_avoided_ingredient_product_ids(db, profile.skin_type_id)
+    products = [p for p in products if p.product_id not in avoided_product_ids]
     if not products:
         return []
 
