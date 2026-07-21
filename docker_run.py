@@ -30,7 +30,11 @@ WEB = ROOT / "web"
 # subprocess output (which bypasses Python's buffering) appears fine, making the script
 # look stuck or silent when it isn't.
 if isinstance(sys.stdout, io.TextIOWrapper):
-    sys.stdout.reconfigure(line_buffering=True)
+    # On Windows, a redirected/non-TTY stdout falls back to the system codepage
+    # (cp1252) rather than UTF-8, which can't encode the "→"/"⚠" characters this
+    # script prints — force UTF-8 explicitly rather than relying on the console's
+    # default.
+    sys.stdout.reconfigure(line_buffering=True, encoding="utf-8")
 
 
 def fail(message: str) -> NoReturn:
@@ -70,8 +74,21 @@ def ensure_web_env_symlink() -> None:
     web_env = WEB / ".env"
     if web_env.is_symlink() or web_env.exists():
         return
-    web_env.symlink_to(Path("..") / ".env")
-    print(f"→ Created {web_env} -> ../.env")
+    try:
+        web_env.symlink_to(Path("..") / ".env")
+        print(f"→ Created {web_env} -> ../.env")
+    except OSError:
+        # Windows only grants SeCreateSymbolicLinkPrivilege to admins, or to anyone
+        # once Developer Mode is on (Settings > Privacy & security > For developers).
+        # Without either, symlink_to raises WinError 1314. Fall back to a plain copy
+        # so setup still succeeds; re-run after enabling Developer Mode to get a real
+        # symlink that stays in sync automatically.
+        if sys.platform != "win32":
+            raise
+        shutil.copyfile(ROOT / ".env", web_env)
+        print(f"→ Copied {web_env} <- ../.env (symlink needs admin or Developer Mode on "
+              f"Windows; re-run after enabling Developer Mode for a real symlink, or the "
+              f"copy will go stale if the root .env changes)")
 
 
 def start_docker_compose(docker: str) -> None:

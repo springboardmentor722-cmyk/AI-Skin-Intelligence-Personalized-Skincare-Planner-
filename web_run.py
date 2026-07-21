@@ -30,7 +30,11 @@ WEB = ROOT / "web"
 # warning below) can sit invisible indefinitely while `npm run dev`'s output (which
 # bypasses Python's buffering) appears fine, making the warning look like it never fired.
 if isinstance(sys.stdout, io.TextIOWrapper):
-    sys.stdout.reconfigure(line_buffering=True)
+    # On Windows, a redirected/non-TTY stdout falls back to the system codepage
+    # (cp1252) rather than UTF-8, which can't encode the "→"/"⚠" characters this
+    # script prints — force UTF-8 explicitly rather than relying on the console's
+    # default.
+    sys.stdout.reconfigure(line_buffering=True, encoding="utf-8")
 
 
 def fail(message: str) -> NoReturn:
@@ -86,8 +90,14 @@ def main() -> None:
     require_on_path("npm")
     warn_if_postgres_unreachable()
     print("→ Starting frontend (next dev, :3000). Ctrl+C to stop.\n")
+    # On Windows, `npm` is `npm.cmd` — CreateProcess (what subprocess uses under the
+    # hood, shell=False) can't resolve that from "npm" alone the way a real shell's
+    # PATHEXT lookup would, so pass shutil.which()'s already-resolved, extension-aware
+    # path instead of the bare command name.
+    npm = shutil.which("npm")
+    assert npm is not None  # guaranteed by require_on_path above
     try:
-        subprocess.run(["npm", "run", "dev"], cwd=WEB, check=True)
+        subprocess.run([npm, "run", "dev"], cwd=WEB, check=True)
     except KeyboardInterrupt:
         print("\n→ Frontend stopped.")
     except subprocess.CalledProcessError as exc:
