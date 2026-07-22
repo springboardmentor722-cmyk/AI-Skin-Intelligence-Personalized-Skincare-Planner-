@@ -83,10 +83,14 @@ skinlytics/
 │   ├── Dockerfile                    # shared by `worker` (compose) and, at M4, `api`
 │   └── tests/
 │
-├── ml/                               # PLANNED (M2+): training / experiments / eval
+├── ml/                               # eval/ (harness, M3-H) + registry/ (documented
+│   │                                 #   layout) — no separate venv, reuses backend/'s
+│   ├── eval/                         #   run.py, suitability_eval.py (pure scoring,
+│   │                                 #   unit-tested), reports/ (gitignored, per-run)
+│   ├── registry/                     #   README.md only — nothing trained yet (see it)
 │   └── faiss/                        # M3-A: derived FAISS index files, gitignored,
 │                                     #   always rebuildable (`make rebuild-derived`)
-└── graphify-out/                     # PLANNED: committed code graph (GRAPHIFY_SETUP.md)
+└── graphify-out/                     # committed code graph (GRAPHIFY_SETUP.md, ADR-006)
 ```
 
 ## Backend (FastAPI, Python)
