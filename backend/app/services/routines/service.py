@@ -426,6 +426,37 @@ async def list_active_step_ids(db: AsyncSession, user_id: str) -> list[int]:
     return list(result.scalars().all())
 
 
+async def list_active_step_counts_by_user(db: AsyncSession) -> dict[str, int]:
+    """Interface function (ADR-005) — Analytics' admin-wide adherence distribution
+    (M3-F) reads active step counts across every user through this, never
+    `skincare_routines`/`routine_steps` directly. One aggregate query, not a
+    per-user loop — "where cheap" (milestone_3.md §M3-F's own phrasing)."""
+    result = await db.execute(
+        select(Routine.user_id, func.count(RoutineStep.step_id))
+        .join(RoutineStep, RoutineStep.routine_id == Routine.routine_id)
+        .where(Routine.is_active.is_(True))
+        .group_by(Routine.user_id)
+    )
+    return {user_id: count for user_id, count in result.all()}
+
+
+async def count_completed_steps_by_user(user_ids: list[str], days: int = 7) -> dict[str, int]:
+    """Interface function (ADR-005) — bulk, cross-user sibling of
+    `list_recent_routine_logs`, for Analytics' admin-wide adherence distribution
+    (M3-F). One Mongo query via `$in`, never a per-user loop."""
+    if not user_ids:
+        return {}
+    collection = get_mongo_db()[_ROUTINE_LOGS_COLLECTION]
+    since = _day_start(
+        datetime.datetime.now(datetime.UTC).date() - datetime.timedelta(days=days - 1)
+    )
+    cursor = collection.find({"user_id": {"$in": user_ids}, "log_date": {"$gte": since}})
+    counts: dict[str, int] = {}
+    async for doc in cursor:
+        counts[doc["user_id"]] = counts.get(doc["user_id"], 0) + len(doc.get("completed_steps", []))
+    return counts
+
+
 # --- Routine edit/reorder (M2, deferred half of the My Routine screen) ---
 # app-routine-edit.html's real, schema-backed parts only — reorder/add/delete a
 # step, swap a step's product, edit usage notes. The wireframe's "Interaction

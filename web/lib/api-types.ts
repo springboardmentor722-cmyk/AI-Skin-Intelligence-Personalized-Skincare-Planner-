@@ -592,6 +592,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/analytics/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Analytics */
+        get: operations["get_my_analytics_api_v1_analytics_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/admin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Admin Analytics */
+        get: operations["get_admin_analytics_api_v1_analytics_admin_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/verification-queue": {
         parameters: {
             query?: never;
@@ -1042,6 +1076,28 @@ export interface components {
             /** Completed Ratio */
             completed_ratio: number;
         };
+        /** AdherenceDistributionBucket */
+        AdherenceDistributionBucket: {
+            /** Range Label */
+            range_label: string;
+            /** User Count */
+            user_count: number;
+        };
+        /** AnalyticsAdminRead */
+        AnalyticsAdminRead: {
+            /** Total Assessments */
+            total_assessments: number;
+            recommendation_acceptance: components["schemas"]["RecommendationAcceptanceRead"];
+            /** Adherence Distribution */
+            adherence_distribution: components["schemas"]["AdherenceDistributionBucket"][];
+        };
+        /** AnalyticsMeRead */
+        AnalyticsMeRead: {
+            /** Score Vs Adherence */
+            score_vs_adherence: components["schemas"]["ScoreAdherencePoint"][];
+            /** Correlations */
+            correlations: components["schemas"]["CorrelationInsight"][];
+        };
         /** AppearancePreferenceRead */
         AppearancePreferenceRead: {
             /**
@@ -1490,6 +1546,27 @@ export interface components {
             location?: string | null;
             /** Phone */
             phone?: string | null;
+        };
+        /**
+         * CorrelationInsight
+         * @description Every field is a real, computed claim (same discipline as
+         *     app/ai/schemas.py's SuitabilityResult/TrendInsight) — `correlation` is a plain
+         *     Pearson r over the user's own real history, `confidence` is r² (the standard
+         *     "fraction of variance explained" reading of a correlation coefficient), never
+         *     a guessed number. `None` when there isn't enough history yet — an honest empty
+         *     state, not a fabricated value (milestone_3.md §M3-F acceptance criteria).
+         */
+        CorrelationInsight: {
+            /** Label */
+            label: string;
+            /** Data Source */
+            data_source: string;
+            /** Correlation */
+            correlation: number | null;
+            /** Confidence */
+            confidence: number | null;
+            /** Summary */
+            summary: string;
         };
         /**
          * DashboardStats
@@ -2037,6 +2114,15 @@ export interface components {
              */
             milestones: components["schemas"]["Milestone"][];
         };
+        /** RecommendationAcceptanceRead */
+        RecommendationAcceptanceRead: {
+            /** Total Feedback Events */
+            total_feedback_events: number;
+            /** Accepted Count */
+            accepted_count: number;
+            /** Acceptance Rate */
+            acceptance_rate: number | null;
+        };
         /**
          * RecommendationFeedbackCreate
          * @description Mongo `recommendation_feedback` (NEW, M3-D, milestone_3.md §5) — the future
@@ -2100,6 +2186,18 @@ export interface components {
             products: components["schemas"]["RoutineProductRead"][];
             /** Completed Today */
             completed_today: boolean;
+        };
+        /** ScoreAdherencePoint */
+        ScoreAdherencePoint: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Overall Score */
+            overall_score: number | null;
+            /** Adherence Ratio */
+            adherence_ratio: number | null;
         };
         /** ScoreRead */
         ScoreRead: {
@@ -3510,6 +3608,57 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_my_analytics_api_v1_analytics_me_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalyticsMeRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_admin_analytics_api_v1_analytics_admin_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalyticsAdminRead"];
                 };
             };
         };

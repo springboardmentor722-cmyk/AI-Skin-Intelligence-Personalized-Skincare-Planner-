@@ -110,6 +110,7 @@ async def test_require_verified_professional_rejects_missing_profile(
         ("GET", "/api/v1/progress/me/photos"),
         ("GET", "/api/v1/progress/me/logs"),
         ("POST", "/api/v1/progress/me/logs"),
+        ("GET", "/api/v1/analytics/me"),
         ("GET", "/api/v1/ingredients/1/suitability/me"),
         ("GET", "/api/v1/products/1"),
         ("GET", "/api/v1/products/compare?ids=1,2"),
@@ -161,6 +162,7 @@ async def test_user_only_routes_reject_other_roles(
         ("GET", "/api/v1/admin/dashboard-stats", None),
         ("GET", "/api/v1/admin/ingredients", None),
         ("GET", "/api/v1/admin/products", None),
+        ("GET", "/api/v1/analytics/admin", None),
     ],
 )
 async def test_admin_only_routes_reject_non_admin_roles(
