@@ -45,3 +45,15 @@ rows/FKs). No `detected_concerns` column was added to `skin_assessments` despite
 docx's illustrative schema naming one: it's derivable via a join against
 `skin_profile_concerns`, so a denormalized duplicate wasn't added (AGENTS.md's
 "don't invent a column" rule).
+
+## 2026-07-22 — M3-A: `outbox` table (ADR-010 made real)
+
+New `outbox` table (`outbox_id`, `aggregate_type`, `aggregate_id`, `event_type`,
+`payload JSONB`, `created_at`, `processed_at`) + `idx_outbox_processed_id` on
+`(processed_at, outbox_id)` for the worker's FIFO pending-row poll. Applied via
+Alembic migration `2d9fcee3b312`. Writes to products/ingredients/skin_profiles append
+a row here in the same Postgres transaction (`app/db/outbox.py`); knowledge_articles
+is Mongo-owned, so its append happens immediately after the Mongo write commits —
+best-effort, not cross-store-atomic (documented limitation, not silently assumed
+away). The arq worker (`backend/app/worker/`) is the only consumer and the only writer
+of Elasticsearch/the vector DB (single-writer rule, ADR-005).

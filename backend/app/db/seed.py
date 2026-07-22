@@ -26,6 +26,7 @@ from typing import TypedDict
 
 from sqlalchemy import select
 
+from app.db.outbox import append_outbox
 from app.db.postgres import async_session_factory
 from app.services.ingredients.models import (
     Ingredient,
@@ -341,6 +342,7 @@ async def seed_ingredients() -> int:
             )
             db.add(ingredient)
             await db.flush()  # assigns ingredient.ingredient_id without committing yet
+            await append_outbox(db, "ingredient", str(ingredient.ingredient_id), "upsert")
 
             for concern_name, evidence_strength in entry.get("treats", []):
                 concern_id = concerns.get(concern_name)
@@ -405,6 +407,7 @@ async def seed_products() -> int:
             )
             db.add(product)
             await db.flush()  # assigns product.product_id without committing yet
+            await append_outbox(db, "product", str(product.product_id), "upsert")
 
             for skin_type_name in entry.get("skin_types", []):
                 skin_type_id = skin_types.get(skin_type_name)

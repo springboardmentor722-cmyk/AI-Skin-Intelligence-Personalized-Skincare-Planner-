@@ -521,6 +521,26 @@ CREATE TABLE user_appearance_preferences (
 );
 
 -- ============================================================
+-- OUTBOX (ADR-010, M3-A — transactional outbox for ES/vector projection)
+-- ============================================================
+
+-- Writes to products/ingredients/knowledge_articles/skin_profiles append a row here
+-- in the same Postgres transaction as the source mutation (knowledge_articles is
+-- Mongo-owned, so its append is best-effort immediately after the Mongo write
+-- commits, not truly atomic). The arq worker (backend/app/worker/) polls
+-- `processed_at IS NULL` and projects to Elasticsearch + FAISS/Pinecone; nothing
+-- else ever writes those derived stores directly (single-writer rule, ADR-005).
+CREATE TABLE outbox (
+    outbox_id BIGSERIAL PRIMARY KEY,
+    aggregate_type VARCHAR(50) NOT NULL,   -- 'product'|'ingredient'|'article'|'profile'
+    aggregate_id TEXT NOT NULL,            -- TEXT: covers int PKs and user ids (ADR-003)
+    event_type VARCHAR(50) NOT NULL,       -- 'upsert'|'delete'
+    payload JSONB,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    processed_at TIMESTAMP                 -- NULL = pending
+);
+
+-- ============================================================
 -- INDEXES
 -- ============================================================
 
@@ -559,6 +579,8 @@ CREATE INDEX idx_payments_user ON payments(user_id);
 CREATE INDEX idx_routine_products_step ON routine_products(step_id);
 CREATE INDEX idx_routine_products_routine ON routine_products(routine_id);
 CREATE INDEX idx_products_category ON products(category);
+-- migration 2d9fcee3b312 (M3-A): the worker polls pending outbox rows in FIFO order.
+CREATE INDEX idx_outbox_processed_id ON outbox(processed_at, outbox_id);
 
 -- ============================================================
 -- SEED DATA  (roles are NOT seeded here — Better Auth admin plugin owns user.role)

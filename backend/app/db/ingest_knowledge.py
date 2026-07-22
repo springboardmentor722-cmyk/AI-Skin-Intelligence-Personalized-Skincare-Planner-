@@ -13,6 +13,7 @@ import asyncio
 import datetime
 
 from app.db.mongo import get_mongo_db
+from app.db.outbox import append_outbox
 from app.db.postgres import async_session_factory
 from app.integrations.pubmed import search_and_fetch
 from app.services.skin_profile import service as skin_profile_service
@@ -73,6 +74,12 @@ async def ingest_for_concern(concern_name: str) -> int:
         )
         if result.upserted_id is not None or result.modified_count > 0:
             upserted += 1
+            # knowledge_articles is Mongo-owned, so this can't share a transaction
+            # with the write above — best-effort right after it commits, not
+            # cross-store-atomic (documented limitation, README_v3_changes.md M3-A).
+            async with async_session_factory() as db:
+                await append_outbox(db, "article", str(article_id), "upsert")
+                await db.commit()
     return upserted
 
 
