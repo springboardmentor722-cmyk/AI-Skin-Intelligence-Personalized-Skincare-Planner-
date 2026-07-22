@@ -40,7 +40,20 @@ class AdherenceDistributionBucket(BaseModel):
     user_count: int
 
 
+class LatencyStatsRead(BaseModel):
+    """Real, measured request-duration percentiles (app/core/metrics.py's
+    rolling Redis sample store, M3-G) — `None` fields mean no samples exist
+    yet, never a guessed number."""
+
+    sample_count: int
+    p50_ms: float | None
+    p95_ms: float | None
+
+
 class AnalyticsAdminRead(BaseModel):
     total_assessments: int
     recommendation_acceptance: RecommendationAcceptanceRead
     adherence_distribution: list[AdherenceDistributionBucket]
+    api_latency: LatencyStatsRead
+    recommendation_latency: LatencyStatsRead
+    dashboard_tti: LatencyStatsRead

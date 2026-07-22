@@ -372,3 +372,26 @@ async def test_product_catalog_list_allows_every_signed_in_role(client: AsyncCli
         finally:
             app.dependency_overrides.pop(require_user, None)
         assert response.status_code == 200
+
+
+async def test_dashboard_tti_report_allows_every_signed_in_role(client: AsyncClient) -> None:
+    # Every one of the four roles has its own dashboard (ARCHITECTURE.md §9) — TTI
+    # reporting isn't a `user`-role-only surface. Round-trip coverage (the sample
+    # actually lands) lives in test_instrumentation_router.py; this only checks
+    # every role clears the auth gate.
+    from app.db.redis import get_redis
+
+    for role in ("user", "consultant", "dermatologist", "admin"):
+        app.dependency_overrides[require_user] = lambda role=role: {
+            "id": f"{role}_1",
+            "role": role,
+            "claims": {},
+        }
+        try:
+            response = await client.post(
+                "/api/v1/instrumentation/dashboard-tti", json={"duration_ms": 1000.0}
+            )
+        finally:
+            app.dependency_overrides.pop(require_user, None)
+            await get_redis().delete("metrics:latency:dashboard_tti")
+        assert response.status_code == 204

@@ -2,14 +2,52 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Activity, RotateCw, TriangleAlert } from "lucide-react";
+import { Activity, Gauge, RotateCw, TriangleAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StateCard } from "@/components/state-card";
 import { api } from "@/lib/api";
+import type { components } from "@/lib/api-types";
 
 const PAGE_SIZE = 20;
+
+type LatencyStatsRead = components["schemas"]["LatencyStatsRead"];
+
+// M3-G: real, measured request-duration percentiles (app/core/metrics.py's
+// rolling Redis sample store, ARCHITECTURE.md §9's "API response time, rec
+// latency, dashboard load ... surfaced in the Admin monitoring screen") —
+// `null` p50/p95 means no samples exist yet, never a guessed number.
+function LatencyStatCard({ label, stats }: { label: string; stats: LatencyStatsRead | undefined }) {
+  return (
+    <div className="border-border bg-card rounded-2xl border p-5">
+      <p className="font-geist text-on-surface-variant text-xs font-semibold tracking-[0.05em] uppercase">
+        {label}
+      </p>
+      {!stats || stats.sample_count === 0 ? (
+        <p className="text-on-surface-variant mt-2 font-sans text-sm">No samples yet</p>
+      ) : (
+        <div className="mt-2 flex items-baseline gap-4">
+          <div>
+            <span className="font-geist text-on-surface text-2xl font-semibold tabular-nums">
+              {stats.p95_ms !== null ? Math.round(stats.p95_ms) : "—"}
+            </span>
+            <span className="text-on-surface-variant ml-1 font-sans text-xs">ms p95</span>
+          </div>
+          <div>
+            <span className="font-geist text-on-surface-variant text-sm tabular-nums">
+              {stats.p50_ms !== null ? Math.round(stats.p50_ms) : "—"}
+            </span>
+            <span className="text-on-surface-variant ml-1 font-sans text-xs">ms p50</span>
+          </div>
+        </div>
+      )}
+      <p className="text-on-surface-variant mt-1 font-sans text-xs">
+        {stats?.sample_count ?? 0} samples (rolling)
+      </p>
+    </div>
+  );
+}
 
 export default function AdminMonitoringPage() {
   const [action, setAction] = useState("");
@@ -26,6 +64,14 @@ export default function AdminMonitoringPage() {
     },
   });
 
+  const analyticsQuery = useQuery({
+    queryKey: ["analytics", "admin"],
+    queryFn: async () => {
+      const { data } = await api.GET("/api/v1/analytics/admin");
+      return data ?? null;
+    },
+  });
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -33,6 +79,29 @@ export default function AdminMonitoringPage() {
         <p className="text-on-surface-variant mt-1 font-sans text-sm">
           Full audit trail — every verification action and role change, filterable.
         </p>
+      </div>
+
+      <div>
+        <h2 className="font-heading text-on-surface mb-3 flex items-center gap-2 text-sm font-semibold">
+          <Gauge className="size-4" strokeWidth={1.5} />
+          System latency
+        </h2>
+        {analyticsQuery.isLoading ? (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-24 w-full rounded-2xl" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <LatencyStatCard label="API response time" stats={analyticsQuery.data?.api_latency} />
+            <LatencyStatCard
+              label="Recommendation latency"
+              stats={analyticsQuery.data?.recommendation_latency}
+            />
+            <LatencyStatCard label="Dashboard load (TTI)" stats={analyticsQuery.data?.dashboard_tti} />
+          </div>
+        )}
       </div>
 
       <input

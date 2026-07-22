@@ -626,6 +626,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/instrumentation/dashboard-tti": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Report Dashboard Tti */
+        post: operations["report_dashboard_tti_api_v1_instrumentation_dashboard_tti_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/verification-queue": {
         parameters: {
             query?: never;
@@ -1090,6 +1107,9 @@ export interface components {
             recommendation_acceptance: components["schemas"]["RecommendationAcceptanceRead"];
             /** Adherence Distribution */
             adherence_distribution: components["schemas"]["AdherenceDistributionBucket"][];
+            api_latency: components["schemas"]["LatencyStatsRead"];
+            recommendation_latency: components["schemas"]["LatencyStatsRead"];
+            dashboard_tti: components["schemas"]["LatencyStatsRead"];
         };
         /** AnalyticsMeRead */
         AnalyticsMeRead: {
@@ -1583,6 +1603,18 @@ export interface components {
             /** Recent Activity */
             recent_activity: components["schemas"]["AuditLogRead"][];
         };
+        /**
+         * DashboardTtiReport
+         * @description A real, browser-measured Time-To-Interactive sample (M3-G,
+         *     ARCHITECTURE.md §9's "dashboard load" metric) — never a value this backend
+         *     invents. `le=60_000` is a sanity bound (a minute), not a real page ever takes
+         *     that long; guards the rolling store against a corrupt client payload skewing
+         *     every percentile.
+         */
+        DashboardTtiReport: {
+            /** Duration Ms */
+            duration_ms: number;
+        };
         /** DermatologistProfileDetail */
         DermatologistProfileDetail: {
             /** User Id */
@@ -1849,6 +1881,20 @@ export interface components {
         InteractionsRead: {
             /** Pairs */
             pairs: components["schemas"]["InteractionPair"][];
+        };
+        /**
+         * LatencyStatsRead
+         * @description Real, measured request-duration percentiles (app/core/metrics.py's
+         *     rolling Redis sample store, M3-G) — `None` fields mean no samples exist
+         *     yet, never a guessed number.
+         */
+        LatencyStatsRead: {
+            /** Sample Count */
+            sample_count: number;
+            /** P50 Ms */
+            p50_ms: number | null;
+            /** P95 Ms */
+            p95_ms: number | null;
         };
         /** LifestyleLogCreate */
         LifestyleLogCreate: {
@@ -3659,6 +3705,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AnalyticsAdminRead"];
+                };
+            };
+        };
+    };
+    report_dashboard_tti_api_v1_instrumentation_dashboard_tti_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DashboardTtiReport"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
