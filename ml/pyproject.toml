@@ -1,0 +1,30 @@
+[project]
+name = "skinlytics-ml"
+version = "0.1.0"
+description = "Skinlytics ml/ — evaluation harness (ml/eval/) + model training (ml/training/). Deliberately its own uv project, separate from backend/'s: training needs torch/torchvision, which have no business bloating the FastAPI API service's own dependency set (ml/README.md)."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "scikit-learn>=1.9.0",
+    "torch>=2.13.0",
+    "torchvision>=0.28.0",
+]
+
+# CUDA 13.2 wheels — matches this dev machine's driver (nvidia-smi: CUDA UMD 13.3,
+# forward-compatible with a cu132-compiled build). Falls back to CPU automatically
+# on a machine with no matching GPU/driver (torch's own behavior, not scripted here).
+[[tool.uv.index]]
+url = "https://download.pytorch.org/whl/cu132"
+
+[dependency-groups]
+dev = [
+    "mypy>=2.3.0",
+    "ruff>=0.15.22",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

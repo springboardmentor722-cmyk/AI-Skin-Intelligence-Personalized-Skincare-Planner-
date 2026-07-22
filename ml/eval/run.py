@@ -18,11 +18,11 @@ import json
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import select
-
 from app.db.mongo import get_mongo_db
 from app.db.postgres import async_session_factory
 from app.services.ingredients.models import Ingredient
+from sqlalchemy import select
+
 from eval.suitability_eval import SuitabilityCase, run_suitability_eval
 
 _REPORT_DIR = Path(__file__).resolve().parent / "reports"
