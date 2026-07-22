@@ -22,10 +22,13 @@ from app.services.routines.service import (
     _am_pm_categories_for_skin_type,
     _current_season,
     add_step,
+    count_completed_steps_by_user,
     delete_step,
     get_or_generate_routines,
+    list_active_step_counts_by_user,
     reorder_steps,
     search_products_for_edit,
+    toggle_step_completion,
     update_step,
 )
 from app.services.scores.service import compute_and_store_score
@@ -669,3 +672,45 @@ async def test_first_time_generation_does_not_n_plus_one_per_category(
         f"{query_count} queries to generate {total_categories} steps across 4 "
         "routine types looks like a regression back toward the old per-category N+1"
     )
+
+
+# --- list_active_step_counts_by_user / count_completed_steps_by_user — Analytics'
+# admin-wide adherence distribution (M3-F) ---
+
+
+async def test_list_active_step_counts_by_user_includes_a_real_user_with_an_active_routine(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+    routines = await get_or_generate_routines(db_session, test_user_id)
+    expected_steps = sum(len(r.steps) for r in routines)  # every active routine type
+
+    counts = await list_active_step_counts_by_user(db_session)
+
+    assert counts.get(test_user_id) == expected_steps
+
+
+async def test_count_completed_steps_by_user_reflects_real_toggles(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    from app.db.mongo import get_mongo_db
+
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+    routines = await get_or_generate_routines(db_session, test_user_id)
+    am_routine = next(r for r in routines if r.routine_type == "AM")
+    try:
+        await toggle_step_completion(test_user_id, am_routine.steps[0].step_id, True)
+
+        counts = await count_completed_steps_by_user([test_user_id], days=7)
+
+        assert counts.get(test_user_id, 0) >= 1
+    finally:
+        await get_mongo_db()["routine_logs"].delete_many({"user_id": test_user_id})
+
+
+async def test_count_completed_steps_by_user_empty_list_short_circuits() -> None:
+    assert await count_completed_steps_by_user([]) == {}

@@ -28,6 +28,7 @@ from app.services.scores.scoring_engine import (
 )
 from app.services.scores.service import (
     compute_and_store_score,
+    count_all_assessments,
     get_active_weights,
 )
 from app.services.skin_profile.schemas import (
@@ -434,3 +435,17 @@ async def test_compute_and_store_score_requires_a_skin_profile(
 ) -> None:
     with pytest.raises(ValueError, match="No skin profile"):
         await compute_and_store_score(db_session, test_user_id)
+
+
+async def test_count_all_assessments_increases_after_a_real_score_is_stored(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    # Analytics' admin platform-wide metric (M3-F, PDF §8 "assessment counts") —
+    # real Postgres COUNT(*), not an estimate.
+    before = await count_all_assessments(db_session)
+
+    await create_profile(db_session, test_user_id, SkinProfileCreate(skin_type_id=1, concerns=[]))
+    await compute_and_store_score(db_session, test_user_id)
+
+    after = await count_all_assessments(db_session)
+    assert after == before + 1

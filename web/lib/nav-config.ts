@@ -76,7 +76,9 @@ const RAW_NAV_ITEMS: Record<Role, RawNavItem[]> = {
     { label: "Products", path: "/products", icon: ShoppingBag },
     { label: "Ingredients", path: "/ingredients", icon: FlaskConical },
     { label: "Progress", path: "/progress", icon: TrendingUp },
-    { label: "Insights", path: "/insights", icon: Sparkles, built: false },
+    // M3-F: real screen now (GET /api/v1/analytics/me — correlation insights over
+    // real logged history, honest empty state for new users).
+    { label: "Insights", path: "/insights", icon: Sparkles },
     { label: "Reports", path: "/reports", icon: FileText, built: false },
     { label: "Notifications", path: "/notifications", icon: Bell, built: false },
     // Phase 3 (theme system): Settings now covers a real Appearance section.

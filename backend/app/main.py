@@ -15,6 +15,7 @@ from app.db.mongo import get_mongo_db
 from app.db.postgres import engine
 from app.db.redis import get_redis
 from app.services.admin.router import router as admin_router
+from app.services.analytics.router import router as analytics_router
 from app.services.clinical_review.router import router as clinical_review_router
 from app.services.consultant_profile.router import router as consultant_profile_router
 from app.services.dermatologist_profile.router import router as dermatologist_profile_router
@@ -135,6 +136,7 @@ def create_app() -> FastAPI:
     # /ingredients/{id}/suitability/me, /ingredients/interactions), M3-B.
     api_v1.include_router(ingredients_router, tags=["ingredients"])
     api_v1.include_router(progress_router, tags=["progress"])
+    api_v1.include_router(analytics_router, tags=["analytics"])
     # admin_router already declares prefix="/admin" (verification queue + audit logs).
     api_v1.include_router(admin_router, tags=["admin"])
     # consultant_profile_router already declares prefix="/consultant-profiles".
