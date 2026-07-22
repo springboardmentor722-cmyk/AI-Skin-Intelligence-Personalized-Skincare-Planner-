@@ -27,7 +27,7 @@ All under `backend/app/ai/`; one class per surface, stub + real impl.
 | `SkinTypeClassifier` | scan image → skin type + confidence | EfficientNet-B0 | image S3; result → Mongo `skin_assessments` |
 | `ConcernDetector` | scan image → [{concern, severity, confidence}] | multi-label CNN | Mongo `skin_assessments` |
 | `IngredientSuitability` | (profile, ingredient) → suitability + interaction flags | gradient-boosted + rules over PG junctions | PG + vector |
-| `SkinScorePredictor` | features → predicted trajectory | regression / gradient boosting | PG `skin_scores` |
+| `SkinScorePredictor` | features → predicted trajectory | regression / gradient boosting | PG `skin_assessments` (renamed from `skin_scores`, M2) |
 | `ProgressTrendAnalyzer` | assessment/score time series → trend + insight | time-series model | Mongo `progress_logs` |
 | `Recommender` | profile + candidates → ranked products + reasons | XGBoost/LightGBM ranker | vector + ES + PG |
 | `TextEmbedder` / `NLPEngine` | product/ingredient/article text → vector + extracted attrs | SentenceTransformers / PubMedBERT | Vector DB |
@@ -101,7 +101,7 @@ Component normalization (each 0–100):
 | Concern Detector | ISIC (lesion/condition) + facial sets | macro-F1 per concern; severity MAE | 600 ms | domain gap (dermoscopic vs selfie), tone bias |
 | Ingredient Suitability | PG junctions + curated labels | precision@flag; zero missed allergy conflicts (hard req) | 50 ms | incomplete junction data |
 | Recommender | interactions + suitability + ratings | NDCG@10, precision@5, user satisfaction | 200 ms rank stage | popularity bias, cold start |
-| Score Predictor | `skin_scores` history | MAE vs realized score | 100 ms | sparse history |
+| Score Predictor | `skin_assessments` history | MAE vs realized score | 100 ms | sparse history |
 | Trend Analyzer | progress/assessment series | trend directional accuracy | 200 ms | noisy self-reports |
 | NLP/Embedder | product/ingredient/article text | retrieval recall@20 | batch | INCI parsing errors |
 

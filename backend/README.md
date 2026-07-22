@@ -4,7 +4,12 @@ FastAPI modular monolith (`docs/ARCHITECTURE.md` §3-4, ADR-005). Python 3.11+, 
 
 Read `/AGENTS.md` and `/docs/CONVENTIONS.md` before adding code here — service anatomy
 (`router.py`/`service.py`/`schemas.py`/`models.py`/`deps.py`), data-ownership rules, and
-API conventions are defined there, not in this file.
+API conventions are defined there, not in this file. The implemented-service ↔ planned-
+service map (which code dir covers which `docs/ARCHITECTURE.md` §4 service, including
+the M2 rubric aliases `/assessment/*` and `/routine/*`) is in `AGENTS.md` §5.
+
+Config note: `app/core/config.py` loads env from the **repo-root `.env`** — put keys
+there, not in a `backend/.env`.
 
 ```bash
 uv run uvicorn app.main:app --reload   # http://localhost:8000, docs at /docs
