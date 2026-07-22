@@ -60,7 +60,7 @@ Clients (Responsive Web · Mobile · Dashboards · Visualizations · Reports)
 API Gateway (FastAPI): routing · authN (JWT verify) · rate limiting ·
 request validation · load balancing · CORS
         ▼
-Microservices layer — 12 services (§4)
+Microservices layer — 14 services (§4)
         ▼
 AI / ML & Intelligence Engine — 7 model surfaces (§5; stubbed until M2, ADR-007)
         ▼
@@ -97,10 +97,10 @@ service; everything else reads via interfaces or consumes derived projections.
 | 1 | **User** | domain user profile, role glue to Better Auth; PG `user_appearance_preferences` (Phase 3 theme system — any role, not User-only) | identity tables (RO) | `/users` |
 | 2 | **Skin Profile** | PG `skin_profiles`, `skin_profile_concerns`; Mongo `lifestyle_logs`, `weather_uv_logs` | weather adapters | `/skin-profiles`, `/lifestyle-logs` |
 | 3 | **Skin Assessment** | Mongo `skin_assessments`; S3 scan images | AI interfaces | `/assessments` |
-| 4 | **Routine Planner** | PG `routines`, `routine_steps`, step↔product links | profile, scoring, AI | `/routines` |
+| 4 | **Routine Planner** | PG `skincare_routines` (renamed from `routines`, M2 rubric reconciliation — `PROGRESS.md`), `routine_steps`, step↔product links | profile, scoring, AI | `/routines` + rubric aliases `/routine`, `/routine/generate` |
 | 5 | **Ingredient Intelligence** | PG `ingredients` + junctions (`ingredient_concern_treats`, `ingredient_skintype_avoid`) | ES prose, vector sims | `/ingredients` |
 | 6 | **Product Recommendation** | PG `products`, `product_*` junctions; Redis rec cache | pipeline §10 | `/products`, `/recommendations` |
-| 7 | **Skin Health Scoring** | PG `skin_scores`, `scoring_weights` | profile, lifestyle, adherence | `/scores` |
+| 7 | **Skin Health Scoring** | PG `skin_assessments` (renamed from `skin_scores`, M2 rubric reconciliation — `PROGRESS.md`), `scoring_weights`; score math in `services/scores/scoring_engine.py` | profile, lifestyle, adherence | `/scores` + rubric aliases `/assessment/evaluate`, `/assessment/score` |
 | 8 | **Progress Tracking** | Mongo `progress_logs`; S3 progress photos | assessments, scores | `/progress` |
 | 9 | **Notification** | PG `notifications`, `reminders` | user prefs | `/notifications`, `/reminders` |
 | 10 | **Analytics** | nothing (read-only aggregator, never a source of truth) | all stores | `/analytics` |
@@ -122,6 +122,16 @@ Notification (routine/product/hydration/sleep reminders, system notifications) �
 (skin/usage/recommendation/engagement analytics, insights) · Report (generation, PDF/Excel
 export, custom & scheduled) · Admin (users, content, system monitoring, data management,
 platform settings).
+
+**Implemented module map (as of M2):** the code dirs under `backend/app/services/` are
+`user`, `skin_profile`, `scores` (Skin Health Scoring + the assessment evaluate/score
+endpoints), `routines`, `ingredients` (service layer only; router lands M3),
+`recommendations`, `progress`, `admin`, `consultant_profile`, `dermatologist_profile`,
+plus two support modules not numbered in the table: `clinical_review` (consultant/
+dermatologist client review, shared by both roles) and `weather` (`/weather-uv`, backed
+by the OpenWeather/OpenUV adapters). The image-based Skin Assessment service (#3) and
+Notification/Analytics/Report (#9–11) are still to be built in M3–M4 — follow the
+ownership table above when building them. Full endpoint mapping: `AGENTS.md` §5.
 
 **Async work** (report rendering, notification delivery, embedding jobs, ES/vector
 projection, weather polling) runs on an **arq worker** over the existing Redis, fed by a
@@ -232,7 +242,7 @@ from their sources at any time.
 
 | Store | Source of truth for | Notes |
 |---|---|---|
-| **PostgreSQL** | identity (Better Auth), skin profiles, skin taxonomy, ingredients + junctions, products, routines, scores + `scoring_weights`, consultant assignments/notes, notifications, reminders, subscriptions, payments, outbox | `database_schemas/skinlytics_postgresql_schema_v3.sql` |
+| **PostgreSQL** | identity (Better Auth), skin profiles, skin taxonomy, ingredients + junctions, products, `skincare_routines`, `skin_assessments` + `scoring_weights`, consultant assignments/notes, notifications, reminders, subscriptions, payments, outbox | `database_schemas/skinlytics_postgresql_schema_v3.sql` |
 | **MongoDB** | lifestyle logs (time-series), AI assessment payloads, progress logs, user preferences, weather/UV logs, knowledge-article content, vector-sync metadata | `..._mongodb_schema_v3.txt` |
 | **Elasticsearch** | *derived* search: products, ingredients, knowledge articles, search logs | projected from PG/Mongo via outbox |
 | **Vector DB** (FAISS dev / Pinecone prod) | *derived* embeddings: products, ingredients, articles, user profiles, assessments | `..._vector_db_schema_v3.txt`, `AI_ML.md` |
@@ -340,15 +350,21 @@ Full tree in `docs/CONVENTIONS.md`. Top level:
 ```
 skinlytics/
 ├── AGENTS.md  CLAUDE.md            # agent memory (start here)
+├── .agents/rules/                  # skinlytics-stitch.md — Stitch extraction rules
 ├── PROGRESS.md                     # milestone/task state — agents update this
-├── docker-compose.yml  Makefile  .env.example
-├── docs/                           # this file + DESIGN, DECISIONS, CONVENTIONS, AI_ML,
-│                                   # DATASETS_AND_APIS, WIREFRAMES, AGENT_WORKFLOW, SUGGESTIONS
+├── AI_Skin Intelligence & Personalized Skincare Planner (1).pdf  # requirements
+├── docker-compose.yml  Makefile  .env.example  .env.production  setup.sh
+├── .github/workflows/              # backend-ci.yml, frontend-ci.yml
+├── docs/                           # this file + architecture.png, DESIGN, DECISIONS,
+│                                   # CONVENTIONS, AI_ML, DATASETS_AND_APIS, WIREFRAMES,
+│                                   # AGENT_WORKFLOW, SUGGESTIONS, milestones/
 ├── database_schemas/               # PG v3, Mongo v3, Vector v3, ES, infra, Better Auth identity
-├── web/                            # Next.js + shadcn + Better Auth
+├── dataset_and_API_reference/      # dataset/API research doc
+├── training_dataset/               # MANIFEST.md + gitignored raw/ processed/
+├── web/                            # Next.js + shadcn + Better Auth (+ designs/wireframes/)
 ├── backend/                        # FastAPI modular monolith (app/services/*, app/ai/*)
-├── ml/                             # training/experiments/eval (M2+)
-└── graphify-out/                   # committed code-graph — shared agent context
+├── ml/                             # PLANNED (M2+): training/experiments/eval
+└── graphify-out/                   # PLANNED: committed code-graph (GRAPHIFY_SETUP.md)
 ```
 
 ## 13. Milestone roadmap (8 weeks) with exit criteria
