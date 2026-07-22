@@ -1455,8 +1455,8 @@
     "semantic_hash": "715768688e537cf9bfe9165682b4e82a"
   },
   "web/lib/api-types.ts": {
-    "mtime": 1784752539.8663554,
-    "ast_hash": "41e251999429ed4f2a96adb61d38da6e",
+    "mtime": 1784752632.7507226,
+    "ast_hash": "ce7432fb5a27553a3a37e55f9fa70dfe",
     "semantic_hash": ""
   },
   "web/lib/api.ts": {
@@ -1840,13 +1840,13 @@
     "semantic_hash": ""
   },
   "docs/ARCHITECTURE.md": {
-    "mtime": 1784752469.1173007,
-    "ast_hash": "a3abc188e75d6266def184b8a0e16cde",
+    "mtime": 1784752935.8245525,
+    "ast_hash": "6e0ac62cff024b317c7b1f815d59d8d4",
     "semantic_hash": ""
   },
   "docs/CONVENTIONS.md": {
-    "mtime": 1784752488.119195,
-    "ast_hash": "2209b6a129d3fe0914aca035f3b29550",
+    "mtime": 1784752935.8245525,
+    "ast_hash": "c5be23f75400afb65f085e9819ffe078",
     "semantic_hash": ""
   },
   "docs/DATASETS_AND_APIS.md": {
@@ -3560,8 +3560,8 @@
     "semantic_hash": ""
   },
   "backend/tests/test_analytics_service.py": {
-    "mtime": 1784752316.9983044,
-    "ast_hash": "2530acfe7ebd920b110f7504205a3fa9",
+    "mtime": 1784753014.7119658,
+    "ast_hash": "97c1b860448adb4020753b4b001feb7a",
     "semantic_hash": ""
   },
   "web/app/(user)/insights/page.tsx": {
