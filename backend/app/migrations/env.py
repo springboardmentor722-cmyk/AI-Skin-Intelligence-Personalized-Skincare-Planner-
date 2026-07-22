@@ -14,13 +14,11 @@ from app.db.postgres import Base
 # side-effect only (registers each model's Table on Base.metadata) — required for
 # `alembic revision --autogenerate` to see them; add new services' models here as they
 # land.
-# progress/ has no models.py — its schemas.py/service.py compose scores.service's
-# interface functions instead of owning any Postgres table (docs/ARCHITECTURE.md §4:
-# this dashboard-scope slice reads skin_assessments, doesn't write anything of its own).
 from app.services.admin import models as _admin_models  # noqa: F401
 from app.services.consultant_profile import models as _consultant_profile_models  # noqa: F401
 from app.services.dermatologist_profile import models as _dermatologist_profile_models  # noqa: F401
 from app.services.ingredients import models as _ingredients_models  # noqa: F401
+from app.services.progress import models as _progress_models  # noqa: F401
 from app.services.recommendations import models as _recommendations_models  # noqa: F401
 from app.services.routines import models as _routines_models  # noqa: F401
 from app.services.scores import models as _scores_models  # noqa: F401

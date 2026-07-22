@@ -65,7 +65,10 @@ const RAW_NAV_ITEMS: Record<Role, RawNavItem[]> = {
   user: [
     { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
     { label: "My Routine", path: "/routine", icon: ClipboardList },
-    { label: "Daily Check-in", path: "/check-in", icon: CalendarCheck, built: false },
+    // M3-E: real screen now (routine checklist + hydration/sleep quick log +
+    // progress photo capture, all writing the same endpoints the dashboard/
+    // progress screens already use).
+    { label: "Daily Check-in", path: "/check-in", icon: CalendarCheck },
     // M3-C: repointed to the real product catalog (app/(user)/products) now that it
     // exists — restores "Products" to its real meaning (milestone_3.md §3, flagged in
     // that module's PR). Recommendations ("For you") is linked from the catalog and
