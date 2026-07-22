@@ -99,7 +99,7 @@
       "_origin": "ast",
       "id": "backend_app_ai_embedder_realtextembedder",
       "community": 156,
-      "community_name": "le",
+      "community_name": "RealTextEmbedder",
       "norm_label": "realtextembedder"
     },
     {
@@ -110,7 +110,7 @@
       "_origin": "ast",
       "id": "backend_app_ai_embedder_realtextembedder_init",
       "community": 156,
-      "community_name": "le",
+      "community_name": "RealTextEmbedder",
       "norm_label": ".__init__()"
     },
     {
@@ -121,7 +121,7 @@
       "_origin": "ast",
       "id": "backend_app_ai_embedder_realtextembedder_load",
       "community": 156,
-      "community_name": "le",
+      "community_name": "RealTextEmbedder",
       "norm_label": "._load()"
     },
     {
@@ -132,7 +132,7 @@
       "_origin": "ast",
       "id": "backend_app_ai_embedder_realtextembedder_embed",
       "community": 156,
-      "community_name": "le",
+      "community_name": "RealTextEmbedder",
       "norm_label": ".embed()"
     },
     {
@@ -165,7 +165,7 @@
       "_origin": "ast",
       "id": "backend_app_ai_embedder_rationale_39",
       "community": 156,
-      "community_name": "le",
+      "community_name": "RealTextEmbedder",
       "norm_label": "sentencetransformers-backed, lazy-loaded (no model load at import time \u2014 only"
     },
     {
@@ -330,7 +330,7 @@
       "_origin": "ast",
       "id": "backend_app_ai_schemas_suitabilityresult",
       "community": 172,
-      "community_name": "Adapter",
+      "community_name": "RealIngredientSuitability",
       "norm_label": "suitabilityresult"
     },
     {
@@ -341,7 +341,7 @@
       "_origin": "ast",
       "id": "backend_app_ai_schemas_py_basemodel",
       "community": 172,
-      "community_name": "Adapter",
+      "community_name": "RealIngredientSuitability",
       "norm_label": "basemodel"
     },
     {
@@ -462,7 +462,7 @@
       "_origin": "ast",
       "id": "backend_app_ai_schemas_rationale_24",
       "community": 172,
-      "community_name": "Adapter",
+      "community_name": "RealIngredientSuitability",
       "norm_label": "every field here is a real, auditable claim \u2014 never a probability that just"
     },
     {
@@ -572,7 +572,7 @@
       "_origin": "ast",
       "id": "backend_app_ai_suitability",
       "community": 172,
-      "community_name": "Adapter",
+      "community_name": "RealIngredientSuitability",
       "norm_label": "suitability.py"
     },
     {
@@ -583,7 +583,7 @@
       "_origin": "ast",
       "id": "backend_app_ai_suitability_tag_match",
       "community": 172,
-      "community_name": "Adapter",
+      "community_name": "RealIngredientSuitability",
       "norm_label": "_tag_match()"
     },
     {
@@ -594,7 +594,7 @@
       "_origin": "ast",
       "id": "backend_app_ai_suitability_realingredientsuitability",
       "community": 172,
-      "community_name": "Adapter",
+      "community_name": "RealIngredientSuitability",
       "norm_label": "realingredientsuitability"
     },
     {
@@ -605,7 +605,7 @@
       "_origin": "ast",
       "id": "backend_app_ai_suitability_realingredientsuitability_evaluate",
       "community": 172,
-      "community_name": "Adapter",
+      "community_name": "RealIngredientSuitability",
       "norm_label": ".evaluate()"
     },
     {
@@ -616,7 +616,7 @@
       "_origin": "ast",
       "id": "backend_app_ai_suitability_rationale_15",
       "community": 172,
-      "community_name": "Adapter",
+      "community_name": "RealIngredientSuitability",
       "norm_label": "(exact, substring) \u2014 free_text is a comma-separated list of user-entered     ta"
     },
     {
@@ -627,7 +627,7 @@
       "_origin": "ast",
       "id": "backend_app_ai_suitability_rationale_31",
       "community": 172,
-      "community_name": "Adapter",
+      "community_name": "RealIngredientSuitability",
       "norm_label": "rule-based, not ml \u2014 see app/ai/schemas.py's ingredientsuitability protocol"
     },
     {
@@ -649,7 +649,7 @@
       "_origin": "ast",
       "id": "backend_app_ai_trend_realprogresstrendanalyzer",
       "community": 163,
-      "community_name": "ingest_knowledge.py",
+      "community_name": "RealProgressTrendAnalyzer",
       "norm_label": "realprogresstrendanalyzer"
     },
     {
@@ -660,7 +660,7 @@
       "_origin": "ast",
       "id": "backend_app_ai_trend_realprogresstrendanalyzer_analyze",
       "community": 163,
-      "community_name": "ingest_knowledge.py",
+      "community_name": "RealProgressTrendAnalyzer",
       "norm_label": ".analyze()"
     },
     {
@@ -671,7 +671,7 @@
       "_origin": "ast",
       "id": "backend_app_ai_trend_py_date",
       "community": 163,
-      "community_name": "ingest_knowledge.py",
+      "community_name": "RealProgressTrendAnalyzer",
       "norm_label": "date"
     },
     {
@@ -682,7 +682,7 @@
       "_origin": "ast",
       "id": "backend_app_ai_trend_realprogresstrendanalyzer_summarize",
       "community": 163,
-      "community_name": "ingest_knowledge.py",
+      "community_name": "RealProgressTrendAnalyzer",
       "norm_label": "._summarize()"
     },
     {
@@ -693,7 +693,7 @@
       "_origin": "ast",
       "id": "backend_app_ai_trend_rationale_11",
       "community": 163,
-      "community_name": "ingest_knowledge.py",
+      "community_name": "RealProgressTrendAnalyzer",
       "norm_label": "deterministic linear-trend (ordinary least squares) over the series' values"
     },
     {
@@ -1198,8 +1198,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "backend_app_core_security_jwk_client",
-      "community": 46,
-      "community_name": "scores/service.py",
+      "community": 186,
+      "community_name": "_decode",
       "norm_label": "_jwk_client()"
     },
     {
@@ -1209,8 +1209,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "pyjwkclient",
-      "community": 46,
-      "community_name": "scores/service.py",
+      "community": 186,
+      "community_name": "_decode",
       "norm_label": "pyjwkclient"
     },
     {
@@ -1220,8 +1220,8 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "backend_app_core_security_decode",
-      "community": 46,
-      "community_name": "scores/service.py",
+      "community": 186,
+      "community_name": "_decode",
       "norm_label": "_decode()"
     },
     {
@@ -1231,8 +1231,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_app_core_security_py_any",
-      "community": 46,
-      "community_name": "scores/service.py",
+      "community": 186,
+      "community_name": "_decode",
       "norm_label": "any"
     },
     {
@@ -1276,7 +1276,7 @@
       "_origin": "ast",
       "id": "backend_app_core_security_require_verified_professional",
       "community": 170,
-      "community_name": "[role]/[userId]/page.tsx",
+      "community_name": "require_verified_professional",
       "norm_label": "require_verified_professional()"
     },
     {
@@ -1298,7 +1298,7 @@
       "_origin": "ast",
       "id": "backend_app_core_security_rationale_83",
       "community": 170,
-      "community_name": "[role]/[userId]/page.tsx",
+      "community_name": "require_verified_professional",
       "norm_label": "gates *operational* consultant/dermatologist endpoints (m2+) on the matching"
     },
     {
@@ -1309,7 +1309,7 @@
       "_origin": "ast",
       "id": "backend_app_core_security_headers",
       "community": 161,
-      "community_name": "get_redis",
+      "community_name": ".__call__",
       "norm_label": "security_headers.py"
     },
     {
@@ -1320,7 +1320,7 @@
       "_origin": "ast",
       "id": "backend_app_core_security_headers_securityheadersmiddleware",
       "community": 161,
-      "community_name": "get_redis",
+      "community_name": ".__call__",
       "norm_label": "securityheadersmiddleware"
     },
     {
@@ -1331,7 +1331,7 @@
       "_origin": "ast",
       "id": "backend_app_core_security_headers_securityheadersmiddleware_init",
       "community": 161,
-      "community_name": "get_redis",
+      "community_name": ".__call__",
       "norm_label": ".__init__()"
     },
     {
@@ -1342,7 +1342,7 @@
       "_origin": "ast",
       "id": "backend_app_core_security_headers_py_asgiapp",
       "community": 161,
-      "community_name": "get_redis",
+      "community_name": ".__call__",
       "norm_label": "asgiapp"
     },
     {
@@ -1353,7 +1353,7 @@
       "_origin": "ast",
       "id": "backend_app_core_security_headers_securityheadersmiddleware_call",
       "community": 161,
-      "community_name": "get_redis",
+      "community_name": ".__call__",
       "norm_label": ".__call__()"
     },
     {
@@ -1364,7 +1364,7 @@
       "_origin": "ast",
       "id": "backend_app_core_security_headers_py_scope",
       "community": 161,
-      "community_name": "get_redis",
+      "community_name": ".__call__",
       "norm_label": "scope"
     },
     {
@@ -1375,7 +1375,7 @@
       "_origin": "ast",
       "id": "backend_app_core_security_headers_py_receive",
       "community": 161,
-      "community_name": "get_redis",
+      "community_name": ".__call__",
       "norm_label": "receive"
     },
     {
@@ -1386,7 +1386,7 @@
       "_origin": "ast",
       "id": "backend_app_core_security_headers_py_send",
       "community": 161,
-      "community_name": "get_redis",
+      "community_name": ".__call__",
       "norm_label": "send"
     },
     {
@@ -1397,7 +1397,7 @@
       "_origin": "ast",
       "id": "backend_app_core_security_headers_rationale_1",
       "community": 161,
-      "community_name": "get_redis",
+      "community_name": ".__call__",
       "norm_label": "production-readiness audit finding: the browser calls this api directly (`next_"
     },
     {
@@ -1517,8 +1517,8 @@
       "source_location": "L153",
       "_origin": "ast",
       "id": "backend_app_core_storage_delete",
-      "community": 32,
-      "community_name": "storage.py",
+      "community": 33,
+      "community_name": "test_consultant_profile_service.py",
       "norm_label": "delete()"
     },
     {
@@ -1672,7 +1672,7 @@
       "_origin": "ast",
       "id": "backend_app_db_ingest_knowledge",
       "community": 135,
-      "community_name": ".__call__",
+      "community_name": "ingest_knowledge.py",
       "norm_label": "ingest_knowledge.py"
     },
     {
@@ -1683,7 +1683,7 @@
       "_origin": "ast",
       "id": "backend_app_db_ingest_knowledge_ingest_for_concern",
       "community": 135,
-      "community_name": ".__call__",
+      "community_name": "ingest_knowledge.py",
       "norm_label": "ingest_for_concern()"
     },
     {
@@ -1694,7 +1694,7 @@
       "_origin": "ast",
       "id": "backend_app_db_ingest_knowledge_main",
       "community": 135,
-      "community_name": ".__call__",
+      "community_name": "ingest_knowledge.py",
       "norm_label": "main()"
     },
     {
@@ -1705,7 +1705,7 @@
       "_origin": "ast",
       "id": "backend_app_db_ingest_knowledge_rationale_1",
       "community": 135,
-      "community_name": ".__call__",
+      "community_name": "ingest_knowledge.py",
       "norm_label": "real pubmed ingestion \u2014 `make ingest-knowledge` / `python -m app.db.ingest_knowl"
     },
     {
@@ -1914,7 +1914,7 @@
       "_origin": "ast",
       "id": "backend_app_db_redis",
       "community": 132,
-      "community_name": "get_db",
+      "community_name": "get_redis",
       "norm_label": "redis.py"
     },
     {
@@ -1925,7 +1925,7 @@
       "_origin": "ast",
       "id": "backend_app_db_redis_get_redis",
       "community": 132,
-      "community_name": "get_db",
+      "community_name": "get_redis",
       "norm_label": "get_redis()"
     },
     {
@@ -1936,7 +1936,7 @@
       "_origin": "ast",
       "id": "redis",
       "community": 132,
-      "community_name": "get_db",
+      "community_name": "get_redis",
       "norm_label": "redis"
     },
     {
@@ -1947,7 +1947,7 @@
       "_origin": "ast",
       "id": "backend_app_db_redis_rationale_10",
       "community": 132,
-      "community_name": "get_db",
+      "community_name": "get_redis",
       "norm_label": "key patterns per database_schemas/skinlytics_infrastructure_layer_v2.txt \u2014"
     },
     {
@@ -2232,8 +2232,8 @@
       "source_location": "L135",
       "_origin": "ast",
       "id": "backend_app_db_vector_get_metadata",
-      "community": 24,
-      "community_name": "vector.py",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "get_metadata()"
     },
     {
@@ -2651,7 +2651,7 @@
       "_origin": "ast",
       "id": "backend_app_integrations_pubmed",
       "community": 135,
-      "community_name": ".__call__",
+      "community_name": "ingest_knowledge.py",
       "norm_label": "pubmed.py"
     },
     {
@@ -2662,7 +2662,7 @@
       "_origin": "ast",
       "id": "backend_app_integrations_pubmed_pubmedarticle",
       "community": 135,
-      "community_name": ".__call__",
+      "community_name": "ingest_knowledge.py",
       "norm_label": "pubmedarticle"
     },
     {
@@ -2673,7 +2673,7 @@
       "_origin": "ast",
       "id": "backend_app_integrations_pubmed_extract_article",
       "community": 135,
-      "community_name": ".__call__",
+      "community_name": "ingest_knowledge.py",
       "norm_label": "_extract_article()"
     },
     {
@@ -2684,7 +2684,7 @@
       "_origin": "ast",
       "id": "element",
       "community": 135,
-      "community_name": ".__call__",
+      "community_name": "ingest_knowledge.py",
       "norm_label": "element"
     },
     {
@@ -2695,7 +2695,7 @@
       "_origin": "ast",
       "id": "backend_app_integrations_pubmed_search_and_fetch",
       "community": 135,
-      "community_name": ".__call__",
+      "community_name": "ingest_knowledge.py",
       "norm_label": "search_and_fetch()"
     },
     {
@@ -2706,7 +2706,7 @@
       "_origin": "ast",
       "id": "backend_app_integrations_pubmed_rationale_74",
       "community": 135,
-      "community_name": ".__call__",
+      "community_name": "ingest_knowledge.py",
       "norm_label": "esearch for pmids matching `query`, then efetch the full records. returns []"
     },
     {
@@ -5334,8 +5334,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_init",
-      "community": 33,
-      "community_name": "test_consultant_profile_service.py",
+      "community": 185,
+      "community_name": "consultant_profile/router.py",
       "norm_label": "consultant_profile/__init__.py"
     },
     {
@@ -5378,8 +5378,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_router",
-      "community": 33,
-      "community_name": "test_consultant_profile_service.py",
+      "community": 185,
+      "community_name": "consultant_profile/router.py",
       "norm_label": "consultant_profile/router.py"
     },
     {
@@ -5389,8 +5389,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_router_get_my_profile",
-      "community": 33,
-      "community_name": "test_consultant_profile_service.py",
+      "community": 185,
+      "community_name": "consultant_profile/router.py",
       "norm_label": "get_my_profile()"
     },
     {
@@ -5400,8 +5400,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_router_py_any",
-      "community": 33,
-      "community_name": "test_consultant_profile_service.py",
+      "community": 185,
+      "community_name": "consultant_profile/router.py",
       "norm_label": "any"
     },
     {
@@ -5411,8 +5411,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_router_py_depends",
-      "community": 33,
-      "community_name": "test_consultant_profile_service.py",
+      "community": 185,
+      "community_name": "consultant_profile/router.py",
       "norm_label": "depends"
     },
     {
@@ -5422,8 +5422,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_router_py_asyncsession",
-      "community": 33,
-      "community_name": "test_consultant_profile_service.py",
+      "community": 185,
+      "community_name": "consultant_profile/router.py",
       "norm_label": "asyncsession"
     },
     {
@@ -5433,8 +5433,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_router_submit_my_profile",
-      "community": 33,
-      "community_name": "test_consultant_profile_service.py",
+      "community": 185,
+      "community_name": "consultant_profile/router.py",
       "norm_label": "submit_my_profile()"
     },
     {
@@ -5444,8 +5444,8 @@
       "source_location": "L53",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_router_update_my_profile",
-      "community": 33,
-      "community_name": "test_consultant_profile_service.py",
+      "community": 185,
+      "community_name": "consultant_profile/router.py",
       "norm_label": "update_my_profile()"
     },
     {
@@ -5455,8 +5455,8 @@
       "source_location": "L65",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_router_list_my_documents",
-      "community": 33,
-      "community_name": "test_consultant_profile_service.py",
+      "community": 185,
+      "community_name": "consultant_profile/router.py",
       "norm_label": "list_my_documents()"
     },
     {
@@ -5466,8 +5466,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_router_py_verificationdocumentread",
-      "community": 33,
-      "community_name": "test_consultant_profile_service.py",
+      "community": 185,
+      "community_name": "consultant_profile/router.py",
       "norm_label": "verificationdocumentread"
     },
     {
@@ -5477,8 +5477,8 @@
       "source_location": "L74",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_router_upload_my_document",
-      "community": 33,
-      "community_name": "test_consultant_profile_service.py",
+      "community": 185,
+      "community_name": "consultant_profile/router.py",
       "norm_label": "upload_my_document()"
     },
     {
@@ -5488,8 +5488,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_router_py_documenttype",
-      "community": 33,
-      "community_name": "test_consultant_profile_service.py",
+      "community": 185,
+      "community_name": "consultant_profile/router.py",
       "norm_label": "documenttype"
     },
     {
@@ -5499,8 +5499,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_router_py_form",
-      "community": 33,
-      "community_name": "test_consultant_profile_service.py",
+      "community": 185,
+      "community_name": "consultant_profile/router.py",
       "norm_label": "form"
     },
     {
@@ -5510,8 +5510,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_router_py_uploadfile",
-      "community": 33,
-      "community_name": "test_consultant_profile_service.py",
+      "community": 185,
+      "community_name": "consultant_profile/router.py",
       "norm_label": "uploadfile"
     },
     {
@@ -5521,8 +5521,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_router_py_file",
-      "community": 33,
-      "community_name": "test_consultant_profile_service.py",
+      "community": 185,
+      "community_name": "consultant_profile/router.py",
       "norm_label": "file"
     },
     {
@@ -5532,8 +5532,8 @@
       "source_location": "L97",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_router_delete_my_document",
-      "community": 33,
-      "community_name": "test_consultant_profile_service.py",
+      "community": 185,
+      "community_name": "consultant_profile/router.py",
       "norm_label": "delete_my_document()"
     },
     {
@@ -5543,8 +5543,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_schemas",
-      "community": 33,
-      "community_name": "test_consultant_profile_service.py",
+      "community": 185,
+      "community_name": "consultant_profile/router.py",
       "norm_label": "consultant_profile/schemas.py"
     },
     {
@@ -5554,8 +5554,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_schemas_consultantprofilesubmit",
-      "community": 33,
-      "community_name": "test_consultant_profile_service.py",
+      "community": 185,
+      "community_name": "consultant_profile/router.py",
       "norm_label": "consultantprofilesubmit"
     },
     {
@@ -5565,8 +5565,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_schemas_py_basemodel",
-      "community": 33,
-      "community_name": "test_consultant_profile_service.py",
+      "community": 185,
+      "community_name": "consultant_profile/router.py",
       "norm_label": "basemodel"
     },
     {
@@ -5576,8 +5576,8 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_schemas_consultantprofileupdate",
-      "community": 33,
-      "community_name": "test_consultant_profile_service.py",
+      "community": 185,
+      "community_name": "consultant_profile/router.py",
       "norm_label": "consultantprofileupdate"
     },
     {
@@ -5587,8 +5587,8 @@
       "source_location": "L61",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_schemas_consultantprofileread",
-      "community": 33,
-      "community_name": "test_consultant_profile_service.py",
+      "community": 185,
+      "community_name": "consultant_profile/router.py",
       "norm_label": "consultantprofileread"
     },
     {
@@ -5598,8 +5598,8 @@
       "source_location": "L90",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_schemas_verificationdocumentread",
-      "community": 33,
-      "community_name": "test_consultant_profile_service.py",
+      "community": 185,
+      "community_name": "consultant_profile/router.py",
       "norm_label": "verificationdocumentread"
     },
     {
@@ -5609,8 +5609,8 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_schemas_rationale_40",
-      "community": 33,
-      "community_name": "test_consultant_profile_service.py",
+      "community": 185,
+      "community_name": "consultant_profile/router.py",
       "norm_label": "patch \u2014 every field optional; only supplied fields change. never touches     ve"
     },
     {
@@ -5753,7 +5753,7 @@
       "_origin": "ast",
       "id": "backend_app_services_dermatologist_profile_init",
       "community": 160,
-      "community_name": "get_my_recommendations",
+      "community_name": "dermatologist_profile/router.py",
       "norm_label": "dermatologist_profile/__init__.py"
     },
     {
@@ -5797,7 +5797,7 @@
       "_origin": "ast",
       "id": "backend_app_services_dermatologist_profile_router",
       "community": 160,
-      "community_name": "get_my_recommendations",
+      "community_name": "dermatologist_profile/router.py",
       "norm_label": "dermatologist_profile/router.py"
     },
     {
@@ -5808,7 +5808,7 @@
       "_origin": "ast",
       "id": "backend_app_services_dermatologist_profile_router_get_my_profile",
       "community": 160,
-      "community_name": "get_my_recommendations",
+      "community_name": "dermatologist_profile/router.py",
       "norm_label": "get_my_profile()"
     },
     {
@@ -5819,7 +5819,7 @@
       "_origin": "ast",
       "id": "backend_app_services_dermatologist_profile_router_py_any",
       "community": 160,
-      "community_name": "get_my_recommendations",
+      "community_name": "dermatologist_profile/router.py",
       "norm_label": "any"
     },
     {
@@ -5830,7 +5830,7 @@
       "_origin": "ast",
       "id": "backend_app_services_dermatologist_profile_router_py_depends",
       "community": 160,
-      "community_name": "get_my_recommendations",
+      "community_name": "dermatologist_profile/router.py",
       "norm_label": "depends"
     },
     {
@@ -5841,7 +5841,7 @@
       "_origin": "ast",
       "id": "backend_app_services_dermatologist_profile_router_py_asyncsession",
       "community": 160,
-      "community_name": "get_my_recommendations",
+      "community_name": "dermatologist_profile/router.py",
       "norm_label": "asyncsession"
     },
     {
@@ -5852,7 +5852,7 @@
       "_origin": "ast",
       "id": "backend_app_services_dermatologist_profile_router_submit_my_profile",
       "community": 160,
-      "community_name": "get_my_recommendations",
+      "community_name": "dermatologist_profile/router.py",
       "norm_label": "submit_my_profile()"
     },
     {
@@ -5863,7 +5863,7 @@
       "_origin": "ast",
       "id": "backend_app_services_dermatologist_profile_router_update_my_profile",
       "community": 160,
-      "community_name": "get_my_recommendations",
+      "community_name": "dermatologist_profile/router.py",
       "norm_label": "update_my_profile()"
     },
     {
@@ -5874,7 +5874,7 @@
       "_origin": "ast",
       "id": "backend_app_services_dermatologist_profile_router_list_my_documents",
       "community": 160,
-      "community_name": "get_my_recommendations",
+      "community_name": "dermatologist_profile/router.py",
       "norm_label": "list_my_documents()"
     },
     {
@@ -5885,7 +5885,7 @@
       "_origin": "ast",
       "id": "backend_app_services_dermatologist_profile_router_py_verificationdocumentread",
       "community": 160,
-      "community_name": "get_my_recommendations",
+      "community_name": "dermatologist_profile/router.py",
       "norm_label": "verificationdocumentread"
     },
     {
@@ -5896,7 +5896,7 @@
       "_origin": "ast",
       "id": "backend_app_services_dermatologist_profile_router_upload_my_document",
       "community": 160,
-      "community_name": "get_my_recommendations",
+      "community_name": "dermatologist_profile/router.py",
       "norm_label": "upload_my_document()"
     },
     {
@@ -5907,7 +5907,7 @@
       "_origin": "ast",
       "id": "backend_app_services_dermatologist_profile_router_py_documenttype",
       "community": 160,
-      "community_name": "get_my_recommendations",
+      "community_name": "dermatologist_profile/router.py",
       "norm_label": "documenttype"
     },
     {
@@ -5918,7 +5918,7 @@
       "_origin": "ast",
       "id": "backend_app_services_dermatologist_profile_router_py_form",
       "community": 160,
-      "community_name": "get_my_recommendations",
+      "community_name": "dermatologist_profile/router.py",
       "norm_label": "form"
     },
     {
@@ -5929,7 +5929,7 @@
       "_origin": "ast",
       "id": "backend_app_services_dermatologist_profile_router_py_uploadfile",
       "community": 160,
-      "community_name": "get_my_recommendations",
+      "community_name": "dermatologist_profile/router.py",
       "norm_label": "uploadfile"
     },
     {
@@ -5940,7 +5940,7 @@
       "_origin": "ast",
       "id": "backend_app_services_dermatologist_profile_router_py_file",
       "community": 160,
-      "community_name": "get_my_recommendations",
+      "community_name": "dermatologist_profile/router.py",
       "norm_label": "file"
     },
     {
@@ -5951,7 +5951,7 @@
       "_origin": "ast",
       "id": "backend_app_services_dermatologist_profile_router_delete_my_document",
       "community": 160,
-      "community_name": "get_my_recommendations",
+      "community_name": "dermatologist_profile/router.py",
       "norm_label": "delete_my_document()"
     },
     {
@@ -5962,7 +5962,7 @@
       "_origin": "ast",
       "id": "backend_app_services_dermatologist_profile_schemas",
       "community": 160,
-      "community_name": "get_my_recommendations",
+      "community_name": "dermatologist_profile/router.py",
       "norm_label": "dermatologist_profile/schemas.py"
     },
     {
@@ -5973,7 +5973,7 @@
       "_origin": "ast",
       "id": "backend_app_services_dermatologist_profile_schemas_dermatologistprofilesubmit",
       "community": 160,
-      "community_name": "get_my_recommendations",
+      "community_name": "dermatologist_profile/router.py",
       "norm_label": "dermatologistprofilesubmit"
     },
     {
@@ -5984,7 +5984,7 @@
       "_origin": "ast",
       "id": "backend_app_services_dermatologist_profile_schemas_py_basemodel",
       "community": 160,
-      "community_name": "get_my_recommendations",
+      "community_name": "dermatologist_profile/router.py",
       "norm_label": "basemodel"
     },
     {
@@ -5995,7 +5995,7 @@
       "_origin": "ast",
       "id": "backend_app_services_dermatologist_profile_schemas_dermatologistprofileupdate",
       "community": 160,
-      "community_name": "get_my_recommendations",
+      "community_name": "dermatologist_profile/router.py",
       "norm_label": "dermatologistprofileupdate"
     },
     {
@@ -6006,7 +6006,7 @@
       "_origin": "ast",
       "id": "backend_app_services_dermatologist_profile_schemas_dermatologistprofileread",
       "community": 160,
-      "community_name": "get_my_recommendations",
+      "community_name": "dermatologist_profile/router.py",
       "norm_label": "dermatologistprofileread"
     },
     {
@@ -6017,7 +6017,7 @@
       "_origin": "ast",
       "id": "backend_app_services_dermatologist_profile_schemas_verificationdocumentread",
       "community": 160,
-      "community_name": "get_my_recommendations",
+      "community_name": "dermatologist_profile/router.py",
       "norm_label": "verificationdocumentread"
     },
     {
@@ -6028,7 +6028,7 @@
       "_origin": "ast",
       "id": "backend_app_services_dermatologist_profile_schemas_rationale_39",
       "community": 160,
-      "community_name": "get_my_recommendations",
+      "community_name": "dermatologist_profile/router.py",
       "norm_label": "patch \u2014 every field optional; only supplied fields change. never touches     ve"
     },
     {
@@ -6622,7 +6622,7 @@
       "_origin": "ast",
       "id": "backend_app_services_instrumentation_init",
       "community": 181,
-      "community_name": "Skinlytics \u2014 `ml/`",
+      "community_name": "instrumentation/__init__.py",
       "norm_label": "instrumentation/__init__.py"
     },
     {
@@ -9306,7 +9306,7 @@
       "_origin": "ast",
       "id": "backend_app_services_skin_profile_init",
       "community": 135,
-      "community_name": ".__call__",
+      "community_name": "ingest_knowledge.py",
       "norm_label": "skin_profile/__init__.py"
     },
     {
@@ -9316,8 +9316,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_services_skin_profile_models",
-      "community": 22,
-      "community_name": "postgres.py",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "skin_profile/models.py"
     },
     {
@@ -9338,8 +9338,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "backend_app_services_skin_profile_models_skinconcern",
-      "community": 22,
-      "community_name": "postgres.py",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "skinconcern"
     },
     {
@@ -9349,8 +9349,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "backend_app_services_skin_profile_models_skinprofile",
-      "community": 22,
-      "community_name": "postgres.py",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "skinprofile"
     },
     {
@@ -9360,8 +9360,8 @@
       "source_location": "L57",
       "_origin": "ast",
       "id": "backend_app_services_skin_profile_models_skinprofileconcern",
-      "community": 22,
-      "community_name": "postgres.py",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "skinprofileconcern"
     },
     {
@@ -9382,8 +9382,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "backend_app_services_skin_profile_models_rationale_26",
-      "community": 22,
-      "community_name": "postgres.py",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "taxonomy/reference table \u2014 seeded (acne, hyperpigmentation, ...)."
     },
     {
@@ -9393,8 +9393,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "backend_app_services_skin_profile_models_rationale_37",
-      "community": 22,
-      "community_name": "postgres.py",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "one row per saved profile version \u2014 `is_current` marks the active one, prior"
     },
     {
@@ -9690,8 +9690,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_services_skin_profile_service",
-      "community": 22,
-      "community_name": "postgres.py",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "skin_profile/service.py"
     },
     {
@@ -10428,7 +10428,7 @@
       "_origin": "ast",
       "id": "backend_app_worker_consumers_cache_invalidation",
       "community": 132,
-      "community_name": "get_db",
+      "community_name": "get_redis",
       "norm_label": "cache_invalidation.py"
     },
     {
@@ -10439,7 +10439,7 @@
       "_origin": "ast",
       "id": "backend_app_worker_consumers_cache_invalidation_invalidate_recommendation_cache_for_catalog_change",
       "community": 132,
-      "community_name": "get_db",
+      "community_name": "get_redis",
       "norm_label": "invalidate_recommendation_cache_for_catalog_change()"
     },
     {
@@ -10450,7 +10450,7 @@
       "_origin": "ast",
       "id": "backend_app_worker_consumers_cache_invalidation_rationale_7",
       "community": 132,
-      "community_name": "get_db",
+      "community_name": "get_redis",
       "norm_label": "ai_ml.md's recommendation pipeline: cache \"invalidated on any profile/     pref"
     },
     {
@@ -10460,8 +10460,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_worker_consumers_embeddings",
-      "community": 24,
-      "community_name": "vector.py",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "embeddings.py"
     },
     {
@@ -10471,8 +10471,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "backend_app_worker_consumers_embeddings_embed_and_upsert",
-      "community": 24,
-      "community_name": "vector.py",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "embed_and_upsert()"
     },
     {
@@ -10482,8 +10482,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_app_worker_consumers_embeddings_py_asyncsession",
-      "community": 24,
-      "community_name": "vector.py",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "asyncsession"
     },
     {
@@ -10493,8 +10493,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_app_worker_consumers_embeddings_py_any",
-      "community": 24,
-      "community_name": "vector.py",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "any"
     },
     {
@@ -10504,8 +10504,8 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "backend_app_worker_consumers_embeddings_embed_product",
-      "community": 24,
-      "community_name": "vector.py",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "_embed_product()"
     },
     {
@@ -10515,8 +10515,8 @@
       "source_location": "L86",
       "_origin": "ast",
       "id": "backend_app_worker_consumers_embeddings_embed_ingredient",
-      "community": 24,
-      "community_name": "vector.py",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "_embed_ingredient()"
     },
     {
@@ -10526,8 +10526,8 @@
       "source_location": "L106",
       "_origin": "ast",
       "id": "backend_app_worker_consumers_embeddings_embed_article",
-      "community": 24,
-      "community_name": "vector.py",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "_embed_article()"
     },
     {
@@ -10537,8 +10537,8 @@
       "source_location": "L128",
       "_origin": "ast",
       "id": "backend_app_worker_consumers_embeddings_embed_profile",
-      "community": 24,
-      "community_name": "vector.py",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "_embed_profile()"
     },
     {
@@ -10548,8 +10548,8 @@
       "source_location": "L129",
       "_origin": "ast",
       "id": "backend_app_worker_consumers_embeddings_rationale_129",
-      "community": 24,
-      "community_name": "vector.py",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "user_profiles_namespace (m3-d) \u2014 the recommender's stage-2 query vector     (se"
     },
     {
@@ -10838,7 +10838,7 @@
       "_origin": "ast",
       "id": "backend_tests_conftest",
       "community": 132,
-      "community_name": "get_db",
+      "community_name": "get_redis",
       "norm_label": "conftest.py"
     },
     {
@@ -10849,7 +10849,7 @@
       "_origin": "ast",
       "id": "backend_tests_conftest_fresh_redis_client",
       "community": 132,
-      "community_name": "get_db",
+      "community_name": "get_redis",
       "norm_label": "_fresh_redis_client()"
     },
     {
@@ -10860,7 +10860,7 @@
       "_origin": "ast",
       "id": "backend_tests_conftest_fresh_engine_pool",
       "community": 132,
-      "community_name": "get_db",
+      "community_name": "get_redis",
       "norm_label": "_fresh_engine_pool()"
     },
     {
@@ -10871,7 +10871,7 @@
       "_origin": "ast",
       "id": "backend_tests_conftest_client",
       "community": 132,
-      "community_name": "get_db",
+      "community_name": "get_redis",
       "norm_label": "client()"
     },
     {
@@ -10882,7 +10882,7 @@
       "_origin": "ast",
       "id": "backend_tests_conftest_py_asyncclient",
       "community": 132,
-      "community_name": "get_db",
+      "community_name": "get_redis",
       "norm_label": "asyncclient"
     },
     {
@@ -10893,7 +10893,7 @@
       "_origin": "ast",
       "id": "backend_tests_conftest_db_session",
       "community": 132,
-      "community_name": "get_db",
+      "community_name": "get_redis",
       "norm_label": "db_session()"
     },
     {
@@ -10904,7 +10904,7 @@
       "_origin": "ast",
       "id": "backend_tests_conftest_py_asyncsession",
       "community": 132,
-      "community_name": "get_db",
+      "community_name": "get_redis",
       "norm_label": "asyncsession"
     },
     {
@@ -10915,7 +10915,7 @@
       "_origin": "ast",
       "id": "backend_tests_conftest_test_user_id",
       "community": 132,
-      "community_name": "get_db",
+      "community_name": "get_redis",
       "norm_label": "test_user_id()"
     },
     {
@@ -10926,7 +10926,7 @@
       "_origin": "ast",
       "id": "backend_tests_conftest_rationale_61",
       "community": 132,
-      "community_name": "get_db",
+      "community_name": "get_redis",
       "norm_label": "a real session against the real (live, populated) postgres, wrapped in an outer"
     },
     {
@@ -10937,7 +10937,7 @@
       "_origin": "ast",
       "id": "backend_tests_conftest_rationale_101",
       "community": 132,
-      "community_name": "get_db",
+      "community_name": "get_redis",
       "norm_label": "inserts a throwaway row into better auth's `user` table (see     app/db/postgre"
     },
     {
@@ -11362,7 +11362,7 @@
       "label": "test_get_admin_analytics_reflects_real_feedback_and_routine_activity()",
       "file_type": "code",
       "source_file": "backend/tests/test_analytics_service.py",
-      "source_location": "L83",
+      "source_location": "L87",
       "_origin": "ast",
       "id": "backend_tests_test_analytics_service_test_get_admin_analytics_reflects_real_feedback_and_routine_activity",
       "community": 14,
@@ -11717,8 +11717,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_tests_test_db_session_fixture",
-      "community": 22,
-      "community_name": "postgres.py",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "test_db_session_fixture.py"
     },
     {
@@ -11728,8 +11728,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "backend_tests_test_db_session_fixture_test_test_user_id_is_a_real_committed_row_within_the_session",
-      "community": 22,
-      "community_name": "postgres.py",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "test_test_user_id_is_a_real_committed_row_within_the_session()"
     },
     {
@@ -11739,8 +11739,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_tests_test_db_session_fixture_py_asyncsession",
-      "community": 22,
-      "community_name": "postgres.py",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "asyncsession"
     },
     {
@@ -11750,8 +11750,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "backend_tests_test_db_session_fixture_test_fk_constraint_is_real_not_mocked",
-      "community": 22,
-      "community_name": "postgres.py",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "test_fk_constraint_is_real_not_mocked()"
     },
     {
@@ -11761,8 +11761,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "backend_tests_test_db_session_fixture_test_previous_test_users_do_not_leak_into_a_fresh_connection",
-      "community": 22,
-      "community_name": "postgres.py",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "test_previous_test_users_do_not_leak_into_a_fresh_connection()"
     },
     {
@@ -11772,8 +11772,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_tests_test_db_session_fixture_rationale_1",
-      "community": 22,
-      "community_name": "postgres.py",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "sanity-checks the db_session/test_user_id fixtures (tests/conftest.py) themselve"
     },
     {
@@ -12048,7 +12048,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_embedder_real",
       "community": 156,
-      "community_name": "le",
+      "community_name": "RealTextEmbedder",
       "norm_label": "test_embedder_real.py"
     },
     {
@@ -12059,7 +12059,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_embedder_real_test_real_embedder_produces_unit_normalized_384d_vectors",
       "community": 156,
-      "community_name": "le",
+      "community_name": "RealTextEmbedder",
       "norm_label": "test_real_embedder_produces_unit_normalized_384d_vectors()"
     },
     {
@@ -12070,7 +12070,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_embedder_real_test_real_embedder_ranks_semantically_similar_text_closer",
       "community": 156,
-      "community_name": "le",
+      "community_name": "RealTextEmbedder",
       "norm_label": "test_real_embedder_ranks_semantically_similar_text_closer()"
     },
     {
@@ -12081,7 +12081,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_embedder_real_rationale_1",
       "community": 156,
-      "community_name": "le",
+      "community_name": "RealTextEmbedder",
       "norm_label": "real sentencetransformers-backed textembedder \u2014 separate from test_embedder.py"
     },
     {
@@ -12092,7 +12092,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_embedder_real_rationale_23",
       "community": 156,
-      "community_name": "le",
+      "community_name": "RealTextEmbedder",
       "norm_label": "the actual point of a real embedder over the stub: genuine semantic     similar"
     },
     {
@@ -12102,8 +12102,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_tests_test_embeddings_consumer",
-      "community": 24,
-      "community_name": "vector.py",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "test_embeddings_consumer.py"
     },
     {
@@ -12113,8 +12113,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "backend_tests_test_embeddings_consumer_test_embed_and_upsert_product_lands_in_the_vector_store_and_mongo",
-      "community": 24,
-      "community_name": "vector.py",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "test_embed_and_upsert_product_lands_in_the_vector_store_and_mongo()"
     },
     {
@@ -12124,8 +12124,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_tests_test_embeddings_consumer_py_asyncsession",
-      "community": 24,
-      "community_name": "vector.py",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "asyncsession"
     },
     {
@@ -12135,8 +12135,8 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "backend_tests_test_embeddings_consumer_test_embed_and_upsert_profile_lands_in_the_user_profiles_namespace",
-      "community": 24,
-      "community_name": "vector.py",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "test_embed_and_upsert_profile_lands_in_the_user_profiles_namespace()"
     },
     {
@@ -12146,8 +12146,8 @@
       "source_location": "L84",
       "_origin": "ast",
       "id": "backend_tests_test_embeddings_consumer_test_embed_and_upsert_profile_removes_the_vector_when_no_current_profile_exists",
-      "community": 24,
-      "community_name": "vector.py",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "test_embed_and_upsert_profile_removes_the_vector_when_no_current_profile_exists()"
     },
     {
@@ -12157,8 +12157,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_tests_test_embeddings_consumer_rationale_1",
-      "community": 24,
-      "community_name": "vector.py",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "app/worker/consumers/embeddings.py \u2014 embeds current pg/mongo state and upserts"
     },
     {
@@ -12168,8 +12168,8 @@
       "source_location": "L54",
       "_origin": "ast",
       "id": "backend_tests_test_embeddings_consumer_rationale_54",
-      "community": 24,
-      "community_name": "vector.py",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "m3-d: the recommender's stage-2 query vector (service.py) is this namespace's"
     },
     {
@@ -13478,7 +13478,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_products_router",
       "community": 96,
-      "community_name": "test_ingredients_router.py",
+      "community_name": "test_products_router.py",
       "norm_label": "test_products_router.py"
     },
     {
@@ -13489,7 +13489,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_products_router_as",
       "community": 96,
-      "community_name": "test_ingredients_router.py",
+      "community_name": "test_products_router.py",
       "norm_label": "_as()"
     },
     {
@@ -13500,7 +13500,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_products_router_py_asyncclient",
       "community": 96,
-      "community_name": "test_ingredients_router.py",
+      "community_name": "test_products_router.py",
       "norm_label": "asyncclient"
     },
     {
@@ -13511,7 +13511,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_products_router_test_get_product_404s_for_a_missing_id",
       "community": 96,
-      "community_name": "test_ingredients_router.py",
+      "community_name": "test_products_router.py",
       "norm_label": "test_get_product_404s_for_a_missing_id()"
     },
     {
@@ -13522,7 +13522,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_products_router_test_alternatives_returns_200_with_an_empty_list_for_a_missing_product",
       "community": 96,
-      "community_name": "test_ingredients_router.py",
+      "community_name": "test_products_router.py",
       "norm_label": "test_alternatives_returns_200_with_an_empty_list_for_a_missing_product()"
     },
     {
@@ -13533,7 +13533,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_products_router_test_compare_rejects_a_single_id",
       "community": 96,
-      "community_name": "test_ingredients_router.py",
+      "community_name": "test_products_router.py",
       "norm_label": "test_compare_rejects_a_single_id()"
     },
     {
@@ -13544,7 +13544,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_products_router_test_compare_rejects_more_than_three_ids",
       "community": 96,
-      "community_name": "test_ingredients_router.py",
+      "community_name": "test_products_router.py",
       "norm_label": "test_compare_rejects_more_than_three_ids()"
     },
     {
@@ -13555,7 +13555,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_products_router_test_compare_404s_when_any_id_is_missing",
       "community": 96,
-      "community_name": "test_ingredients_router.py",
+      "community_name": "test_products_router.py",
       "norm_label": "test_compare_404s_when_any_id_is_missing()"
     },
     {
@@ -13566,7 +13566,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_products_router_test_compare_accepts_a_valid_pair",
       "community": 96,
-      "community_name": "test_ingredients_router.py",
+      "community_name": "test_products_router.py",
       "norm_label": "test_compare_accepts_a_valid_pair()"
     },
     {
@@ -13577,7 +13577,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_products_router_rationale_1",
       "community": 96,
-      "community_name": "test_ingredients_router.py",
+      "community_name": "test_products_router.py",
       "norm_label": "app/services/recommendations/products_router.py (m3-c) \u2014 http-layer contract: c"
     },
     {
@@ -13797,7 +13797,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_progress_router",
       "community": 123,
-      "community_name": "dermatologist-onboarding/review/page.tsx",
+      "community_name": "test_progress_router.py",
       "norm_label": "test_progress_router.py"
     },
     {
@@ -13808,7 +13808,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_progress_router_real_jpeg_bytes",
       "community": 123,
-      "community_name": "dermatologist-onboarding/review/page.tsx",
+      "community_name": "test_progress_router.py",
       "norm_label": "_real_jpeg_bytes()"
     },
     {
@@ -13830,7 +13830,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_progress_router_as",
       "community": 123,
-      "community_name": "dermatologist-onboarding/review/page.tsx",
+      "community_name": "test_progress_router.py",
       "norm_label": "_as()"
     },
     {
@@ -13841,7 +13841,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_progress_router_py_asyncclient",
       "community": 123,
-      "community_name": "dermatologist-onboarding/review/page.tsx",
+      "community_name": "test_progress_router.py",
       "norm_label": "asyncclient"
     },
     {
@@ -13852,7 +13852,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_progress_router_test_uploading_a_progress_photo_round_trips_into_the_photos_list",
       "community": 123,
-      "community_name": "dermatologist-onboarding/review/page.tsx",
+      "community_name": "test_progress_router.py",
       "norm_label": "test_uploading_a_progress_photo_round_trips_into_the_photos_list()"
     },
     {
@@ -13863,7 +13863,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_progress_router_test_uploading_a_non_image_is_rejected",
       "community": 123,
-      "community_name": "dermatologist-onboarding/review/page.tsx",
+      "community_name": "test_progress_router.py",
       "norm_label": "test_uploading_a_non_image_is_rejected()"
     },
     {
@@ -13874,7 +13874,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_progress_router_test_progress_log_round_trips_and_is_idempotent_per_week",
       "community": 123,
-      "community_name": "dermatologist-onboarding/review/page.tsx",
+      "community_name": "test_progress_router.py",
       "norm_label": "test_progress_log_round_trips_and_is_idempotent_per_week()"
     },
     {
@@ -13885,7 +13885,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_progress_router_rationale_1",
       "community": 123,
-      "community_name": "dermatologist-onboarding/review/page.tsx",
+      "community_name": "test_progress_router.py",
       "norm_label": "app/services/progress/router.py (m3-e) \u2014 http-layer contract: multipart photo u"
     },
     {
@@ -14050,7 +14050,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_rate_limit",
       "community": 132,
-      "community_name": "get_db",
+      "community_name": "get_redis",
       "norm_label": "test_rate_limit.py"
     },
     {
@@ -14061,7 +14061,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_rate_limit_test_ordinary_request_passes_through_when_redis_is_healthy",
       "community": 132,
-      "community_name": "get_db",
+      "community_name": "get_redis",
       "norm_label": "test_ordinary_request_passes_through_when_redis_is_healthy()"
     },
     {
@@ -14072,7 +14072,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_rate_limit_py_asyncclient",
       "community": 132,
-      "community_name": "get_db",
+      "community_name": "get_redis",
       "norm_label": "asyncclient"
     },
     {
@@ -14083,7 +14083,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_rate_limit_test_health_paths_are_exempt_from_rate_limiting",
       "community": 132,
-      "community_name": "get_db",
+      "community_name": "get_redis",
       "norm_label": "test_health_paths_are_exempt_from_rate_limiting()"
     },
     {
@@ -14094,7 +14094,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_rate_limit_test_rate_limiting_fails_open_when_redis_is_unreachable",
       "community": 132,
-      "community_name": "get_db",
+      "community_name": "get_redis",
       "norm_label": "test_rate_limiting_fails_open_when_redis_is_unreachable()"
     },
     {
@@ -14105,7 +14105,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_rate_limit_py_monkeypatch",
       "community": 132,
-      "community_name": "get_db",
+      "community_name": "get_redis",
       "norm_label": "monkeypatch"
     },
     {
@@ -14116,7 +14116,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_rate_limit_rationale_1",
       "community": 132,
-      "community_name": "get_db",
+      "community_name": "get_redis",
       "norm_label": "app/core/rate_limit.py \u2014 real asgi middleware, exercised through the actual app"
     },
     {
@@ -14127,7 +14127,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_rate_limit_rationale_33",
       "community": 132,
-      "community_name": "get_db",
+      "community_name": "get_redis",
       "norm_label": "production-readiness audit finding: confirmed live (docker stop on the real"
     },
     {
@@ -14182,7 +14182,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_rbac_test_require_verified_professional_allows_approved_consultant",
       "community": 170,
-      "community_name": "[role]/[userId]/page.tsx",
+      "community_name": "require_verified_professional",
       "norm_label": "test_require_verified_professional_allows_approved_consultant()"
     },
     {
@@ -14193,7 +14193,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_rbac_py_asyncsession",
       "community": 170,
-      "community_name": "[role]/[userId]/page.tsx",
+      "community_name": "require_verified_professional",
       "norm_label": "asyncsession"
     },
     {
@@ -14204,7 +14204,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_rbac_test_require_verified_professional_rejects_unapproved_status",
       "community": 170,
-      "community_name": "[role]/[userId]/page.tsx",
+      "community_name": "require_verified_professional",
       "norm_label": "test_require_verified_professional_rejects_unapproved_status()"
     },
     {
@@ -14215,7 +14215,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_rbac_test_require_verified_professional_rejects_wrong_role",
       "community": 170,
-      "community_name": "[role]/[userId]/page.tsx",
+      "community_name": "require_verified_professional",
       "norm_label": "test_require_verified_professional_rejects_wrong_role()"
     },
     {
@@ -14226,7 +14226,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_rbac_test_require_verified_professional_rejects_missing_profile",
       "community": 170,
-      "community_name": "[role]/[userId]/page.tsx",
+      "community_name": "require_verified_professional",
       "norm_label": "test_require_verified_professional_rejects_missing_profile()"
     },
     {
@@ -16074,7 +16074,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_suitability",
       "community": 122,
-      "community_name": "test_products_router.py",
+      "community_name": "test_suitability.py",
       "norm_label": "test_suitability.py"
     },
     {
@@ -16085,7 +16085,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_suitability_evaluate",
       "community": 122,
-      "community_name": "test_products_router.py",
+      "community_name": "test_suitability.py",
       "norm_label": "_evaluate()"
     },
     {
@@ -16096,7 +16096,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_suitability_test_allergy_hit_is_never_missed",
       "community": 122,
-      "community_name": "test_products_router.py",
+      "community_name": "test_suitability.py",
       "norm_label": "test_allergy_hit_is_never_missed()"
     },
     {
@@ -16107,7 +16107,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_suitability_test_allergy_exact_match_has_the_documented_confidence",
       "community": 122,
-      "community_name": "test_products_router.py",
+      "community_name": "test_suitability.py",
       "norm_label": "test_allergy_exact_match_has_the_documented_confidence()"
     },
     {
@@ -16118,7 +16118,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_suitability_test_allergy_substring_match_has_the_documented_confidence",
       "community": 122,
-      "community_name": "test_products_router.py",
+      "community_name": "test_suitability.py",
       "norm_label": "test_allergy_substring_match_has_the_documented_confidence()"
     },
     {
@@ -16129,7 +16129,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_suitability_test_no_allergy_match_for_an_unrelated_tag",
       "community": 122,
-      "community_name": "test_products_router.py",
+      "community_name": "test_suitability.py",
       "norm_label": "test_no_allergy_match_for_an_unrelated_tag()"
     },
     {
@@ -16140,7 +16140,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_suitability_test_sensitivity_match_is_flagged_but_not_as_an_allergy",
       "community": 122,
-      "community_name": "test_products_router.py",
+      "community_name": "test_suitability.py",
       "norm_label": "test_sensitivity_match_is_flagged_but_not_as_an_allergy()"
     },
     {
@@ -16151,7 +16151,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_suitability_test_avoid_flag_when_a_curated_avoid_record_exists",
       "community": 122,
-      "community_name": "test_products_router.py",
+      "community_name": "test_suitability.py",
       "norm_label": "test_avoid_flag_when_a_curated_avoid_record_exists()"
     },
     {
@@ -16162,7 +16162,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_suitability_test_no_conflicts_is_suitable_with_baseline_confidence",
       "community": 122,
-      "community_name": "test_products_router.py",
+      "community_name": "test_suitability.py",
       "norm_label": "test_no_conflicts_is_suitable_with_baseline_confidence()"
     },
     {
@@ -16173,7 +16173,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_suitability_test_allergy_check_wins_over_an_avoid_flag",
       "community": 122,
-      "community_name": "test_products_router.py",
+      "community_name": "test_suitability.py",
       "norm_label": "test_allergy_check_wins_over_an_avoid_flag()"
     },
     {
@@ -16184,7 +16184,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_suitability_rationale_1",
       "community": 122,
-      "community_name": "test_products_router.py",
+      "community_name": "test_suitability.py",
       "norm_label": "app/ai/suitability.py \u2014 realingredientsuitability (m3-b). rule-based, not ml: th"
     },
     {
@@ -16195,7 +16195,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_suitability_rationale_104",
       "community": 122,
-      "community_name": "test_products_router.py",
+      "community_name": "test_suitability.py",
       "norm_label": "allergy is the hard requirement \u2014 it must never be shadowed by a lower-priority"
     },
     {
@@ -16206,7 +16206,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_trend_analyzer",
       "community": 163,
-      "community_name": "ingest_knowledge.py",
+      "community_name": "RealProgressTrendAnalyzer",
       "norm_label": "test_trend_analyzer.py"
     },
     {
@@ -16217,7 +16217,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_trend_analyzer_dates",
       "community": 163,
-      "community_name": "ingest_knowledge.py",
+      "community_name": "RealProgressTrendAnalyzer",
       "norm_label": "_dates()"
     },
     {
@@ -16228,7 +16228,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_trend_analyzer_py_date",
       "community": 163,
-      "community_name": "ingest_knowledge.py",
+      "community_name": "RealProgressTrendAnalyzer",
       "norm_label": "date"
     },
     {
@@ -16239,7 +16239,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_trend_analyzer_test_returns_none_for_fewer_than_two_points",
       "community": 163,
-      "community_name": "ingest_knowledge.py",
+      "community_name": "RealProgressTrendAnalyzer",
       "norm_label": "test_returns_none_for_fewer_than_two_points()"
     },
     {
@@ -16250,7 +16250,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_trend_analyzer_test_a_clean_upward_line_is_improving_with_high_confidence",
       "community": 163,
-      "community_name": "ingest_knowledge.py",
+      "community_name": "RealProgressTrendAnalyzer",
       "norm_label": "test_a_clean_upward_line_is_improving_with_high_confidence()"
     },
     {
@@ -16261,7 +16261,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_trend_analyzer_test_a_clean_downward_line_is_declining",
       "community": 163,
-      "community_name": "ingest_knowledge.py",
+      "community_name": "RealProgressTrendAnalyzer",
       "norm_label": "test_a_clean_downward_line_is_declining()"
     },
     {
@@ -16272,7 +16272,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_trend_analyzer_test_a_flat_series_is_stable",
       "community": 163,
-      "community_name": "ingest_knowledge.py",
+      "community_name": "RealProgressTrendAnalyzer",
       "norm_label": "test_a_flat_series_is_stable()"
     },
     {
@@ -16283,7 +16283,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_trend_analyzer_test_a_noisy_series_gets_low_confidence",
       "community": 163,
-      "community_name": "ingest_knowledge.py",
+      "community_name": "RealProgressTrendAnalyzer",
       "norm_label": "test_a_noisy_series_gets_low_confidence()"
     },
     {
@@ -16294,7 +16294,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_trend_analyzer_test_every_insight_carries_a_human_readable_summary",
       "community": 163,
-      "community_name": "ingest_knowledge.py",
+      "community_name": "RealProgressTrendAnalyzer",
       "norm_label": "test_every_insight_carries_a_human_readable_summary()"
     },
     {
@@ -16305,7 +16305,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_trend_analyzer_rationale_1",
       "community": 163,
-      "community_name": "ingest_knowledge.py",
+      "community_name": "RealProgressTrendAnalyzer",
       "norm_label": "app/ai/trend.py \u2014 deterministic linear-trend + moving-average insight (mileston"
     },
     {
@@ -16437,7 +16437,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_users",
       "community": 139,
-      "community_name": "consultant/dashboard/page.tsx",
+      "community_name": "test_users.py",
       "norm_label": "test_users.py"
     },
     {
@@ -16448,7 +16448,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_users_test_me_requires_auth",
       "community": 139,
-      "community_name": "consultant/dashboard/page.tsx",
+      "community_name": "test_users.py",
       "norm_label": "test_me_requires_auth()"
     },
     {
@@ -16459,7 +16459,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_users_py_asyncclient",
       "community": 139,
-      "community_name": "consultant/dashboard/page.tsx",
+      "community_name": "test_users.py",
       "norm_label": "asyncclient"
     },
     {
@@ -16470,7 +16470,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_users_test_me_returns_validated_claims",
       "community": 139,
-      "community_name": "consultant/dashboard/page.tsx",
+      "community_name": "test_users.py",
       "norm_label": "test_me_returns_validated_claims()"
     },
     {
@@ -17284,7 +17284,7 @@
       "_origin": "ast",
       "id": "ml_eval_init",
       "community": 182,
-      "community_name": "Model registry (documented layout, M3-H)",
+      "community_name": "eval/__init__.py",
       "norm_label": "eval/__init__.py"
     },
     {
@@ -17383,7 +17383,7 @@
       "_origin": "ast",
       "id": "ml_eval_suitability_eval",
       "community": 124,
-      "community_name": "state-card.tsx",
+      "community_name": "run_suitability_eval",
       "norm_label": "suitability_eval.py"
     },
     {
@@ -17394,7 +17394,7 @@
       "_origin": "ast",
       "id": "ml_eval_suitability_eval_suitabilitycase",
       "community": 124,
-      "community_name": "state-card.tsx",
+      "community_name": "run_suitability_eval",
       "norm_label": "suitabilitycase"
     },
     {
@@ -17405,7 +17405,7 @@
       "_origin": "ast",
       "id": "ml_eval_suitability_eval_suitabilityevalreport",
       "community": 124,
-      "community_name": "state-card.tsx",
+      "community_name": "run_suitability_eval",
       "norm_label": "suitabilityevalreport"
     },
     {
@@ -17416,7 +17416,7 @@
       "_origin": "ast",
       "id": "ml_eval_suitability_eval_run_suitability_eval",
       "community": 124,
-      "community_name": "state-card.tsx",
+      "community_name": "run_suitability_eval",
       "norm_label": "run_suitability_eval()"
     },
     {
@@ -17427,7 +17427,7 @@
       "_origin": "ast",
       "id": "ml_eval_suitability_eval_rationale_1",
       "community": 124,
-      "community_name": "state-card.tsx",
+      "community_name": "run_suitability_eval",
       "norm_label": "pure scoring logic for the ingredientsuitability model card (docs/ai_ml.md's \"p"
     },
     {
@@ -17438,7 +17438,7 @@
       "_origin": "ast",
       "id": "ml_eval_suitability_eval_rationale_16",
       "community": 124,
-      "community_name": "state-card.tsx",
+      "community_name": "run_suitability_eval",
       "norm_label": "one golden-set row. `expected_allergy_flag` is never a human label here \u2014     i"
     },
     {
@@ -17449,7 +17449,7 @@
       "_origin": "ast",
       "id": "ml_eval_test_suitability_eval",
       "community": 124,
-      "community_name": "state-card.tsx",
+      "community_name": "run_suitability_eval",
       "norm_label": "test_suitability_eval.py"
     },
     {
@@ -17460,7 +17460,7 @@
       "_origin": "ast",
       "id": "ml_eval_test_suitability_eval_test_a_clean_profile_never_flags_an_allergy",
       "community": 124,
-      "community_name": "state-card.tsx",
+      "community_name": "run_suitability_eval",
       "norm_label": "test_a_clean_profile_never_flags_an_allergy()"
     },
     {
@@ -17471,7 +17471,7 @@
       "_origin": "ast",
       "id": "ml_eval_test_suitability_eval_test_an_exact_allergy_match_is_always_caught",
       "community": 124,
-      "community_name": "state-card.tsx",
+      "community_name": "run_suitability_eval",
       "norm_label": "test_an_exact_allergy_match_is_always_caught()"
     },
     {
@@ -17482,7 +17482,7 @@
       "_origin": "ast",
       "id": "ml_eval_test_suitability_eval_test_precision_at_flag_reflects_a_real_substring_false_positive",
       "community": 124,
-      "community_name": "state-card.tsx",
+      "community_name": "run_suitability_eval",
       "norm_label": "test_precision_at_flag_reflects_a_real_substring_false_positive()"
     },
     {
@@ -17493,7 +17493,7 @@
       "_origin": "ast",
       "id": "ml_eval_test_suitability_eval_test_report_handles_an_empty_case_list",
       "community": 124,
-      "community_name": "state-card.tsx",
+      "community_name": "run_suitability_eval",
       "norm_label": "test_report_handles_an_empty_case_list()"
     },
     {
@@ -17504,7 +17504,7 @@
       "_origin": "ast",
       "id": "ml_eval_test_suitability_eval_rationale_1",
       "community": 124,
-      "community_name": "state-card.tsx",
+      "community_name": "run_suitability_eval",
       "norm_label": "m3-h's own testing requirement: \"eval-runner unit test on a tiny fixture set.\""
     },
     {
@@ -17515,7 +17515,7 @@
       "_origin": "ast",
       "id": "ml_eval_test_suitability_eval_rationale_49",
       "community": 124,
-      "community_name": "state-card.tsx",
+      "community_name": "run_suitability_eval",
       "norm_label": "retin\" is a substring of \"retinol\" \u2014 app/ai/suitability.py's own documented"
     },
     {
@@ -18318,7 +18318,7 @@
       "_origin": "ast",
       "id": "web_app_user_progress_page",
       "community": 133,
-      "community_name": "get_my_progress_summary",
+      "community_name": "progress/page.tsx",
       "norm_label": "progress/page.tsx"
     },
     {
@@ -18329,7 +18329,7 @@
       "_origin": "ast",
       "id": "web_app_user_progress_page_skinscoretrendchart",
       "community": 133,
-      "community_name": "get_my_progress_summary",
+      "community_name": "progress/page.tsx",
       "norm_label": "skinscoretrendchart"
     },
     {
@@ -18340,7 +18340,7 @@
       "_origin": "ast",
       "id": "web_app_user_progress_page_ranges",
       "community": 133,
-      "community_name": "get_my_progress_summary",
+      "community_name": "progress/page.tsx",
       "norm_label": "ranges"
     },
     {
@@ -18351,7 +18351,7 @@
       "_origin": "ast",
       "id": "web_app_user_progress_page_firstof",
       "community": 133,
-      "community_name": "get_my_progress_summary",
+      "community_name": "progress/page.tsx",
       "norm_label": "firstof()"
     },
     {
@@ -18362,7 +18362,7 @@
       "_origin": "ast",
       "id": "web_app_user_progress_page_progresspage",
       "community": 133,
-      "community_name": "get_my_progress_summary",
+      "community_name": "progress/page.tsx",
       "norm_label": "progresspage()"
     },
     {
@@ -19505,8 +19505,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "web_app_assessment_basics_page",
-      "community": 29,
-      "community_name": "nav-config.ts",
+      "community": 18,
+      "community_name": "utils.ts",
       "norm_label": "basics/page.tsx"
     },
     {
@@ -19516,8 +19516,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "web_app_assessment_basics_page_goals",
-      "community": 29,
-      "community_name": "nav-config.ts",
+      "community": 18,
+      "community_name": "utils.ts",
       "norm_label": "goals"
     },
     {
@@ -19527,8 +19527,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "web_app_assessment_basics_page_assessmentbasicspage",
-      "community": 29,
-      "community_name": "nav-config.ts",
+      "community": 18,
+      "community_name": "utils.ts",
       "norm_label": "assessmentbasicspage()"
     },
     {
@@ -19560,8 +19560,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "web_app_assessment_concerns_page_assessmentconcernspage",
-      "community": 29,
-      "community_name": "nav-config.ts",
+      "community": 18,
+      "community_name": "utils.ts",
       "norm_label": "assessmentconcernspage()"
     },
     {
@@ -19780,8 +19780,8 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "web_app_assessment_skin_type_page_assessmentskintypepage",
-      "community": 29,
-      "community_name": "nav-config.ts",
+      "community": 18,
+      "community_name": "utils.ts",
       "norm_label": "assessmentskintypepage()"
     },
     {
@@ -20012,7 +20012,7 @@
       "_origin": "ast",
       "id": "web_app_consultant_dashboard_page",
       "community": 91,
-      "community_name": "test_suitability.py",
+      "community_name": "consultant/dashboard/page.tsx",
       "norm_label": "consultant/dashboard/page.tsx"
     },
     {
@@ -20023,7 +20023,7 @@
       "_origin": "ast",
       "id": "web_app_consultant_dashboard_page_consultantprofile",
       "community": 91,
-      "community_name": "test_suitability.py",
+      "community_name": "consultant/dashboard/page.tsx",
       "norm_label": "consultantprofile"
     },
     {
@@ -20034,7 +20034,7 @@
       "_origin": "ast",
       "id": "web_app_consultant_dashboard_page_verificationdocument",
       "community": 91,
-      "community_name": "test_suitability.py",
+      "community_name": "consultant/dashboard/page.tsx",
       "norm_label": "verificationdocument"
     },
     {
@@ -20045,7 +20045,7 @@
       "_origin": "ast",
       "id": "web_app_consultant_dashboard_page_documenttype",
       "community": 91,
-      "community_name": "test_suitability.py",
+      "community_name": "consultant/dashboard/page.tsx",
       "norm_label": "documenttype"
     },
     {
@@ -20056,7 +20056,7 @@
       "_origin": "ast",
       "id": "web_app_consultant_dashboard_page_document_types",
       "community": 91,
-      "community_name": "test_suitability.py",
+      "community_name": "consultant/dashboard/page.tsx",
       "norm_label": "document_types"
     },
     {
@@ -20067,7 +20067,7 @@
       "_origin": "ast",
       "id": "web_app_consultant_dashboard_page_status_copy",
       "community": 91,
-      "community_name": "test_suitability.py",
+      "community_name": "consultant/dashboard/page.tsx",
       "norm_label": "status_copy"
     },
     {
@@ -20078,7 +20078,7 @@
       "_origin": "ast",
       "id": "web_app_consultant_dashboard_page_tone_classes",
       "community": 91,
-      "community_name": "test_suitability.py",
+      "community_name": "consultant/dashboard/page.tsx",
       "norm_label": "tone_classes"
     },
     {
@@ -20089,7 +20089,7 @@
       "_origin": "ast",
       "id": "web_app_consultant_dashboard_page_coming_soon",
       "community": 91,
-      "community_name": "test_suitability.py",
+      "community_name": "consultant/dashboard/page.tsx",
       "norm_label": "coming_soon"
     },
     {
@@ -20100,7 +20100,7 @@
       "_origin": "ast",
       "id": "web_app_consultant_dashboard_page_profilesummarycard",
       "community": 91,
-      "community_name": "test_suitability.py",
+      "community_name": "consultant/dashboard/page.tsx",
       "norm_label": "profilesummarycard()"
     },
     {
@@ -20111,7 +20111,7 @@
       "_origin": "ast",
       "id": "web_app_consultant_dashboard_page_documentscard",
       "community": 91,
-      "community_name": "test_suitability.py",
+      "community_name": "consultant/dashboard/page.tsx",
       "norm_label": "documentscard()"
     },
     {
@@ -20122,7 +20122,7 @@
       "_origin": "ast",
       "id": "web_app_consultant_dashboard_page_consultantdashboardpage",
       "community": 91,
-      "community_name": "test_suitability.py",
+      "community_name": "consultant/dashboard/page.tsx",
       "norm_label": "consultantdashboardpage()"
     },
     {
@@ -20298,7 +20298,7 @@
       "_origin": "ast",
       "id": "web_app_dermatologist_onboarding_review_page",
       "community": 134,
-      "community_name": "weather/service.py",
+      "community_name": "test_products_service.py",
       "norm_label": "dermatologist-onboarding/review/page.tsx"
     },
     {
@@ -20309,7 +20309,7 @@
       "_origin": "ast",
       "id": "web_app_dermatologist_onboarding_review_page_summary_sections",
       "community": 134,
-      "community_name": "weather/service.py",
+      "community_name": "test_products_service.py",
       "norm_label": "summary_sections"
     },
     {
@@ -20320,7 +20320,7 @@
       "_origin": "ast",
       "id": "web_app_dermatologist_onboarding_review_page_field_labels",
       "community": 134,
-      "community_name": "weather/service.py",
+      "community_name": "test_products_service.py",
       "norm_label": "field_labels"
     },
     {
@@ -20331,7 +20331,7 @@
       "_origin": "ast",
       "id": "web_app_dermatologist_onboarding_review_page_formatvalue",
       "community": 134,
-      "community_name": "weather/service.py",
+      "community_name": "test_products_service.py",
       "norm_label": "formatvalue()"
     },
     {
@@ -20342,7 +20342,7 @@
       "_origin": "ast",
       "id": "web_app_dermatologist_onboarding_review_page_dermatologistreviewpage",
       "community": 134,
-      "community_name": "weather/service.py",
+      "community_name": "test_products_service.py",
       "norm_label": "dermatologistreviewpage()"
     },
     {
@@ -21122,8 +21122,8 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "web_components_app_shell_nav_user_navuser",
-      "community": 61,
-      "community_name": "product-recommendation-card.tsx",
+      "community": 13,
+      "community_name": "sidebar.tsx",
       "norm_label": "navuser()"
     },
     {
@@ -21694,8 +21694,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "web_components_landing_landing_navbar_landingnavbar",
-      "community": 61,
-      "community_name": "product-recommendation-card.tsx",
+      "community": 19,
+      "community_name": "signup/page.tsx",
       "norm_label": "landingnavbar()"
     },
     {
@@ -24477,8 +24477,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "web_components_ui_textarea",
-      "community": 3,
-      "community_name": "button.tsx",
+      "community": 13,
+      "community_name": "sidebar.tsx",
       "norm_label": "textarea.tsx"
     },
     {
@@ -24488,8 +24488,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "web_components_ui_textarea_textarea",
-      "community": 3,
-      "community_name": "button.tsx",
+      "community": 13,
+      "community_name": "sidebar.tsx",
       "norm_label": "textarea()"
     },
     {
@@ -24500,7 +24500,7 @@
       "_origin": "ast",
       "id": "web_components_ui_toggle_group",
       "community": 133,
-      "community_name": "get_my_progress_summary",
+      "community_name": "progress/page.tsx",
       "norm_label": "toggle-group.tsx"
     },
     {
@@ -24511,7 +24511,7 @@
       "_origin": "ast",
       "id": "web_components_ui_toggle_group_togglegroupcontext",
       "community": 133,
-      "community_name": "get_my_progress_summary",
+      "community_name": "progress/page.tsx",
       "norm_label": "togglegroupcontext"
     },
     {
@@ -24522,7 +24522,7 @@
       "_origin": "ast",
       "id": "web_components_ui_toggle_group_togglegroup",
       "community": 133,
-      "community_name": "get_my_progress_summary",
+      "community_name": "progress/page.tsx",
       "norm_label": "togglegroup()"
     },
     {
@@ -24533,7 +24533,7 @@
       "_origin": "ast",
       "id": "web_components_ui_toggle_group_togglegroupitem",
       "community": 133,
-      "community_name": "get_my_progress_summary",
+      "community_name": "progress/page.tsx",
       "norm_label": "togglegroupitem()"
     },
     {
@@ -24544,7 +24544,7 @@
       "_origin": "ast",
       "id": "web_components_ui_toggle",
       "community": 133,
-      "community_name": "get_my_progress_summary",
+      "community_name": "progress/page.tsx",
       "norm_label": "toggle.tsx"
     },
     {
@@ -24555,7 +24555,7 @@
       "_origin": "ast",
       "id": "web_components_ui_toggle_togglevariants",
       "community": 133,
-      "community_name": "get_my_progress_summary",
+      "community_name": "progress/page.tsx",
       "norm_label": "togglevariants"
     },
     {
@@ -24566,7 +24566,7 @@
       "_origin": "ast",
       "id": "web_components_ui_toggle_toggle",
       "community": 133,
-      "community_name": "get_my_progress_summary",
+      "community_name": "progress/page.tsx",
       "norm_label": "toggle()"
     },
     {
@@ -25027,8 +25027,8 @@
       "source_location": "L137",
       "_origin": "ast",
       "id": "web_lib_assessment_context_useassessment",
-      "community": 29,
-      "community_name": "nav-config.ts",
+      "community": 18,
+      "community_name": "utils.ts",
       "norm_label": "useassessment()"
     },
     {
@@ -25402,7 +25402,7 @@
       "_origin": "ast",
       "id": "web_lib_consultant_onboarding_context_seedonboardingdraft",
       "community": 91,
-      "community_name": "test_suitability.py",
+      "community_name": "consultant/dashboard/page.tsx",
       "norm_label": "seedonboardingdraft()"
     },
     {
@@ -26205,7 +26205,7 @@
       "_origin": "ast",
       "id": "web_lib_schemas_dermatologist_onboarding",
       "community": 134,
-      "community_name": "weather/service.py",
+      "community_name": "test_products_service.py",
       "norm_label": "dermatologist-onboarding.ts"
     },
     {
@@ -26216,7 +26216,7 @@
       "_origin": "ast",
       "id": "web_lib_schemas_dermatologist_onboarding_dermatologistbackgroundschema",
       "community": 134,
-      "community_name": "weather/service.py",
+      "community_name": "test_products_service.py",
       "norm_label": "dermatologistbackgroundschema"
     },
     {
@@ -26227,7 +26227,7 @@
       "_origin": "ast",
       "id": "web_lib_schemas_dermatologist_onboarding_dermatologistbackgroundvalues",
       "community": 134,
-      "community_name": "weather/service.py",
+      "community_name": "test_products_service.py",
       "norm_label": "dermatologistbackgroundvalues"
     },
     {
@@ -26238,7 +26238,7 @@
       "_origin": "ast",
       "id": "web_lib_schemas_dermatologist_onboarding_dermatologistpracticeschema",
       "community": 134,
-      "community_name": "weather/service.py",
+      "community_name": "test_products_service.py",
       "norm_label": "dermatologistpracticeschema"
     },
     {
@@ -26249,7 +26249,7 @@
       "_origin": "ast",
       "id": "web_lib_schemas_dermatologist_onboarding_dermatologistpracticevalues",
       "community": 134,
-      "community_name": "weather/service.py",
+      "community_name": "test_products_service.py",
       "norm_label": "dermatologistpracticevalues"
     },
     {
@@ -26260,7 +26260,7 @@
       "_origin": "ast",
       "id": "web_lib_schemas_dermatologist_onboarding_dermatologistcontactschema",
       "community": 134,
-      "community_name": "weather/service.py",
+      "community_name": "test_products_service.py",
       "norm_label": "dermatologistcontactschema"
     },
     {
@@ -26271,7 +26271,7 @@
       "_origin": "ast",
       "id": "web_lib_schemas_dermatologist_onboarding_dermatologistcontactvalues",
       "community": 134,
-      "community_name": "weather/service.py",
+      "community_name": "test_products_service.py",
       "norm_label": "dermatologistcontactvalues"
     },
     {
@@ -26282,7 +26282,7 @@
       "_origin": "ast",
       "id": "web_lib_schemas_dermatologist_onboarding_dermatologistonboardingschema",
       "community": 134,
-      "community_name": "weather/service.py",
+      "community_name": "test_products_service.py",
       "norm_label": "dermatologistonboardingschema"
     },
     {
@@ -26293,7 +26293,7 @@
       "_origin": "ast",
       "id": "web_lib_schemas_dermatologist_onboarding_dermatologistonboardingvalues",
       "community": 134,
-      "community_name": "weather/service.py",
+      "community_name": "test_products_service.py",
       "norm_label": "dermatologistonboardingvalues"
     },
     {
@@ -26589,8 +26589,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "web_lib_use_current_user_initialsof",
-      "community": 61,
-      "community_name": "product-recommendation-card.tsx",
+      "community": 19,
+      "community_name": "signup/page.tsx",
       "norm_label": "initialsof()"
     },
     {
@@ -26600,8 +26600,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "web_lib_use_current_user_usecurrentuser",
-      "community": 61,
-      "community_name": "product-recommendation-card.tsx",
+      "community": 19,
+      "community_name": "signup/page.tsx",
       "norm_label": "usecurrentuser()"
     },
     {
@@ -26941,8 +26941,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "web_package_dependencies_class_variance_authority",
-      "community": 39,
-      "community_name": "dependencies",
+      "community": 187,
+      "community_name": "class-variance-authority",
       "norm_label": "class-variance-authority"
     },
     {
@@ -26952,8 +26952,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "class_variance_authority",
-      "community": 39,
-      "community_name": "dependencies",
+      "community": 187,
+      "community_name": "class-variance-authority",
       "norm_label": "class-variance-authority"
     },
     {
@@ -26985,8 +26985,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "web_package_dependencies_cmdk",
-      "community": 173,
-      "community_name": "cmdk",
+      "community": 39,
+      "community_name": "dependencies",
       "norm_label": "cmdk"
     },
     {
@@ -26996,8 +26996,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "cmdk",
-      "community": 173,
-      "community_name": "cmdk",
+      "community": 39,
+      "community_name": "dependencies",
       "norm_label": "cmdk"
     },
     {
@@ -27052,7 +27052,7 @@
       "_origin": "ast",
       "id": "web_package_dependencies_next",
       "community": 180,
-      "community_name": "test_users.py",
+      "community_name": "next",
       "norm_label": "next"
     },
     {
@@ -27063,7 +27063,7 @@
       "_origin": "ast",
       "id": "next",
       "community": 180,
-      "community_name": "test_users.py",
+      "community_name": "next",
       "norm_label": "next"
     },
     {
@@ -27294,7 +27294,7 @@
       "_origin": "ast",
       "id": "web_package_dependencies_tw_animate_css",
       "community": 73,
-      "community_name": ".__call__",
+      "community_name": "tw-animate-css",
       "norm_label": "tw-animate-css"
     },
     {
@@ -27305,7 +27305,7 @@
       "_origin": "ast",
       "id": "tw_animate_css",
       "community": 73,
-      "community_name": ".__call__",
+      "community_name": "tw-animate-css",
       "norm_label": "tw-animate-css"
     },
     {
@@ -29174,8 +29174,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "claude_skills_migrate_radix_to_base_display_misc",
-      "community": 162,
-      "community_name": "No Base UI counterpart",
+      "community": 151,
+      "community_name": "display-misc.md",
       "norm_label": "display-misc.md"
     },
     {
@@ -29185,8 +29185,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "claude_skills_migrate_radix_to_base_display_misc_radix_ui_base_ui_props_mapping_progress_scroll_area_separator_avatar_toast_form",
-      "community": 162,
-      "community_name": "No Base UI counterpart",
+      "community": 151,
+      "community_name": "display-misc.md",
       "norm_label": "radix ui \u2192 base ui props mapping: progress, scroll-area, separator, avatar, toast, form"
     },
     {
@@ -35478,7 +35478,7 @@
       "_origin": "ast",
       "id": "ml_readme",
       "community": 176,
-      "community_name": "test_instrumentation_router.py",
+      "community_name": "Skinlytics \u2014 `ml/`",
       "norm_label": "ml/readme.md"
     },
     {
@@ -35489,7 +35489,7 @@
       "_origin": "ast",
       "id": "ml_readme_skinlytics_ml",
       "community": 176,
-      "community_name": "test_instrumentation_router.py",
+      "community_name": "Skinlytics \u2014 `ml/`",
       "norm_label": "skinlytics \u2014 `ml/`"
     },
     {
@@ -35500,7 +35500,7 @@
       "_origin": "ast",
       "id": "ml_readme_two_different_dependency_stories_on_purpose",
       "community": 176,
-      "community_name": "test_instrumentation_router.py",
+      "community_name": "Skinlytics \u2014 `ml/`",
       "norm_label": "two different dependency stories, on purpose"
     },
     {
@@ -35511,7 +35511,7 @@
       "_origin": "ast",
       "id": "ml_readme_running_things_directly",
       "community": 176,
-      "community_name": "test_instrumentation_router.py",
+      "community_name": "Skinlytics \u2014 `ml/`",
       "norm_label": "running things directly"
     },
     {
@@ -35522,7 +35522,7 @@
       "_origin": "ast",
       "id": "ml_registry_readme",
       "community": 179,
-      "community_name": "skin-lesion-screener-0.1.0",
+      "community_name": "Model registry (documented layout, M3-H)",
       "norm_label": "registry/readme.md"
     },
     {
@@ -35533,7 +35533,7 @@
       "_origin": "ast",
       "id": "ml_registry_readme_model_registry_documented_layout_m3_h",
       "community": 179,
-      "community_name": "skin-lesion-screener-0.1.0",
+      "community_name": "Model registry (documented layout, M3-H)",
       "norm_label": "model registry (documented layout, m3-h)"
     },
     {
@@ -35544,7 +35544,7 @@
       "_origin": "ast",
       "id": "ml_registry_readme_what_s_here",
       "community": 179,
-      "community_name": "skin-lesion-screener-0.1.0",
+      "community_name": "Model registry (documented layout, M3-H)",
       "norm_label": "what's here"
     },
     {
@@ -44049,7 +44049,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/tests/test_analytics_service.py",
-      "source_location": "L86",
+      "source_location": "L90",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_tests_test_analytics_service_test_get_admin_analytics_reflects_real_feedback_and_routine_activity",
@@ -56127,7 +56127,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/tests/test_analytics_service.py",
-      "source_location": "L77",
+      "source_location": "L81",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_tests_test_analytics_service_test_get_my_analytics_aligns_scores_with_real_lifestyle_logs",
@@ -56293,7 +56293,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/tests/test_analytics_service.py",
-      "source_location": "L104",
+      "source_location": "L108",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_tests_test_analytics_service_test_get_admin_analytics_reflects_real_feedback_and_routine_activity",
@@ -70968,7 +70968,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/tests/test_analytics_service.py",
-      "source_location": "L90",
+      "source_location": "L94",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_tests_test_analytics_service_test_get_admin_analytics_reflects_real_feedback_and_routine_activity",
@@ -71700,7 +71700,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/tests/test_analytics_service.py",
-      "source_location": "L92",
+      "source_location": "L96",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_tests_test_analytics_service_test_get_admin_analytics_reflects_real_feedback_and_routine_activity",
@@ -73759,7 +73759,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/tests/test_analytics_service.py",
-      "source_location": "L75",
+      "source_location": "L79",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_tests_test_analytics_service_test_get_my_analytics_aligns_scores_with_real_lifestyle_logs",
@@ -75527,7 +75527,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/tests/test_analytics_service.py",
-      "source_location": "L88",
+      "source_location": "L92",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_tests_test_analytics_service_test_get_admin_analytics_reflects_real_feedback_and_routine_activity",
@@ -76330,7 +76330,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/tests/test_analytics_service.py",
-      "source_location": "L73",
+      "source_location": "L77",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_tests_test_analytics_service_test_get_my_analytics_aligns_scores_with_real_lifestyle_logs",
@@ -76981,7 +76981,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/tests/test_analytics_service.py",
-      "source_location": "L87",
+      "source_location": "L91",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_tests_test_analytics_service_test_get_admin_analytics_reflects_real_feedback_and_routine_activity",
@@ -77725,7 +77725,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/tests/test_analytics_service.py",
-      "source_location": "L71",
+      "source_location": "L75",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_tests_test_analytics_service_test_get_my_analytics_aligns_scores_with_real_lifestyle_logs",
@@ -81314,7 +81314,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "backend/tests/test_analytics_service.py",
-      "source_location": "L83",
+      "source_location": "L87",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_tests_test_analytics_service",
@@ -81404,7 +81404,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "backend/tests/test_analytics_service.py",
-      "source_location": "L83",
+      "source_location": "L87",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_tests_test_analytics_service_test_get_admin_analytics_reflects_real_feedback_and_routine_activity",
@@ -124512,5 +124512,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "100557f347c6cfc5a2837862030f3c2b1d3a56a6"
+  "built_at_commit": "2674a237c95198ccded1458316f9bf5aa90ded83"
 }

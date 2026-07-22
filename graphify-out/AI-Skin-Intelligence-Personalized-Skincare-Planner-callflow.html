@@ -60,7 +60,7 @@ hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
 <div class="container">
 
 <h1>AI-Skin-Intelligence-Personalized-Skincare-Planner- — Complete Call Flow &amp; Architecture Documentation</h1>
-<p class="subtitle">Generated from graphify knowledge graph: 3247 nodes, 7627 edges, 185 communities. Commit: 100557f</p>
+<p class="subtitle">Generated from graphify knowledge graph: 3247 nodes, 7627 edges, 188 communities. Commit: 2674a23</p>
 
 <div class="nav">
     <a href="#overview">Architecture Overview</a>
@@ -94,21 +94,21 @@ flowchart LR
     class BUILD_GRAPH_321CBB04 module;
     ANALYSIS_CLUSTERING_C79796DA("Analysis &amp; Clustering<br/><small>52 nodes</small>")
     class ANALYSIS_CLUSTERING_C79796DA module;
-    CLI_SKILLS_9964CBB8("CLI &amp; Skill Installers<br/><small>544 nodes</small>")
+    CLI_SKILLS_9964CBB8("CLI &amp; Skill Installers<br/><small>547 nodes</small>")
     class CLI_SKILLS_9964CBB8 module;
-    INGEST_CACHE_UPDATE_FF457338("Ingestion &amp; Updates<br/><small>108 nodes</small>")
+    INGEST_CACHE_UPDATE_FF457338("Ingestion &amp; Updates<br/><small>111 nodes</small>")
     class INGEST_CACHE_UPDATE_FF457338 module;
-    SERVE_API_35EC8E86("Serving API<br/><small>298 nodes</small>")
+    SERVE_API_35EC8E86("Serving API<br/><small>321 nodes</small>")
     class SERVE_API_35EC8E86 module;
-    SECURITY_GLOBAL_5B9C6A04("Security &amp; Global Graph<br/><small>71 nodes</small>")
+    SECURITY_GLOBAL_5B9C6A04("Security &amp; Global Graph<br/><small>108 nodes</small>")
     class SECURITY_GLOBAL_5B9C6A04 module;
-    TESTS_FIXTURES_B84B1DCC("Tests &amp; Fixtures<br/><small>1248 nodes</small>")
+    TESTS_FIXTURES_B84B1DCC("Tests &amp; Fixtures<br/><small>1184 nodes</small>")
     class TESTS_FIXTURES_B84B1DCC module;
-    BUTTON_TSX_0A73529F("button.tsx<br/><small>94 nodes</small>")
+    BUTTON_TSX_0A73529F("button.tsx<br/><small>92 nodes</small>")
     class BUTTON_TSX_0A73529F module;
-    UTILS_TS_C293D13F("utils.ts<br/><small>62 nodes</small>")
+    UTILS_TS_C293D13F("utils.ts<br/><small>68 nodes</small>")
     class UTILS_TS_C293D13F module;
-    NAV_CONFIG_TS_C8E33395("nav-config.ts<br/><small>43 nodes</small>")
+    NAV_CONFIG_TS_C8E33395("nav-config.ts<br/><small>37 nodes</small>")
     class NAV_CONFIG_TS_C8E33395 module;
     GLASS_TOPBAR_TSX_49E48327("glass-topbar.tsx<br/><small>32 nodes</small>")
     class GLASS_TOPBAR_TSX_49E48327 module;
@@ -118,18 +118,18 @@ flowchart LR
     class ASSESSMENT_CONTEXT_TSX_D6B3FDA9 module;
     OTHER_D0941E68("Other<br/><small>410 nodes</small>")
     class OTHER_D0941E68 module;
-    SERVE_API_35EC8E86 -->|references x177| TESTS_FIXTURES_B84B1DCC
-    TESTS_FIXTURES_B84B1DCC -->|imports x55| SERVE_API_35EC8E86
+    SERVE_API_35EC8E86 -->|imports x174| TESTS_FIXTURES_B84B1DCC
+    SECURITY_GLOBAL_5B9C6A04 -->|imports x166| TESTS_FIXTURES_B84B1DCC
     OTHER_D0941E68 -->|imports x45| BUTTON_TSX_0A73529F
     SECURITY_GLOBAL_5B9C6A04 -->|imports x40| CLI_SKILLS_9964CBB8
+    TESTS_FIXTURES_B84B1DCC -->|imports x38| SECURITY_GLOBAL_5B9C6A04
+    TESTS_FIXTURES_B84B1DCC -->|imports x38| SERVE_API_35EC8E86
     OTHER_D0941E68 -->|calls x32| CLI_SKILLS_9964CBB8
-    NAV_CONFIG_TS_C8E33395 -->|imports x30| BUTTON_TSX_0A73529F
     BUTTON_TSX_0A73529F -->|imports x30| CLI_SKILLS_9964CBB8
-    UTILS_TS_C293D13F -->|imports x29| BUTTON_TSX_0A73529F
+    UTILS_TS_C293D13F -->|imports x30| BUTTON_TSX_0A73529F
     SERVE_API_35EC8E86 -->|imports x28| BUTTON_TSX_0A73529F
+    NAV_CONFIG_TS_C8E33395 -->|imports x27| BUTTON_TSX_0A73529F
     GLASS_TOPBAR_TSX_49E48327 -->|imports x27| BUTTON_TSX_0A73529F
-    OTHER_D0941E68 -->|imports x20| TESTS_FIXTURES_B84B1DCC
-    TESTS_FIXTURES_B84B1DCC -->|imports x20| INGEST_CACHE_UPDATE_FF457338
     classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
     classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
     classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
@@ -146,19 +146,19 @@ flowchart LR
     <h4>Architecture Layers</h4>
     <table style="width:100%;font-size:0.85rem;">
       <tr><th>Layer</th><th>Nodes</th><th>Communities</th></tr>
-      <tr><td>Extraction Pipeline</td><td>11</td><td><code>131</code></td></tr><tr><td>Graph Build</td><td>219</td><td><code>17, 28, 34, 39, 45, 53, 127, 47, 154, 58, 69, 102, 173, 180, 67, 72, 73, 92, 98, 99</code></td></tr><tr><td>Analysis &amp; Clustering</td><td>52</td><td><code>10</code></td></tr><tr><td>CLI &amp; Skill Installers</td><td>544</td><td><code>13, 15, 25, 38, 55, 70, 116, 117, 118, 119, 125, 126, 128, 129, 130, 136, 137, 138, 140, 141, 142, 143, 144, 145, 146, 147, 150, 152, 153, 162, 157, 158, 151, 164, 168</code></td></tr><tr><td>Ingestion &amp; Updates</td><td>108</td><td><code>35, 19, 59, 135, 165, 108</code></td></tr><tr><td>Serving API</td><td>298</td><td><code>0, 9, 30, 2, 48, 160, 65</code></td></tr><tr><td>Security &amp; Global Graph</td><td>71</td><td><code>61, 161</code></td></tr><tr><td>Tests &amp; Fixtures</td><td>1248</td><td><code>7, 16, 36, 50, 4, 5, 6, 14, 24, 33, 22, 21, 37, 11, 8, 31, 12, 32, 23, 1, 132, 40, 46, 43, 63, 159, 163, 124, 57, 122, 156, 94, 96, 123, 170, 174, 26, 169, 68, 139, 88, 112</code></td></tr><tr><td>button.tsx</td><td>94</td><td><code>3</code></td></tr><tr><td>utils.ts</td><td>62</td><td><code>18</code></td></tr><tr><td>nav-config.ts</td><td>43</td><td><code>29</code></td></tr><tr><td>glass-topbar.tsx</td><td>32</td><td><code>20</code></td></tr><tr><td>_routine_adherence_score</td><td>28</td><td><code>49</code></td></tr><tr><td>assessment/context.tsx</td><td>27</td><td><code>44</code></td></tr><tr><td>Other</td><td>410</td><td><code>71, 54, 42, 56, 41, 27, 51, 52, 93, 134, 120, 121, 133, 91, 95, 172, 60, 148, 149, 64, 66, 155, 171, 166, 176, 74, 75, 76, 77, 179, 62, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 89, 90, 100, 101, 103, 104, 167, 175, 177, 97, 105, 106, 107, 109, 110, 111, 113, 114, 115, 178, 181, 182, 183, 184</code></td></tr>
+      <tr><td>Extraction Pipeline</td><td>11</td><td><code>131</code></td></tr><tr><td>Graph Build</td><td>219</td><td><code>17, 28, 34, 39, 45, 53, 127, 47, 154, 58, 69, 102, 180, 187, 67, 72, 73, 92, 98, 99</code></td></tr><tr><td>Analysis &amp; Clustering</td><td>52</td><td><code>10</code></td></tr><tr><td>CLI &amp; Skill Installers</td><td>547</td><td><code>13, 15, 25, 38, 55, 70, 116, 117, 118, 119, 125, 126, 128, 129, 130, 136, 137, 138, 140, 141, 142, 143, 144, 145, 146, 147, 150, 151, 152, 153, 157, 158, 162, 164, 168</code></td></tr><tr><td>Ingestion &amp; Updates</td><td>111</td><td><code>35, 19, 59, 135, 165, 108</code></td></tr><tr><td>Serving API</td><td>321</td><td><code>0, 9, 30, 2, 48, 160, 185, 65</code></td></tr><tr><td>Security &amp; Global Graph</td><td>108</td><td><code>61, 22, 161, 186</code></td></tr><tr><td>Tests &amp; Fixtures</td><td>1184</td><td><code>7, 16, 36, 50, 4, 5, 6, 14, 21, 37, 11, 8, 31, 12, 24, 32, 173, 23, 33, 1, 132, 40, 46, 43, 63, 159, 163, 124, 57, 122, 156, 94, 96, 123, 170, 174, 26, 169, 68, 139, 88, 112</code></td></tr><tr><td>button.tsx</td><td>92</td><td><code>3</code></td></tr><tr><td>utils.ts</td><td>68</td><td><code>18</code></td></tr><tr><td>nav-config.ts</td><td>37</td><td><code>29</code></td></tr><tr><td>glass-topbar.tsx</td><td>32</td><td><code>20</code></td></tr><tr><td>_routine_adherence_score</td><td>28</td><td><code>49</code></td></tr><tr><td>assessment/context.tsx</td><td>27</td><td><code>44</code></td></tr><tr><td>Other</td><td>410</td><td><code>71, 54, 42, 56, 41, 27, 51, 52, 93, 134, 120, 121, 133, 91, 95, 172, 60, 148, 149, 64, 66, 155, 171, 166, 176, 74, 75, 76, 77, 179, 62, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 89, 90, 100, 101, 103, 104, 167, 175, 177, 97, 105, 106, 107, 109, 110, 111, 113, 114, 115, 178, 181, 182, 183, 184</code></td></tr>
     </table>
   </div>
   <div class="card">
     <h4>Core Flow</h4>
-    <div class="arrow-chain">Extraction Pipeline -&gt; Graph Build -&gt; CLI &amp; Skill Installers -&gt; button.tsx -&gt; nav-config.ts -&gt; Security &amp; Global Graph -&gt; Serving API</div>
+    <div class="arrow-chain">Extraction Pipeline -&gt; Graph Build -&gt; CLI &amp; Skill Installers -&gt; button.tsx -&gt; Serving API -&gt; Tests &amp; Fixtures -&gt; Security &amp; Global Graph</div>
   </div>
 </div>
 <div class="grid">
   <div class="card">
     <h4>Graph Report Highlights</h4>
     <ul>
-      <li>3247 nodes · 7627 edges · 185 communities (159 shown, 26 thin omitted)</li>
+      <li>3247 nodes · 7627 edges · 188 communities (162 shown, 26 thin omitted)</li>
       <li>Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 203 edges (avg confidence: 0.71)</li>
       <li>Token cost: 0 input · 0 output</li>
       <li>1. `cn()` - 206 edges</li>
@@ -1003,7 +1003,7 @@ flowchart LR
   <td>28</td>
   <td><code>appearance-settings.tsx</code><br><small style="color:var(--muted)">components/settings/appearance-settings.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
-  <td><code>page.tsx</code><br><small style="color:var(--muted)">consultant/settings/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist/settings/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">admin/settings/page.tsx</small><br>+3 more</td>
+  <td><code>page.tsx</code><br><small style="color:var(--muted)">admin/settings/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">consultant/settings/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">(user)/settings/page.tsx</small><br>+3 more</td>
   <td><code>PALETTE_META</code><br><small style="color:var(--muted)">web/lib/themes.ts</small><br><code>PALETTES</code><br><small style="color:var(--muted)">web/lib/themes.ts</small><br><code>radio-group.tsx</code><br><small style="color:var(--muted)">components/ui/radio-group.tsx</small><br>+8 more</td>
   <td>Module file in components/settings/appearance-settings.tsx.</td>
 </tr>
@@ -1019,7 +1019,7 @@ flowchart LR
   <td>30</td>
   <td><code>AppearanceSettings()</code><br><small style="color:var(--muted)">components/settings/appearance-settings.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
-  <td><code>page.tsx</code><br><small style="color:var(--muted)">consultant/settings/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist/settings/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">admin/settings/page.tsx</small><br>+2 more</td>
+  <td><code>page.tsx</code><br><small style="color:var(--muted)">admin/settings/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">consultant/settings/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">(user)/settings/page.tsx</small><br>+2 more</td>
   <td><code>useAppearancePreferencesQuery()</code><br><small style="color:var(--muted)">lib/hooks/use-appearance-preferences.ts</small><br><code>useResetAppearanceMutation()</code><br><small style="color:var(--muted)">lib/hooks/use-appearance-preferences.ts</small><br><code>useUpdateAppearanceMutation()</code><br><small style="color:var(--muted)">lib/hooks/use-appearance-preferences.ts</small></td>
   <td>AppearanceSettings() node in components/settings/appearance-settings.tsx.</td>
 </tr>
@@ -1049,12 +1049,12 @@ flowchart LR
 
 <!-- ====== 5. CLI & Skill Installers ====== -->
 <h2 id="cli-skills">5. CLI &amp; Skill Installers</h2>
-<p>CLI &amp; Skill Installers groups implementation around claude, skills, base, radix, mostly in skills/migrate-radix-to-base/display-misc.md, skills/migrate-radix-to-base/overlays.md, skills/migrate-radix-to-base/menus.md. This section covers 544 nodes and 638 internal edges; the diagram shows only representative relationships to stay readable.</p>
+<p>CLI &amp; Skill Installers groups implementation around claude, skills, base, radix, mostly in skills/migrate-radix-to-base/display-misc.md, skills/migrate-radix-to-base/overlays.md, skills/migrate-radix-to-base/menus.md. This section covers 547 nodes and 645 internal edges; the diagram shows only representative relationships to stay readable.</p>
 
 <div class="mermaid">
 %%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
 flowchart LR
-    %% Section: CLI &amp; Skill Installers (544 nodes, 638 edges)
+    %% Section: CLI &amp; Skill Installers (547 nodes, 645 edges)
     subgraph cli_skills_components_ui_breadcrumb_tsx_44d88547["components/ui/breadcrumb.tsx"]
         web_components_ui_breadcrumb_breadcrumb_4dd2fd39("Breadcrumb()<br/><small>components/ui/breadcrumb.tsx</small>")
         web_components_ui_breadcrumb_breadcrumblist_8dc6934b("BreadcrumbList()<br/><small>components/ui/breadcrumb.tsx</small>")
@@ -1074,12 +1074,13 @@ flowchart LR
     end
     web_app_user_insights_page_insightspage_d2ce7819("InsightsPage()<br/><small>(user)/insights/page.tsx</small>")
     web_components_app_shell_app_sidebar_2f263ba3("app-sidebar.tsx")
-    web_components_ui_card_card_7e234858("Card()<br/><small>components/ui/card.tsx</small>")
+    web_components_app_shell_nav_user_navuser_d1f3690c("NavUser()<br/><small>components/app-shell/nav-user.tsx</small>")
     web_components_ui_command_0deae7f6("command.tsx")
-    web_components_ui_sheet_1fc44646("sheet.tsx")
+    web_components_ui_input_group_42dc99cf("input-group.tsx")
     web_components_ui_sidebar_usesidebar_bfbdcf9a("useSidebar()<br/><small>components/ui/sidebar.tsx</small>")
     web_lib_utils_cn_515b8e7d("cn()<br/><small>web/lib/utils.ts</small>")
     web_app_user_insights_page_insightspage_d2ce7819 -->|calls| web_lib_utils_cn_515b8e7d
+    web_components_app_shell_nav_user_navuser_d1f3690c -->|calls| web_components_ui_sidebar_usesidebar_bfbdcf9a
     web_components_ui_avatar_avatarbadge_b2019dcb -->|calls| web_lib_utils_cn_515b8e7d
     web_components_ui_avatar_avatargroupcount_cfa92091 -->|calls| web_lib_utils_cn_515b8e7d
     web_components_ui_breadcrumb_breadcrumb_4dd2fd39 -->|calls| web_lib_utils_cn_515b8e7d
@@ -1089,12 +1090,13 @@ flowchart LR
     web_components_ui_breadcrumb_breadcrumbpage_31680a3c -->|calls| web_lib_utils_cn_515b8e7d
     web_components_ui_breadcrumb_breadcrumbseparator_e9bd15e1 -->|calls| web_lib_utils_cn_515b8e7d
     web_components_ui_breadcrumb_breadcrumbellipsis_f44fd761 -->|calls| web_lib_utils_cn_515b8e7d
-    web_components_ui_card_card_7e234858 -->|calls| web_lib_utils_cn_515b8e7d
     web_components_ui_separator_separator_79563c21 -->|calls| web_lib_utils_cn_515b8e7d
+    web_components_app_shell_app_sidebar_2f263ba3 -->|imports| web_components_app_shell_nav_user_navuser_d1f3690c
+    web_components_ui_command_0deae7f6 -->|imports| web_components_ui_input_group_42dc99cf
     web_components_ui_command_0deae7f6 -->|imports| web_lib_utils_cn_515b8e7d
+    web_components_ui_input_group_42dc99cf -->|imports| web_lib_utils_cn_515b8e7d
     web_components_ui_separator_8b4ef251 -->|imports| web_lib_utils_cn_515b8e7d
-    web_components_ui_sheet_1fc44646 -->|imports| web_lib_utils_cn_515b8e7d
-    %% Omitted for readability: 526 nodes, 0 edges
+    %% Omitted for readability: 529 nodes, 0 edges
     class web_components_ui_breadcrumb_breadcrumb_4dd2fd39 ui;
     class web_components_ui_breadcrumb_breadcrumblist_8dc6934b ui;
     class web_components_ui_breadcrumb_breadcrumbitem_c595ab01 ui;
@@ -1108,9 +1110,9 @@ flowchart LR
     class web_components_ui_separator_separator_79563c21 ui;
     class web_app_user_insights_page_insightspage_d2ce7819 ui;
     class web_components_app_shell_app_sidebar_2f263ba3 ui;
-    class web_components_ui_card_card_7e234858 ui;
+    class web_components_app_shell_nav_user_navuser_d1f3690c ui;
     class web_components_ui_command_0deae7f6 entry;
-    class web_components_ui_sheet_1fc44646 ui;
+    class web_components_ui_input_group_42dc99cf ui;
     class web_components_ui_sidebar_usesidebar_bfbdcf9a ui;
     class web_lib_utils_cn_515b8e7d function;
     classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
@@ -1147,7 +1149,7 @@ flowchart LR
   <td><code>app-sidebar.tsx</code><br><small style="color:var(--muted)">components/app-shell/app-sidebar.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
-  <td><code>Sidebar()</code><br><small style="color:var(--muted)">components/ui/sidebar.tsx</small><br><code>sidebar.tsx</code><br><small style="color:var(--muted)">components/ui/sidebar.tsx</small><br><code>SidebarContent()</code><br><small style="color:var(--muted)">components/ui/sidebar.tsx</small><br>+8 more</td>
+  <td><code>NavUser()</code><br><small style="color:var(--muted)">components/app-shell/nav-user.tsx</small><br><code>Sidebar()</code><br><small style="color:var(--muted)">components/ui/sidebar.tsx</small><br><code>sidebar.tsx</code><br><small style="color:var(--muted)">components/ui/sidebar.tsx</small><br>+9 more</td>
   <td>Module file in components/app-shell/app-sidebar.tsx.</td>
 </tr>
 <tr>
@@ -1168,6 +1170,14 @@ flowchart LR
 </tr>
 <tr>
   <td>5</td>
+  <td><code>NavUser()</code><br><small style="color:var(--muted)">components/app-shell/nav-user.tsx</small></td>
+  <td><span class="tag tag-hook">UI</span></td>
+  <td><code>app-sidebar.tsx</code><br><small style="color:var(--muted)">components/app-shell/app-sidebar.tsx</small></td>
+  <td><code>useSidebar()</code><br><small style="color:var(--muted)">components/ui/sidebar.tsx</small></td>
+  <td>NavUser() node in components/app-shell/nav-user.tsx.</td>
+</tr>
+<tr>
+  <td>6</td>
   <td><code>AvatarBadge()</code><br><small style="color:var(--muted)">components/ui/avatar.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -1175,7 +1185,7 @@ flowchart LR
   <td>AvatarBadge() node in components/ui/avatar.tsx.</td>
 </tr>
 <tr>
-  <td>6</td>
+  <td>7</td>
   <td><code>AvatarGroupCount()</code><br><small style="color:var(--muted)">components/ui/avatar.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -1183,7 +1193,7 @@ flowchart LR
   <td>AvatarGroupCount() node in components/ui/avatar.tsx.</td>
 </tr>
 <tr>
-  <td>7</td>
+  <td>8</td>
   <td><code>breadcrumb.tsx</code><br><small style="color:var(--muted)">components/ui/breadcrumb.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -1191,7 +1201,7 @@ flowchart LR
   <td>Module file in components/ui/breadcrumb.tsx.</td>
 </tr>
 <tr>
-  <td>8</td>
+  <td>9</td>
   <td><code>Breadcrumb()</code><br><small style="color:var(--muted)">components/ui/breadcrumb.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -1199,7 +1209,7 @@ flowchart LR
   <td>Breadcrumb() node in components/ui/breadcrumb.tsx.</td>
 </tr>
 <tr>
-  <td>9</td>
+  <td>10</td>
   <td><code>BreadcrumbList()</code><br><small style="color:var(--muted)">components/ui/breadcrumb.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -1207,7 +1217,7 @@ flowchart LR
   <td>BreadcrumbList() node in components/ui/breadcrumb.tsx.</td>
 </tr>
 <tr>
-  <td>10</td>
+  <td>11</td>
   <td><code>BreadcrumbItem()</code><br><small style="color:var(--muted)">components/ui/breadcrumb.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -1215,7 +1225,7 @@ flowchart LR
   <td>BreadcrumbItem() node in components/ui/breadcrumb.tsx.</td>
 </tr>
 <tr>
-  <td>11</td>
+  <td>12</td>
   <td><code>BreadcrumbLink()</code><br><small style="color:var(--muted)">components/ui/breadcrumb.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -1223,7 +1233,7 @@ flowchart LR
   <td>BreadcrumbLink() node in components/ui/breadcrumb.tsx.</td>
 </tr>
 <tr>
-  <td>12</td>
+  <td>13</td>
   <td><code>BreadcrumbPage()</code><br><small style="color:var(--muted)">components/ui/breadcrumb.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -1231,7 +1241,7 @@ flowchart LR
   <td>Organizes documentation pages, navigation, or content lookup.</td>
 </tr>
 <tr>
-  <td>13</td>
+  <td>14</td>
   <td><code>BreadcrumbSeparator()</code><br><small style="color:var(--muted)">components/ui/breadcrumb.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -1239,7 +1249,7 @@ flowchart LR
   <td>BreadcrumbSeparator() node in components/ui/breadcrumb.tsx.</td>
 </tr>
 <tr>
-  <td>14</td>
+  <td>15</td>
   <td><code>BreadcrumbEllipsis()</code><br><small style="color:var(--muted)">components/ui/breadcrumb.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -1247,7 +1257,7 @@ flowchart LR
   <td>BreadcrumbEllipsis() node in components/ui/breadcrumb.tsx.</td>
 </tr>
 <tr>
-  <td>15</td>
+  <td>16</td>
   <td><code>card.tsx</code><br><small style="color:var(--muted)">components/ui/card.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -1255,7 +1265,7 @@ flowchart LR
   <td>Module file in components/ui/card.tsx.</td>
 </tr>
 <tr>
-  <td>16</td>
+  <td>17</td>
   <td><code>Card()</code><br><small style="color:var(--muted)">components/ui/card.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -1263,7 +1273,7 @@ flowchart LR
   <td>Card() node in components/ui/card.tsx.</td>
 </tr>
 <tr>
-  <td>17</td>
+  <td>18</td>
   <td><code>CardHeader()</code><br><small style="color:var(--muted)">components/ui/card.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -1271,7 +1281,7 @@ flowchart LR
   <td>CardHeader() node in components/ui/card.tsx.</td>
 </tr>
 <tr>
-  <td>18</td>
+  <td>19</td>
   <td><code>CardTitle()</code><br><small style="color:var(--muted)">components/ui/card.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -1279,7 +1289,7 @@ flowchart LR
   <td>CardTitle() node in components/ui/card.tsx.</td>
 </tr>
 <tr>
-  <td>19</td>
+  <td>20</td>
   <td><code>CardDescription()</code><br><small style="color:var(--muted)">components/ui/card.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -1287,7 +1297,7 @@ flowchart LR
   <td>CardDescription() node in components/ui/card.tsx.</td>
 </tr>
 <tr>
-  <td>20</td>
+  <td>21</td>
   <td><code>CardAction()</code><br><small style="color:var(--muted)">components/ui/card.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -1295,7 +1305,7 @@ flowchart LR
   <td>CardAction() node in components/ui/card.tsx.</td>
 </tr>
 <tr>
-  <td>21</td>
+  <td>22</td>
   <td><code>CardContent()</code><br><small style="color:var(--muted)">components/ui/card.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -1303,7 +1313,7 @@ flowchart LR
   <td>CardContent() node in components/ui/card.tsx.</td>
 </tr>
 <tr>
-  <td>22</td>
+  <td>23</td>
   <td><code>CardFooter()</code><br><small style="color:var(--muted)">components/ui/card.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -1311,7 +1321,7 @@ flowchart LR
   <td>CardFooter() node in components/ui/card.tsx.</td>
 </tr>
 <tr>
-  <td>23</td>
+  <td>24</td>
   <td><code>command.tsx</code><br><small style="color:var(--muted)">components/ui/command.tsx</small></td>
   <td><span class="tag tag-cmd">Entry</span></td>
   <td>External entry / no inbound edge</td>
@@ -1319,7 +1329,7 @@ flowchart LR
   <td>Module file in components/ui/command.tsx.</td>
 </tr>
 <tr>
-  <td>24</td>
+  <td>25</td>
   <td><code>Command()</code><br><small style="color:var(--muted)">components/ui/command.tsx</small></td>
   <td><span class="tag tag-cmd">Entry</span></td>
   <td>External entry / no inbound edge</td>
@@ -1327,7 +1337,7 @@ flowchart LR
   <td>Command() node in components/ui/command.tsx.</td>
 </tr>
 <tr>
-  <td>25</td>
+  <td>26</td>
   <td><code>CommandDialog()</code><br><small style="color:var(--muted)">components/ui/command.tsx</small></td>
   <td><span class="tag tag-cmd">Entry</span></td>
   <td>External entry / no inbound edge</td>
@@ -1335,7 +1345,7 @@ flowchart LR
   <td>CommandDialog() node in components/ui/command.tsx.</td>
 </tr>
 <tr>
-  <td>26</td>
+  <td>27</td>
   <td><code>CommandInput()</code><br><small style="color:var(--muted)">components/ui/command.tsx</small></td>
   <td><span class="tag tag-cmd">Entry</span></td>
   <td>External entry / no inbound edge</td>
@@ -1343,7 +1353,7 @@ flowchart LR
   <td>CommandInput() node in components/ui/command.tsx.</td>
 </tr>
 <tr>
-  <td>27</td>
+  <td>28</td>
   <td><code>CommandList()</code><br><small style="color:var(--muted)">components/ui/command.tsx</small></td>
   <td><span class="tag tag-cmd">Entry</span></td>
   <td>External entry / no inbound edge</td>
@@ -1351,7 +1361,7 @@ flowchart LR
   <td>CommandList() node in components/ui/command.tsx.</td>
 </tr>
 <tr>
-  <td>28</td>
+  <td>29</td>
   <td><code>CommandEmpty()</code><br><small style="color:var(--muted)">components/ui/command.tsx</small></td>
   <td><span class="tag tag-cmd">Entry</span></td>
   <td>External entry / no inbound edge</td>
@@ -1359,20 +1369,12 @@ flowchart LR
   <td>CommandEmpty() node in components/ui/command.tsx.</td>
 </tr>
 <tr>
-  <td>29</td>
+  <td>30</td>
   <td><code>CommandGroup()</code><br><small style="color:var(--muted)">components/ui/command.tsx</small></td>
   <td><span class="tag tag-cmd">Entry</span></td>
   <td>External entry / no inbound edge</td>
   <td><code>cn()</code><br><small style="color:var(--muted)">web/lib/utils.ts</small></td>
   <td>CommandGroup() node in components/ui/command.tsx.</td>
-</tr>
-<tr>
-  <td>30</td>
-  <td><code>CommandSeparator()</code><br><small style="color:var(--muted)">components/ui/command.tsx</small></td>
-  <td><span class="tag tag-cmd">Entry</span></td>
-  <td>External entry / no inbound edge</td>
-  <td><code>cn()</code><br><small style="color:var(--muted)">web/lib/utils.ts</small></td>
-  <td>CommandSeparator() node in components/ui/command.tsx.</td>
 </tr>
 </table>
 
@@ -1393,19 +1395,19 @@ flowchart LR
   </div>
   <div class="card">
     <h4>Design Notes</h4>
-    <p>This section comes from graphify community clustering. Relationship summary: contains x502, calls x74, imports x32, references x19. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+    <p>This section comes from graphify community clustering. Relationship summary: contains x503, calls x76, imports x35, references x19. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
   </div>
 </div>
 <hr>
 
 <!-- ====== 6. Ingestion & Updates ====== -->
 <h2 id="ingest-cache-update">6. Ingestion &amp; Updates</h2>
-<p>Ingestion &amp; Updates groups implementation around backend, app, web, ingest, mostly in docs/DECISIONS.md, admin/ingest/products.py, backend/tests/test_products_ingest.py. This section covers 108 nodes and 169 internal edges; the diagram shows only representative relationships to stay readable.</p>
+<p>Ingestion &amp; Updates groups implementation around backend, app, web, ingest, mostly in docs/DECISIONS.md, admin/ingest/products.py, backend/tests/test_products_ingest.py. This section covers 111 nodes and 175 internal edges; the diagram shows only representative relationships to stay readable.</p>
 
 <div class="mermaid">
 %%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
 flowchart LR
-    %% Section: Ingestion &amp; Updates (108 nodes, 169 edges)
+    %% Section: Ingestion &amp; Updates (111 nodes, 175 edges)
     subgraph ingest_cache_update_admin_ingest_products_py_01c75ea8["admin/ingest/products.py"]
         backend_app_services_admin_ingest_products_parse_29e69331("_parse_ingredients()<br/><small>admin/ingest/products.py</small>")
         backend_app_services_admin_ingest_products_kaggl_a1311489("KaggleCredentialsError<br/><small>admin/ingest/products.py</small>")
@@ -1441,7 +1443,7 @@ flowchart LR
     backend_app_services_admin_ingest_products_parse_589bfe3e -->|calls| backend_app_services_admin_ingest_products_norma_17abfef4
     backend_app_services_admin_ingest_products_parse_589bfe3e -->|calls| backend_tests_test_products_ingest_test_parse_si_808d9adb
     backend_app_services_admin_ingest_products_norma_17abfef4 -->|calls| backend_app_services_admin_ingest_products_run_d6e27999
-    %% Omitted for readability: 90 nodes, 0 edges
+    %% Omitted for readability: 93 nodes, 0 edges
     class backend_app_services_admin_ingest_products_parse_29e69331 function;
     class backend_app_services_admin_ingest_products_kaggl_a1311489 klass;
     class backend_app_services_admin_ingest_products_downl_1c21f23b function;
@@ -1740,19 +1742,19 @@ flowchart LR
   </div>
   <div class="card">
     <h4>Design Notes</h4>
-    <p>This section comes from graphify community clustering. Relationship summary: contains x72, calls x29, imports x26, references x16. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+    <p>This section comes from graphify community clustering. Relationship summary: contains x72, calls x33, imports x28, references x16. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
   </div>
 </div>
 <hr>
 
 <!-- ====== 7. Serving API ====== -->
 <h2 id="serve-api">7. Serving API</h2>
-<p>Serving API groups implementation around app, backend, services, web, mostly in services/admin/schemas.py, docs/DATASETS_AND_APIS.md, services/admin/router.py. This section covers 298 nodes and 711 internal edges; the diagram shows only representative relationships to stay readable.</p>
+<p>Serving API groups implementation around app, backend, services, web, mostly in services/admin/schemas.py, docs/DATASETS_AND_APIS.md, services/admin/router.py. This section covers 321 nodes and 776 internal edges; the diagram shows only representative relationships to stay readable.</p>
 
 <div class="mermaid">
 %%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
 flowchart LR
-    %% Section: Serving API (298 nodes, 711 edges)
+    %% Section: Serving API (321 nodes, 776 edges)
     subgraph serve_api_app_core_rate_limit_py_2f2de461["app/core/rate_limit.py"]
         backend_app_core_rate_limit_ratelimitmiddleware_ee22eae7("__call__()<br/><small>app/core/rate_limit.py</small>")
         backend_app_core_rate_limit_identity_bfb598dd("_identity()<br/><small>app/core/rate_limit.py</small>")
@@ -1790,7 +1792,7 @@ flowchart LR
     backend_app_core_rate_limit_ratelimitmiddleware_999e9d73 -->|method| backend_app_core_rate_limit_ratelimitmiddleware_d79044f1
     backend_app_core_security_require_role_f3d0dae0 -->|imports| backend_app_services_admin_router_77da9d9b
     backend_app_db_postgres_get_db_4c5058f7 -->|imports| backend_app_services_admin_router_77da9d9b
-    %% Omitted for readability: 280 nodes, 0 edges
+    %% Omitted for readability: 303 nodes, 0 edges
     class backend_app_core_rate_limit_ratelimitmiddleware_ee22eae7 function;
     class backend_app_core_rate_limit_identity_bfb598dd function;
     class backend_app_core_rate_limit_ratelimitmiddleware_999e9d73 klass;
@@ -1835,7 +1837,7 @@ flowchart LR
   <td><code>require_role()</code><br><small style="color:var(--muted)">app/core/security.py</small></td>
   <td><span class="tag tag-func">Function</span></td>
   <td>External entry / no inbound edge</td>
-  <td><code>router.py</code><br><small style="color:var(--muted)">services/skin_profile/router.py</small><br><code>router.py</code><br><small style="color:var(--muted)">services/routines/router.py</small><br><code>router.py</code><br><small style="color:var(--muted)">services/ingredients/router.py</small><br>+2 more</td>
+  <td><code>router.py</code><br><small style="color:var(--muted)">services/admin/router.py</small><br><code>router.py</code><br><small style="color:var(--muted)">services/dermatologist_profile/router.py</small><br><code>router.py</code><br><small style="color:var(--muted)">services/routines/router.py</small><br>+3 more</td>
   <td>require_role() node in app/core/security.py.</td>
 </tr>
 <tr>
@@ -1843,7 +1845,7 @@ flowchart LR
   <td><code>get_db()</code><br><small style="color:var(--muted)">app/db/postgres.py</small></td>
   <td><span class="tag tag-func">Function</span></td>
   <td>External entry / no inbound edge</td>
-  <td><code>router.py</code><br><small style="color:var(--muted)">services/skin_profile/router.py</small><br><code>router.py</code><br><small style="color:var(--muted)">services/routines/router.py</small><br><code>router.py</code><br><small style="color:var(--muted)">services/ingredients/router.py</small><br>+2 more</td>
+  <td><code>router.py</code><br><small style="color:var(--muted)">services/admin/router.py</small><br><code>router.py</code><br><small style="color:var(--muted)">services/dermatologist_profile/router.py</small><br><code>router.py</code><br><small style="color:var(--muted)">services/routines/router.py</small><br>+3 more</td>
   <td>get_db() node in app/db/postgres.py.</td>
 </tr>
 <tr>
@@ -2089,86 +2091,76 @@ flowchart LR
   </div>
   <div class="card">
     <h4>Design Notes</h4>
-    <p>This section comes from graphify community clustering. Relationship summary: references x288, contains x178, imports x92, imports x46. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+    <p>This section comes from graphify community clustering. Relationship summary: references x329, contains x188, imports x98, imports x49. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
   </div>
 </div>
 <hr>
 
 <!-- ====== 8. Security & Global Graph ====== -->
 <h2 id="security-global">8. Security &amp; Global Graph</h2>
-<p>Security &amp; Global Graph groups implementation around web, components, app, nav, mostly in components/ui/dropdown-menu.tsx, web/lib/nav-config.ts, components/ui/avatar.tsx. This section covers 71 nodes and 167 internal edges; the diagram shows only representative relationships to stay readable.</p>
+<p>Security &amp; Global Graph groups implementation around app, web, backend, components, mostly in components/ui/dropdown-menu.tsx, web/lib/nav-config.ts, app/migrations/env.py. This section covers 108 nodes and 231 internal edges; the diagram shows only representative relationships to stay readable.</p>
 
 <div class="mermaid">
 %%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
 flowchart LR
-    %% Section: Security &amp; Global Graph (71 nodes, 167 edges)
+    %% Section: Security &amp; Global Graph (108 nodes, 231 edges)
     subgraph security_global_app_core_security_headers_py_0f8126bf["app/core/security_headers.py"]
         backend_app_core_security_headers_securityheader_ee616b2c("SecurityHeadersMiddleware<br/><small>app/core/security_headers.py</small>")
         backend_app_core_security_headers_securityheader_d3cfd5b8("__call__()<br/><small>app/core/security_headers.py</small>")
         backend_app_core_security_headers_securityheader_e56b4050("__init__()<br/><small>app/core/security_headers.py</small>")
     end
+    subgraph security_global_app_core_config_py_c0f0bb80["app/core/config.py"]
+        backend_app_core_config_settings_750ff655("Settings<br/><small>app/core/config.py</small>")
+        backend_app_core_config_settings_sqlalchemy_data_bb1a03dd("sqlalchemy_database_url()<br/><small>app/core/config.py</small>")
+    end
+    subgraph security_global_app_core_security_py_56f662d8["app/core/security.py"]
+        backend_app_core_security_jwk_client_4a9c8b4b("_jwk_client()<br/><small>app/core/security.py</small>")
+        backend_app_core_security_decode_271615ef("_decode()<br/><small>app/core/security.py</small>")
+    end
+    subgraph security_global_app_migrations_env_py_52b52949["app/migrations/env.py"]
+        backend_app_migrations_env_run_async_migrations_843d2d17("run_async_migrations()<br/><small>app/migrations/env.py</small>")
+        backend_app_migrations_env_run_migrations_online_316e7c1e("run_migrations_online()<br/><small>app/migrations/env.py</small>")
+    end
     subgraph security_global_components_app_shell_glass_topba_5bd07ac9["components/app-shell/glass-topbar.tsx"]
         web_components_app_shell_glass_topbar_a7e9c3bb("glass-topbar.tsx")
         web_components_app_shell_glass_topbar_glasstopba_58ba7eeb("GlassTopbar()<br/><small>components/app-shell/glass-topbar.tsx</small>")
-    end
-    subgraph security_global_components_app_shell_nav_user_ts_44dbcefc["components/app-shell/nav-user.tsx"]
-        web_components_app_shell_nav_user_78322fd2("nav-user.tsx")
-        web_components_app_shell_nav_user_navuser_d1f3690c("NavUser()<br/><small>components/app-shell/nav-user.tsx</small>")
-    end
-    subgraph security_global_components_landing_landing_navba_f08ce788["components/landing/landing-navbar.tsx"]
-        web_components_landing_landing_navbar_6aae6c7b("landing-navbar.tsx")
-        web_components_landing_landing_navbar_landingnav_f8fcc810("LandingNavbar()<br/><small>components/landing/landing-navbar.tsx</small>")
     end
     subgraph security_global_lib_hooks_use_weather_uv_ts_37ec451b["lib/hooks/use-weather-uv.ts"]
         web_lib_hooks_use_weather_uv_useweatheruv_8d3fea7a("useWeatherUV()<br/><small>lib/hooks/use-weather-uv.ts</small>")
         web_lib_hooks_use_weather_uv_usebrowsercoords_baee19e1("useBrowserCoords()<br/><small>lib/hooks/use-weather-uv.ts</small>")
     end
-    subgraph security_global_web_lib_use_current_user_ts_a8431ea5["web/lib/use-current-user.ts"]
-        web_lib_use_current_user_usecurrentuser_30844990("useCurrentUser()<br/><small>web/lib/use-current-user.ts</small>")
-        web_lib_use_current_user_initialsof_039fb53f("initialsOf()<br/><small>web/lib/use-current-user.ts</small>")
-    end
-    web_app_user_layout_db780473("layout.tsx")
     web_app_admin_layout_b2298627("layout.tsx")
     web_app_consultant_layout_4bf0b933("layout.tsx")
-    web_app_dermatologist_layout_cf6b1cd9("layout.tsx")
-    web_components_app_shell_app_shell_5fd7a4e9("app-shell.tsx")
+    backend_app_db_postgres_base_0112d1b9("Base<br/><small>app/db/postgres.py</small>")
+    web_components_app_shell_nav_user_78322fd2("nav-user.tsx")
+    web_components_landing_landing_navbar_6aae6c7b("landing-navbar.tsx")
+    backend_app_core_config_settings_750ff655 -->|method| backend_app_core_config_settings_sqlalchemy_data_bb1a03dd
+    backend_app_core_security_jwk_client_4a9c8b4b -->|calls| backend_app_core_security_decode_271615ef
     backend_app_core_security_headers_securityheader_ee616b2c -->|method| backend_app_core_security_headers_securityheader_d3cfd5b8
     backend_app_core_security_headers_securityheader_ee616b2c -->|method| backend_app_core_security_headers_securityheader_e56b4050
+    backend_app_migrations_env_run_async_migrations_843d2d17 -->|calls| backend_app_migrations_env_run_migrations_online_316e7c1e
     web_components_app_shell_glass_topbar_glasstopba_58ba7eeb -->|calls| web_lib_hooks_use_weather_uv_useweatheruv_8d3fea7a
-    web_components_app_shell_glass_topbar_glasstopba_58ba7eeb -->|calls| web_lib_use_current_user_usecurrentuser_30844990
-    web_components_app_shell_nav_user_navuser_d1f3690c -->|calls| web_lib_use_current_user_usecurrentuser_30844990
-    web_components_landing_landing_navbar_landingnav_f8fcc810 -->|calls| web_lib_use_current_user_usecurrentuser_30844990
     web_lib_hooks_use_weather_uv_usebrowsercoords_baee19e1 -->|calls| web_lib_hooks_use_weather_uv_useweatheruv_8d3fea7a
-    web_lib_use_current_user_initialsof_039fb53f -->|calls| web_lib_use_current_user_usecurrentuser_30844990
-    web_app_user_layout_db780473 -->|imports| web_components_app_shell_app_shell_5fd7a4e9
-    web_app_admin_layout_b2298627 -->|imports| web_components_app_shell_app_shell_5fd7a4e9
-    web_app_consultant_layout_4bf0b933 -->|imports| web_components_app_shell_app_shell_5fd7a4e9
-    web_app_dermatologist_layout_cf6b1cd9 -->|imports| web_components_app_shell_app_shell_5fd7a4e9
-    web_components_app_shell_app_shell_5fd7a4e9 -->|imports| web_components_app_shell_glass_topbar_a7e9c3bb
-    web_components_app_shell_app_shell_5fd7a4e9 -->|imports| web_components_app_shell_glass_topbar_glasstopba_58ba7eeb
     web_components_app_shell_glass_topbar_a7e9c3bb -->|imports| web_lib_hooks_use_weather_uv_useweatheruv_8d3fea7a
-    web_components_app_shell_glass_topbar_a7e9c3bb -->|imports| web_lib_use_current_user_usecurrentuser_30844990
-    web_components_app_shell_nav_user_78322fd2 -->|imports| web_lib_use_current_user_usecurrentuser_30844990
-    web_components_landing_landing_navbar_6aae6c7b -->|imports| web_lib_use_current_user_usecurrentuser_30844990
-    %% Omitted for readability: 53 nodes, 0 edges
+    %% Omitted for readability: 90 nodes, 0 edges
     class backend_app_core_security_headers_securityheader_ee616b2c klass;
     class backend_app_core_security_headers_securityheader_d3cfd5b8 function;
     class backend_app_core_security_headers_securityheader_e56b4050 function;
+    class backend_app_core_config_settings_750ff655 klass;
+    class backend_app_core_config_settings_sqlalchemy_data_bb1a03dd function;
+    class backend_app_core_security_jwk_client_4a9c8b4b entry;
+    class backend_app_core_security_decode_271615ef function;
+    class backend_app_migrations_env_run_async_migrations_843d2d17 async;
+    class backend_app_migrations_env_run_migrations_online_316e7c1e function;
     class web_components_app_shell_glass_topbar_a7e9c3bb ui;
     class web_components_app_shell_glass_topbar_glasstopba_58ba7eeb ui;
-    class web_components_app_shell_nav_user_78322fd2 ui;
-    class web_components_app_shell_nav_user_navuser_d1f3690c ui;
-    class web_components_landing_landing_navbar_6aae6c7b ui;
-    class web_components_landing_landing_navbar_landingnav_f8fcc810 ui;
     class web_lib_hooks_use_weather_uv_useweatheruv_8d3fea7a ui;
     class web_lib_hooks_use_weather_uv_usebrowsercoords_baee19e1 ui;
-    class web_lib_use_current_user_usecurrentuser_30844990 ui;
-    class web_lib_use_current_user_initialsof_039fb53f function;
-    class web_app_user_layout_db780473 ui;
     class web_app_admin_layout_b2298627 ui;
     class web_app_consultant_layout_4bf0b933 ui;
-    class web_app_dermatologist_layout_cf6b1cd9 ui;
-    class web_components_app_shell_app_shell_5fd7a4e9 ui;
+    class backend_app_db_postgres_base_0112d1b9 klass;
+    class web_components_app_shell_nav_user_78322fd2 ui;
+    class web_components_landing_landing_navbar_6aae6c7b ui;
     classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
     classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
     classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
@@ -2258,7 +2250,7 @@ flowchart LR
   <td>9</td>
   <td><code>app-shell.tsx</code><br><small style="color:var(--muted)">components/app-shell/app-shell.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
-  <td><code>layout.tsx</code><br><small style="color:var(--muted)">app/dermatologist/layout.tsx</small><br><code>layout.tsx</code><br><small style="color:var(--muted)">app/(user)/layout.tsx</small><br><code>layout.tsx</code><br><small style="color:var(--muted)">app/consultant/layout.tsx</small><br>+1 more</td>
+  <td><code>layout.tsx</code><br><small style="color:var(--muted)">app/(user)/layout.tsx</small><br><code>layout.tsx</code><br><small style="color:var(--muted)">app/consultant/layout.tsx</small><br><code>layout.tsx</code><br><small style="color:var(--muted)">app/dermatologist/layout.tsx</small><br>+1 more</td>
   <td><code>glass-topbar.tsx</code><br><small style="color:var(--muted)">components/app-shell/glass-topbar.tsx</small><br><code>GlassTopbar()</code><br><small style="color:var(--muted)">components/app-shell/glass-topbar.tsx</small><br><code>nav-config.ts</code><br><small style="color:var(--muted)">web/lib/nav-config.ts</small><br>+1 more</td>
   <td>Module file in components/app-shell/app-shell.tsx.</td>
 </tr>
@@ -2274,7 +2266,7 @@ flowchart LR
   <td>11</td>
   <td><code>AppShell()</code><br><small style="color:var(--muted)">components/app-shell/app-shell.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
-  <td><code>layout.tsx</code><br><small style="color:var(--muted)">app/dermatologist/layout.tsx</small><br><code>layout.tsx</code><br><small style="color:var(--muted)">app/(user)/layout.tsx</small><br><code>layout.tsx</code><br><small style="color:var(--muted)">app/consultant/layout.tsx</small><br>+1 more</td>
+  <td><code>layout.tsx</code><br><small style="color:var(--muted)">app/(user)/layout.tsx</small><br><code>layout.tsx</code><br><small style="color:var(--muted)">app/consultant/layout.tsx</small><br><code>layout.tsx</code><br><small style="color:var(--muted)">app/dermatologist/layout.tsx</small><br>+1 more</td>
   <td>No direct outbound edge</td>
   <td>AppShell() node in components/app-shell/app-shell.tsx.</td>
 </tr>
@@ -2283,7 +2275,7 @@ flowchart LR
   <td><code>glass-topbar.tsx</code><br><small style="color:var(--muted)">components/app-shell/glass-topbar.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td><code>app-shell.tsx</code><br><small style="color:var(--muted)">components/app-shell/app-shell.tsx</small></td>
-  <td><code>auth-client.ts</code><br><small style="color:var(--muted)">web/lib/auth-client.ts</small><br><code>authClient</code><br><small style="color:var(--muted)">web/lib/auth-client.ts</small><br><code>Avatar()</code><br><small style="color:var(--muted)">components/ui/avatar.tsx</small><br>+22 more</td>
+  <td><code>auth-client.ts</code><br><small style="color:var(--muted)">web/lib/auth-client.ts</small><br><code>authClient</code><br><small style="color:var(--muted)">web/lib/auth-client.ts</small><br><code>Avatar()</code><br><small style="color:var(--muted)">components/ui/avatar.tsx</small><br>+21 more</td>
   <td>Module file in components/app-shell/glass-topbar.tsx.</td>
 </tr>
 <tr>
@@ -2299,7 +2291,7 @@ flowchart LR
   <td><code>GlassTopbar()</code><br><small style="color:var(--muted)">components/app-shell/glass-topbar.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td><code>app-shell.tsx</code><br><small style="color:var(--muted)">components/app-shell/app-shell.tsx</small></td>
-  <td><code>useCurrentUser()</code><br><small style="color:var(--muted)">web/lib/use-current-user.ts</small><br><code>useWeatherUV()</code><br><small style="color:var(--muted)">lib/hooks/use-weather-uv.ts</small></td>
+  <td><code>useWeatherUV()</code><br><small style="color:var(--muted)">lib/hooks/use-weather-uv.ts</small></td>
   <td>GlassTopbar() node in components/app-shell/glass-topbar.tsx.</td>
 </tr>
 <tr>
@@ -2307,7 +2299,7 @@ flowchart LR
   <td><code>nav-user.tsx</code><br><small style="color:var(--muted)">components/app-shell/nav-user.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
-  <td><code>auth-client.ts</code><br><small style="color:var(--muted)">web/lib/auth-client.ts</small><br><code>authClient</code><br><small style="color:var(--muted)">web/lib/auth-client.ts</small><br><code>Avatar()</code><br><small style="color:var(--muted)">components/ui/avatar.tsx</small><br>+17 more</td>
+  <td><code>auth-client.ts</code><br><small style="color:var(--muted)">web/lib/auth-client.ts</small><br><code>authClient</code><br><small style="color:var(--muted)">web/lib/auth-client.ts</small><br><code>Avatar()</code><br><small style="color:var(--muted)">components/ui/avatar.tsx</small><br>+16 more</td>
   <td>Module file in components/app-shell/nav-user.tsx.</td>
 </tr>
 <tr>
@@ -2320,22 +2312,14 @@ flowchart LR
 </tr>
 <tr>
   <td>17</td>
-  <td><code>NavUser()</code><br><small style="color:var(--muted)">components/app-shell/nav-user.tsx</small></td>
-  <td><span class="tag tag-hook">UI</span></td>
-  <td>External entry / no inbound edge</td>
-  <td><code>useCurrentUser()</code><br><small style="color:var(--muted)">web/lib/use-current-user.ts</small></td>
-  <td>NavUser() node in components/app-shell/nav-user.tsx.</td>
-</tr>
-<tr>
-  <td>18</td>
   <td><code>landing-navbar.tsx</code><br><small style="color:var(--muted)">components/landing/landing-navbar.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
-  <td><code>auth-client.ts</code><br><small style="color:var(--muted)">web/lib/auth-client.ts</small><br><code>authClient</code><br><small style="color:var(--muted)">web/lib/auth-client.ts</small><br><code>Avatar()</code><br><small style="color:var(--muted)">components/ui/avatar.tsx</small><br>+18 more</td>
+  <td><code>auth-client.ts</code><br><small style="color:var(--muted)">web/lib/auth-client.ts</small><br><code>authClient</code><br><small style="color:var(--muted)">web/lib/auth-client.ts</small><br><code>Avatar()</code><br><small style="color:var(--muted)">components/ui/avatar.tsx</small><br>+17 more</td>
   <td>Module file in components/landing/landing-navbar.tsx.</td>
 </tr>
 <tr>
-  <td>19</td>
+  <td>18</td>
   <td><code>NAV_LINKS</code><br><small style="color:var(--muted)">components/landing/landing-navbar.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -2343,15 +2327,7 @@ flowchart LR
   <td>NAV_LINKS node in components/landing/landing-navbar.tsx.</td>
 </tr>
 <tr>
-  <td>20</td>
-  <td><code>LandingNavbar()</code><br><small style="color:var(--muted)">components/landing/landing-navbar.tsx</small></td>
-  <td><span class="tag tag-hook">UI</span></td>
-  <td>External entry / no inbound edge</td>
-  <td><code>useCurrentUser()</code><br><small style="color:var(--muted)">web/lib/use-current-user.ts</small></td>
-  <td>LandingNavbar() node in components/landing/landing-navbar.tsx.</td>
-</tr>
-<tr>
-  <td>21</td>
+  <td>19</td>
   <td><code>theme-toggle.tsx</code><br><small style="color:var(--muted)">web/components/theme-toggle.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td><code>glass-topbar.tsx</code><br><small style="color:var(--muted)">components/app-shell/glass-topbar.tsx</small><br><code>landing-navbar.tsx</code><br><small style="color:var(--muted)">components/landing/landing-navbar.tsx</small></td>
@@ -2359,7 +2335,7 @@ flowchart LR
   <td>Module file in web/components/theme-toggle.tsx.</td>
 </tr>
 <tr>
-  <td>22</td>
+  <td>20</td>
   <td><code>ThemeToggle()</code><br><small style="color:var(--muted)">web/components/theme-toggle.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td><code>glass-topbar.tsx</code><br><small style="color:var(--muted)">components/app-shell/glass-topbar.tsx</small><br><code>landing-navbar.tsx</code><br><small style="color:var(--muted)">components/landing/landing-navbar.tsx</small></td>
@@ -2367,7 +2343,7 @@ flowchart LR
   <td>ThemeToggle() node in web/components/theme-toggle.tsx.</td>
 </tr>
 <tr>
-  <td>23</td>
+  <td>21</td>
   <td><code>avatar.tsx</code><br><small style="color:var(--muted)">components/ui/avatar.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td><code>glass-topbar.tsx</code><br><small style="color:var(--muted)">components/app-shell/glass-topbar.tsx</small><br><code>landing-navbar.tsx</code><br><small style="color:var(--muted)">components/landing/landing-navbar.tsx</small><br><code>nav-user.tsx</code><br><small style="color:var(--muted)">components/app-shell/nav-user.tsx</small></td>
@@ -2375,7 +2351,7 @@ flowchart LR
   <td>Module file in components/ui/avatar.tsx.</td>
 </tr>
 <tr>
-  <td>24</td>
+  <td>22</td>
   <td><code>Avatar()</code><br><small style="color:var(--muted)">components/ui/avatar.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td><code>glass-topbar.tsx</code><br><small style="color:var(--muted)">components/app-shell/glass-topbar.tsx</small><br><code>landing-navbar.tsx</code><br><small style="color:var(--muted)">components/landing/landing-navbar.tsx</small><br><code>nav-user.tsx</code><br><small style="color:var(--muted)">components/app-shell/nav-user.tsx</small></td>
@@ -2383,7 +2359,7 @@ flowchart LR
   <td>Avatar() node in components/ui/avatar.tsx.</td>
 </tr>
 <tr>
-  <td>25</td>
+  <td>23</td>
   <td><code>AvatarImage()</code><br><small style="color:var(--muted)">components/ui/avatar.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td><code>glass-topbar.tsx</code><br><small style="color:var(--muted)">components/app-shell/glass-topbar.tsx</small><br><code>landing-navbar.tsx</code><br><small style="color:var(--muted)">components/landing/landing-navbar.tsx</small><br><code>nav-user.tsx</code><br><small style="color:var(--muted)">components/app-shell/nav-user.tsx</small></td>
@@ -2391,7 +2367,7 @@ flowchart LR
   <td>AvatarImage() node in components/ui/avatar.tsx.</td>
 </tr>
 <tr>
-  <td>26</td>
+  <td>24</td>
   <td><code>AvatarFallback()</code><br><small style="color:var(--muted)">components/ui/avatar.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td><code>glass-topbar.tsx</code><br><small style="color:var(--muted)">components/app-shell/glass-topbar.tsx</small><br><code>landing-navbar.tsx</code><br><small style="color:var(--muted)">components/landing/landing-navbar.tsx</small><br><code>nav-user.tsx</code><br><small style="color:var(--muted)">components/app-shell/nav-user.tsx</small></td>
@@ -2399,7 +2375,7 @@ flowchart LR
   <td>AvatarFallback() node in components/ui/avatar.tsx.</td>
 </tr>
 <tr>
-  <td>27</td>
+  <td>25</td>
   <td><code>AvatarGroup()</code><br><small style="color:var(--muted)">components/ui/avatar.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -2407,7 +2383,7 @@ flowchart LR
   <td>AvatarGroup() node in components/ui/avatar.tsx.</td>
 </tr>
 <tr>
-  <td>28</td>
+  <td>26</td>
   <td><code>dropdown-menu.tsx</code><br><small style="color:var(--muted)">components/ui/dropdown-menu.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td><code>glass-topbar.tsx</code><br><small style="color:var(--muted)">components/app-shell/glass-topbar.tsx</small><br><code>landing-navbar.tsx</code><br><small style="color:var(--muted)">components/landing/landing-navbar.tsx</small><br><code>nav-user.tsx</code><br><small style="color:var(--muted)">components/app-shell/nav-user.tsx</small></td>
@@ -2415,7 +2391,7 @@ flowchart LR
   <td>Module file in components/ui/dropdown-menu.tsx.</td>
 </tr>
 <tr>
-  <td>29</td>
+  <td>27</td>
   <td><code>DropdownMenu()</code><br><small style="color:var(--muted)">components/ui/dropdown-menu.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td><code>glass-topbar.tsx</code><br><small style="color:var(--muted)">components/app-shell/glass-topbar.tsx</small><br><code>landing-navbar.tsx</code><br><small style="color:var(--muted)">components/landing/landing-navbar.tsx</small><br><code>nav-user.tsx</code><br><small style="color:var(--muted)">components/app-shell/nav-user.tsx</small></td>
@@ -2423,12 +2399,28 @@ flowchart LR
   <td>DropdownMenu() node in components/ui/dropdown-menu.tsx.</td>
 </tr>
 <tr>
-  <td>30</td>
+  <td>28</td>
   <td><code>DropdownMenuPortal()</code><br><small style="color:var(--muted)">components/ui/dropdown-menu.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
   <td>No direct outbound edge</td>
   <td>DropdownMenuPortal() node in components/ui/dropdown-menu.tsx.</td>
+</tr>
+<tr>
+  <td>29</td>
+  <td><code>DropdownMenuTrigger()</code><br><small style="color:var(--muted)">components/ui/dropdown-menu.tsx</small></td>
+  <td><span class="tag tag-hook">UI</span></td>
+  <td><code>glass-topbar.tsx</code><br><small style="color:var(--muted)">components/app-shell/glass-topbar.tsx</small><br><code>landing-navbar.tsx</code><br><small style="color:var(--muted)">components/landing/landing-navbar.tsx</small><br><code>nav-user.tsx</code><br><small style="color:var(--muted)">components/app-shell/nav-user.tsx</small></td>
+  <td>No direct outbound edge</td>
+  <td>DropdownMenuTrigger() node in components/ui/dropdown-menu.tsx.</td>
+</tr>
+<tr>
+  <td>30</td>
+  <td><code>DropdownMenuContent()</code><br><small style="color:var(--muted)">components/ui/dropdown-menu.tsx</small></td>
+  <td><span class="tag tag-hook">UI</span></td>
+  <td><code>glass-topbar.tsx</code><br><small style="color:var(--muted)">components/app-shell/glass-topbar.tsx</small><br><code>landing-navbar.tsx</code><br><small style="color:var(--muted)">components/landing/landing-navbar.tsx</small><br><code>nav-user.tsx</code><br><small style="color:var(--muted)">components/app-shell/nav-user.tsx</small></td>
+  <td>No direct outbound edge</td>
+  <td>DropdownMenuContent() node in components/ui/dropdown-menu.tsx.</td>
 </tr>
 </table>
 
@@ -2439,29 +2431,29 @@ flowchart LR
       <tr><th>File</th><th>Coverage</th></tr>
       <tr><td><code>components/ui/dropdown-menu.tsx</code></td><td>14 nodes</td></tr>
 <tr><td><code>web/lib/nav-config.ts</code></td><td>11 nodes</td></tr>
+<tr><td><code>app/migrations/env.py</code></td><td>9 nodes</td></tr>
+<tr><td><code>app/core/config.py</code></td><td>5 nodes</td></tr>
 <tr><td><code>app/core/security_headers.py</code></td><td>5 nodes</td></tr>
 <tr><td><code>components/ui/avatar.tsx</code></td><td>5 nodes</td></tr>
+<tr><td><code>app/core/security.py</code></td><td>4 nodes</td></tr>
 <tr><td><code>lib/hooks/use-weather-uv.ts</code></td><td>4 nodes</td></tr>
-<tr><td><code>web/lib/use-current-user.ts</code></td><td>4 nodes</td></tr>
-<tr><td><code>components/app-shell/app-shell.tsx</code></td><td>3 nodes</td></tr>
-<tr><td><code>components/app-shell/glass-topbar.tsx</code></td><td>3 nodes</td></tr>
     </table>
   </div>
   <div class="card">
     <h4>Design Notes</h4>
-    <p>This section comes from graphify community clustering. Relationship summary: imports x68, contains x47, imports x34, references x8. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+    <p>This section comes from graphify community clustering. Relationship summary: imports x82, imports x58, contains x55, references x13. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
   </div>
 </div>
 <hr>
 
 <!-- ====== 9. Tests & Fixtures ====== -->
 <h2 id="tests-fixtures">9. Tests &amp; Fixtures</h2>
-<p>Tests &amp; Fixtures groups implementation around backend, test, app, tests, mostly in backend/tests/test_scores_service.py, backend/tests/test_routines_service.py, services/routines/service.py. This section covers 1248 nodes and 3676 internal edges; the diagram shows only representative relationships to stay readable.</p>
+<p>Tests &amp; Fixtures groups implementation around backend, test, app, tests, mostly in backend/tests/test_scores_service.py, backend/tests/test_routines_service.py, services/routines/service.py. This section covers 1184 nodes and 3297 internal edges; the diagram shows only representative relationships to stay readable.</p>
 
 <div class="mermaid">
 %%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
 flowchart LR
-    %% Section: Tests &amp; Fixtures (1248 nodes, 3676 edges)
+    %% Section: Tests &amp; Fixtures (1184 nodes, 3297 edges)
     subgraph tests_fixtures_app_ai_embedder_py_25374c44["app/ai/embedder.py"]
         backend_app_ai_embedder_normalize_38ca3ab6("_normalize()<br/><small>app/ai/embedder.py</small>")
         backend_app_ai_embedder_stubtextembedder_embed_o_b925f8f1("_embed_one()<br/><small>app/ai/embedder.py</small>")
@@ -2478,9 +2470,9 @@ flowchart LR
         backend_tests_test_embedder_test_stub_embedder_o_fbc0e995("is unit normalized()<br/><small>backend/tests/test_embedder.py</small>")
         backend_tests_test_embedder_test_stub_embedder_r_f772d31f("respects configured dimensions()<br/><small>backend/tests/test_embedder.py</small>")
     end
-    backend_app_core_security_84caec82("security.py")
+    backend_app_db_elasticsearch_get_elasticsearch_e9553b33("get_elasticsearch()<br/><small>app/db/elasticsearch.py</small>")
     backend_app_db_mongo_get_mongo_db_7d1da72d("get_mongo_db()<br/><small>app/db/mongo.py</small>")
-    backend_app_db_postgres_9e78c4d7("postgres.py")
+    backend_app_services_recommendations_models_prod_e4b0bc98("Product<br/><small>services/recommendations/models.py</small>")
     backend_app_services_routines_service_get_or_gen_9af27357("get_or_generate_routines()<br/><small>services/routines/service.py</small>")
     backend_app_services_skin_profile_schemas_skinpr_7675d49e("SkinProfileCreate<br/><small>services/skin_profile/schemas.py</small>")
     backend_app_services_skin_profile_service_create_c2a2d034("create_profile()<br/><small>services/skin_profile/service.py</small>")
@@ -2496,8 +2488,7 @@ flowchart LR
     backend_app_ai_embedder_stubtextembedder_embed_ae7fee89 -->|calls| backend_app_ai_embedder_stubtextembedder_embed_o_b925f8f1
     backend_app_ai_embedder_realtextembedder_68f58c0e -->|calls| backend_app_ai_embedder_get_embedder_c6ee6919
     backend_app_ai_embedder_realtextembedder_68f58c0e -->|method| backend_app_ai_embedder_realtextembedder_embed_9edddf99
-    backend_app_core_security_84caec82 -->|imports| backend_app_db_postgres_9e78c4d7
-    %% Omitted for readability: 1230 nodes, 0 edges
+    %% Omitted for readability: 1166 nodes, 0 edges
     class backend_app_ai_embedder_normalize_38ca3ab6 function;
     class backend_app_ai_embedder_stubtextembedder_embed_o_b925f8f1 function;
     class backend_app_ai_embedder_stubtextembedder_804370c2 klass;
@@ -2510,9 +2501,9 @@ flowchart LR
     class backend_tests_test_embedder_test_stub_embedder_i_556274aa test;
     class backend_tests_test_embedder_test_stub_embedder_o_fbc0e995 test;
     class backend_tests_test_embedder_test_stub_embedder_r_f772d31f test;
-    class backend_app_core_security_84caec82 module;
+    class backend_app_db_elasticsearch_get_elasticsearch_e9553b33 function;
     class backend_app_db_mongo_get_mongo_db_7d1da72d function;
-    class backend_app_db_postgres_9e78c4d7 module;
+    class backend_app_services_recommendations_models_prod_e4b0bc98 klass;
     class backend_app_services_routines_service_get_or_gen_9af27357 function;
     class backend_app_services_skin_profile_schemas_skinpr_7675d49e klass;
     class backend_app_services_skin_profile_service_create_c2a2d034 function;
@@ -2645,7 +2636,7 @@ flowchart LR
   <td>14</td>
   <td><code>analytics/router.py</code><br><small style="color:var(--muted)">services/analytics/router.py</small></td>
   <td><span class="tag tag-endpoint">API</span></td>
-  <td><code>__init__.py</code><br><small style="color:var(--muted)">services/analytics/__init__.py</small><br><code>get_mongo_db()</code><br><small style="color:var(--muted)">app/db/mongo.py</small><br><code>mongo.py</code><br><small style="color:var(--muted)">app/db/mongo.py</small><br>+2 more</td>
+  <td><code>__init__.py</code><br><small style="color:var(--muted)">services/analytics/__init__.py</small><br><code>get_mongo_db()</code><br><small style="color:var(--muted)">app/db/mongo.py</small><br><code>mongo.py</code><br><small style="color:var(--muted)">app/db/mongo.py</small></td>
   <td><code>AnalyticsAdminRead</code><br><small style="color:var(--muted)">services/analytics/schemas.py</small><br><code>AnalyticsMeRead</code><br><small style="color:var(--muted)">services/analytics/schemas.py</small><br><code>schemas.py</code><br><small style="color:var(--muted)">services/analytics/schemas.py</small><br>+1 more</td>
   <td>Module file in services/analytics/router.py.</td>
 </tr>
@@ -2718,7 +2709,7 @@ flowchart LR
   <td><code>analytics/schemas.py</code><br><small style="color:var(--muted)">services/analytics/schemas.py</small></td>
   <td><span class="tag tag-class">Module</span></td>
   <td><code>router.py</code><br><small style="color:var(--muted)">services/analytics/router.py</small></td>
-  <td><code>datetime</code><br><code>service.py</code><br><small style="color:var(--muted)">services/analytics/service.py</small></td>
+  <td><code>service.py</code><br><small style="color:var(--muted)">services/analytics/service.py</small></td>
   <td>Module file in services/analytics/schemas.py.</td>
 </tr>
 <tr>
@@ -2787,7 +2778,7 @@ flowchart LR
       <tr><td><code>backend/tests/test_scores_service.py</code></td><td>43 nodes</td></tr>
 <tr><td><code>backend/tests/test_routines_service.py</code></td><td>36 nodes</td></tr>
 <tr><td><code>services/routines/service.py</code></td><td>29 nodes</td></tr>
-<tr><td><code>services/recommendations/service.py</code></td><td>25 nodes</td></tr>
+<tr><td><code>services/recommendations/service.py</code></td><td>22 nodes</td></tr>
 <tr><td><code>backend/tests/test_admin_service.py</code></td><td>22 nodes</td></tr>
 <tr><td><code>app/db/vector.py</code></td><td>20 nodes</td></tr>
 <tr><td><code>services/admin/service.py</code></td><td>20 nodes</td></tr>
@@ -2796,19 +2787,19 @@ flowchart LR
   </div>
   <div class="card">
     <h4>Design Notes</h4>
-    <p>This section comes from graphify community clustering. Relationship summary: calls x966, contains x704, references x661, imports x519. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+    <p>This section comes from graphify community clustering. Relationship summary: calls x953, contains x656, references x622, imports x441. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
   </div>
 </div>
 <hr>
 
 <!-- ====== 10. button.tsx ====== -->
 <h2 id="button-tsx">10. button.tsx</h2>
-<p>button.tsx groups implementation around web, pagetsx, app, components, mostly in [role]/[userId]/page.tsx, components/ui/empty.tsx, admin/users/page.tsx. This section covers 94 nodes and 250 internal edges; the diagram shows only representative relationships to stay readable.</p>
+<p>button.tsx groups implementation around web, pagetsx, app, components, mostly in [role]/[userId]/page.tsx, components/ui/empty.tsx, admin/users/page.tsx. This section covers 92 nodes and 246 internal edges; the diagram shows only representative relationships to stay readable.</p>
 
 <div class="mermaid">
 %%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
 flowchart LR
-    %% Section: button.tsx (94 nodes, 250 edges)
+    %% Section: button.tsx (92 nodes, 246 edges)
     subgraph button_tsx_user_products_page_tsx_9ee12cc3["(user)/products/page.tsx"]
         web_app_user_products_page_cb6d12f5("page.tsx")
         web_app_user_products_page_productspage_d40bfff5("ProductsPage()<br/><small>(user)/products/page.tsx</small>")
@@ -2853,7 +2844,7 @@ flowchart LR
     web_app_user_products_id_page_521951f9 -->|imports| web_lib_utils_formatprice_453b6cd4
     web_app_user_products_page_cb6d12f5 -->|imports| web_components_ui_badge_badge_a61a0355
     web_app_user_products_page_cb6d12f5 -->|imports| web_lib_utils_formatprice_453b6cd4
-    %% Omitted for readability: 76 nodes, 0 edges
+    %% Omitted for readability: 74 nodes, 0 edges
     class web_app_user_products_page_cb6d12f5 ui;
     class web_app_user_products_page_productspage_d40bfff5 ui;
     class web_app_admin_users_verification_role_userid_pag_667e8c74 ui;
@@ -3152,26 +3143,19 @@ flowchart LR
   </div>
   <div class="card">
     <h4>Design Notes</h4>
-    <p>This section comes from graphify community clustering. Relationship summary: imports x90, imports x85, contains x64, calls x9. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+    <p>This section comes from graphify community clustering. Relationship summary: imports x88, imports x84, contains x63, calls x9. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
   </div>
 </div>
 <hr>
 
 <!-- ====== 11. utils.ts ====== -->
 <h2 id="utils-ts">11. utils.ts</h2>
-<p>utils.ts groups implementation around web, skin, profile, components, mostly in components/skin-profile/skin-profile-form.tsx, components/ui/select.tsx, lib/schemas/skin-profile.ts. This section covers 62 nodes and 104 internal edges; the diagram shows only representative relationships to stay readable.</p>
+<p>utils.ts groups implementation around web, skin, profile, components, mostly in components/skin-profile/skin-profile-form.tsx, components/ui/select.tsx, lib/schemas/skin-profile.ts. This section covers 68 nodes and 114 internal edges; the diagram shows only representative relationships to stay readable.</p>
 
 <div class="mermaid">
 %%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
 flowchart LR
-    %% Section: utils.ts (62 nodes, 104 edges)
-    subgraph utils_ts_components_skin_profile_skin_profile_fo_62d60714["components/skin-profile/skin-profile-form.tsx"]
-        web_components_skin_profile_skin_profile_form_d0900e9a("skin-profile-form.tsx")
-        web_components_skin_profile_skin_profile_form_sp_e98e0baf("splitTags()<br/><small>components/skin-profile/skin-profile-form.tsx</small>")
-        web_components_skin_profile_skin_profile_form_fo_a5eee569("formFromProfile()<br/><small>components/skin-profile/skin-profile-form.tsx</small>")
-        web_components_skin_profile_skin_profile_form_fi_ba86d34a("firstOf()<br/><small>components/skin-profile/skin-profile-form.tsx</small>")
-        web_components_skin_profile_skin_profile_form_sk_fa25a632("SkinProfileFormInner()<br/><small>components/skin-profile/skin-profile-form.tsx</small>")
-    end
+    %% Section: utils.ts (68 nodes, 114 edges)
     subgraph utils_ts_edit_routineId_page_tsx_d406fbf8["edit/[routineId]/page.tsx"]
         web_app_user_routine_edit_routineid_page_f354ef4a("page.tsx")
         web_app_user_routine_edit_routineid_page_toedita_90bcf9f3("toEditableSteps()<br/><small>edit/[routineId]/page.tsx</small>")
@@ -3179,47 +3163,56 @@ flowchart LR
         web_app_user_routine_edit_routineid_page_usedebo_2f388176("useDebouncedValue()<br/><small>edit/[routineId]/page.tsx</small>")
         web_app_user_routine_edit_routineid_page_product_1836919b("ProductPicker()<br/><small>edit/[routineId]/page.tsx</small>")
     end
-    subgraph utils_ts_components_skin_profile_lifestyle_form_d0e03def["components/skin-profile/lifestyle-form.tsx"]
-        web_components_skin_profile_lifestyle_form_71478e79("lifestyle-form.tsx")
-        web_components_skin_profile_lifestyle_form_first_7f2791ee("firstOf()<br/><small>components/skin-profile/lifestyle-form.tsx</small>")
-        web_components_skin_profile_lifestyle_form_ratin_526d1031("RatingSlider()<br/><small>components/skin-profile/lifestyle-form.tsx</small>")
-        web_components_skin_profile_lifestyle_form_lifes_3498451b("LifestyleForm()<br/><small>components/skin-profile/lifestyle-form.tsx</small>")
-    end
     subgraph utils_ts_assessment_lifestyle_page_tsx_c7e6dab5["assessment/lifestyle/page.tsx"]
         web_app_assessment_lifestyle_page_3d6ca01f("page.tsx")
         web_app_assessment_lifestyle_page_firstof_46b375cd("firstOf()<br/><small>assessment/lifestyle/page.tsx</small>")
         web_app_assessment_lifestyle_page_assessmentlife_b4874557("AssessmentLifestylePage()<br/><small>assessment/lifestyle/page.tsx</small>")
     end
+    subgraph utils_ts_components_skin_profile_lifestyle_form_d0e03def["components/skin-profile/lifestyle-form.tsx"]
+        web_components_skin_profile_lifestyle_form_71478e79("lifestyle-form.tsx")
+        web_components_skin_profile_lifestyle_form_first_7f2791ee("firstOf()<br/><small>components/skin-profile/lifestyle-form.tsx</small>")
+        web_components_skin_profile_lifestyle_form_ratin_526d1031("RatingSlider()<br/><small>components/skin-profile/lifestyle-form.tsx</small>")
+    end
+    subgraph utils_ts_assessment_basics_page_tsx_309b68fe["assessment/basics/page.tsx"]
+        web_app_assessment_basics_page_92931aa7("page.tsx")
+        web_app_assessment_basics_page_assessmentbasicsp_700fa6ff("AssessmentBasicsPage()<br/><small>assessment/basics/page.tsx</small>")
+    end
     web_app_user_profile_page_5192c99e("page.tsx")
+    web_app_assessment_concerns_page_assessmentconce_07262580("AssessmentConcernsPage()<br/><small>assessment/concerns/page.tsx</small>")
+    web_app_assessment_skin_type_page_assessmentskin_c7865fa3("AssessmentSkinTypePage()<br/><small>assessment/skin-type/page.tsx</small>")
+    web_components_skin_profile_skin_profile_form_d0900e9a("skin-profile-form.tsx")
+    web_lib_assessment_context_useassessment_5a13f70b("useAssessment()<br/><small>lib/assessment/context.tsx</small>")
     web_app_user_routine_edit_routineid_page_toedita_90bcf9f3 -->|calls| web_app_user_routine_edit_routineid_page_editrou_1c888d7a
     web_app_user_routine_edit_routineid_page_usedebo_2f388176 -->|calls| web_app_user_routine_edit_routineid_page_product_1836919b
+    web_app_assessment_basics_page_assessmentbasicsp_700fa6ff -->|calls| web_lib_assessment_context_useassessment_5a13f70b
+    web_app_assessment_concerns_page_assessmentconce_07262580 -->|calls| web_lib_assessment_context_useassessment_5a13f70b
     web_app_assessment_lifestyle_page_firstof_46b375cd -->|calls| web_app_assessment_lifestyle_page_assessmentlife_b4874557
+    web_app_assessment_lifestyle_page_assessmentlife_b4874557 -->|calls| web_lib_assessment_context_useassessment_5a13f70b
+    web_app_assessment_skin_type_page_assessmentskin_c7865fa3 -->|calls| web_lib_assessment_context_useassessment_5a13f70b
     web_components_skin_profile_lifestyle_form_first_7f2791ee -->|calls| web_components_skin_profile_lifestyle_form_ratin_526d1031
-    web_components_skin_profile_skin_profile_form_sp_e98e0baf -->|calls| web_components_skin_profile_skin_profile_form_fo_a5eee569
-    web_components_skin_profile_skin_profile_form_fi_ba86d34a -->|calls| web_components_skin_profile_skin_profile_form_sk_fa25a632
-    web_components_skin_profile_skin_profile_form_fo_a5eee569 -->|calls| web_components_skin_profile_skin_profile_form_sk_fa25a632
     web_app_user_profile_page_5192c99e -->|imports| web_components_skin_profile_lifestyle_form_71478e79
-    web_app_user_profile_page_5192c99e -->|imports| web_components_skin_profile_lifestyle_form_lifes_3498451b
     web_app_user_profile_page_5192c99e -->|imports| web_components_skin_profile_skin_profile_form_d0900e9a
-    %% Omitted for readability: 44 nodes, 0 edges
-    class web_components_skin_profile_skin_profile_form_d0900e9a ui;
-    class web_components_skin_profile_skin_profile_form_sp_e98e0baf ui;
-    class web_components_skin_profile_skin_profile_form_fo_a5eee569 ui;
-    class web_components_skin_profile_skin_profile_form_fi_ba86d34a ui;
-    class web_components_skin_profile_skin_profile_form_sk_fa25a632 ui;
+    web_app_assessment_basics_page_92931aa7 -->|imports| web_lib_assessment_context_useassessment_5a13f70b
+    web_app_assessment_lifestyle_page_3d6ca01f -->|imports| web_lib_assessment_context_useassessment_5a13f70b
+    %% Omitted for readability: 50 nodes, 0 edges
     class web_app_user_routine_edit_routineid_page_f354ef4a ui;
     class web_app_user_routine_edit_routineid_page_toedita_90bcf9f3 ui;
     class web_app_user_routine_edit_routineid_page_editrou_1c888d7a ui;
     class web_app_user_routine_edit_routineid_page_usedebo_2f388176 ui;
     class web_app_user_routine_edit_routineid_page_product_1836919b ui;
-    class web_components_skin_profile_lifestyle_form_71478e79 ui;
-    class web_components_skin_profile_lifestyle_form_first_7f2791ee ui;
-    class web_components_skin_profile_lifestyle_form_ratin_526d1031 ui;
-    class web_components_skin_profile_lifestyle_form_lifes_3498451b ui;
     class web_app_assessment_lifestyle_page_3d6ca01f ui;
     class web_app_assessment_lifestyle_page_firstof_46b375cd ui;
     class web_app_assessment_lifestyle_page_assessmentlife_b4874557 async;
+    class web_components_skin_profile_lifestyle_form_71478e79 ui;
+    class web_components_skin_profile_lifestyle_form_first_7f2791ee ui;
+    class web_components_skin_profile_lifestyle_form_ratin_526d1031 ui;
+    class web_app_assessment_basics_page_92931aa7 ui;
+    class web_app_assessment_basics_page_assessmentbasicsp_700fa6ff async;
     class web_app_user_profile_page_5192c99e ui;
+    class web_app_assessment_concerns_page_assessmentconce_07262580 async;
+    class web_app_assessment_skin_type_page_assessmentskin_c7865fa3 async;
+    class web_components_skin_profile_skin_profile_form_d0900e9a ui;
+    class web_lib_assessment_context_useassessment_5a13f70b async;
     classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
     classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
     classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
@@ -3331,14 +3324,46 @@ flowchart LR
 </tr>
 <tr>
   <td>12</td>
-  <td><code>lifestyle/page.tsx</code><br><small style="color:var(--muted)">assessment/lifestyle/page.tsx</small></td>
+  <td><code>basics/page.tsx</code><br><small style="color:var(--muted)">assessment/basics/page.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
-  <td><code>select.tsx</code><br><small style="color:var(--muted)">components/ui/select.tsx</small><br><code>SelectContent()</code><br><small style="color:var(--muted)">components/ui/select.tsx</small><br><code>SelectItem()</code><br><small style="color:var(--muted)">components/ui/select.tsx</small><br>+7 more</td>
-  <td>Module file in assessment/lifestyle/page.tsx.</td>
+  <td><code>AGE_GROUPS</code><br><small style="color:var(--muted)">lib/schemas/skin-profile.ts</small><br><code>skin-profile.ts</code><br><small style="color:var(--muted)">lib/schemas/skin-profile.ts</small><br><code>useAssessment()</code><br><small style="color:var(--muted)">lib/assessment/context.tsx</small></td>
+  <td>Module file in assessment/basics/page.tsx.</td>
 </tr>
 <tr>
   <td>13</td>
+  <td><code>GOALS</code><br><small style="color:var(--muted)">assessment/basics/page.tsx</small></td>
+  <td><span class="tag tag-hook">UI</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>GOALS node in assessment/basics/page.tsx.</td>
+</tr>
+<tr>
+  <td>14</td>
+  <td><code>AssessmentBasicsPage()</code><br><small style="color:var(--muted)">assessment/basics/page.tsx</small></td>
+  <td><span class="tag tag-async">Async</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>useAssessment()</code><br><small style="color:var(--muted)">lib/assessment/context.tsx</small></td>
+  <td>Organizes documentation pages, navigation, or content lookup.</td>
+</tr>
+<tr>
+  <td>15</td>
+  <td><code>AssessmentConcernsPage()</code><br><small style="color:var(--muted)">assessment/concerns/page.tsx</small></td>
+  <td><span class="tag tag-async">Async</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>useAssessment()</code><br><small style="color:var(--muted)">lib/assessment/context.tsx</small></td>
+  <td>Organizes documentation pages, navigation, or content lookup.</td>
+</tr>
+<tr>
+  <td>16</td>
+  <td><code>lifestyle/page.tsx</code><br><small style="color:var(--muted)">assessment/lifestyle/page.tsx</small></td>
+  <td><span class="tag tag-hook">UI</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>select.tsx</code><br><small style="color:var(--muted)">components/ui/select.tsx</small><br><code>SelectContent()</code><br><small style="color:var(--muted)">components/ui/select.tsx</small><br><code>SelectItem()</code><br><small style="color:var(--muted)">components/ui/select.tsx</small><br>+8 more</td>
+  <td>Module file in assessment/lifestyle/page.tsx.</td>
+</tr>
+<tr>
+  <td>17</td>
   <td><code>firstOf()</code><br><small style="color:var(--muted)">assessment/lifestyle/page.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -3346,7 +3371,7 @@ flowchart LR
   <td>firstOf() node in assessment/lifestyle/page.tsx.</td>
 </tr>
 <tr>
-  <td>14</td>
+  <td>18</td>
   <td><code>ALLERGY_OPTIONS</code><br><small style="color:var(--muted)">assessment/lifestyle/page.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -3354,7 +3379,7 @@ flowchart LR
   <td>ALLERGY_OPTIONS node in assessment/lifestyle/page.tsx.</td>
 </tr>
 <tr>
-  <td>15</td>
+  <td>19</td>
   <td><code>SUN_EXPOSURE_OPTIONS</code><br><small style="color:var(--muted)">assessment/lifestyle/page.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -3362,7 +3387,7 @@ flowchart LR
   <td>SUN_EXPOSURE_OPTIONS node in assessment/lifestyle/page.tsx.</td>
 </tr>
 <tr>
-  <td>16</td>
+  <td>20</td>
   <td><code>SLEEP_QUALITY_OPTIONS</code><br><small style="color:var(--muted)">assessment/lifestyle/page.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -3370,7 +3395,7 @@ flowchart LR
   <td>SLEEP_QUALITY_OPTIONS node in assessment/lifestyle/page.tsx.</td>
 </tr>
 <tr>
-  <td>17</td>
+  <td>21</td>
   <td><code>SLEEP_QUALITY_ITEMS</code><br><small style="color:var(--muted)">assessment/lifestyle/page.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -3378,7 +3403,7 @@ flowchart LR
   <td>SLEEP_QUALITY_ITEMS node in assessment/lifestyle/page.tsx.</td>
 </tr>
 <tr>
-  <td>18</td>
+  <td>22</td>
   <td><code>STRESS_LABELS</code><br><small style="color:var(--muted)">assessment/lifestyle/page.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -3386,15 +3411,23 @@ flowchart LR
   <td>STRESS_LABELS node in assessment/lifestyle/page.tsx.</td>
 </tr>
 <tr>
-  <td>19</td>
+  <td>23</td>
   <td><code>AssessmentLifestylePage()</code><br><small style="color:var(--muted)">assessment/lifestyle/page.tsx</small></td>
   <td><span class="tag tag-async">Async</span></td>
   <td><code>firstOf()</code><br><small style="color:var(--muted)">assessment/lifestyle/page.tsx</small></td>
-  <td>No direct outbound edge</td>
+  <td><code>useAssessment()</code><br><small style="color:var(--muted)">lib/assessment/context.tsx</small></td>
   <td>Organizes documentation pages, navigation, or content lookup.</td>
 </tr>
 <tr>
-  <td>20</td>
+  <td>24</td>
+  <td><code>AssessmentSkinTypePage()</code><br><small style="color:var(--muted)">assessment/skin-type/page.tsx</small></td>
+  <td><span class="tag tag-async">Async</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>useAssessment()</code><br><small style="color:var(--muted)">lib/assessment/context.tsx</small></td>
+  <td>Organizes documentation pages, navigation, or content lookup.</td>
+</tr>
+<tr>
+  <td>25</td>
   <td><code>lifestyle-form.tsx</code><br><small style="color:var(--muted)">components/skin-profile/lifestyle-form.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td><code>page.tsx</code><br><small style="color:var(--muted)">(user)/profile/page.tsx</small></td>
@@ -3402,7 +3435,7 @@ flowchart LR
   <td>Module file in components/skin-profile/lifestyle-form.tsx.</td>
 </tr>
 <tr>
-  <td>21</td>
+  <td>26</td>
   <td><code>ALCOHOL_ITEMS</code><br><small style="color:var(--muted)">components/skin-profile/lifestyle-form.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -3410,7 +3443,7 @@ flowchart LR
   <td>ALCOHOL_ITEMS node in components/skin-profile/lifestyle-form.tsx.</td>
 </tr>
 <tr>
-  <td>22</td>
+  <td>27</td>
   <td><code>POLLUTION_ITEMS</code><br><small style="color:var(--muted)">components/skin-profile/lifestyle-form.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -3418,7 +3451,7 @@ flowchart LR
   <td>POLLUTION_ITEMS node in components/skin-profile/lifestyle-form.tsx.</td>
 </tr>
 <tr>
-  <td>23</td>
+  <td>28</td>
   <td><code>firstOf()</code><br><small style="color:var(--muted)">components/skin-profile/lifestyle-form.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -3426,7 +3459,7 @@ flowchart LR
   <td>firstOf() node in components/skin-profile/lifestyle-form.tsx.</td>
 </tr>
 <tr>
-  <td>24</td>
+  <td>29</td>
   <td><code>emptyForm</code><br><small style="color:var(--muted)">components/skin-profile/lifestyle-form.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -3434,52 +3467,12 @@ flowchart LR
   <td>emptyForm node in components/skin-profile/lifestyle-form.tsx.</td>
 </tr>
 <tr>
-  <td>25</td>
+  <td>30</td>
   <td><code>RatingSlider()</code><br><small style="color:var(--muted)">components/skin-profile/lifestyle-form.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td><code>firstOf()</code><br><small style="color:var(--muted)">components/skin-profile/lifestyle-form.tsx</small></td>
   <td>No direct outbound edge</td>
   <td>RatingSlider() node in components/skin-profile/lifestyle-form.tsx.</td>
-</tr>
-<tr>
-  <td>26</td>
-  <td><code>LifestyleForm()</code><br><small style="color:var(--muted)">components/skin-profile/lifestyle-form.tsx</small></td>
-  <td><span class="tag tag-hook">UI</span></td>
-  <td><code>page.tsx</code><br><small style="color:var(--muted)">(user)/profile/page.tsx</small></td>
-  <td>No direct outbound edge</td>
-  <td>LifestyleForm() node in components/skin-profile/lifestyle-form.tsx.</td>
-</tr>
-<tr>
-  <td>27</td>
-  <td><code>skin-profile-form.tsx</code><br><small style="color:var(--muted)">components/skin-profile/skin-profile-form.tsx</small></td>
-  <td><span class="tag tag-hook">UI</span></td>
-  <td><code>page.tsx</code><br><small style="color:var(--muted)">(user)/profile/page.tsx</small></td>
-  <td><code>AGE_GROUPS</code><br><small style="color:var(--muted)">lib/schemas/skin-profile.ts</small><br><code>GENDER_OPTIONS</code><br><small style="color:var(--muted)">lib/schemas/skin-profile.ts</small><br><code>select.tsx</code><br><small style="color:var(--muted)">components/ui/select.tsx</small><br>+9 more</td>
-  <td>Module file in components/skin-profile/skin-profile-form.tsx.</td>
-</tr>
-<tr>
-  <td>28</td>
-  <td><code>SkinTypeRead</code><br><small style="color:var(--muted)">components/skin-profile/skin-profile-form.tsx</small></td>
-  <td><span class="tag tag-cmd">Entry</span></td>
-  <td>External entry / no inbound edge</td>
-  <td>No direct outbound edge</td>
-  <td>SkinTypeRead node in components/skin-profile/skin-profile-form.tsx.</td>
-</tr>
-<tr>
-  <td>29</td>
-  <td><code>SkinConcernRead</code><br><small style="color:var(--muted)">components/skin-profile/skin-profile-form.tsx</small></td>
-  <td><span class="tag tag-hook">UI</span></td>
-  <td>External entry / no inbound edge</td>
-  <td>No direct outbound edge</td>
-  <td>SkinConcernRead node in components/skin-profile/skin-profile-form.tsx.</td>
-</tr>
-<tr>
-  <td>30</td>
-  <td><code>SkinProfileRead</code><br><small style="color:var(--muted)">components/skin-profile/skin-profile-form.tsx</small></td>
-  <td><span class="tag tag-hook">UI</span></td>
-  <td>External entry / no inbound edge</td>
-  <td>No direct outbound edge</td>
-  <td>SkinProfileRead node in components/skin-profile/skin-profile-form.tsx.</td>
 </tr>
 </table>
 
@@ -3494,25 +3487,25 @@ flowchart LR
 <tr><td><code>edit/[routineId]/page.tsx</code></td><td>9 nodes</td></tr>
 <tr><td><code>assessment/lifestyle/page.tsx</code></td><td>8 nodes</td></tr>
 <tr><td><code>components/skin-profile/lifestyle-form.tsx</code></td><td>7 nodes</td></tr>
+<tr><td><code>assessment/basics/page.tsx</code></td><td>3 nodes</td></tr>
 <tr><td><code>(user)/profile/page.tsx</code></td><td>2 nodes</td></tr>
-<tr><td><code>components/ui/slider.tsx</code></td><td>2 nodes</td></tr>
     </table>
   </div>
   <div class="card">
     <h4>Design Notes</h4>
-    <p>This section comes from graphify community clustering. Relationship summary: contains x52, imports x32, imports x13, calls x7. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+    <p>This section comes from graphify community clustering. Relationship summary: contains x54, imports x35, imports x14, calls x11. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
   </div>
 </div>
 <hr>
 
 <!-- ====== 12. nav-config.ts ====== -->
 <h2 id="nav-config-ts">12. nav-config.ts</h2>
-<p>nav-config.ts groups implementation around web, pagetsx, app, components, mostly in (user)/dashboard/page.tsx, components/ui/progress.tsx, assessment/results/page.tsx. This section covers 43 nodes and 62 internal edges; the diagram shows only representative relationships to stay readable.</p>
+<p>nav-config.ts groups implementation around web, pagetsx, app, components, mostly in (user)/dashboard/page.tsx, components/ui/progress.tsx, assessment/results/page.tsx. This section covers 37 nodes and 54 internal edges; the diagram shows only representative relationships to stay readable.</p>
 
 <div class="mermaid">
 %%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
 flowchart LR
-    %% Section: nav-config.ts (43 nodes, 62 edges)
+    %% Section: nav-config.ts (37 nodes, 54 edges)
     subgraph nav_config_ts_user_dashboard_page_tsx_c846d6b9["(user)/dashboard/page.tsx"]
         web_app_user_dashboard_page_af4cf6d6("page.tsx")
         web_app_user_dashboard_page_todayiso_2eecac71("todayIso()<br/><small>(user)/dashboard/page.tsx</small>")
@@ -3525,38 +3518,46 @@ flowchart LR
         web_app_assessment_results_page_usesubmitassessm_0115876a("useSubmitAssessment()<br/><small>assessment/results/page.tsx</small>")
         web_app_assessment_results_page_assessmentresult_fea8ca41("AssessmentResultsPage()<br/><small>assessment/results/page.tsx</small>")
     end
-    subgraph nav_config_ts_assessment_basics_page_tsx_1e078d1d["assessment/basics/page.tsx"]
-        web_app_assessment_basics_page_92931aa7("page.tsx")
-        web_app_assessment_basics_page_assessmentbasicsp_700fa6ff("AssessmentBasicsPage()<br/><small>assessment/basics/page.tsx</small>")
+    subgraph nav_config_ts_components_ui_progress_tsx_f516aa11["components/ui/progress.tsx"]
+        web_components_ui_progress_14d1d73d("progress.tsx")
+        web_components_ui_progress_progress_a1567e85("Progress()<br/><small>components/ui/progress.tsx</small>")
     end
     subgraph nav_config_ts_lib_assessment_save_ts_bfcc3cbc["lib/assessment/save.ts"]
         web_lib_assessment_save_assessmenttolifestylelog_704bc73b("assessmentToLifestyleLogPayload()<br/><small>lib/assessment/save.ts</small>")
         web_lib_assessment_save_assessmenttoskinprofilep_066da494("assessmentToSkinProfilePayload()<br/><small>lib/assessment/save.ts</small>")
     end
-    web_app_assessment_concerns_page_assessmentconce_07262580("AssessmentConcernsPage()<br/><small>assessment/concerns/page.tsx</small>")
-    web_app_assessment_skin_type_page_assessmentskin_c7865fa3("AssessmentSkinTypePage()<br/><small>assessment/skin-type/page.tsx</small>")
+    subgraph nav_config_ts_web_components_skin_score_ring_tsx_1ee95239["web/components/skin-score-ring.tsx"]
+        web_components_skin_score_ring_256867cf("skin-score-ring.tsx")
+        web_components_skin_score_ring_skinscorering_21843c00("SkinScoreRing()<br/><small>web/components/skin-score-ring.tsx</small>")
+    end
+    web_app_consultant_onboarding_page_87572e38("page.tsx")
     web_components_consultant_onboarding_onboarding_8a5e7dca("onboarding-shell.tsx")
     web_components_landing_hero_section_e49634ca("hero-section.tsx")
-    web_lib_assessment_context_useassessment_5a13f70b("useAssessment()<br/><small>lib/assessment/context.tsx</small>")
-    web_components_skin_score_ring_256867cf("skin-score-ring.tsx")
+    web_lib_score_components_7862b4d9("score-components.ts")
     web_app_user_dashboard_page_todayiso_2eecac71 -->|calls| web_app_user_dashboard_page_userdashboardpage_01378de0
     web_app_user_dashboard_page_usereportdashboardtt_ee2a4226 -->|calls| web_app_user_dashboard_page_userdashboardpage_01378de0
     web_app_user_dashboard_page_usegreeting_63877efb -->|calls| web_app_user_dashboard_page_userdashboardpage_01378de0
-    web_app_assessment_basics_page_assessmentbasicsp_700fa6ff -->|calls| web_lib_assessment_context_useassessment_5a13f70b
-    web_app_assessment_concerns_page_assessmentconce_07262580 -->|calls| web_lib_assessment_context_useassessment_5a13f70b
     web_app_assessment_results_page_usesubmitassessm_0115876a -->|calls| web_app_assessment_results_page_assessmentresult_fea8ca41
     web_app_assessment_results_page_usesubmitassessm_0115876a -->|calls| web_lib_assessment_save_assessmenttolifestylelog_704bc73b
     web_app_assessment_results_page_usesubmitassessm_0115876a -->|calls| web_lib_assessment_save_assessmenttoskinprofilep_066da494
-    web_app_assessment_results_page_assessmentresult_fea8ca41 -->|calls| web_lib_assessment_context_useassessment_5a13f70b
-    web_app_assessment_skin_type_page_assessmentskin_c7865fa3 -->|calls| web_lib_assessment_context_useassessment_5a13f70b
     web_app_user_dashboard_page_af4cf6d6 -->|imports| web_components_skin_score_ring_256867cf
-    web_app_assessment_basics_page_92931aa7 -->|imports| web_lib_assessment_context_useassessment_5a13f70b
+    web_app_user_dashboard_page_af4cf6d6 -->|imports| web_components_skin_score_ring_skinscorering_21843c00
+    web_app_user_dashboard_page_af4cf6d6 -->|imports| web_components_ui_progress_14d1d73d
+    web_app_user_dashboard_page_af4cf6d6 -->|imports| web_components_ui_progress_progress_a1567e85
+    web_app_user_dashboard_page_af4cf6d6 -->|imports| web_lib_score_components_7862b4d9
     web_app_assessment_results_page_b6e3c9ae -->|imports| web_components_skin_score_ring_256867cf
-    web_app_assessment_results_page_b6e3c9ae -->|imports| web_lib_assessment_context_useassessment_5a13f70b
+    web_app_assessment_results_page_b6e3c9ae -->|imports| web_components_skin_score_ring_skinscorering_21843c00
+    web_app_assessment_results_page_b6e3c9ae -->|imports| web_components_ui_progress_14d1d73d
+    web_app_assessment_results_page_b6e3c9ae -->|imports| web_components_ui_progress_progress_a1567e85
     web_app_assessment_results_page_b6e3c9ae -->|imports| web_lib_assessment_save_assessmenttolifestylelog_704bc73b
     web_app_assessment_results_page_b6e3c9ae -->|imports| web_lib_assessment_save_assessmenttoskinprofilep_066da494
+    web_app_assessment_results_page_b6e3c9ae -->|imports| web_lib_score_components_7862b4d9
+    web_app_consultant_onboarding_page_87572e38 -->|imports| web_components_consultant_onboarding_onboarding_8a5e7dca
+    web_components_consultant_onboarding_onboarding_8a5e7dca -->|imports| web_components_ui_progress_14d1d73d
+    web_components_consultant_onboarding_onboarding_8a5e7dca -->|imports| web_components_ui_progress_progress_a1567e85
     web_components_landing_hero_section_e49634ca -->|imports| web_components_skin_score_ring_256867cf
-    %% Omitted for readability: 25 nodes, 0 edges
+    web_components_landing_hero_section_e49634ca -->|imports| web_components_skin_score_ring_skinscorering_21843c00
+    %% Omitted for readability: 19 nodes, 0 edges
     class web_app_user_dashboard_page_af4cf6d6 ui;
     class web_app_user_dashboard_page_todayiso_2eecac71 ui;
     class web_app_user_dashboard_page_userdashboardpage_01378de0 ui;
@@ -3565,16 +3566,16 @@ flowchart LR
     class web_app_assessment_results_page_b6e3c9ae ui;
     class web_app_assessment_results_page_usesubmitassessm_0115876a async;
     class web_app_assessment_results_page_assessmentresult_fea8ca41 async;
-    class web_app_assessment_basics_page_92931aa7 ui;
-    class web_app_assessment_basics_page_assessmentbasicsp_700fa6ff async;
+    class web_components_ui_progress_14d1d73d ui;
+    class web_components_ui_progress_progress_a1567e85 ui;
     class web_lib_assessment_save_assessmenttolifestylelog_704bc73b async;
     class web_lib_assessment_save_assessmenttoskinprofilep_066da494 async;
-    class web_app_assessment_concerns_page_assessmentconce_07262580 async;
-    class web_app_assessment_skin_type_page_assessmentskin_c7865fa3 async;
+    class web_components_skin_score_ring_256867cf ui;
+    class web_components_skin_score_ring_skinscorering_21843c00 ui;
+    class web_app_consultant_onboarding_page_87572e38 ui;
     class web_components_consultant_onboarding_onboarding_8a5e7dca ui;
     class web_components_landing_hero_section_e49634ca ui;
-    class web_lib_assessment_context_useassessment_5a13f70b async;
-    class web_components_skin_score_ring_256867cf ui;
+    class web_lib_score_components_7862b4d9 ui;
     classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
     classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
     classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
@@ -3686,46 +3687,14 @@ flowchart LR
 </tr>
 <tr>
   <td>12</td>
-  <td><code>basics/page.tsx</code><br><small style="color:var(--muted)">assessment/basics/page.tsx</small></td>
-  <td><span class="tag tag-hook">UI</span></td>
-  <td>External entry / no inbound edge</td>
-  <td><code>useAssessment()</code><br><small style="color:var(--muted)">lib/assessment/context.tsx</small></td>
-  <td>Module file in assessment/basics/page.tsx.</td>
-</tr>
-<tr>
-  <td>13</td>
-  <td><code>GOALS</code><br><small style="color:var(--muted)">assessment/basics/page.tsx</small></td>
-  <td><span class="tag tag-hook">UI</span></td>
-  <td>External entry / no inbound edge</td>
-  <td>No direct outbound edge</td>
-  <td>GOALS node in assessment/basics/page.tsx.</td>
-</tr>
-<tr>
-  <td>14</td>
-  <td><code>AssessmentBasicsPage()</code><br><small style="color:var(--muted)">assessment/basics/page.tsx</small></td>
-  <td><span class="tag tag-async">Async</span></td>
-  <td>External entry / no inbound edge</td>
-  <td><code>useAssessment()</code><br><small style="color:var(--muted)">lib/assessment/context.tsx</small></td>
-  <td>Organizes documentation pages, navigation, or content lookup.</td>
-</tr>
-<tr>
-  <td>15</td>
-  <td><code>AssessmentConcernsPage()</code><br><small style="color:var(--muted)">assessment/concerns/page.tsx</small></td>
-  <td><span class="tag tag-async">Async</span></td>
-  <td>External entry / no inbound edge</td>
-  <td><code>useAssessment()</code><br><small style="color:var(--muted)">lib/assessment/context.tsx</small></td>
-  <td>Organizes documentation pages, navigation, or content lookup.</td>
-</tr>
-<tr>
-  <td>16</td>
   <td><code>results/page.tsx</code><br><small style="color:var(--muted)">assessment/results/page.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
-  <td><code>assessmentToLifestyleLogPayload()</code><br><small style="color:var(--muted)">lib/assessment/save.ts</small><br><code>assessmentToSkinProfilePayload()</code><br><small style="color:var(--muted)">lib/assessment/save.ts</small><br><code>Progress()</code><br><small style="color:var(--muted)">components/ui/progress.tsx</small><br>+6 more</td>
+  <td><code>assessmentToLifestyleLogPayload()</code><br><small style="color:var(--muted)">lib/assessment/save.ts</small><br><code>assessmentToSkinProfilePayload()</code><br><small style="color:var(--muted)">lib/assessment/save.ts</small><br><code>Progress()</code><br><small style="color:var(--muted)">components/ui/progress.tsx</small><br>+5 more</td>
   <td>Module file in assessment/results/page.tsx.</td>
 </tr>
 <tr>
-  <td>17</td>
+  <td>13</td>
   <td><code>ScoreRead</code><br><small style="color:var(--muted)">assessment/results/page.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -3733,7 +3702,7 @@ flowchart LR
   <td>ScoreRead node in assessment/results/page.tsx.</td>
 </tr>
 <tr>
-  <td>18</td>
+  <td>14</td>
   <td><code>useSubmitAssessment()</code><br><small style="color:var(--muted)">assessment/results/page.tsx</small></td>
   <td><span class="tag tag-async">Async</span></td>
   <td>External entry / no inbound edge</td>
@@ -3741,23 +3710,15 @@ flowchart LR
   <td>useSubmitAssessment() node in assessment/results/page.tsx.</td>
 </tr>
 <tr>
-  <td>19</td>
+  <td>15</td>
   <td><code>AssessmentResultsPage()</code><br><small style="color:var(--muted)">assessment/results/page.tsx</small></td>
   <td><span class="tag tag-async">Async</span></td>
   <td><code>useSubmitAssessment()</code><br><small style="color:var(--muted)">assessment/results/page.tsx</small></td>
-  <td><code>useAssessment()</code><br><small style="color:var(--muted)">lib/assessment/context.tsx</small></td>
+  <td>No direct outbound edge</td>
   <td>Organizes documentation pages, navigation, or content lookup.</td>
 </tr>
 <tr>
-  <td>20</td>
-  <td><code>AssessmentSkinTypePage()</code><br><small style="color:var(--muted)">assessment/skin-type/page.tsx</small></td>
-  <td><span class="tag tag-async">Async</span></td>
-  <td>External entry / no inbound edge</td>
-  <td><code>useAssessment()</code><br><small style="color:var(--muted)">lib/assessment/context.tsx</small></td>
-  <td>Organizes documentation pages, navigation, or content lookup.</td>
-</tr>
-<tr>
-  <td>21</td>
+  <td>16</td>
   <td><code>consultant-onboarding/page.tsx</code><br><small style="color:var(--muted)">app/consultant-onboarding/page.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -3765,7 +3726,7 @@ flowchart LR
   <td>Module file in app/consultant-onboarding/page.tsx.</td>
 </tr>
 <tr>
-  <td>22</td>
+  <td>17</td>
   <td><code>REQUIREMENTS</code><br><small style="color:var(--muted)">app/consultant-onboarding/page.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -3773,7 +3734,7 @@ flowchart LR
   <td>REQUIREMENTS node in app/consultant-onboarding/page.tsx.</td>
 </tr>
 <tr>
-  <td>23</td>
+  <td>18</td>
   <td><code>ConsultantOnboardingIntroPage()</code><br><small style="color:var(--muted)">app/consultant-onboarding/page.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -3781,7 +3742,7 @@ flowchart LR
   <td>Organizes documentation pages, navigation, or content lookup.</td>
 </tr>
 <tr>
-  <td>24</td>
+  <td>19</td>
   <td><code>consultant-onboarding/onboarding-shell.tsx</code><br><small style="color:var(--muted)">components/consultant-onboarding/onboarding-shell.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td><code>page.tsx</code><br><small style="color:var(--muted)">app/consultant-onboarding/page.tsx</small></td>
@@ -3789,7 +3750,7 @@ flowchart LR
   <td>Module file in components/consultant-onboarding/onboarding-shell.tsx.</td>
 </tr>
 <tr>
-  <td>25</td>
+  <td>20</td>
   <td><code>STEPS</code><br><small style="color:var(--muted)">components/consultant-onboarding/onboarding-shell.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -3797,7 +3758,7 @@ flowchart LR
   <td>STEPS node in components/consultant-onboarding/onboarding-shell.tsx.</td>
 </tr>
 <tr>
-  <td>26</td>
+  <td>21</td>
   <td><code>OnboardingShellProps</code><br><small style="color:var(--muted)">components/consultant-onboarding/onboarding-shell.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -3805,7 +3766,7 @@ flowchart LR
   <td>OnboardingShellProps node in components/consultant-onboarding/onboarding-shell.tsx.</td>
 </tr>
 <tr>
-  <td>27</td>
+  <td>22</td>
   <td><code>hero-section.tsx</code><br><small style="color:var(--muted)">components/landing/hero-section.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -3813,7 +3774,7 @@ flowchart LR
   <td>Module file in components/landing/hero-section.tsx.</td>
 </tr>
 <tr>
-  <td>28</td>
+  <td>23</td>
   <td><code>TRUST_AVATARS</code><br><small style="color:var(--muted)">components/landing/hero-section.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
@@ -3821,7 +3782,7 @@ flowchart LR
   <td>TRUST_AVATARS node in components/landing/hero-section.tsx.</td>
 </tr>
 <tr>
-  <td>29</td>
+  <td>24</td>
   <td><code>skin-score-ring.tsx</code><br><small style="color:var(--muted)">web/components/skin-score-ring.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td><code>hero-section.tsx</code><br><small style="color:var(--muted)">components/landing/hero-section.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">(user)/dashboard/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">assessment/results/page.tsx</small></td>
@@ -3829,12 +3790,52 @@ flowchart LR
   <td>Module file in web/components/skin-score-ring.tsx.</td>
 </tr>
 <tr>
-  <td>30</td>
+  <td>25</td>
   <td><code>SkinScoreRingProps</code><br><small style="color:var(--muted)">web/components/skin-score-ring.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
   <td>External entry / no inbound edge</td>
   <td>No direct outbound edge</td>
   <td>SkinScoreRingProps node in web/components/skin-score-ring.tsx.</td>
+</tr>
+<tr>
+  <td>26</td>
+  <td><code>SkinScoreRing()</code><br><small style="color:var(--muted)">web/components/skin-score-ring.tsx</small></td>
+  <td><span class="tag tag-hook">UI</span></td>
+  <td><code>hero-section.tsx</code><br><small style="color:var(--muted)">components/landing/hero-section.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">(user)/dashboard/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">assessment/results/page.tsx</small></td>
+  <td>No direct outbound edge</td>
+  <td>SkinScoreRing() node in web/components/skin-score-ring.tsx.</td>
+</tr>
+<tr>
+  <td>27</td>
+  <td><code>progress.tsx</code><br><small style="color:var(--muted)">components/ui/progress.tsx</small></td>
+  <td><span class="tag tag-hook">UI</span></td>
+  <td><code>onboarding-shell.tsx</code><br><small style="color:var(--muted)">components/consultant-onboarding/onboarding-shell.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">(user)/dashboard/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">assessment/results/page.tsx</small></td>
+  <td>No direct outbound edge</td>
+  <td>Module file in components/ui/progress.tsx.</td>
+</tr>
+<tr>
+  <td>28</td>
+  <td><code>Progress()</code><br><small style="color:var(--muted)">components/ui/progress.tsx</small></td>
+  <td><span class="tag tag-hook">UI</span></td>
+  <td><code>onboarding-shell.tsx</code><br><small style="color:var(--muted)">components/consultant-onboarding/onboarding-shell.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">(user)/dashboard/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">assessment/results/page.tsx</small></td>
+  <td>No direct outbound edge</td>
+  <td>Progress() node in components/ui/progress.tsx.</td>
+</tr>
+<tr>
+  <td>29</td>
+  <td><code>ProgressTrack()</code><br><small style="color:var(--muted)">components/ui/progress.tsx</small></td>
+  <td><span class="tag tag-hook">UI</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>ProgressTrack() node in components/ui/progress.tsx.</td>
+</tr>
+<tr>
+  <td>30</td>
+  <td><code>ProgressIndicator()</code><br><small style="color:var(--muted)">components/ui/progress.tsx</small></td>
+  <td><span class="tag tag-hook">UI</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>ProgressIndicator() node in components/ui/progress.tsx.</td>
 </tr>
 </table>
 
@@ -3846,16 +3847,16 @@ flowchart LR
       <tr><td><code>(user)/dashboard/page.tsx</code></td><td>11 nodes</td></tr>
 <tr><td><code>components/ui/progress.tsx</code></td><td>6 nodes</td></tr>
 <tr><td><code>assessment/results/page.tsx</code></td><td>4 nodes</td></tr>
-<tr><td><code>assessment/basics/page.tsx</code></td><td>3 nodes</td></tr>
 <tr><td><code>app/consultant-onboarding/page.tsx</code></td><td>3 nodes</td></tr>
 <tr><td><code>components/consultant-onboarding/onboarding-shell.tsx</code></td><td>3 nodes</td></tr>
 <tr><td><code>web/components/skin-score-ring.tsx</code></td><td>3 nodes</td></tr>
 <tr><td><code>web/lib/score-components.ts</code></td><td>3 nodes</td></tr>
+<tr><td><code>components/landing/hero-section.tsx</code></td><td>2 nodes</td></tr>
     </table>
   </div>
   <div class="card">
     <h4>Design Notes</h4>
-    <p>This section comes from graphify community clustering. Relationship summary: contains x29, imports x12, calls x10, imports x9. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+    <p>This section comes from graphify community clustering. Relationship summary: contains x27, imports x10, imports x9, calls x6. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
   </div>
 </div>
 <hr>
@@ -4117,7 +4118,7 @@ flowchart LR
   <td>21</td>
   <td><code>dialog.tsx</code><br><small style="color:var(--muted)">components/ui/dialog.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
-  <td><code>page.tsx</code><br><small style="color:var(--muted)">(user)/ingredients/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">(user)/recommendations/page.tsx</small></td>
+  <td><code>page.tsx</code><br><small style="color:var(--muted)">(user)/recommendations/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">(user)/ingredients/page.tsx</small></td>
   <td>No direct outbound edge</td>
   <td>Module file in components/ui/dialog.tsx.</td>
 </tr>
@@ -4125,7 +4126,7 @@ flowchart LR
   <td>22</td>
   <td><code>Dialog()</code><br><small style="color:var(--muted)">components/ui/dialog.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
-  <td><code>page.tsx</code><br><small style="color:var(--muted)">(user)/ingredients/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">(user)/recommendations/page.tsx</small></td>
+  <td><code>page.tsx</code><br><small style="color:var(--muted)">(user)/recommendations/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">(user)/ingredients/page.tsx</small></td>
   <td>No direct outbound edge</td>
   <td>Dialog() node in components/ui/dialog.tsx.</td>
 </tr>
@@ -4165,7 +4166,7 @@ flowchart LR
   <td>27</td>
   <td><code>DialogContent()</code><br><small style="color:var(--muted)">components/ui/dialog.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
-  <td><code>page.tsx</code><br><small style="color:var(--muted)">(user)/ingredients/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">(user)/recommendations/page.tsx</small></td>
+  <td><code>page.tsx</code><br><small style="color:var(--muted)">(user)/recommendations/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">(user)/ingredients/page.tsx</small></td>
   <td>No direct outbound edge</td>
   <td>DialogContent() node in components/ui/dialog.tsx.</td>
 </tr>
@@ -4173,7 +4174,7 @@ flowchart LR
   <td>28</td>
   <td><code>DialogHeader()</code><br><small style="color:var(--muted)">components/ui/dialog.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
-  <td><code>page.tsx</code><br><small style="color:var(--muted)">(user)/ingredients/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">(user)/recommendations/page.tsx</small></td>
+  <td><code>page.tsx</code><br><small style="color:var(--muted)">(user)/recommendations/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">(user)/ingredients/page.tsx</small></td>
   <td>No direct outbound edge</td>
   <td>DialogHeader() node in components/ui/dialog.tsx.</td>
 </tr>
@@ -4189,7 +4190,7 @@ flowchart LR
   <td>30</td>
   <td><code>DialogTitle()</code><br><small style="color:var(--muted)">components/ui/dialog.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
-  <td><code>page.tsx</code><br><small style="color:var(--muted)">(user)/ingredients/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">(user)/recommendations/page.tsx</small></td>
+  <td><code>page.tsx</code><br><small style="color:var(--muted)">(user)/recommendations/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">(user)/ingredients/page.tsx</small></td>
   <td>No direct outbound edge</td>
   <td>DialogTitle() node in components/ui/dialog.tsx.</td>
 </tr>
@@ -5013,7 +5014,7 @@ flowchart LR
   <td>11</td>
   <td><code>dermatologist-onboarding/onboarding-shell.tsx</code><br><small style="color:var(--muted)">components/dermatologist-onboarding/onboarding-shell.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
-  <td><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/contact/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/practice/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">app/dermatologist-onboarding/page.tsx</small><br>+2 more</td>
+  <td><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/review/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/practice/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/background/page.tsx</small><br>+2 more</td>
   <td>No direct outbound edge</td>
   <td>Module file in components/dermatologist-onboarding/onboarding-shell.tsx.</td>
 </tr>
@@ -5037,7 +5038,7 @@ flowchart LR
   <td>14</td>
   <td><code>OnboardingShell()</code><br><small style="color:var(--muted)">components/dermatologist-onboarding/onboarding-shell.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
-  <td><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/contact/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/practice/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">app/dermatologist-onboarding/page.tsx</small><br>+2 more</td>
+  <td><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/review/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/practice/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/background/page.tsx</small><br>+2 more</td>
   <td>No direct outbound edge</td>
   <td>OnboardingShell() node in components/dermatologist-onboarding/onboarding-shell.tsx.</td>
 </tr>
@@ -5045,7 +5046,7 @@ flowchart LR
   <td>15</td>
   <td><code>field.tsx</code><br><small style="color:var(--muted)">components/ui/field.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
-  <td><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/contact/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/practice/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">consultant/dashboard/page.tsx</small><br>+5 more</td>
+  <td><code>page.tsx</code><br><small style="color:var(--muted)">consultant-onboarding/practice/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/practice/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">consultant-onboarding/contact/page.tsx</small><br>+5 more</td>
   <td>No direct outbound edge</td>
   <td>Module file in components/ui/field.tsx.</td>
 </tr>
@@ -5053,7 +5054,7 @@ flowchart LR
   <td>16</td>
   <td><code>FieldGroup()</code><br><small style="color:var(--muted)">components/ui/field.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
-  <td><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/contact/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/practice/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">consultant/dashboard/page.tsx</small><br>+5 more</td>
+  <td><code>page.tsx</code><br><small style="color:var(--muted)">consultant-onboarding/practice/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/practice/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">consultant-onboarding/contact/page.tsx</small><br>+5 more</td>
   <td>No direct outbound edge</td>
   <td>FieldGroup() node in components/ui/field.tsx.</td>
 </tr>
@@ -5069,7 +5070,7 @@ flowchart LR
   <td>18</td>
   <td><code>Field()</code><br><small style="color:var(--muted)">components/ui/field.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
-  <td><code>fieldVariants</code><br><small style="color:var(--muted)">components/ui/field.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/contact/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/practice/page.tsx</small><br>+6 more</td>
+  <td><code>fieldVariants</code><br><small style="color:var(--muted)">components/ui/field.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">consultant-onboarding/practice/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/practice/page.tsx</small><br>+6 more</td>
   <td>No direct outbound edge</td>
   <td>Field() node in components/ui/field.tsx.</td>
 </tr>
@@ -5085,7 +5086,7 @@ flowchart LR
   <td>20</td>
   <td><code>FieldLabel()</code><br><small style="color:var(--muted)">components/ui/field.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
-  <td><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/contact/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/practice/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">consultant/dashboard/page.tsx</small><br>+5 more</td>
+  <td><code>page.tsx</code><br><small style="color:var(--muted)">consultant-onboarding/practice/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/practice/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">consultant-onboarding/contact/page.tsx</small><br>+5 more</td>
   <td>No direct outbound edge</td>
   <td>FieldLabel() node in components/ui/field.tsx.</td>
 </tr>
@@ -5109,7 +5110,7 @@ flowchart LR
   <td>23</td>
   <td><code>FieldError()</code><br><small style="color:var(--muted)">components/ui/field.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
-  <td><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/contact/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/practice/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">consultant-onboarding/background/page.tsx</small><br>+3 more</td>
+  <td><code>page.tsx</code><br><small style="color:var(--muted)">consultant-onboarding/practice/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/practice/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">consultant-onboarding/contact/page.tsx</small><br>+3 more</td>
   <td>No direct outbound edge</td>
   <td>FieldError() node in components/ui/field.tsx.</td>
 </tr>
@@ -5117,7 +5118,7 @@ flowchart LR
   <td>24</td>
   <td><code>tag-input.tsx</code><br><small style="color:var(--muted)">components/ui/tag-input.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
-  <td><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/background/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/practice/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">consultant-onboarding/practice/page.tsx</small></td>
+  <td><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/background/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">consultant-onboarding/practice/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/practice/page.tsx</small></td>
   <td>No direct outbound edge</td>
   <td>Module file in components/ui/tag-input.tsx.</td>
 </tr>
@@ -5133,7 +5134,7 @@ flowchart LR
   <td>26</td>
   <td><code>TagInput()</code><br><small style="color:var(--muted)">components/ui/tag-input.tsx</small></td>
   <td><span class="tag tag-hook">UI</span></td>
-  <td><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/background/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/practice/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">consultant-onboarding/practice/page.tsx</small></td>
+  <td><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/background/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">consultant-onboarding/practice/page.tsx</small><br><code>page.tsx</code><br><small style="color:var(--muted)">dermatologist-onboarding/practice/page.tsx</small></td>
   <td>No direct outbound edge</td>
   <td>TagInput() node in components/ui/tag-input.tsx.</td>
 </tr>
@@ -5202,7 +5203,7 @@ flowchart LR
       <tr><td>Nodes</td><td>3247</td></tr>
       <tr><td>Edges</td><td>7627</td></tr>
       <tr><td>Hyperedges</td><td>0</td></tr>
-      <tr><td>Communities</td><td>185</td></tr>
+      <tr><td>Communities</td><td>188</td></tr>
       <tr><td>Documented Sections</td><td>15</td></tr>
     </table>
   </div>
@@ -5218,7 +5219,7 @@ flowchart LR
 
 <div style="text-align:center; padding:40px 0; color: var(--muted); font-size:0.9rem;">
   <p>AI-Skin-Intelligence-Personalized-Skincare-Planner- — Architecture Documentation</p>
-  <p>Generated: 2026-07-22 20:30 UTC · graphify callflow-html</p>
+  <p>Generated: 2026-07-22 20:43 UTC · graphify callflow-html</p>
 </div>
 
 </div><!-- .container -->
