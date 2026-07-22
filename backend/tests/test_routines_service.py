@@ -242,7 +242,12 @@ async def test_reorder_steps_rejects_a_different_users_routine(
 ) -> None:
     other_user_id = f"test-other-{test_user_id}"
     await db_session.execute(
-        external_user_table.insert().values(id=other_user_id, email=f"{other_user_id}@test.invalid")
+        external_user_table.insert().values(
+            id=other_user_id,
+            email=f"{other_user_id}@test.invalid",
+            name="Other User",
+            emailVerified=False,
+        )
     )
     await db_session.flush()
 

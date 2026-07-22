@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Gitignored Playwright HTML report — not source, pollutes unscoped `npm run lint`.
+    "playwright-report/**",
   ]),
 ]);
 

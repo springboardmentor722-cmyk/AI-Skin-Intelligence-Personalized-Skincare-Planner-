@@ -31,7 +31,10 @@ async def professional_id(db_session: AsyncSession) -> AsyncGenerator[str, None]
     user_id = f"test-professional-{uuid.uuid4().hex[:16]}"
     await db_session.execute(
         external_user_table.insert().values(
-            id=user_id, email=f"{user_id}@test.invalid", name="Dr. Professional"
+            id=user_id,
+            email=f"{user_id}@test.invalid",
+            name="Dr. Professional",
+            emailVerified=False,
         )
     )
     await db_session.flush()
@@ -43,7 +46,10 @@ async def client_user_id(db_session: AsyncSession) -> AsyncGenerator[str, None]:
     user_id = f"test-client-{uuid.uuid4().hex[:16]}"
     await db_session.execute(
         external_user_table.insert().values(
-            id=user_id, email=f"{user_id}@test.invalid", name="Real Client"
+            id=user_id,
+            email=f"{user_id}@test.invalid",
+            name="Real Client",
+            emailVerified=False,
         )
     )
     await db_session.flush()
@@ -174,7 +180,10 @@ async def test_a_different_professionals_client_never_leaks_across(
     other_professional_id = f"test-other-professional-{client_user_id}"
     await db_session.execute(
         external_user_table.insert().values(
-            id=other_professional_id, email=f"{other_professional_id}@test.invalid"
+            id=other_professional_id,
+            email=f"{other_professional_id}@test.invalid",
+            name="Other Professional",
+            emailVerified=False,
         )
     )
     await db_session.flush()
@@ -201,7 +210,10 @@ async def test_list_my_clients_pagination_is_real(
         client_id = f"test-page-client-{i}-{uuid.uuid4().hex[:12]}"
         await db_session.execute(
             external_user_table.insert().values(
-                id=client_id, email=f"{client_id}@test.invalid", name=f"Client {i}"
+                id=client_id,
+                email=f"{client_id}@test.invalid",
+                name=f"Client {i}",
+                emailVerified=False,
             )
         )
         await db_session.flush()
