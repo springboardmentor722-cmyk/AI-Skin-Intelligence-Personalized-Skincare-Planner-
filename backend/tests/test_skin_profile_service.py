@@ -115,7 +115,9 @@ async def test_create_profile_does_not_leak_across_users(db_session: AsyncSessio
     user_b = f"test-{uuid.uuid4().hex[:16]}"
     for uid in (user_a, user_b):
         await db_session.execute(
-            external_user_table.insert().values(id=uid, email=f"{uid}@test.invalid")
+            external_user_table.insert().values(
+                id=uid, email=f"{uid}@test.invalid", name="Test User", emailVerified=False
+            )
         )
     await db_session.flush()
 

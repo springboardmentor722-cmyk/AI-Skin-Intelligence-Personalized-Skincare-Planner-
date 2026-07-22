@@ -1,6 +1,6 @@
 from collections.abc import AsyncGenerator
 
-from sqlalchemy import Column, Table, Text
+from sqlalchemy import Boolean, Column, Table, Text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
@@ -18,22 +18,21 @@ class Base(DeclarativeBase):
 # Stub for Better Auth's "user" table — owned by the Better Auth CLI's migration
 # stream, never Alembic's (CONVENTIONS.md). Just enough columns for SQLAlchemy to
 # resolve FK references from our tables to it (id) and for tests/conftest.py's
-# `test_user_id` fixture to satisfy the real table's NOT NULL constraint on email when
+# `test_user_id` fixture to satisfy the real table's NOT NULL constraints when
 # inserting a throwaway row (nothing else ever writes through this Table object — the
 # app never creates real users, Better Auth does, directly, outside Alembic/this
 # engine entirely); env.py's `include_object` excludes it from autogenerate so Alembic
-# never tries to create/alter it. `name` added for clinical_review/service.py — the
-# first backend service needing a real display name, not just email (mirrors what
-# web/app/api/admin/users/route.ts already reads from Better Auth's own admin API on
-# the frontend side). Nullable here to match the real live column exactly (confirmed
-# via `\d "user"` against the real Docker Postgres) — existing test inserts that don't
-# supply a name stay valid.
+# never tries to create/alter it. `name`/`email_verified` are NOT NULL with no DB
+# default on the live, CLI-generated table (`\d "user"` against a fresh migrate,
+# 2026-07-22) — Better Auth's own app layer always supplies them, but a raw insert
+# bypassing it must too.
 external_user_table = Table(
     "user",
     Base.metadata,
     Column("id", Text, primary_key=True),
     Column("email", Text, nullable=False),
-    Column("name", Text, nullable=True),
+    Column("name", Text, nullable=False),
+    Column("emailVerified", Boolean, nullable=False),
 )
 
 

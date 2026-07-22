@@ -15,10 +15,7 @@ router = APIRouter()
 # POST /api/v1/assessment/evaluate as the canonical routes — both map to the same
 # "recompute the score for the current user's already-saved profile" behavior (this
 # app has no separate submit-a-whole-profile-inline endpoint; the Skin Profile
-# service already owns profile writes, per MASTER_PROMPT.md Phase 1.3). /scores/me
-# is kept as a deprecated alias for existing frontend callers — remove once Phase
-# 1.4's frontend pass confirms nothing still calls it.
-@router.get("/scores/me")
+# service already owns profile writes, per MASTER_PROMPT.md Phase 1.3).
 @router.get("/assessment/score")
 @router.post("/assessment/evaluate")
 async def get_my_score(

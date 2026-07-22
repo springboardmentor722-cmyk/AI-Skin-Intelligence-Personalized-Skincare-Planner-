@@ -69,7 +69,7 @@ Open `web/design/wireframes/index.html` to browse all seven.
   breakdown (35/20/15/20/10 — condition/lifestyle/sleep/adherence/hydration) · today's
   checklist · personalized routine (AM/PM steps) · recommended products (3, match rings) ·
   progress mini-chart (dot-grid).
-- **Data:** `GET /api/v1/scores/me` · `/routines/me` · `/recommendations/me` ·
+- **Data:** `GET /api/v1/assessment/score` · `/routine` · `/recommendations/me` ·
   `/progress/me/summary`; weights from PG `scoring_weights`.
 - **M1 note:** routine + recs are deterministic stubs (ADR-007) — UI shows the stub's
   `confidence` labels exactly as it will show real ones.

@@ -65,7 +65,10 @@ export async function deleteTestUser(userId: string): Promise<void> {
     );
     await db.query("delete from skin_profiles where user_id = $1", [userId]);
     await db.query("delete from skin_assessments where user_id = $1", [userId]);
-    await db.query('delete from session where "userId" = $1', [userId]);
+    // No Postgres "session" table to clean up — Better Auth stores sessions in Redis
+    // via `secondaryStorage` (web/lib/auth.ts), not the database (confirmed against
+    // the live schema, 2026-07-22: `session` doesn't exist in `\dt`). Redis session
+    // keys expire on their own TTL, same as this file never cleaning them before.
     await db.query('delete from account where "userId" = $1', [userId]);
     await db.query('delete from "user" where id = $1', [userId]);
   } finally {

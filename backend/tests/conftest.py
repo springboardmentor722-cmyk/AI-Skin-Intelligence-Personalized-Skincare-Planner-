@@ -91,17 +91,21 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
 
 @pytest.fixture
 async def test_user_id(db_session: AsyncSession) -> str:
-    """Inserts a throwaway row into Better Auth's `user` table (only `id` is mapped
-    here — see app/db/postgres.py's `external_user_table`) so FK-constrained inserts
+    """Inserts a throwaway row into Better Auth's `user` table (see
+    app/db/postgres.py's `external_user_table`) so FK-constrained inserts
     (skin_profiles.user_id, skin_scores.user_id, ...) have something real to point at.
     Rolled back with everything else in `db_session` — never a real account."""
     user_id = f"test-{uuid.uuid4().hex[:20]}"
-    # external_user_table only maps `id` (app/db/postgres.py) — the real "user" table
-    # (Better Auth-owned) has more NOT NULL columns than that, `email` included, so a
-    # raw insert needs it supplied explicitly even though nothing in these tests reads
-    # it back.
+    # The real "user" table (Better Auth-owned) has more NOT NULL columns than the FK
+    # target alone — `email`, `name`, `emailVerified` — so a raw insert needs them
+    # supplied explicitly even though nothing in these tests reads them back.
     await db_session.execute(
-        external_user_table.insert().values(id=user_id, email=f"{user_id}@test.invalid")
+        external_user_table.insert().values(
+            id=user_id,
+            email=f"{user_id}@test.invalid",
+            name=f"Test User {user_id}",
+            emailVerified=False,
+        )
     )
     await db_session.flush()
     return user_id

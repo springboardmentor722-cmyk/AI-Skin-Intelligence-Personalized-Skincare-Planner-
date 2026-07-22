@@ -6,6 +6,12 @@
 
 up:
 	docker compose up -d
+	@echo "waiting for minio, then provisioning the dev bucket..."
+	@for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do \
+		docker compose exec -T minio mc alias set local http://localhost:9000 skinlytics skinlytics_dev_only >/dev/null 2>&1 && break; \
+		sleep 2; \
+	done
+	@docker compose exec -T minio mc mb --ignore-existing local/skinlytics-storage >/dev/null 2>&1 || true
 
 down:
 	docker compose down

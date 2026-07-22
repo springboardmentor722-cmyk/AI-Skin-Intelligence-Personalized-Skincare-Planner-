@@ -94,7 +94,7 @@ skinlytics/
   endpoint re-implements verification.
 - **API conventions:**
   - Paths: plural resources, kebab-case (`/api/v1/skin-profiles`, `/lifestyle-logs`);
-    `me` scoping for own-data reads (`/scores/me`).
+    `me` scoping for own-data reads (`/assessment/score`).
   - List endpoints: `?page=1&page_size=20` (max 100) →
     `{ "items": [...], "meta": { "page", "page_size", "total" } }`.
   - Errors — one envelope everywhere:

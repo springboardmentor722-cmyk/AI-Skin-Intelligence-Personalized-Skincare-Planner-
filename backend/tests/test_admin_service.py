@@ -35,7 +35,12 @@ async def second_user_id(db_session: AsyncSession) -> AsyncGenerator[str, None]:
     `db_session`."""
     user_id = f"test-{uuid.uuid4().hex[:20]}"
     await db_session.execute(
-        external_user_table.insert().values(id=user_id, email=f"{user_id}@test.invalid")
+        external_user_table.insert().values(
+            id=user_id,
+            email=f"{user_id}@test.invalid",
+            name=f"Test User {user_id}",
+            emailVerified=False,
+        )
     )
     await db_session.flush()
     yield user_id
