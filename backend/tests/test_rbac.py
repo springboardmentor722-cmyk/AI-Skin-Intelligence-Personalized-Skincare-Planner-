@@ -107,6 +107,9 @@ async def test_require_verified_professional_rejects_missing_profile(
         ("GET", "/api/v1/recommendations/me"),
         ("GET", "/api/v1/progress/me/summary"),
         ("GET", "/api/v1/ingredients/1/suitability/me"),
+        ("GET", "/api/v1/products/1"),
+        ("GET", "/api/v1/products/compare?ids=1,2"),
+        ("GET", "/api/v1/products/1/alternatives"),
     ],
 )
 async def test_user_only_routes_reject_other_roles(
@@ -346,3 +349,20 @@ async def test_ingredient_browsing_routes_allow_every_signed_in_role(
             app.dependency_overrides.pop(require_user, None)
         assert list_response.status_code == 200
         assert detail_response.status_code == 200
+
+
+async def test_product_catalog_list_allows_every_signed_in_role(client: AsyncClient) -> None:
+    # Only the list endpoint is "user (+all)" per milestone_3.md §6's API table —
+    # detail/compare/alternatives carry per-user annotations and stay user-only
+    # (test_user_only_routes_reject_other_roles).
+    for role in ("user", "consultant", "dermatologist", "admin"):
+        app.dependency_overrides[require_user] = lambda role=role: {
+            "id": f"{role}_1",
+            "role": role,
+            "claims": {},
+        }
+        try:
+            response = await client.get("/api/v1/products")
+        finally:
+            app.dependency_overrides.pop(require_user, None)
+        assert response.status_code == 200

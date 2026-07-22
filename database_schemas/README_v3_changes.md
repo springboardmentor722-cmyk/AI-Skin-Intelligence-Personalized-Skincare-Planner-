@@ -57,3 +57,13 @@ is Mongo-owned, so its append happens immediately after the Mongo write commits 
 best-effort, not cross-store-atomic (documented limitation, not silently assumed
 away). The arq worker (`backend/app/worker/`) is the only consumer and the only writer
 of Elasticsearch/the vector DB (single-writer rule, ADR-005).
+
+## 2026-07-22 — M3-C: `products.rating` + `products.review_count`
+
+Real Sephora `product_info.csv` columns (`rating`, `reviews` —
+nadyinky/sephora-products-and-skincare-reviews on Kaggle), not invented. Applied via
+Alembic migration `103dadbc13ce`. Nullable — curated seed rows
+(`backend/app/db/seed.py`) have neither; only the real Kaggle ingest
+(`admin/ingest/products.py`) populates them. Makes `AI_ML.md`'s "sorts by rating"
+stub semantics and the recommendation rank formula's `rating_norm` signal
+schema-true.

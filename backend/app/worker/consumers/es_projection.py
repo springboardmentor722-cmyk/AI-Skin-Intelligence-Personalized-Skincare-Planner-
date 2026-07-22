@@ -16,9 +16,9 @@ from app.services.skin_profile.models import SkinConcern, SkinType
 # Mappings verbatim from skinlytics_elasticsearch_schema_v2.txt — ES documents are
 # DERIVED, never authored here directly (that's the whole point of the outbox +
 # worker, ADR-010). Fields the current schema simply has no data for yet
-# (description, rating, popularity_score — products.rating lands M3-C, §5) are
-# omitted rather than fabricated (AGENTS.md's "don't invent a column" rule extends
-# to "don't invent a value").
+# (description, popularity_score — no real formula defined, would mean inventing
+# one) stay omitted rather than fabricated. `rating`/`review_count` are real as of
+# M3-C (products.rating/review_count, migration 103dadbc13ce).
 _PRODUCTS_MAPPING = {
     "properties": {
         "product_id": {"type": "integer"},
@@ -33,6 +33,7 @@ _PRODUCTS_MAPPING = {
         "currency": {"type": "keyword"},
         "spf_rating": {"type": "integer"},
         "rating": {"type": "float"},
+        "review_count": {"type": "integer"},
         "popularity_score": {"type": "float"},
         "is_active": {"type": "boolean"},
         "created_at": {"type": "date"},

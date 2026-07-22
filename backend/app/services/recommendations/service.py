@@ -102,11 +102,11 @@ async def list_concern_ids_for_products(
 
 async def get_recommendations(db: AsyncSession, user_id: str) -> list[RecommendationRead]:
     """Stub Recommender (ADR-007, docs/AI_ML.md): filters by skin type + concern
-    junctions, emits real reasons[]. docs/AI_ML.md's stub semantics say "sorts by
-    rating" — the live `products` table (database_schemas/...sql) has no rating
-    column, so ranking instead uses concern-overlap count (a real relational signal)
-    with a `hash(user_id)`-seeded tiebreak, matching ADR-007's determinism
-    requirement without inventing a schema column. Cached in Redis
+    junctions, emits real reasons[]. Ranks by concern-overlap count (a real
+    relational signal) with a `hash(user_id)`-seeded tiebreak, matching ADR-007's
+    determinism requirement — `products.rating` exists now (M3-C) but folding it
+    into ranking is the real Recommender v2's job (M3-D), not this stub's. Cached
+    in Redis
     (`recommendation:cache:{user_id}`, TTL 24h) per docs/AI_ML.md's recommendation
     pipeline; invalidated on profile save (skin_profile/service.py)."""
     redis = get_redis()

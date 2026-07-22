@@ -386,6 +386,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Products */
+        get: operations["list_products_api_v1_products_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/products/compare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Compare Products */
+        get: operations["compare_products_api_v1_products_compare_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/products/{product_id}/alternatives": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Alternatives */
+        get: operations["get_alternatives_api_v1_products__product_id__alternatives_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/products/{product_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Product */
+        get: operations["get_product_api_v1_products__product_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ingredients": {
         parameters: {
             query?: never;
@@ -1687,6 +1755,94 @@ export interface components {
             /** Total */
             total: number;
         };
+        /** ProductAlternativesRead */
+        ProductAlternativesRead: {
+            /** Alternatives */
+            alternatives: components["schemas"]["ProductRead"][];
+        };
+        /** ProductCompareItem */
+        ProductCompareItem: {
+            product: components["schemas"]["ProductRead"];
+            /** Ingredient Names */
+            ingredient_names: string[];
+            /** Skin Types Supported */
+            skin_types_supported: string[];
+            /** Concerns Supported */
+            concerns_supported: string[];
+        };
+        /** ProductCompareRead */
+        ProductCompareRead: {
+            /** Items */
+            items: components["schemas"]["ProductCompareItem"][];
+        };
+        /** ProductDetail */
+        ProductDetail: {
+            /** Product Id */
+            product_id: number;
+            /** Brand Name */
+            brand_name: string | null;
+            /** Product Name */
+            product_name: string | null;
+            /** Category */
+            category: string | null;
+            /** Product Url */
+            product_url: string | null;
+            /** Image Url */
+            image_url: string | null;
+            /** Price */
+            price: number | null;
+            /** Currency */
+            currency: string | null;
+            /** Volume Ml */
+            volume_ml: number | null;
+            /** Spf Rating */
+            spf_rating: number | null;
+            /** Rating */
+            rating: number | null;
+            /** Review Count */
+            review_count: number | null;
+            /** Is Active */
+            is_active: boolean | null;
+            /** Ingredients */
+            ingredients: components["schemas"]["ProductIngredientAnnotation"][];
+            /** Suitable */
+            suitable: boolean | null;
+            /** Suitability Confidence */
+            suitability_confidence: number | null;
+        };
+        /** ProductIngredientAnnotation */
+        ProductIngredientAnnotation: {
+            /** Ingredient Id */
+            ingredient_id: number;
+            /** Ingredient Name */
+            ingredient_name: string;
+            /** Avoid Flag */
+            avoid_flag: boolean;
+            /** Allergy Flag */
+            allergy_flag: boolean;
+            /** Reason */
+            reason: string | null;
+        };
+        /** ProductListMeta */
+        ProductListMeta: {
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Total */
+            total: number;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "elasticsearch" | "fallback";
+        };
+        /** ProductListPage */
+        ProductListPage: {
+            /** Items */
+            items: components["schemas"]["ProductRead"][];
+            meta: components["schemas"]["ProductListMeta"];
+        };
         /**
          * ProductPage
          * @description Admin's read-only Product Management view (Branch 6) — same reasoning as
@@ -1715,6 +1871,10 @@ export interface components {
             currency: string | null;
             /** Spf Rating */
             spf_rating: number | null;
+            /** Rating */
+            rating: number | null;
+            /** Review Count */
+            review_count: number | null;
         };
         /** ProgressSummaryRead */
         ProgressSummaryRead: {
@@ -2734,6 +2894,137 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RecommendationRead"][];
+                };
+            };
+        };
+    };
+    list_products_api_v1_products_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                q?: string | null;
+                category?: string | null;
+                brand?: string | null;
+                budget_min?: number | null;
+                budget_max?: number | null;
+                skin_type?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductListPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    compare_products_api_v1_products_compare_get: {
+        parameters: {
+            query: {
+                ids: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductCompareRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_alternatives_api_v1_products__product_id__alternatives_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                product_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductAlternativesRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_product_api_v1_products__product_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                product_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
