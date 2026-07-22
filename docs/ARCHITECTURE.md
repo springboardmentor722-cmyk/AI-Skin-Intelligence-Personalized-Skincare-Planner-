@@ -369,8 +369,8 @@ skinlytics/
 ├── training_dataset/               # MANIFEST.md + gitignored raw/ processed/
 ├── web/                            # Next.js + shadcn + Better Auth (+ designs/wireframes/)
 ├── backend/                        # FastAPI modular monolith (app/services/*, app/ai/*)
-├── ml/                             # PLANNED (M2+): training/experiments/eval
-└── graphify-out/                   # PLANNED: committed code-graph (GRAPHIFY_SETUP.md)
+├── ml/                             # eval/ (harness, M3-H) + registry/ (documented layout)
+└── graphify-out/                   # committed code-graph (GRAPHIFY_SETUP.md, ADR-006)
 ```
 
 ## 13. Milestone roadmap (8 weeks) with exit criteria

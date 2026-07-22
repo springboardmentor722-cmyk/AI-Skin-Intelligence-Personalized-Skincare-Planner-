@@ -37,6 +37,9 @@ build/
 # `make rebuild-derived`; never hand-authored, so never committed. ml/eval, ml/registry
 # (M3-H) are separate, tracked source trees, not covered by this.
 ml/faiss/
+# `make eval`'s own timestamped run reports (M3-H) — regenerated every run,
+# never hand-authored; the eval *code* under ml/eval/ is tracked, its output isn't.
+ml/eval/reports/
 
 # --- Generated (regenerate with `make openapi`; web/lib/api-types.ts IS committed) ---
 /openapi.json
