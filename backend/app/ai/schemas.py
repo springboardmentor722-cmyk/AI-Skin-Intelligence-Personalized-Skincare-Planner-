@@ -1,5 +1,7 @@
 from typing import Protocol
 
+from pydantic import BaseModel
+
 # The single AI contract module (ADR-007) — every interface's Protocol lives here,
 # config-selected implementations live alongside it in app/ai/*.py. TextEmbedder is
 # the first one made real (M3-A); IngredientSuitability/Recommender/
@@ -15,6 +17,36 @@ class TextEmbedder(Protocol):
     dimensions: int
 
     def embed(self, texts: list[str]) -> list[list[float]]: ...
+
+
+class SuitabilityResult(BaseModel):
+    """Every field here is a real, auditable claim — never a probability that just
+    "feels right". `allergy_flag` is specifically an allergy-tag match (prominent UI
+    warning, PDF Module 5); `avoid_flag` is a curated skin-type-avoid junction hit."""
+
+    suitable: bool
+    confidence: float
+    reasons: list[str]
+    allergy_flag: bool
+    avoid_flag: bool
+
+
+class IngredientSuitability(Protocol):
+    """Rule-based, not ML (M3-B) — the zero-missed-allergy hard requirement
+    (AI_ML.md model card) needs an auditable rule, not a trained model's
+    probability. Confidence per rule is fixed and documented in
+    app/ai/suitability.py, not learned."""
+
+    def evaluate(
+        self,
+        *,
+        ingredient_name: str,
+        inci_name: str | None,
+        skin_type_name: str | None,
+        allergies: str | None,
+        sensitivities: str | None,
+        avoid_reason: str | None,
+    ) -> SuitabilityResult: ...
 
 
 # namespace -> (model_name, dimensions) — the exact pins from
