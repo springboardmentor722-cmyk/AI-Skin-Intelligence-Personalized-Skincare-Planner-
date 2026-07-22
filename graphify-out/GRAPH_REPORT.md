@@ -1,7 +1,7 @@
 # Graph Report - AI-Skin-Intelligence-Personalized-Skincare-Planner-  (2026-07-23)
 
 ## Corpus Check
-- 419 files · ~759,151 words
+- 419 files · ~759,173 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `2674a237`
+- Built from commit: `e75ab198`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -440,7 +440,7 @@ Nodes (24): accordion, asChild -> render, breadcrumb / marker (Slot users), Cove
 
 ### Community 56 - "dermatologist/dashboard/page.tsx"
 Cohesion: 0.14
-Nodes (18): ConsultantBackgroundPage(), ConsultantContactPage(), ConsultantPracticePage(), ConsultantReviewPage(), FIELD_LABELS, formatValue(), SUMMARY_SECTIONS, OnboardingShell() (+10 more)
+Nodes (24): get_metadata(), Taxonomy/reference table — seeded (Acne, Hyperpigmentation, ...)., One row per saved profile version — `is_current` marks the active one, prior, SkinConcern, SkinProfile, SkinProfileConcern, embed_and_upsert(), _embed_article() (+16 more)
 
 ### Community 57 - "[routineId]/page.tsx"
 Cohesion: 0.24
@@ -507,8 +507,8 @@ Cohesion: 0.13
 Nodes (14): 10. Core data flow — recommendation pipeline (M2+), 11. Frontend architecture, 12. Repository layout, 13. Milestone roadmap (8 weeks) with exit criteria, 1. Objective, audience & non-functional targets, 2. Roles, 3. High-level architecture (matches the system diagram), 4. Microservices (14) (+6 more)
 
 ### Community 94 - "fetch_uv_index"
-Cohesion: 0.47
-Nodes (9): _as(), AsyncClient, app/services/ingredients/router.py (M3-B) — HTTP-layer contract: interactions a, test_get_ingredient_404s_for_a_missing_id(), test_interactions_accepts_a_valid_id_range(), test_interactions_rejects_a_single_id(), test_interactions_rejects_more_than_five_ids(), test_interactions_rejects_non_integer_ids() (+1 more)
+Cohesion: 0.20
+Nodes (20): delete_my_document(), get_my_profile(), list_my_documents(), Any, AsyncSession, Depends, DocumentType, File (+12 more)
 
 ### Community 95 - "class-variance-authority"
 Cohesion: 0.18
@@ -591,12 +591,12 @@ Cohesion: 0.26
 Nodes (9): firstOf(), ProgressPage(), RANGES, SkinScoreTrendChart, ToggleGroup(), ToggleGroupContext, ToggleGroupItem(), Toggle() (+1 more)
 
 ### Community 134 - "test_products_service.py"
-Cohesion: 0.16
-Nodes (12): DermatologistReviewPage(), FIELD_LABELS, formatValue(), SUMMARY_SECTIONS, dermatologistBackgroundSchema, DermatologistBackgroundValues, dermatologistContactSchema, DermatologistContactValues (+4 more)
+Cohesion: 0.14
+Nodes (18): ConsultantBackgroundPage(), ConsultantContactPage(), ConsultantPracticePage(), ConsultantReviewPage(), FIELD_LABELS, formatValue(), SUMMARY_SECTIONS, OnboardingShell() (+10 more)
 
 ### Community 135 - "ingest_knowledge.py"
-Cohesion: 0.27
-Nodes (8): ingest_for_concern(), main(), Real PubMed ingestion — `make ingest-knowledge` / `python -m app.db.ingest_knowl, _extract_article(), PubMedArticle, esearch for PMIDs matching `query`, then efetch the full records. Returns [], search_and_fetch(), Element
+Cohesion: 0.16
+Nodes (12): DermatologistReviewPage(), FIELD_LABELS, formatValue(), SUMMARY_SECTIONS, dermatologistBackgroundSchema, DermatologistBackgroundValues, dermatologistContactSchema, DermatologistContactValues (+4 more)
 
 ### Community 136 - "tooltip"
 Cohesion: 0.20
@@ -611,8 +611,8 @@ Cohesion: 0.20
 Nodes (9): Accordion animation placement, Button, Conventions, DropdownMenu / ContextMenu SubContent, Select, SubTrigger open styling, Tabs, Target wrapper shapes (golden-derived specifics) (+1 more)
 
 ### Community 139 - "test_users.py"
-Cohesion: 0.67
-Nodes (3): AsyncClient, test_me_requires_auth(), test_me_returns_validated_claims()
+Cohesion: 0.27
+Nodes (8): ingest_for_concern(), main(), Real PubMed ingestion — `make ingest-knowledge` / `python -m app.db.ingest_knowl, _extract_article(), PubMedArticle, esearch for PMIDs matching `query`, then efetch the full records. Returns [], search_and_fetch(), Element
 
 ### Community 140 - "scroll-area"
 Cohesion: 0.22
@@ -739,8 +739,8 @@ Cohesion: 0.31
 Nodes (7): BaseModel, Every field here is a real, auditable claim — never a probability that just, SuitabilityResult, (exact, substring) — free_text is a comma-separated list of user-entered     ta, Rule-based, not ML — see app/ai/schemas.py's IngredientSuitability Protocol, RealIngredientSuitability, _tag_match()
 
 ### Community 173 - "skin_profile/service.py"
-Cohesion: 0.14
-Nodes (24): get_metadata(), Taxonomy/reference table — seeded (Acne, Hyperpigmentation, ...)., One row per saved profile version — `is_current` marks the active one, prior, SkinConcern, SkinProfile, SkinProfileConcern, embed_and_upsert(), _embed_article() (+16 more)
+Cohesion: 0.47
+Nodes (9): _as(), AsyncClient, app/services/ingredients/router.py (M3-B) — HTTP-layer contract: interactions a, test_get_ingredient_404s_for_a_missing_id(), test_interactions_accepts_a_valid_id_range(), test_interactions_rejects_a_single_id(), test_interactions_rejects_more_than_five_ids(), test_interactions_rejects_non_integer_ids() (+1 more)
 
 ### Community 174 - "test_instrumentation_router.py"
 Cohesion: 0.57
@@ -751,12 +751,12 @@ Cohesion: 0.50
 Nodes (3): Running things directly, Skinlytics — `ml/`, Two different dependency stories, on purpose
 
 ### Community 185 - "consultant_profile/router.py"
-Cohesion: 0.20
-Nodes (20): delete_my_document(), get_my_profile(), list_my_documents(), Any, AsyncSession, Depends, DocumentType, File (+12 more)
-
-### Community 186 - "_decode"
 Cohesion: 0.50
 Nodes (4): _decode(), _jwk_client(), Any, PyJWKClient
+
+### Community 186 - "_decode"
+Cohesion: 0.67
+Nodes (3): AsyncClient, test_me_requires_auth(), test_me_returns_validated_claims()
 
 ## Knowledge Gaps
 - **845 isolated node(s):** `WorkerSettings`, `skinlytics-backend`, `verification`, `jwks`, `outbox` (+840 more)
@@ -766,11 +766,11 @@ Nodes (4): _decode(), _jwk_client(), Any, PyJWKClient
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `cn()` connect `sidebar.tsx` to `button.tsx`, `progress/page.tsx`, `security.py`, `chart.tsx`, `appearance-settings.tsx`, `utils.ts`, `signup/page.tsx`, `glass-topbar.tsx`, `product-recommendation-card.tsx`, `dermatologist/dashboard/page.tsx`, `nav-config.ts`, `routine/page.tsx`?**
+- **Why does `cn()` connect `sidebar.tsx` to `button.tsx`, `progress/page.tsx`, `test_products_service.py`, `security.py`, `chart.tsx`, `appearance-settings.tsx`, `utils.ts`, `signup/page.tsx`, `glass-topbar.tsx`, `product-recommendation-card.tsx`, `nav-config.ts`, `routine/page.tsx`?**
   _High betweenness centrality (0.019) - this node is a cross-community bridge._
-- **Why does `get_db()` connect `get_db` to `dermatologist_profile/router.py`, `ingredients/service.py`, `(user)/dashboard/page.tsx`, `test_clinical_review_service.py`, `dermatologist-onboarding/onboarding-shell.tsx`, `cn`, `test_scores_service.py`, `field.tsx`, `postgres.py`, `consultant_profile/router.py`?**
+- **Why does `get_db()` connect `get_db` to `dermatologist_profile/router.py`, `ingredients/service.py`, `(user)/dashboard/page.tsx`, `test_clinical_review_service.py`, `dermatologist-onboarding/onboarding-shell.tsx`, `cn`, `test_scores_service.py`, `field.tsx`, `postgres.py`, `fetch_uv_index`?**
   _High betweenness centrality (0.015) - this node is a cross-community bridge._
-- **Why does `get_redis()` connect `get_redis` to `call_with_resilience`, `cn`, `Base`, `test_dermatologist_profile_service.py`, `skin_profile/service.py`, `scores/service.py`, `test_routines_service.py`, `app/main.py`, `test_instrumentation_router.py`, `postgres.py`?**
+- **Why does `get_redis()` connect `get_redis` to `call_with_resilience`, `cn`, `Base`, `test_dermatologist_profile_service.py`, `scores/service.py`, `test_routines_service.py`, `app/main.py`, `test_instrumentation_router.py`, `postgres.py`, `dermatologist/dashboard/page.tsx`?**
   _High betweenness centrality (0.015) - this node is a cross-community bridge._
 - **What connects `WorkerSettings`, `skinlytics-backend`, `verification` to the rest of the system?**
   _845 weakly-connected nodes found - possible documentation gaps or missing edges._

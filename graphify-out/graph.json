@@ -1198,8 +1198,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "backend_app_core_security_jwk_client",
-      "community": 186,
-      "community_name": "_decode",
+      "community": 185,
+      "community_name": "consultant_profile/router.py",
       "norm_label": "_jwk_client()"
     },
     {
@@ -1209,8 +1209,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "pyjwkclient",
-      "community": 186,
-      "community_name": "_decode",
+      "community": 185,
+      "community_name": "consultant_profile/router.py",
       "norm_label": "pyjwkclient"
     },
     {
@@ -1220,8 +1220,8 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "backend_app_core_security_decode",
-      "community": 186,
-      "community_name": "_decode",
+      "community": 185,
+      "community_name": "consultant_profile/router.py",
       "norm_label": "_decode()"
     },
     {
@@ -1231,8 +1231,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_app_core_security_py_any",
-      "community": 186,
-      "community_name": "_decode",
+      "community": 185,
+      "community_name": "consultant_profile/router.py",
       "norm_label": "any"
     },
     {
@@ -1671,8 +1671,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_db_ingest_knowledge",
-      "community": 135,
-      "community_name": "ingest_knowledge.py",
+      "community": 139,
+      "community_name": "test_users.py",
       "norm_label": "ingest_knowledge.py"
     },
     {
@@ -1682,8 +1682,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "backend_app_db_ingest_knowledge_ingest_for_concern",
-      "community": 135,
-      "community_name": "ingest_knowledge.py",
+      "community": 139,
+      "community_name": "test_users.py",
       "norm_label": "ingest_for_concern()"
     },
     {
@@ -1693,8 +1693,8 @@
       "source_location": "L86",
       "_origin": "ast",
       "id": "backend_app_db_ingest_knowledge_main",
-      "community": 135,
-      "community_name": "ingest_knowledge.py",
+      "community": 139,
+      "community_name": "test_users.py",
       "norm_label": "main()"
     },
     {
@@ -1704,8 +1704,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_db_ingest_knowledge_rationale_1",
-      "community": 135,
-      "community_name": "ingest_knowledge.py",
+      "community": 139,
+      "community_name": "test_users.py",
       "norm_label": "real pubmed ingestion \u2014 `make ingest-knowledge` / `python -m app.db.ingest_knowl"
     },
     {
@@ -2232,8 +2232,8 @@
       "source_location": "L135",
       "_origin": "ast",
       "id": "backend_app_db_vector_get_metadata",
-      "community": 173,
-      "community_name": "skin_profile/service.py",
+      "community": 56,
+      "community_name": "dermatologist/dashboard/page.tsx",
       "norm_label": "get_metadata()"
     },
     {
@@ -2650,8 +2650,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_integrations_pubmed",
-      "community": 135,
-      "community_name": "ingest_knowledge.py",
+      "community": 139,
+      "community_name": "test_users.py",
       "norm_label": "pubmed.py"
     },
     {
@@ -2661,8 +2661,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "backend_app_integrations_pubmed_pubmedarticle",
-      "community": 135,
-      "community_name": "ingest_knowledge.py",
+      "community": 139,
+      "community_name": "test_users.py",
       "norm_label": "pubmedarticle"
     },
     {
@@ -2672,8 +2672,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "backend_app_integrations_pubmed_extract_article",
-      "community": 135,
-      "community_name": "ingest_knowledge.py",
+      "community": 139,
+      "community_name": "test_users.py",
       "norm_label": "_extract_article()"
     },
     {
@@ -2683,8 +2683,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "element",
-      "community": 135,
-      "community_name": "ingest_knowledge.py",
+      "community": 139,
+      "community_name": "test_users.py",
       "norm_label": "element"
     },
     {
@@ -2694,8 +2694,8 @@
       "source_location": "L73",
       "_origin": "ast",
       "id": "backend_app_integrations_pubmed_search_and_fetch",
-      "community": 135,
-      "community_name": "ingest_knowledge.py",
+      "community": 139,
+      "community_name": "test_users.py",
       "norm_label": "search_and_fetch()"
     },
     {
@@ -2705,8 +2705,8 @@
       "source_location": "L74",
       "_origin": "ast",
       "id": "backend_app_integrations_pubmed_rationale_74",
-      "community": 135,
-      "community_name": "ingest_knowledge.py",
+      "community": 139,
+      "community_name": "test_users.py",
       "norm_label": "esearch for pmids matching `query`, then efetch the full records. returns []"
     },
     {
@@ -5334,8 +5334,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_init",
-      "community": 185,
-      "community_name": "consultant_profile/router.py",
+      "community": 94,
+      "community_name": "fetch_uv_index",
       "norm_label": "consultant_profile/__init__.py"
     },
     {
@@ -5378,8 +5378,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_router",
-      "community": 185,
-      "community_name": "consultant_profile/router.py",
+      "community": 94,
+      "community_name": "fetch_uv_index",
       "norm_label": "consultant_profile/router.py"
     },
     {
@@ -5389,8 +5389,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_router_get_my_profile",
-      "community": 185,
-      "community_name": "consultant_profile/router.py",
+      "community": 94,
+      "community_name": "fetch_uv_index",
       "norm_label": "get_my_profile()"
     },
     {
@@ -5400,8 +5400,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_router_py_any",
-      "community": 185,
-      "community_name": "consultant_profile/router.py",
+      "community": 94,
+      "community_name": "fetch_uv_index",
       "norm_label": "any"
     },
     {
@@ -5411,8 +5411,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_router_py_depends",
-      "community": 185,
-      "community_name": "consultant_profile/router.py",
+      "community": 94,
+      "community_name": "fetch_uv_index",
       "norm_label": "depends"
     },
     {
@@ -5422,8 +5422,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_router_py_asyncsession",
-      "community": 185,
-      "community_name": "consultant_profile/router.py",
+      "community": 94,
+      "community_name": "fetch_uv_index",
       "norm_label": "asyncsession"
     },
     {
@@ -5433,8 +5433,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_router_submit_my_profile",
-      "community": 185,
-      "community_name": "consultant_profile/router.py",
+      "community": 94,
+      "community_name": "fetch_uv_index",
       "norm_label": "submit_my_profile()"
     },
     {
@@ -5444,8 +5444,8 @@
       "source_location": "L53",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_router_update_my_profile",
-      "community": 185,
-      "community_name": "consultant_profile/router.py",
+      "community": 94,
+      "community_name": "fetch_uv_index",
       "norm_label": "update_my_profile()"
     },
     {
@@ -5455,8 +5455,8 @@
       "source_location": "L65",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_router_list_my_documents",
-      "community": 185,
-      "community_name": "consultant_profile/router.py",
+      "community": 94,
+      "community_name": "fetch_uv_index",
       "norm_label": "list_my_documents()"
     },
     {
@@ -5466,8 +5466,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_router_py_verificationdocumentread",
-      "community": 185,
-      "community_name": "consultant_profile/router.py",
+      "community": 94,
+      "community_name": "fetch_uv_index",
       "norm_label": "verificationdocumentread"
     },
     {
@@ -5477,8 +5477,8 @@
       "source_location": "L74",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_router_upload_my_document",
-      "community": 185,
-      "community_name": "consultant_profile/router.py",
+      "community": 94,
+      "community_name": "fetch_uv_index",
       "norm_label": "upload_my_document()"
     },
     {
@@ -5488,8 +5488,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_router_py_documenttype",
-      "community": 185,
-      "community_name": "consultant_profile/router.py",
+      "community": 94,
+      "community_name": "fetch_uv_index",
       "norm_label": "documenttype"
     },
     {
@@ -5499,8 +5499,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_router_py_form",
-      "community": 185,
-      "community_name": "consultant_profile/router.py",
+      "community": 94,
+      "community_name": "fetch_uv_index",
       "norm_label": "form"
     },
     {
@@ -5510,8 +5510,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_router_py_uploadfile",
-      "community": 185,
-      "community_name": "consultant_profile/router.py",
+      "community": 94,
+      "community_name": "fetch_uv_index",
       "norm_label": "uploadfile"
     },
     {
@@ -5521,8 +5521,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_router_py_file",
-      "community": 185,
-      "community_name": "consultant_profile/router.py",
+      "community": 94,
+      "community_name": "fetch_uv_index",
       "norm_label": "file"
     },
     {
@@ -5532,8 +5532,8 @@
       "source_location": "L97",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_router_delete_my_document",
-      "community": 185,
-      "community_name": "consultant_profile/router.py",
+      "community": 94,
+      "community_name": "fetch_uv_index",
       "norm_label": "delete_my_document()"
     },
     {
@@ -5543,8 +5543,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_schemas",
-      "community": 185,
-      "community_name": "consultant_profile/router.py",
+      "community": 94,
+      "community_name": "fetch_uv_index",
       "norm_label": "consultant_profile/schemas.py"
     },
     {
@@ -5554,8 +5554,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_schemas_consultantprofilesubmit",
-      "community": 185,
-      "community_name": "consultant_profile/router.py",
+      "community": 94,
+      "community_name": "fetch_uv_index",
       "norm_label": "consultantprofilesubmit"
     },
     {
@@ -5565,8 +5565,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_schemas_py_basemodel",
-      "community": 185,
-      "community_name": "consultant_profile/router.py",
+      "community": 94,
+      "community_name": "fetch_uv_index",
       "norm_label": "basemodel"
     },
     {
@@ -5576,8 +5576,8 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_schemas_consultantprofileupdate",
-      "community": 185,
-      "community_name": "consultant_profile/router.py",
+      "community": 94,
+      "community_name": "fetch_uv_index",
       "norm_label": "consultantprofileupdate"
     },
     {
@@ -5587,8 +5587,8 @@
       "source_location": "L61",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_schemas_consultantprofileread",
-      "community": 185,
-      "community_name": "consultant_profile/router.py",
+      "community": 94,
+      "community_name": "fetch_uv_index",
       "norm_label": "consultantprofileread"
     },
     {
@@ -5598,8 +5598,8 @@
       "source_location": "L90",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_schemas_verificationdocumentread",
-      "community": 185,
-      "community_name": "consultant_profile/router.py",
+      "community": 94,
+      "community_name": "fetch_uv_index",
       "norm_label": "verificationdocumentread"
     },
     {
@@ -5609,8 +5609,8 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "backend_app_services_consultant_profile_schemas_rationale_40",
-      "community": 185,
-      "community_name": "consultant_profile/router.py",
+      "community": 94,
+      "community_name": "fetch_uv_index",
       "norm_label": "patch \u2014 every field optional; only supplied fields change. never touches     ve"
     },
     {
@@ -9305,8 +9305,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_services_skin_profile_init",
-      "community": 135,
-      "community_name": "ingest_knowledge.py",
+      "community": 139,
+      "community_name": "test_users.py",
       "norm_label": "skin_profile/__init__.py"
     },
     {
@@ -9316,8 +9316,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_services_skin_profile_models",
-      "community": 173,
-      "community_name": "skin_profile/service.py",
+      "community": 56,
+      "community_name": "dermatologist/dashboard/page.tsx",
       "norm_label": "skin_profile/models.py"
     },
     {
@@ -9338,8 +9338,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "backend_app_services_skin_profile_models_skinconcern",
-      "community": 173,
-      "community_name": "skin_profile/service.py",
+      "community": 56,
+      "community_name": "dermatologist/dashboard/page.tsx",
       "norm_label": "skinconcern"
     },
     {
@@ -9349,8 +9349,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "backend_app_services_skin_profile_models_skinprofile",
-      "community": 173,
-      "community_name": "skin_profile/service.py",
+      "community": 56,
+      "community_name": "dermatologist/dashboard/page.tsx",
       "norm_label": "skinprofile"
     },
     {
@@ -9360,8 +9360,8 @@
       "source_location": "L57",
       "_origin": "ast",
       "id": "backend_app_services_skin_profile_models_skinprofileconcern",
-      "community": 173,
-      "community_name": "skin_profile/service.py",
+      "community": 56,
+      "community_name": "dermatologist/dashboard/page.tsx",
       "norm_label": "skinprofileconcern"
     },
     {
@@ -9382,8 +9382,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "backend_app_services_skin_profile_models_rationale_26",
-      "community": 173,
-      "community_name": "skin_profile/service.py",
+      "community": 56,
+      "community_name": "dermatologist/dashboard/page.tsx",
       "norm_label": "taxonomy/reference table \u2014 seeded (acne, hyperpigmentation, ...)."
     },
     {
@@ -9393,8 +9393,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "backend_app_services_skin_profile_models_rationale_37",
-      "community": 173,
-      "community_name": "skin_profile/service.py",
+      "community": 56,
+      "community_name": "dermatologist/dashboard/page.tsx",
       "norm_label": "one row per saved profile version \u2014 `is_current` marks the active one, prior"
     },
     {
@@ -9690,8 +9690,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_services_skin_profile_service",
-      "community": 173,
-      "community_name": "skin_profile/service.py",
+      "community": 56,
+      "community_name": "dermatologist/dashboard/page.tsx",
       "norm_label": "skin_profile/service.py"
     },
     {
@@ -10460,8 +10460,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_worker_consumers_embeddings",
-      "community": 173,
-      "community_name": "skin_profile/service.py",
+      "community": 56,
+      "community_name": "dermatologist/dashboard/page.tsx",
       "norm_label": "embeddings.py"
     },
     {
@@ -10471,8 +10471,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "backend_app_worker_consumers_embeddings_embed_and_upsert",
-      "community": 173,
-      "community_name": "skin_profile/service.py",
+      "community": 56,
+      "community_name": "dermatologist/dashboard/page.tsx",
       "norm_label": "embed_and_upsert()"
     },
     {
@@ -10482,8 +10482,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_app_worker_consumers_embeddings_py_asyncsession",
-      "community": 173,
-      "community_name": "skin_profile/service.py",
+      "community": 56,
+      "community_name": "dermatologist/dashboard/page.tsx",
       "norm_label": "asyncsession"
     },
     {
@@ -10493,8 +10493,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_app_worker_consumers_embeddings_py_any",
-      "community": 173,
-      "community_name": "skin_profile/service.py",
+      "community": 56,
+      "community_name": "dermatologist/dashboard/page.tsx",
       "norm_label": "any"
     },
     {
@@ -10504,8 +10504,8 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "backend_app_worker_consumers_embeddings_embed_product",
-      "community": 173,
-      "community_name": "skin_profile/service.py",
+      "community": 56,
+      "community_name": "dermatologist/dashboard/page.tsx",
       "norm_label": "_embed_product()"
     },
     {
@@ -10515,8 +10515,8 @@
       "source_location": "L86",
       "_origin": "ast",
       "id": "backend_app_worker_consumers_embeddings_embed_ingredient",
-      "community": 173,
-      "community_name": "skin_profile/service.py",
+      "community": 56,
+      "community_name": "dermatologist/dashboard/page.tsx",
       "norm_label": "_embed_ingredient()"
     },
     {
@@ -10526,8 +10526,8 @@
       "source_location": "L106",
       "_origin": "ast",
       "id": "backend_app_worker_consumers_embeddings_embed_article",
-      "community": 173,
-      "community_name": "skin_profile/service.py",
+      "community": 56,
+      "community_name": "dermatologist/dashboard/page.tsx",
       "norm_label": "_embed_article()"
     },
     {
@@ -10537,8 +10537,8 @@
       "source_location": "L128",
       "_origin": "ast",
       "id": "backend_app_worker_consumers_embeddings_embed_profile",
-      "community": 173,
-      "community_name": "skin_profile/service.py",
+      "community": 56,
+      "community_name": "dermatologist/dashboard/page.tsx",
       "norm_label": "_embed_profile()"
     },
     {
@@ -10548,8 +10548,8 @@
       "source_location": "L129",
       "_origin": "ast",
       "id": "backend_app_worker_consumers_embeddings_rationale_129",
-      "community": 173,
-      "community_name": "skin_profile/service.py",
+      "community": 56,
+      "community_name": "dermatologist/dashboard/page.tsx",
       "norm_label": "user_profiles_namespace (m3-d) \u2014 the recommender's stage-2 query vector     (se"
     },
     {
@@ -11717,8 +11717,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_tests_test_db_session_fixture",
-      "community": 173,
-      "community_name": "skin_profile/service.py",
+      "community": 56,
+      "community_name": "dermatologist/dashboard/page.tsx",
       "norm_label": "test_db_session_fixture.py"
     },
     {
@@ -11728,8 +11728,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "backend_tests_test_db_session_fixture_test_test_user_id_is_a_real_committed_row_within_the_session",
-      "community": 173,
-      "community_name": "skin_profile/service.py",
+      "community": 56,
+      "community_name": "dermatologist/dashboard/page.tsx",
       "norm_label": "test_test_user_id_is_a_real_committed_row_within_the_session()"
     },
     {
@@ -11739,8 +11739,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_tests_test_db_session_fixture_py_asyncsession",
-      "community": 173,
-      "community_name": "skin_profile/service.py",
+      "community": 56,
+      "community_name": "dermatologist/dashboard/page.tsx",
       "norm_label": "asyncsession"
     },
     {
@@ -11750,8 +11750,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "backend_tests_test_db_session_fixture_test_fk_constraint_is_real_not_mocked",
-      "community": 173,
-      "community_name": "skin_profile/service.py",
+      "community": 56,
+      "community_name": "dermatologist/dashboard/page.tsx",
       "norm_label": "test_fk_constraint_is_real_not_mocked()"
     },
     {
@@ -11761,8 +11761,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "backend_tests_test_db_session_fixture_test_previous_test_users_do_not_leak_into_a_fresh_connection",
-      "community": 173,
-      "community_name": "skin_profile/service.py",
+      "community": 56,
+      "community_name": "dermatologist/dashboard/page.tsx",
       "norm_label": "test_previous_test_users_do_not_leak_into_a_fresh_connection()"
     },
     {
@@ -11772,8 +11772,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_tests_test_db_session_fixture_rationale_1",
-      "community": 173,
-      "community_name": "skin_profile/service.py",
+      "community": 56,
+      "community_name": "dermatologist/dashboard/page.tsx",
       "norm_label": "sanity-checks the db_session/test_user_id fixtures (tests/conftest.py) themselve"
     },
     {
@@ -12102,8 +12102,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_tests_test_embeddings_consumer",
-      "community": 173,
-      "community_name": "skin_profile/service.py",
+      "community": 56,
+      "community_name": "dermatologist/dashboard/page.tsx",
       "norm_label": "test_embeddings_consumer.py"
     },
     {
@@ -12113,8 +12113,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "backend_tests_test_embeddings_consumer_test_embed_and_upsert_product_lands_in_the_vector_store_and_mongo",
-      "community": 173,
-      "community_name": "skin_profile/service.py",
+      "community": 56,
+      "community_name": "dermatologist/dashboard/page.tsx",
       "norm_label": "test_embed_and_upsert_product_lands_in_the_vector_store_and_mongo()"
     },
     {
@@ -12124,8 +12124,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_tests_test_embeddings_consumer_py_asyncsession",
-      "community": 173,
-      "community_name": "skin_profile/service.py",
+      "community": 56,
+      "community_name": "dermatologist/dashboard/page.tsx",
       "norm_label": "asyncsession"
     },
     {
@@ -12135,8 +12135,8 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "backend_tests_test_embeddings_consumer_test_embed_and_upsert_profile_lands_in_the_user_profiles_namespace",
-      "community": 173,
-      "community_name": "skin_profile/service.py",
+      "community": 56,
+      "community_name": "dermatologist/dashboard/page.tsx",
       "norm_label": "test_embed_and_upsert_profile_lands_in_the_user_profiles_namespace()"
     },
     {
@@ -12146,8 +12146,8 @@
       "source_location": "L84",
       "_origin": "ast",
       "id": "backend_tests_test_embeddings_consumer_test_embed_and_upsert_profile_removes_the_vector_when_no_current_profile_exists",
-      "community": 173,
-      "community_name": "skin_profile/service.py",
+      "community": 56,
+      "community_name": "dermatologist/dashboard/page.tsx",
       "norm_label": "test_embed_and_upsert_profile_removes_the_vector_when_no_current_profile_exists()"
     },
     {
@@ -12157,8 +12157,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_tests_test_embeddings_consumer_rationale_1",
-      "community": 173,
-      "community_name": "skin_profile/service.py",
+      "community": 56,
+      "community_name": "dermatologist/dashboard/page.tsx",
       "norm_label": "app/worker/consumers/embeddings.py \u2014 embeds current pg/mongo state and upserts"
     },
     {
@@ -12168,8 +12168,8 @@
       "source_location": "L54",
       "_origin": "ast",
       "id": "backend_tests_test_embeddings_consumer_rationale_54",
-      "community": 173,
-      "community_name": "skin_profile/service.py",
+      "community": 56,
+      "community_name": "dermatologist/dashboard/page.tsx",
       "norm_label": "m3-d: the recommender's stage-2 query vector (service.py) is this namespace's"
     },
     {
@@ -12388,8 +12388,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_tests_test_ingredients_router",
-      "community": 94,
-      "community_name": "fetch_uv_index",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "test_ingredients_router.py"
     },
     {
@@ -12399,8 +12399,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "backend_tests_test_ingredients_router_as",
-      "community": 94,
-      "community_name": "fetch_uv_index",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "_as()"
     },
     {
@@ -12410,8 +12410,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_tests_test_ingredients_router_py_asyncclient",
-      "community": 94,
-      "community_name": "fetch_uv_index",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "asyncclient"
     },
     {
@@ -12421,8 +12421,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "backend_tests_test_ingredients_router_test_get_ingredient_404s_for_a_missing_id",
-      "community": 94,
-      "community_name": "fetch_uv_index",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "test_get_ingredient_404s_for_a_missing_id()"
     },
     {
@@ -12432,8 +12432,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "backend_tests_test_ingredients_router_test_suitability_404s_for_a_missing_ingredient",
-      "community": 94,
-      "community_name": "fetch_uv_index",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "test_suitability_404s_for_a_missing_ingredient()"
     },
     {
@@ -12443,8 +12443,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "backend_tests_test_ingredients_router_test_interactions_rejects_a_single_id",
-      "community": 94,
-      "community_name": "fetch_uv_index",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "test_interactions_rejects_a_single_id()"
     },
     {
@@ -12454,8 +12454,8 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "backend_tests_test_ingredients_router_test_interactions_rejects_more_than_five_ids",
-      "community": 94,
-      "community_name": "fetch_uv_index",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "test_interactions_rejects_more_than_five_ids()"
     },
     {
@@ -12465,8 +12465,8 @@
       "source_location": "L58",
       "_origin": "ast",
       "id": "backend_tests_test_ingredients_router_test_interactions_rejects_non_integer_ids",
-      "community": 94,
-      "community_name": "fetch_uv_index",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "test_interactions_rejects_non_integer_ids()"
     },
     {
@@ -12476,8 +12476,8 @@
       "source_location": "L69",
       "_origin": "ast",
       "id": "backend_tests_test_ingredients_router_test_interactions_accepts_a_valid_id_range",
-      "community": 94,
-      "community_name": "fetch_uv_index",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "test_interactions_accepts_a_valid_id_range()"
     },
     {
@@ -12487,8 +12487,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_tests_test_ingredients_router_rationale_1",
-      "community": 94,
-      "community_name": "fetch_uv_index",
+      "community": 173,
+      "community_name": "skin_profile/service.py",
       "norm_label": "app/services/ingredients/router.py (m3-b) \u2014 http-layer contract: interactions a"
     },
     {
@@ -16436,8 +16436,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_tests_test_users",
-      "community": 139,
-      "community_name": "test_users.py",
+      "community": 186,
+      "community_name": "_decode",
       "norm_label": "test_users.py"
     },
     {
@@ -16447,8 +16447,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "backend_tests_test_users_test_me_requires_auth",
-      "community": 139,
-      "community_name": "test_users.py",
+      "community": 186,
+      "community_name": "_decode",
       "norm_label": "test_me_requires_auth()"
     },
     {
@@ -16458,8 +16458,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_tests_test_users_py_asyncclient",
-      "community": 139,
-      "community_name": "test_users.py",
+      "community": 186,
+      "community_name": "_decode",
       "norm_label": "asyncclient"
     },
     {
@@ -16469,8 +16469,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "backend_tests_test_users_test_me_returns_validated_claims",
-      "community": 139,
-      "community_name": "test_users.py",
+      "community": 186,
+      "community_name": "_decode",
       "norm_label": "test_me_returns_validated_claims()"
     },
     {
@@ -19802,8 +19802,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "web_app_consultant_onboarding_background_page_consultantbackgroundpage",
-      "community": 56,
-      "community_name": "dermatologist/dashboard/page.tsx",
+      "community": 134,
+      "community_name": "test_products_service.py",
       "norm_label": "consultantbackgroundpage()"
     },
     {
@@ -19813,8 +19813,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "web_app_consultant_onboarding_contact_page",
-      "community": 56,
-      "community_name": "dermatologist/dashboard/page.tsx",
+      "community": 134,
+      "community_name": "test_products_service.py",
       "norm_label": "consultant-onboarding/contact/page.tsx"
     },
     {
@@ -19824,8 +19824,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "web_app_consultant_onboarding_contact_page_consultantcontactpage",
-      "community": 56,
-      "community_name": "dermatologist/dashboard/page.tsx",
+      "community": 134,
+      "community_name": "test_products_service.py",
       "norm_label": "consultantcontactpage()"
     },
     {
@@ -19890,8 +19890,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "web_app_consultant_onboarding_practice_page",
-      "community": 56,
-      "community_name": "dermatologist/dashboard/page.tsx",
+      "community": 134,
+      "community_name": "test_products_service.py",
       "norm_label": "consultant-onboarding/practice/page.tsx"
     },
     {
@@ -19901,8 +19901,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "web_app_consultant_onboarding_practice_page_consultantpracticepage",
-      "community": 56,
-      "community_name": "dermatologist/dashboard/page.tsx",
+      "community": 134,
+      "community_name": "test_products_service.py",
       "norm_label": "consultantpracticepage()"
     },
     {
@@ -19912,8 +19912,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "web_app_consultant_onboarding_review_page",
-      "community": 56,
-      "community_name": "dermatologist/dashboard/page.tsx",
+      "community": 134,
+      "community_name": "test_products_service.py",
       "norm_label": "consultant-onboarding/review/page.tsx"
     },
     {
@@ -19923,8 +19923,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "web_app_consultant_onboarding_review_page_summary_sections",
-      "community": 56,
-      "community_name": "dermatologist/dashboard/page.tsx",
+      "community": 134,
+      "community_name": "test_products_service.py",
       "norm_label": "summary_sections"
     },
     {
@@ -19934,8 +19934,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "web_app_consultant_onboarding_review_page_field_labels",
-      "community": 56,
-      "community_name": "dermatologist/dashboard/page.tsx",
+      "community": 134,
+      "community_name": "test_products_service.py",
       "norm_label": "field_labels"
     },
     {
@@ -19945,8 +19945,8 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "web_app_consultant_onboarding_review_page_formatvalue",
-      "community": 56,
-      "community_name": "dermatologist/dashboard/page.tsx",
+      "community": 134,
+      "community_name": "test_products_service.py",
       "norm_label": "formatvalue()"
     },
     {
@@ -19956,8 +19956,8 @@
       "source_location": "L61",
       "_origin": "ast",
       "id": "web_app_consultant_onboarding_review_page_consultantreviewpage",
-      "community": 56,
-      "community_name": "dermatologist/dashboard/page.tsx",
+      "community": 134,
+      "community_name": "test_products_service.py",
       "norm_label": "consultantreviewpage()"
     },
     {
@@ -20297,8 +20297,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "web_app_dermatologist_onboarding_review_page",
-      "community": 134,
-      "community_name": "test_products_service.py",
+      "community": 135,
+      "community_name": "ingest_knowledge.py",
       "norm_label": "dermatologist-onboarding/review/page.tsx"
     },
     {
@@ -20308,8 +20308,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "web_app_dermatologist_onboarding_review_page_summary_sections",
-      "community": 134,
-      "community_name": "test_products_service.py",
+      "community": 135,
+      "community_name": "ingest_knowledge.py",
       "norm_label": "summary_sections"
     },
     {
@@ -20319,8 +20319,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "web_app_dermatologist_onboarding_review_page_field_labels",
-      "community": 134,
-      "community_name": "test_products_service.py",
+      "community": 135,
+      "community_name": "ingest_knowledge.py",
       "norm_label": "field_labels"
     },
     {
@@ -20330,8 +20330,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "web_app_dermatologist_onboarding_review_page_formatvalue",
-      "community": 134,
-      "community_name": "test_products_service.py",
+      "community": 135,
+      "community_name": "ingest_knowledge.py",
       "norm_label": "formatvalue()"
     },
     {
@@ -20341,8 +20341,8 @@
       "source_location": "L50",
       "_origin": "ast",
       "id": "web_app_dermatologist_onboarding_review_page_dermatologistreviewpage",
-      "community": 134,
-      "community_name": "test_products_service.py",
+      "community": 135,
+      "community_name": "ingest_knowledge.py",
       "norm_label": "dermatologistreviewpage()"
     },
     {
@@ -21386,8 +21386,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "web_components_consultant_onboarding_onboarding_shell_onboardingshell",
-      "community": 56,
-      "community_name": "dermatologist/dashboard/page.tsx",
+      "community": 134,
+      "community_name": "test_products_service.py",
       "norm_label": "onboardingshell()"
     },
     {
@@ -25390,8 +25390,8 @@
       "source_location": "L111",
       "_origin": "ast",
       "id": "web_lib_consultant_onboarding_context_useconsultantonboarding",
-      "community": 56,
-      "community_name": "dermatologist/dashboard/page.tsx",
+      "community": 134,
+      "community_name": "test_products_service.py",
       "norm_label": "useconsultantonboarding()"
     },
     {
@@ -26094,8 +26094,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "web_lib_schemas_consultant_onboarding",
-      "community": 56,
-      "community_name": "dermatologist/dashboard/page.tsx",
+      "community": 134,
+      "community_name": "test_products_service.py",
       "norm_label": "consultant-onboarding.ts"
     },
     {
@@ -26105,8 +26105,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "web_lib_schemas_consultant_onboarding_suggested_consultation_modes",
-      "community": 56,
-      "community_name": "dermatologist/dashboard/page.tsx",
+      "community": 134,
+      "community_name": "test_products_service.py",
       "norm_label": "suggested_consultation_modes"
     },
     {
@@ -26116,8 +26116,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "web_lib_schemas_consultant_onboarding_consultantbackgroundschema",
-      "community": 56,
-      "community_name": "dermatologist/dashboard/page.tsx",
+      "community": 134,
+      "community_name": "test_products_service.py",
       "norm_label": "consultantbackgroundschema"
     },
     {
@@ -26127,8 +26127,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "web_lib_schemas_consultant_onboarding_consultantbackgroundvalues",
-      "community": 56,
-      "community_name": "dermatologist/dashboard/page.tsx",
+      "community": 134,
+      "community_name": "test_products_service.py",
       "norm_label": "consultantbackgroundvalues"
     },
     {
@@ -26138,8 +26138,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "web_lib_schemas_consultant_onboarding_consultantpracticeschema",
-      "community": 56,
-      "community_name": "dermatologist/dashboard/page.tsx",
+      "community": 134,
+      "community_name": "test_products_service.py",
       "norm_label": "consultantpracticeschema"
     },
     {
@@ -26149,8 +26149,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "web_lib_schemas_consultant_onboarding_consultantpracticevalues",
-      "community": 56,
-      "community_name": "dermatologist/dashboard/page.tsx",
+      "community": 134,
+      "community_name": "test_products_service.py",
       "norm_label": "consultantpracticevalues"
     },
     {
@@ -26160,8 +26160,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "web_lib_schemas_consultant_onboarding_consultantcontactschema",
-      "community": 56,
-      "community_name": "dermatologist/dashboard/page.tsx",
+      "community": 134,
+      "community_name": "test_products_service.py",
       "norm_label": "consultantcontactschema"
     },
     {
@@ -26171,8 +26171,8 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "web_lib_schemas_consultant_onboarding_consultantcontactvalues",
-      "community": 56,
-      "community_name": "dermatologist/dashboard/page.tsx",
+      "community": 134,
+      "community_name": "test_products_service.py",
       "norm_label": "consultantcontactvalues"
     },
     {
@@ -26182,8 +26182,8 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "web_lib_schemas_consultant_onboarding_consultantonboardingschema",
-      "community": 56,
-      "community_name": "dermatologist/dashboard/page.tsx",
+      "community": 134,
+      "community_name": "test_products_service.py",
       "norm_label": "consultantonboardingschema"
     },
     {
@@ -26193,8 +26193,8 @@
       "source_location": "L50",
       "_origin": "ast",
       "id": "web_lib_schemas_consultant_onboarding_consultantonboardingvalues",
-      "community": 56,
-      "community_name": "dermatologist/dashboard/page.tsx",
+      "community": 134,
+      "community_name": "test_products_service.py",
       "norm_label": "consultantonboardingvalues"
     },
     {
@@ -26204,8 +26204,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "web_lib_schemas_dermatologist_onboarding",
-      "community": 134,
-      "community_name": "test_products_service.py",
+      "community": 135,
+      "community_name": "ingest_knowledge.py",
       "norm_label": "dermatologist-onboarding.ts"
     },
     {
@@ -26215,8 +26215,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "web_lib_schemas_dermatologist_onboarding_dermatologistbackgroundschema",
-      "community": 134,
-      "community_name": "test_products_service.py",
+      "community": 135,
+      "community_name": "ingest_knowledge.py",
       "norm_label": "dermatologistbackgroundschema"
     },
     {
@@ -26226,8 +26226,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "web_lib_schemas_dermatologist_onboarding_dermatologistbackgroundvalues",
-      "community": 134,
-      "community_name": "test_products_service.py",
+      "community": 135,
+      "community_name": "ingest_knowledge.py",
       "norm_label": "dermatologistbackgroundvalues"
     },
     {
@@ -26237,8 +26237,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "web_lib_schemas_dermatologist_onboarding_dermatologistpracticeschema",
-      "community": 134,
-      "community_name": "test_products_service.py",
+      "community": 135,
+      "community_name": "ingest_knowledge.py",
       "norm_label": "dermatologistpracticeschema"
     },
     {
@@ -26248,8 +26248,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "web_lib_schemas_dermatologist_onboarding_dermatologistpracticevalues",
-      "community": 134,
-      "community_name": "test_products_service.py",
+      "community": 135,
+      "community_name": "ingest_knowledge.py",
       "norm_label": "dermatologistpracticevalues"
     },
     {
@@ -26259,8 +26259,8 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "web_lib_schemas_dermatologist_onboarding_dermatologistcontactschema",
-      "community": 134,
-      "community_name": "test_products_service.py",
+      "community": 135,
+      "community_name": "ingest_knowledge.py",
       "norm_label": "dermatologistcontactschema"
     },
     {
@@ -26270,8 +26270,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "web_lib_schemas_dermatologist_onboarding_dermatologistcontactvalues",
-      "community": 134,
-      "community_name": "test_products_service.py",
+      "community": 135,
+      "community_name": "ingest_knowledge.py",
       "norm_label": "dermatologistcontactvalues"
     },
     {
@@ -26281,8 +26281,8 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "web_lib_schemas_dermatologist_onboarding_dermatologistonboardingschema",
-      "community": 134,
-      "community_name": "test_products_service.py",
+      "community": 135,
+      "community_name": "ingest_knowledge.py",
       "norm_label": "dermatologistonboardingschema"
     },
     {
@@ -26292,8 +26292,8 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "web_lib_schemas_dermatologist_onboarding_dermatologistonboardingvalues",
-      "community": 134,
-      "community_name": "test_products_service.py",
+      "community": 135,
+      "community_name": "ingest_knowledge.py",
       "norm_label": "dermatologistonboardingvalues"
     },
     {
@@ -26941,7 +26941,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "web_package_dependencies_class_variance_authority",
-      "community": 187,
+      "community": 201,
       "community_name": "class-variance-authority",
       "norm_label": "class-variance-authority"
     },
@@ -26952,7 +26952,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "class_variance_authority",
-      "community": 187,
+      "community": 201,
       "community_name": "class-variance-authority",
       "norm_label": "class-variance-authority"
     },
@@ -33901,7 +33901,7 @@
       "label": "Backend (FastAPI, Python)",
       "file_type": "document",
       "source_file": "docs/CONVENTIONS.md",
-      "source_location": "L96",
+      "source_location": "L99",
       "_origin": "ast",
       "id": "docs_conventions_backend_fastapi_python",
       "community": 131,
@@ -33912,7 +33912,7 @@
       "label": "Frontend (Next.js, TypeScript)",
       "file_type": "document",
       "source_file": "docs/CONVENTIONS.md",
-      "source_location": "L121",
+      "source_location": "L124",
       "_origin": "ast",
       "id": "docs_conventions_frontend_next_js_typescript",
       "community": 131,
@@ -33923,7 +33923,7 @@
       "label": "Database & migrations",
       "file_type": "document",
       "source_file": "docs/CONVENTIONS.md",
-      "source_location": "L140",
+      "source_location": "L143",
       "_origin": "ast",
       "id": "docs_conventions_database_migrations",
       "community": 131,
@@ -33934,7 +33934,7 @@
       "label": "Git & process",
       "file_type": "document",
       "source_file": "docs/CONVENTIONS.md",
-      "source_location": "L166",
+      "source_location": "L169",
       "_origin": "ast",
       "id": "docs_conventions_git_process",
       "community": 131,
@@ -33945,7 +33945,7 @@
       "label": "Testing",
       "file_type": "document",
       "source_file": "docs/CONVENTIONS.md",
-      "source_location": "L173",
+      "source_location": "L176",
       "_origin": "ast",
       "id": "docs_conventions_testing",
       "community": 131,
@@ -33956,7 +33956,7 @@
       "label": "Makefile targets (the shared vocabulary)",
       "file_type": "document",
       "source_file": "docs/CONVENTIONS.md",
-      "source_location": "L186",
+      "source_location": "L189",
       "_origin": "ast",
       "id": "docs_conventions_makefile_targets_the_shared_vocabulary",
       "community": 131,
@@ -33967,7 +33967,7 @@
       "label": "Definition of done",
       "file_type": "document",
       "source_file": "docs/CONVENTIONS.md",
-      "source_location": "L190",
+      "source_location": "L193",
       "_origin": "ast",
       "id": "docs_conventions_definition_of_done",
       "community": 131,
@@ -122831,7 +122831,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/CONVENTIONS.md",
-      "source_location": "L96",
+      "source_location": "L99",
       "weight": 1.0,
       "_origin": "ast",
       "source": "docs_conventions_conventions",
@@ -122842,7 +122842,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/CONVENTIONS.md",
-      "source_location": "L140",
+      "source_location": "L143",
       "weight": 1.0,
       "_origin": "ast",
       "source": "docs_conventions_conventions",
@@ -122853,7 +122853,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/CONVENTIONS.md",
-      "source_location": "L190",
+      "source_location": "L193",
       "weight": 1.0,
       "_origin": "ast",
       "source": "docs_conventions_conventions",
@@ -122864,7 +122864,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/CONVENTIONS.md",
-      "source_location": "L121",
+      "source_location": "L124",
       "weight": 1.0,
       "_origin": "ast",
       "source": "docs_conventions_conventions",
@@ -122875,7 +122875,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/CONVENTIONS.md",
-      "source_location": "L166",
+      "source_location": "L169",
       "weight": 1.0,
       "_origin": "ast",
       "source": "docs_conventions_conventions",
@@ -122897,7 +122897,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/CONVENTIONS.md",
-      "source_location": "L186",
+      "source_location": "L189",
       "weight": 1.0,
       "_origin": "ast",
       "source": "docs_conventions_conventions",
@@ -122919,7 +122919,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/CONVENTIONS.md",
-      "source_location": "L173",
+      "source_location": "L176",
       "weight": 1.0,
       "_origin": "ast",
       "source": "docs_conventions_conventions",
@@ -124512,5 +124512,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "2674a237c95198ccded1458316f9bf5aa90ded83"
+  "built_at_commit": "e75ab1981b6188c903b448fb2ad7523c67563de0"
 }
