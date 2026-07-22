@@ -285,8 +285,14 @@ concrete source, key, and licensing caveat is catalogued in `docs/DATASETS_AND_A
 
 **Observability.** Structured JSON logs with a `request_id` propagated frontend → gateway
 → services → worker; error tracking (Sentry-class) from M1; OpenTelemetry traces across
-service modules; the PDF's system metrics (API response time, rec latency, dashboard load,
-concurrency) exposed as real dashboards by M3–M4, surfaced in the Admin monitoring screen.
+service modules (still planned). The PDF's system metrics are real as of M3-G: every
+request is timed in `RequestIdMiddleware` (`backend/app/core/logging.py`) and a rolling
+p50/p95 sample lands in `backend/app/core/metrics.py`'s Redis-backed store — one bucket
+for all API traffic, one scoped to `/recommendations/*` (rec latency), and one fed by the
+dashboard's own real Time-To-Interactive measurement
+(`POST /api/v1/instrumentation/dashboard-tti`). `GET /api/v1/analytics/admin` reads all
+three (read-only — analytics owns nothing) and the Admin Monitoring screen renders them
+alongside the audit log. Concurrency isn't measured yet (no real signal for it exists).
 
 **Security.** TLS everywhere; encryption at rest; signed URLs for all media; secrets via
 env only; RBAC + ownership checks per route; per-tier rate limits; security headers/CSP on
@@ -363,8 +369,8 @@ skinlytics/
 ├── training_dataset/               # MANIFEST.md + gitignored raw/ processed/
 ├── web/                            # Next.js + shadcn + Better Auth (+ designs/wireframes/)
 ├── backend/                        # FastAPI modular monolith (app/services/*, app/ai/*)
-├── ml/                             # PLANNED (M2+): training/experiments/eval
-└── graphify-out/                   # PLANNED: committed code-graph (GRAPHIFY_SETUP.md)
+├── ml/                             # eval/ (harness, M3-H) + training/ + registry/ (real models)
+└── graphify-out/                   # committed code-graph (GRAPHIFY_SETUP.md, ADR-006)
 ```
 
 ## 13. Milestone roadmap (8 weeks) with exit criteria

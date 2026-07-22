@@ -60,6 +60,20 @@ async def test_remove_deletes_the_vector(namespace: str) -> None:
     assert vector.count(namespace) == 0
 
 
+async def test_get_vector_returns_the_stored_embedding(namespace: str) -> None:
+    # Alternatives (M3-C) reuses the *already-projected* embedding as the query
+    # vector — embeddings are computed only in the worker, never the request path
+    # (milestone_3.md §8 "Inference flow").
+    embedding = _unit(0)
+    vector.upsert(namespace, "a", embedding, {}, dim=_DIM)
+
+    assert vector.get_vector(namespace, "a") == pytest.approx(embedding)
+
+
+async def test_get_vector_returns_none_for_a_missing_id(namespace: str) -> None:
+    assert vector.get_vector(namespace, "does-not-exist") is None
+
+
 async def test_clear_wipes_the_namespace(namespace: str) -> None:
     vector.upsert(namespace, "a", _vec(1.0), {}, dim=_DIM)
     vector.upsert(namespace, "b", _vec(2.0), {}, dim=_DIM)

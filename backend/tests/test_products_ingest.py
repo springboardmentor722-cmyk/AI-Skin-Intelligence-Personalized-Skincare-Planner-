@@ -44,6 +44,24 @@ def test_normalize_rows_accepts_a_valid_row() -> None:
     assert product["volume_ml"] == 150
 
 
+def test_normalize_rows_extracts_real_rating_and_review_count() -> None:
+    # M3-C: real Sephora product_info.csv columns (rating, reviews) — not invented.
+    df = pd.DataFrame([_row(rating=4.3, reviews=812)])
+    products, _rejected = normalize_rows(df)
+
+    assert products[0]["rating"] == 4.3
+    assert products[0]["review_count"] == 812
+
+
+def test_normalize_rows_leaves_rating_and_review_count_none_when_absent() -> None:
+    # Curated seed rows / rows missing these Kaggle columns entirely — never guessed.
+    df = pd.DataFrame([_row()])
+    products, _rejected = normalize_rows(df)
+
+    assert products[0]["rating"] is None
+    assert products[0]["review_count"] is None
+
+
 def test_normalize_rows_rejects_missing_mandatory_fields() -> None:
     df = pd.DataFrame([_row(brand_name=""), _row(product_name=None), _row(price_usd=float("nan"))])
     products, rejected = normalize_rows(df)

@@ -83,10 +83,17 @@ skinlytics/
 │   ├── Dockerfile                    # shared by `worker` (compose) and, at M4, `api`
 │   └── tests/
 │
-├── ml/                               # PLANNED (M2+): training / experiments / eval
+├── ml/                               # eval/ (harness, M3-H) + training/ + registry/
+│   ├── eval/                         #   run.py, suitability_eval.py (pure scoring,
+│   │                                 #   unit-tested), reports/ (gitignored, per-run)
+│   │                                 #   — reuses backend/'s venv, no own pyproject.toml
+│   ├── training/                     #   own uv project (torch/torchvision/scikit-learn);
+│   │                                 #   train_lesion_classifier.py + verify_artifact.py
+│   ├── registry/                     #   skin-lesion-screener-0.1.0/ (real trained model,
+│   │                                 #   metadata.json + README.md tracked, model.pt not)
 │   └── faiss/                        # M3-A: derived FAISS index files, gitignored,
 │                                     #   always rebuildable (`make rebuild-derived`)
-└── graphify-out/                     # PLANNED: committed code graph (GRAPHIFY_SETUP.md)
+└── graphify-out/                     # committed code graph (GRAPHIFY_SETUP.md, ADR-006)
 ```
 
 ## Backend (FastAPI, Python)

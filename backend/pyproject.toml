@@ -17,6 +17,7 @@ dependencies = [
     "motor>=3.7.1",
     "numpy>=2.4.6",
     "pandas>=3.0.3",
+    "pillow>=12.3.0",
     "pydantic-settings>=2.14.2",
     "pyjwt>=2.13.0",
     "python-multipart>=0.0.20",

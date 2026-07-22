@@ -58,6 +58,20 @@ async def _read_with_concerns(db: AsyncSession, profile: SkinProfile) -> SkinPro
     )
 
 
+async def list_profile_history(db: AsyncSession, user_id: str) -> list[SkinProfileRead]:
+    """Interface function (ADR-005) — Progress Tracking's weekly `concern_changes`
+    (M3-E) reads every saved profile version (oldest first) through this, never
+    `skin_profiles` directly. Every prior version is kept, never overwritten
+    (create_profile's own docstring), so this is a real history, not a
+    reconstruction."""
+    result = await db.execute(
+        select(SkinProfile)
+        .where(SkinProfile.user_id == user_id, SkinProfile.is_deleted.is_(False))
+        .order_by(SkinProfile.created_at.asc())
+    )
+    return [await _read_with_concerns(db, profile) for profile in result.scalars().all()]
+
+
 async def get_current_profile(db: AsyncSession, user_id: str) -> SkinProfileRead | None:
     result = await db.execute(
         select(SkinProfile).where(

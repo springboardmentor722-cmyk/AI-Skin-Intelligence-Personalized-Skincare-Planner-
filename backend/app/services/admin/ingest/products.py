@@ -120,6 +120,14 @@ def _parse_size_ml(raw: Any) -> int | None:
     return int(float(match.group(1))) if match else None
 
 
+def _safe_number(value: Any) -> float | None:
+    """Same `pd.isna()` discipline as `_safe_str` — a missing rating/reviews cell
+    stays None, never a guessed default (M3-C: real Sephora columns, not invented)."""
+    if pd.isna(value):
+        return None
+    return float(value)
+
+
 def _safe_str(value: Any) -> str:
     """`value or ""` doesn't catch a pandas-missing cell: `float("nan")` is truthy in
     Python, so a NaN brand_name/product_name silently passed through as the string
@@ -156,6 +164,7 @@ def normalize_rows(df: pd.DataFrame) -> tuple[list[dict[str, Any]], list[dict[st
             continue
         seen.add(dedupe_key)
 
+        reviews = _safe_number(row.get("reviews"))
         products.append(
             {
                 "brand_name": brand_name,
@@ -168,6 +177,8 @@ def normalize_rows(df: pd.DataFrame) -> tuple[list[dict[str, Any]], list[dict[st
                 "currency": "USD",
                 "volume_ml": volume_ml,
                 "ingredients": _parse_ingredients(row.get("ingredients")),
+                "rating": _safe_number(row.get("rating")),
+                "review_count": int(reviews) if reviews is not None else None,
             }
         )
 
@@ -203,6 +214,8 @@ async def load_into_database(db: AsyncSession, products: list[dict[str, Any]]) -
             price=entry["price"],
             currency=entry["currency"],
             volume_ml=entry["volume_ml"],
+            rating=entry["rating"],
+            review_count=entry["review_count"],
         )
         db.add(product)
         await db.flush()

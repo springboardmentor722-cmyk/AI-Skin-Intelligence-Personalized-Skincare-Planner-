@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.services.scores import scoring_engine
@@ -118,3 +118,10 @@ async def get_recent_scores(db: AsyncSession, user_id: str, days: int = 30) -> l
         .order_by(SkinScore.calculated_at.asc())
     )
     return list(result.scalars().all())
+
+
+async def count_all_assessments(db: AsyncSession) -> int:
+    """Interface function (ADR-005) — Analytics' admin platform-wide metric
+    (M3-F, PDF §8 "assessment counts") reads this real count through here, never
+    `skin_assessments` directly."""
+    return (await db.execute(select(func.count()).select_from(SkinScore))).scalar_one()

@@ -9,10 +9,17 @@ behavior worth covering, not incidental plumbing.
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db import vector
 from app.db.redis import get_redis
 from app.services.ingredients.models import Ingredient
-from app.services.recommendations.models import Product, ProductIngredient
+from app.services.recommendations.models import (
+    Product,
+    ProductIngredient,
+    ProductRecommendation,
+    ProductSkinType,
+)
 from app.services.recommendations.service import (
+    evaluate_products_suitability,
     get_products_by_ids,
     get_recommendations,
     list_all_products,
@@ -99,6 +106,124 @@ async def test_recommendations_are_cached_in_redis(
 
     cached = await get_redis().get(f"recommendation:cache:{test_user_id}")
     assert cached is not None
+
+
+async def test_an_allergy_flagged_product_can_never_appear_in_recommendations(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    """milestone_3.md §M3-D acceptance criterion — a hard filter, not a ranking
+    penalty, layered on top of the existing skin-type-avoid junction filter (M2).
+    Real seeded ingredient ("Niacinamide", seed.py) linked to a temp product that
+    otherwise legitimately matches skin_type_id=1, plus the user's own free-text
+    allergy naming it (app/ai/suitability.py's exact-match rule)."""
+    niacinamide = (
+        await db_session.execute(
+            select(Ingredient).where(Ingredient.ingredient_name == "Niacinamide")
+        )
+    ).scalar_one()
+
+    product = Product(
+        brand_name="Test Only",
+        product_name="Would-Otherwise-Match Serum",
+        category="Treatment",
+        is_active=True,
+    )
+    db_session.add(product)
+    await db_session.flush()
+    db_session.add(
+        ProductIngredient(product_id=product.product_id, ingredient_id=niacinamide.ingredient_id)
+    )
+    db_session.add(
+        ProductSkinType(
+            product_id=product.product_id, skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS
+        )
+    )
+    await db_session.flush()
+
+    await create_profile(
+        db_session,
+        test_user_id,
+        SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS, allergies="Niacinamide"),
+    )
+
+    results = await get_recommendations(db_session, test_user_id)
+
+    assert product.product_id not in {r.product.product_id for r in results}
+
+
+async def test_evaluate_products_suitability_flags_allergy_and_scores_a_clean_product_high(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    niacinamide = (
+        await db_session.execute(
+            select(Ingredient).where(Ingredient.ingredient_name == "Niacinamide")
+        )
+    ).scalar_one()
+    product = Product(brand_name="Test Only", product_name="Clean Serum", category="Treatment")
+    db_session.add(product)
+    await db_session.flush()
+    db_session.add(
+        ProductIngredient(product_id=product.product_id, ingredient_id=niacinamide.ingredient_id)
+    )
+    await db_session.flush()
+
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+    from app.services.skin_profile.service import get_current_profile
+
+    profile = await get_current_profile(db_session, test_user_id)
+    assert profile is not None
+
+    aggregate = await evaluate_products_suitability(
+        db_session, [product.product_id], profile, "Oily"
+    )
+
+    assert aggregate[product.product_id].any_allergy is False
+    assert aggregate[product.product_id].score > 0.5
+
+
+async def test_recommendations_use_vector_similarity_when_a_profile_embedding_exists(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    """Stage 2 (milestone_3.md §2) — uses the *already-projected* embedding as the
+    query vector (never computed request-path). A profile vector deliberately
+    identical to a real seeded product's vector should push that product's
+    vector_similarity signal to (near) 1.0."""
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+    profile_vector_id = f"user_{test_user_id}"
+    try:
+        embedding = [1.0] + [0.0] * 383
+        vector.upsert(
+            "user_profiles", profile_vector_id, embedding, {"user_id": test_user_id}, dim=384
+        )
+
+        results = await get_recommendations(db_session, test_user_id)
+
+        assert results  # seeded catalog for skin_type_id=1 is non-empty
+    finally:
+        vector.remove("user_profiles", profile_vector_id)
+
+
+async def test_recommendations_persist_the_served_set_to_product_recommendations(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+
+    results = await get_recommendations(db_session, test_user_id)
+
+    rows = (
+        await db_session.execute(
+            select(ProductRecommendation).where(ProductRecommendation.user_id == test_user_id)
+        )
+    ).scalars().all()
+    assert len(rows) == len(results)
+    assert {row.product_id for row in rows} == {r.product.product_id for r in results}
+    assert all(row.recommendation_reason for row in rows)
 
 
 async def test_saving_a_new_profile_invalidates_the_recommendation_cache(

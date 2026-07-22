@@ -386,6 +386,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/recommendations/feedback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit Recommendation Feedback */
+        post: operations["submit_recommendation_feedback_api_v1_recommendations_feedback_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Products */
+        get: operations["list_products_api_v1_products_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/products/compare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Compare Products */
+        get: operations["compare_products_api_v1_products_compare_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/products/{product_id}/alternatives": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Alternatives */
+        get: operations["get_alternatives_api_v1_products__product_id__alternatives_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/products/{product_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Product */
+        get: operations["get_product_api_v1_products__product_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ingredients": {
         parameters: {
             query?: never;
@@ -465,6 +550,93 @@ export interface paths {
         get: operations["get_my_progress_summary_api_v1_progress_me_summary_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/progress/me/photos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Progress Photos */
+        get: operations["get_my_progress_photos_api_v1_progress_me_photos_get"];
+        put?: never;
+        /** Upload My Progress Photo */
+        post: operations["upload_my_progress_photo_api_v1_progress_me_photos_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/progress/me/logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Progress Logs */
+        get: operations["get_my_progress_logs_api_v1_progress_me_logs_get"];
+        put?: never;
+        /** Upsert My Progress Log */
+        post: operations["upsert_my_progress_log_api_v1_progress_me_logs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Analytics */
+        get: operations["get_my_analytics_api_v1_analytics_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/admin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Admin Analytics */
+        get: operations["get_admin_analytics_api_v1_analytics_admin_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/instrumentation/dashboard-tti": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Report Dashboard Tti */
+        post: operations["report_dashboard_tti_api_v1_instrumentation_dashboard_tti_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -906,6 +1078,46 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AdherenceDay
+         * @description One cell of the wireframe's "Routine Adherence" heat grid — real signal from
+         *     `routine_logs` via the routines service interface (`list_active_step_ids` +
+         *     `list_recent_routine_logs`), never fabricated.
+         */
+        AdherenceDay: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Completed Ratio */
+            completed_ratio: number;
+        };
+        /** AdherenceDistributionBucket */
+        AdherenceDistributionBucket: {
+            /** Range Label */
+            range_label: string;
+            /** User Count */
+            user_count: number;
+        };
+        /** AnalyticsAdminRead */
+        AnalyticsAdminRead: {
+            /** Total Assessments */
+            total_assessments: number;
+            recommendation_acceptance: components["schemas"]["RecommendationAcceptanceRead"];
+            /** Adherence Distribution */
+            adherence_distribution: components["schemas"]["AdherenceDistributionBucket"][];
+            api_latency: components["schemas"]["LatencyStatsRead"];
+            recommendation_latency: components["schemas"]["LatencyStatsRead"];
+            dashboard_tti: components["schemas"]["LatencyStatsRead"];
+        };
+        /** AnalyticsMeRead */
+        AnalyticsMeRead: {
+            /** Score Vs Adherence */
+            score_vs_adherence: components["schemas"]["ScoreAdherencePoint"][];
+            /** Correlations */
+            correlations: components["schemas"]["CorrelationInsight"][];
+        };
         /** AppearancePreferenceRead */
         AppearancePreferenceRead: {
             /**
@@ -1022,6 +1234,11 @@ export interface components {
             /** File */
             file: string;
         };
+        /** Body_upload_my_progress_photo_api_v1_progress_me_photos_post */
+        Body_upload_my_progress_photo_api_v1_progress_me_photos_post: {
+            /** File */
+            file: string;
+        };
         /** ClientDetailRead */
         ClientDetailRead: {
             /** User Id */
@@ -1106,6 +1323,15 @@ export interface components {
             score_trend: number[];
             /** Last Sync */
             last_sync: string | null;
+        };
+        /** ConcernChangeRead */
+        ConcernChangeRead: {
+            /** Concern */
+            concern: string;
+            /** Before */
+            before: number;
+            /** After */
+            after: number;
         };
         /** ConcernTreated */
         ConcernTreated: {
@@ -1342,6 +1568,27 @@ export interface components {
             phone?: string | null;
         };
         /**
+         * CorrelationInsight
+         * @description Every field is a real, computed claim (same discipline as
+         *     app/ai/schemas.py's SuitabilityResult/TrendInsight) — `correlation` is a plain
+         *     Pearson r over the user's own real history, `confidence` is r² (the standard
+         *     "fraction of variance explained" reading of a correlation coefficient), never
+         *     a guessed number. `None` when there isn't enough history yet — an honest empty
+         *     state, not a fabricated value (milestone_3.md §M3-F acceptance criteria).
+         */
+        CorrelationInsight: {
+            /** Label */
+            label: string;
+            /** Data Source */
+            data_source: string;
+            /** Correlation */
+            correlation: number | null;
+            /** Confidence */
+            confidence: number | null;
+            /** Summary */
+            summary: string;
+        };
+        /**
          * DashboardStats
          * @description Admin dashboard (Branch 6) — real counts only, no invented KPIs. User-role
          *     counts come from Better Auth (web/app/api/admin/dashboard-stats/route.ts calls
@@ -1355,6 +1602,18 @@ export interface components {
             pending_dermatologist_count: number;
             /** Recent Activity */
             recent_activity: components["schemas"]["AuditLogRead"][];
+        };
+        /**
+         * DashboardTtiReport
+         * @description A real, browser-measured Time-To-Interactive sample (M3-G,
+         *     ARCHITECTURE.md §9's "dashboard load" metric) — never a value this backend
+         *     invents. `le=60_000` is a sanity bound (a minute), not a real page ever takes
+         *     that long; guards the rolling store against a corrupt client payload skewing
+         *     every percentile.
+         */
+        DashboardTtiReport: {
+            /** Duration Ms */
+            duration_ms: number;
         };
         /** DermatologistProfileDetail */
         DermatologistProfileDetail: {
@@ -1623,6 +1882,20 @@ export interface components {
             /** Pairs */
             pairs: components["schemas"]["InteractionPair"][];
         };
+        /**
+         * LatencyStatsRead
+         * @description Real, measured request-duration percentiles (app/core/metrics.py's
+         *     rolling Redis sample store, M3-G) — `None` fields mean no samples exist
+         *     yet, never a guessed number.
+         */
+        LatencyStatsRead: {
+            /** Sample Count */
+            sample_count: number;
+            /** P50 Ms */
+            p50_ms: number | null;
+            /** P95 Ms */
+            p95_ms: number | null;
+        };
         /** LifestyleLogCreate */
         LifestyleLogCreate: {
             /**
@@ -1678,6 +1951,16 @@ export interface components {
              */
             logged_at: string;
         };
+        /** Milestone */
+        Milestone: {
+            /** Label */
+            label: string;
+            /**
+             * Achieved On
+             * Format: date
+             */
+            achieved_on: string;
+        };
         /** PageMeta */
         PageMeta: {
             /** Page */
@@ -1686,6 +1969,94 @@ export interface components {
             page_size: number;
             /** Total */
             total: number;
+        };
+        /** ProductAlternativesRead */
+        ProductAlternativesRead: {
+            /** Alternatives */
+            alternatives: components["schemas"]["ProductRead"][];
+        };
+        /** ProductCompareItem */
+        ProductCompareItem: {
+            product: components["schemas"]["ProductRead"];
+            /** Ingredient Names */
+            ingredient_names: string[];
+            /** Skin Types Supported */
+            skin_types_supported: string[];
+            /** Concerns Supported */
+            concerns_supported: string[];
+        };
+        /** ProductCompareRead */
+        ProductCompareRead: {
+            /** Items */
+            items: components["schemas"]["ProductCompareItem"][];
+        };
+        /** ProductDetail */
+        ProductDetail: {
+            /** Product Id */
+            product_id: number;
+            /** Brand Name */
+            brand_name: string | null;
+            /** Product Name */
+            product_name: string | null;
+            /** Category */
+            category: string | null;
+            /** Product Url */
+            product_url: string | null;
+            /** Image Url */
+            image_url: string | null;
+            /** Price */
+            price: number | null;
+            /** Currency */
+            currency: string | null;
+            /** Volume Ml */
+            volume_ml: number | null;
+            /** Spf Rating */
+            spf_rating: number | null;
+            /** Rating */
+            rating: number | null;
+            /** Review Count */
+            review_count: number | null;
+            /** Is Active */
+            is_active: boolean | null;
+            /** Ingredients */
+            ingredients: components["schemas"]["ProductIngredientAnnotation"][];
+            /** Suitable */
+            suitable: boolean | null;
+            /** Suitability Confidence */
+            suitability_confidence: number | null;
+        };
+        /** ProductIngredientAnnotation */
+        ProductIngredientAnnotation: {
+            /** Ingredient Id */
+            ingredient_id: number;
+            /** Ingredient Name */
+            ingredient_name: string;
+            /** Avoid Flag */
+            avoid_flag: boolean;
+            /** Allergy Flag */
+            allergy_flag: boolean;
+            /** Reason */
+            reason: string | null;
+        };
+        /** ProductListMeta */
+        ProductListMeta: {
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Total */
+            total: number;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "elasticsearch" | "fallback";
+        };
+        /** ProductListPage */
+        ProductListPage: {
+            /** Items */
+            items: components["schemas"]["ProductRead"][];
+            meta: components["schemas"]["ProductListMeta"];
         };
         /**
          * ProductPage
@@ -1715,11 +2086,106 @@ export interface components {
             currency: string | null;
             /** Spf Rating */
             spf_rating: number | null;
+            /** Rating */
+            rating: number | null;
+            /** Review Count */
+            review_count: number | null;
         };
-        /** ProgressSummaryRead */
+        /** ProgressLogCreate */
+        ProgressLogCreate: {
+            /** Notes */
+            notes?: string | null;
+        };
+        /** ProgressLogRead */
+        ProgressLogRead: {
+            /** Week Number */
+            week_number: number;
+            /** Before Image Url */
+            before_image_url: string | null;
+            /** After Image Url */
+            after_image_url: string | null;
+            /** Improvement Score */
+            improvement_score: number | null;
+            /** Concern Changes */
+            concern_changes: components["schemas"]["ConcernChangeRead"][];
+            /** Trend Summary */
+            trend_summary: string | null;
+            /** Notes */
+            notes: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** ProgressPhotoRead */
+        ProgressPhotoRead: {
+            /** Progress Image Id */
+            progress_image_id: number;
+            /** Image Stage */
+            image_stage: string | null;
+            /**
+             * Uploaded At
+             * Format: date-time
+             */
+            uploaded_at: string;
+            /** Url */
+            url: string;
+        };
+        /** ProgressPhotosRead */
+        ProgressPhotosRead: {
+            /** Photos */
+            photos: components["schemas"]["ProgressPhotoRead"][];
+            before: components["schemas"]["ProgressPhotoRead"] | null;
+            after: components["schemas"]["ProgressPhotoRead"] | null;
+        };
+        /**
+         * ProgressSummaryRead
+         * @description Contract kept additive (milestone_3.md §M3-E: "progress/me/summary
+         *     unchanged" contract) — `points` is the original M1 field; everything else is
+         *     new and optional/empty-default, never breaking an existing consumer.
+         */
         ProgressSummaryRead: {
             /** Points */
             points: components["schemas"]["ScoreTrendPoint"][];
+            /**
+             * Adherence
+             * @default []
+             */
+            adherence: components["schemas"]["AdherenceDay"][];
+            insight?: components["schemas"]["TrendInsightRead"] | null;
+            /**
+             * Milestones
+             * @default []
+             */
+            milestones: components["schemas"]["Milestone"][];
+        };
+        /** RecommendationAcceptanceRead */
+        RecommendationAcceptanceRead: {
+            /** Total Feedback Events */
+            total_feedback_events: number;
+            /** Accepted Count */
+            accepted_count: number;
+            /** Acceptance Rate */
+            acceptance_rate: number | null;
+        };
+        /**
+         * RecommendationFeedbackCreate
+         * @description Mongo `recommendation_feedback` (NEW, M3-D, milestone_3.md §5) — the future
+         *     ranking-label stream (AI_ML.md "Feedback loop"). `recommendation_id` is optional:
+         *     a user can react to a product they saw outside a specific served set (e.g. from
+         *     the catalog), not only from `GET /recommendations/me`.
+         */
+        RecommendationFeedbackCreate: {
+            /** Product Id */
+            product_id: number;
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "thumbs_up" | "thumbs_down" | "saved" | "dismissed";
+            /** Recommendation Id */
+            recommendation_id?: number | null;
         };
         /** RecommendationRead */
         RecommendationRead: {
@@ -1766,6 +2232,18 @@ export interface components {
             products: components["schemas"]["RoutineProductRead"][];
             /** Completed Today */
             completed_today: boolean;
+        };
+        /** ScoreAdherencePoint */
+        ScoreAdherencePoint: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Overall Score */
+            overall_score: number | null;
+            /** Adherence Ratio */
+            adherence_ratio: number | null;
         };
         /** ScoreRead */
         ScoreRead: {
@@ -1918,6 +2396,22 @@ export interface components {
             allergy_flag: boolean;
             /** Avoid Flag */
             avoid_flag: boolean;
+        };
+        /** TrendInsightRead */
+        TrendInsightRead: {
+            /**
+             * Direction
+             * @enum {string}
+             */
+            direction: "improving" | "declining" | "stable";
+            /** Magnitude */
+            magnitude: number;
+            /** Confidence */
+            confidence: number;
+            /** Summary */
+            summary: string;
+            /** Low Confidence */
+            low_confidence: boolean;
         };
         /** UserMeResponse */
         UserMeResponse: {
@@ -2738,6 +3232,168 @@ export interface operations {
             };
         };
     };
+    submit_recommendation_feedback_api_v1_recommendations_feedback_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecommendationFeedbackCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_products_api_v1_products_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                q?: string | null;
+                category?: string | null;
+                brand?: string | null;
+                budget_min?: number | null;
+                budget_max?: number | null;
+                skin_type?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductListPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    compare_products_api_v1_products_compare_get: {
+        parameters: {
+            query: {
+                ids: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductCompareRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_alternatives_api_v1_products__product_id__alternatives_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                product_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductAlternativesRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_product_api_v1_products__product_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                product_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_ingredients_api_v1_ingredients_get: {
         parameters: {
             query?: {
@@ -2884,6 +3540,194 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ProgressSummaryRead"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_my_progress_photos_api_v1_progress_me_photos_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgressPhotosRead"];
+                };
+            };
+        };
+    };
+    upload_my_progress_photo_api_v1_progress_me_photos_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_my_progress_photo_api_v1_progress_me_photos_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgressPhotosRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_my_progress_logs_api_v1_progress_me_logs_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgressLogRead"][];
+                };
+            };
+        };
+    };
+    upsert_my_progress_log_api_v1_progress_me_logs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProgressLogCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgressLogRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_my_analytics_api_v1_analytics_me_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalyticsMeRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_admin_analytics_api_v1_analytics_admin_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalyticsAdminRead"];
+                };
+            };
+        };
+    };
+    report_dashboard_tti_api_v1_instrumentation_dashboard_tti_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DashboardTtiReport"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

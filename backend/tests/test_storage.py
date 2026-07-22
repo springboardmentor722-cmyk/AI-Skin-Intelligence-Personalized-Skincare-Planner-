@@ -5,8 +5,11 @@ presigned URL over HTTP, delete, confirm gone. Matches this project's establishe
 fixture does the same for Postgres).
 """
 
+import io
+
 import httpx
 import pytest
+from PIL import Image
 
 from app.core.storage import (
     MAX_UPLOAD_BYTES,
@@ -15,6 +18,7 @@ from app.core.storage import (
     delete,
     get_presigned_url,
     sniff_content_type,
+    strip_exif,
     upload,
 )
 
@@ -111,3 +115,43 @@ async def test_upload_rejects_a_file_over_the_size_limit() -> None:
 
     with pytest.raises(FileValidationError):
         await upload(key, oversized, allowed_content_types={"application/pdf"})
+
+
+# --- strip_exif — progress photos (M3-E, milestone_3.md's own "EXIF stripped,
+# private bucket" requirement) never leak a phone's embedded GPS location ---
+
+
+def _jpeg_with_real_gps_exif() -> bytes:
+    """A real JPEG, real EXIF IFD, with an actual GPS tag set — not a synthetic
+    placeholder. Mirrors exactly what a phone photo looks like before stripping."""
+    image = Image.new("RGB", (4, 4), color="red")
+    exif = Image.Exif()
+    # Tag 34853 = GPSInfo, a nested IFD dict — exactly what a phone photo embeds.
+    exif[34853] = {1: "N", 2: (37.0, 46.0, 0.0), 3: "W", 4: (122.0, 25.0, 0.0)}
+    buffer = io.BytesIO()
+    image.save(buffer, format="JPEG", exif=exif)
+    return buffer.getvalue()
+
+
+def test_strip_exif_removes_gps_data_from_a_real_jpeg() -> None:
+    original = _jpeg_with_real_gps_exif()
+    # Sanity check: the fixture really does carry a real GPS tag before stripping.
+    assert Image.open(io.BytesIO(original)).getexif().get(34853) is not None
+
+    stripped = strip_exif(original, "image/jpeg")
+
+    reopened = Image.open(io.BytesIO(stripped))
+    assert reopened.getexif().get(34853) is None
+    assert reopened.size == (4, 4)  # pixel content itself is preserved, only metadata is dropped
+
+
+def test_strip_exif_is_a_noop_passthrough_for_a_format_with_no_exif_concept() -> None:
+    # webp/png progress photos have nothing to strip in practice — strip_exif still
+    # must return valid, openable image bytes, not silently corrupt them.
+    buffer = io.BytesIO()
+    Image.new("RGB", (2, 2), color="blue").save(buffer, format="PNG")
+    original = buffer.getvalue()
+
+    stripped = strip_exif(original, "image/png")
+
+    assert Image.open(io.BytesIO(stripped)).size == (2, 2)

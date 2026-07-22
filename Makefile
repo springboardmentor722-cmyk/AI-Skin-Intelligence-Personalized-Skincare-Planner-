@@ -68,6 +68,7 @@ rebuild-derived:
 
 test:
 	@if [ -d backend ]; then (cd backend && uv run pytest) || exit 1; fi
+	@if [ -d ml ]; then (cd backend && PYTHONPATH=".;../ml" uv run pytest ../ml/eval/test_suitability_eval.py) || exit 1; fi
 	@if [ -d web ]; then (cd web && npm test) || exit 1; fi
 	@if [ ! -d backend ] && [ ! -d web ]; then echo "No test suites yet."; fi
 
@@ -82,7 +83,7 @@ typecheck:
 	@if [ ! -d backend ] && [ ! -d web ]; then echo "Nothing to typecheck yet."; fi
 
 eval:
-	@if [ -d ml ]; then (cd ml && uv run python -m eval.run); else echo "ml/ does not exist yet (M2+)."; fi
+	@if [ -d ml ]; then (cd backend && PYTHONPATH=../ml uv run python -m eval.run); else echo "ml/ does not exist yet (M2+)."; fi
 
 graph:
 	@echo "Graphify setup deferred — see docs/GRAPHIFY_SETUP.md and ADR-006 (docs/DECISIONS.md)."

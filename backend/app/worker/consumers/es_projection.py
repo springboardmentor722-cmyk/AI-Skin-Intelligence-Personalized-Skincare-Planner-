@@ -16,9 +16,9 @@ from app.services.skin_profile.models import SkinConcern, SkinType
 # Mappings verbatim from skinlytics_elasticsearch_schema_v2.txt — ES documents are
 # DERIVED, never authored here directly (that's the whole point of the outbox +
 # worker, ADR-010). Fields the current schema simply has no data for yet
-# (description, rating, popularity_score — products.rating lands M3-C, §5) are
-# omitted rather than fabricated (AGENTS.md's "don't invent a column" rule extends
-# to "don't invent a value").
+# (description, popularity_score — no real formula defined, would mean inventing
+# one) stay omitted rather than fabricated. `rating`/`review_count` are real as of
+# M3-C (products.rating/review_count, migration 103dadbc13ce).
 _PRODUCTS_MAPPING = {
     "properties": {
         "product_id": {"type": "integer"},
@@ -33,6 +33,7 @@ _PRODUCTS_MAPPING = {
         "currency": {"type": "keyword"},
         "spf_rating": {"type": "integer"},
         "rating": {"type": "float"},
+        "review_count": {"type": "integer"},
         "popularity_score": {"type": "float"},
         "is_active": {"type": "boolean"},
         "created_at": {"type": "date"},
@@ -178,8 +179,9 @@ async def project_to_elasticsearch(
     db: AsyncSession, mongo: Any, aggregate_type: str, aggregate_id: str
 ) -> None:
     """Deletes the ES doc if the source row is gone (a real delete event or a
-    since-removed row), upserts otherwise. `profile` has no ES index yet — a
-    documented no-op until the recommender's user_profiles_namespace lands (M3-D)."""
+    since-removed row), upserts otherwise. `profile` is permanently a no-op here —
+    profiles are never searched via Elasticsearch, only via vector similarity
+    (app/worker/consumers/embeddings.py's user_profiles_namespace, M3-D)."""
     if aggregate_type == "profile":
         return
 

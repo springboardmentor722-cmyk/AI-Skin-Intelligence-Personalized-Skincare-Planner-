@@ -64,17 +64,25 @@ interface RawNavItem {
 const RAW_NAV_ITEMS: Record<Role, RawNavItem[]> = {
   user: [
     { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+    // M3-G (owner decision, 2026-07-22): previously reachable only via the
+    // account menu — added to primary nav since everything else in the app
+    // derives from this data (AGENTS.md §4).
+    { label: "Skin Profile", path: "/profile", icon: UserRound },
     { label: "My Routine", path: "/routine", icon: ClipboardList },
-    { label: "Daily Check-in", path: "/check-in", icon: CalendarCheck, built: false },
-    // Milestone 1 audit: repointed at the real, built Product Recommendations screen
-    // (app/(user)/recommendations) instead of a nonexistent /products catalog page —
-    // the nearest real match for "Products" today, not a guess at a second, separate
-    // product-browse feature. Flagged in the audit report as an assumption, not a
-    // silent decision.
-    { label: "Products", path: "/recommendations", icon: ShoppingBag },
+    // M3-E: real screen now (routine checklist + hydration/sleep quick log +
+    // progress photo capture, all writing the same endpoints the dashboard/
+    // progress screens already use).
+    { label: "Daily Check-in", path: "/check-in", icon: CalendarCheck },
+    // M3-C: repointed to the real product catalog (app/(user)/products) now that it
+    // exists — restores "Products" to its real meaning (milestone_3.md §3, flagged in
+    // that module's PR). Recommendations ("For you") is linked from the catalog and
+    // dashboard instead of owning the nav item.
+    { label: "Products", path: "/products", icon: ShoppingBag },
     { label: "Ingredients", path: "/ingredients", icon: FlaskConical },
     { label: "Progress", path: "/progress", icon: TrendingUp },
-    { label: "Insights", path: "/insights", icon: Sparkles, built: false },
+    // M3-F: real screen now (GET /api/v1/analytics/me — correlation insights over
+    // real logged history, honest empty state for new users).
+    { label: "Insights", path: "/insights", icon: Sparkles },
     { label: "Reports", path: "/reports", icon: FileText, built: false },
     { label: "Notifications", path: "/notifications", icon: Bell, built: false },
     // Phase 3 (theme system): Settings now covers a real Appearance section.
@@ -133,14 +141,10 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = Object.fromEntries(
   )
 ) as Record<Role, NavItem[]>;
 
-// Milestone 1 audit finding: GlassTopbar derives its page title by matching the
-// current path against NAV_ITEMS — /profile has no nav entry at all (PROGRESS.md
-// Pending: "needs a product decision", not guessed here) so its title rendered
-// blank. This is a title-only fallback, not a nav placement decision — it doesn't add
-// /profile to any sidebar.
-export const EXTRA_TITLES: Partial<Record<string, string>> = {
-  "/profile": "Skin Profile",
-};
+// GlassTopbar's fallback for any route with no matching NAV_ITEMS entry (a
+// title-only mechanism, not a nav placement decision) — empty now that
+// /profile has a real nav entry (M3-G) resolving its title directly.
+export const EXTRA_TITLES: Partial<Record<string, string>> = {};
 
 export const ROLE_LABELS: Record<Role, string> = {
   user: "User",

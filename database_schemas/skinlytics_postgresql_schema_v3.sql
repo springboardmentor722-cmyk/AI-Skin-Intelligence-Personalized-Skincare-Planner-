@@ -217,6 +217,10 @@ CREATE TABLE products (
     currency VARCHAR(10),
     volume_ml INTEGER,
     spf_rating INTEGER,
+    -- M3-C (migration 103dadbc13ce): real Sephora product_info.csv columns
+    -- (rating, reviews) -- nullable, curated seed rows have neither.
+    rating DECIMAL(3,2),
+    review_count INTEGER,
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

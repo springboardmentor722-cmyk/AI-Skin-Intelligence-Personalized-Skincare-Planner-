@@ -23,11 +23,13 @@ caller-supplied one; the caller only says which types are acceptable for its use
 case (verification documents: PDF + the infra doc's own image list).
 """
 
+import io
 import uuid
 from collections.abc import Callable
 
 import aioboto3
 from botocore.config import Config
+from PIL import Image
 
 from app.core.config import settings
 
@@ -63,6 +65,24 @@ VERIFICATION_DOCUMENT_CONTENT_TYPES = {
     "image/png",
     "image/webp",
 }
+
+
+_PILLOW_FORMAT_BY_CONTENT_TYPE = {
+    "image/jpeg": "JPEG",
+    "image/png": "PNG",
+    "image/webp": "WEBP",
+}
+
+
+def strip_exif(data: bytes, content_type: str) -> bytes:
+    """Progress photos (M3-E, milestone_3.md's own "EXIF stripped, private bucket")
+    never keep a phone's embedded GPS/location metadata. Re-encoding via Pillow
+    without passing an `exif=` kwarg on save is the strip — Pillow only writes EXIF
+    when the caller explicitly hands it back, so a fresh save carries none."""
+    image = Image.open(io.BytesIO(data))
+    buffer = io.BytesIO()
+    image.save(buffer, format=_PILLOW_FORMAT_BY_CONTENT_TYPE[content_type])
+    return buffer.getvalue()
 
 
 def sniff_content_type(data: bytes) -> str | None:

@@ -37,6 +37,18 @@ build/
 # `make rebuild-derived`; never hand-authored, so never committed. ml/eval, ml/registry
 # (M3-H) are separate, tracked source trees, not covered by this.
 ml/faiss/
+# `make eval`'s own timestamped run reports (M3-H) — regenerated every run,
+# never hand-authored; the eval *code* under ml/eval/ is tracked, its output isn't.
+ml/eval/reports/
+# Trained model weights (2026-07-23, skin-lesion-screener) — large (~45MB) and
+# fully reproducible by re-running ml/training/ against the real, already-
+# downloaded dataset (training_dataset/raw/isic-2019/); same "regenerable
+# binary, never committed" treatment as ml/faiss/ above. metadata.json + the
+# model's own README.md (real metrics, dataset composition, the fairness-gap
+# and medical disclaimers) ARE tracked — only the weights file isn't.
+ml/registry/**/*.pt
+ml/registry/**/*.pth
+ml/registry/**/*.onnx
 
 # --- Generated (regenerate with `make openapi`; web/lib/api-types.ts IS committed) ---
 /openapi.json

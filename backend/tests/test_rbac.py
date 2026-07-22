@@ -105,8 +105,16 @@ async def test_require_verified_professional_rejects_missing_profile(
         ("GET", "/api/v1/routine"),
         ("POST", "/api/v1/routine/generate"),
         ("GET", "/api/v1/recommendations/me"),
+        ("POST", "/api/v1/recommendations/feedback"),
         ("GET", "/api/v1/progress/me/summary"),
+        ("GET", "/api/v1/progress/me/photos"),
+        ("GET", "/api/v1/progress/me/logs"),
+        ("POST", "/api/v1/progress/me/logs"),
+        ("GET", "/api/v1/analytics/me"),
         ("GET", "/api/v1/ingredients/1/suitability/me"),
+        ("GET", "/api/v1/products/1"),
+        ("GET", "/api/v1/products/compare?ids=1,2"),
+        ("GET", "/api/v1/products/1/alternatives"),
     ],
 )
 async def test_user_only_routes_reject_other_roles(
@@ -154,6 +162,7 @@ async def test_user_only_routes_reject_other_roles(
         ("GET", "/api/v1/admin/dashboard-stats", None),
         ("GET", "/api/v1/admin/ingredients", None),
         ("GET", "/api/v1/admin/products", None),
+        ("GET", "/api/v1/analytics/admin", None),
     ],
 )
 async def test_admin_only_routes_reject_non_admin_roles(
@@ -346,3 +355,43 @@ async def test_ingredient_browsing_routes_allow_every_signed_in_role(
             app.dependency_overrides.pop(require_user, None)
         assert list_response.status_code == 200
         assert detail_response.status_code == 200
+
+
+async def test_product_catalog_list_allows_every_signed_in_role(client: AsyncClient) -> None:
+    # Only the list endpoint is "user (+all)" per milestone_3.md §6's API table —
+    # detail/compare/alternatives carry per-user annotations and stay user-only
+    # (test_user_only_routes_reject_other_roles).
+    for role in ("user", "consultant", "dermatologist", "admin"):
+        app.dependency_overrides[require_user] = lambda role=role: {
+            "id": f"{role}_1",
+            "role": role,
+            "claims": {},
+        }
+        try:
+            response = await client.get("/api/v1/products")
+        finally:
+            app.dependency_overrides.pop(require_user, None)
+        assert response.status_code == 200
+
+
+async def test_dashboard_tti_report_allows_every_signed_in_role(client: AsyncClient) -> None:
+    # Every one of the four roles has its own dashboard (ARCHITECTURE.md §9) — TTI
+    # reporting isn't a `user`-role-only surface. Round-trip coverage (the sample
+    # actually lands) lives in test_instrumentation_router.py; this only checks
+    # every role clears the auth gate.
+    from app.db.redis import get_redis
+
+    for role in ("user", "consultant", "dermatologist", "admin"):
+        app.dependency_overrides[require_user] = lambda role=role: {
+            "id": f"{role}_1",
+            "role": role,
+            "claims": {},
+        }
+        try:
+            response = await client.post(
+                "/api/v1/instrumentation/dashboard-tti", json={"duration_ms": 1000.0}
+            )
+        finally:
+            app.dependency_overrides.pop(require_user, None)
+            await get_redis().delete("metrics:latency:dashboard_tti")
+        assert response.status_code == 204

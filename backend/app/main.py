@@ -15,11 +15,14 @@ from app.db.mongo import get_mongo_db
 from app.db.postgres import engine
 from app.db.redis import get_redis
 from app.services.admin.router import router as admin_router
+from app.services.analytics.router import router as analytics_router
 from app.services.clinical_review.router import router as clinical_review_router
 from app.services.consultant_profile.router import router as consultant_profile_router
 from app.services.dermatologist_profile.router import router as dermatologist_profile_router
 from app.services.ingredients.router import router as ingredients_router
+from app.services.instrumentation.router import router as instrumentation_router
 from app.services.progress.router import router as progress_router
+from app.services.recommendations.products_router import router as products_router
 from app.services.recommendations.router import router as recommendations_router
 from app.services.routines.router import router as routines_router
 from app.services.scores.router import router as scores_router
@@ -126,10 +129,16 @@ def create_app() -> FastAPI:
     api_v1.include_router(scores_router, tags=["scores"])
     api_v1.include_router(routines_router, tags=["routines"])
     api_v1.include_router(recommendations_router, tags=["recommendations"])
+    # products_router (M3-C) already declares full paths (/products, /products/{id},
+    # /products/compare, /products/{id}/alternatives) — owned by the Product
+    # Recommendation service alongside recommendations_router (same products* tables).
+    api_v1.include_router(products_router, tags=["products"])
     # ingredients_router already declares full paths (/ingredients, /ingredients/{id},
     # /ingredients/{id}/suitability/me, /ingredients/interactions), M3-B.
     api_v1.include_router(ingredients_router, tags=["ingredients"])
     api_v1.include_router(progress_router, tags=["progress"])
+    api_v1.include_router(analytics_router, tags=["analytics"])
+    api_v1.include_router(instrumentation_router, tags=["instrumentation"])
     # admin_router already declares prefix="/admin" (verification queue + audit logs).
     api_v1.include_router(admin_router, tags=["admin"])
     # consultant_profile_router already declares prefix="/consultant-profiles".

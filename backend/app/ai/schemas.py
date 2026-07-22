@@ -1,4 +1,5 @@
-from typing import Protocol
+import datetime
+from typing import Literal, Protocol
 
 from pydantic import BaseModel
 
@@ -49,11 +50,70 @@ class IngredientSuitability(Protocol):
     ) -> SuitabilityResult: ...
 
 
+class RecommendationFeatures(BaseModel):
+    """Stage-4 rank inputs (milestone_3.md §8) — every field pre-normalized to
+    [0, 1] by the caller (service.py), so the formula itself stays pure arithmetic
+    with no unit-conversion logic hidden inside it."""
+
+    suitability: float
+    concern_overlap: float
+    vector_similarity: float
+    rating_norm: float
+    price_fit: float
+    popularity_norm: float
+
+
+class TrendInsight(BaseModel):
+    """Every field here is a real, computed claim, same discipline as
+    `SuitabilityResult` — `confidence` is R² of the linear fit (a standard,
+    honest "how well does a straight line explain this data" measure), not a
+    guessed number. `< 0.6` triggers the UI's low-confidence warning and is never
+    auto-persisted to history (milestone_3.md §8, AI_ML.md)."""
+
+    direction: Literal["improving", "declining", "stable"]
+    magnitude: float
+    confidence: float
+    summary: str
+
+
+class ProgressTrendAnalyzer(Protocol):
+    """Deterministic linear-trend + moving-average, not ML (M3-E) — same "no stub/
+    real AI_IMPL split" reasoning as `IngredientSuitability`/`Recommender`: fixed
+    arithmetic, no cost tradeoff a stub would buy. `series` is
+    (date, value) pairs, already sorted ascending by date by the caller."""
+
+    def analyze(
+        self, series: list[tuple[datetime.date, float]]
+    ) -> TrendInsight | None: ...
+
+
+class Recommender(Protocol):
+    """The stage-4 rank step (milestone_3.md §2/§8). Deliberately no stub/real
+    `AI_IMPL` split — same reasoning as `IngredientSuitability` (app/ai/suitability.py):
+    this is fixed arithmetic over pre-computed features, not a model load, so there's
+    no cost tradeoff a stub would buy. `ContentBasedRecommender` is the only
+    implementation and is always the operational engine; the spec's optional
+    flag-gated LightGBM ranker (`AI_IMPL_RECOMMENDER=ranker`) is deliberately not
+    built this milestone — no real `recommendation_feedback` labels exist yet to
+    train it on (this milestone is the first writer of that collection), and
+    milestone_3.md §3 explicitly permits shipping content-based-only until real
+    feedback accumulates (AGENTS.md §0.2 — never train on fabricated labels)."""
+
+    def score(self, features: RecommendationFeatures) -> float: ...
+
+
 # namespace -> (model_name, dimensions) — the exact pins from
-# skinlytics_vector_db_schema_v3.txt §"Namespaces". Only the three M3-A projects (not
-# user_profiles/skin_assessments, out of scope until the recommender/image models land).
+# skinlytics_vector_db_schema_v3.txt §"Namespaces", with one documented divergence:
+# user_profiles reuses products/ingredients' all-MiniLM-L6-v2 (M3-D) rather than the
+# schema txt's aspirational "custom-profile-v1" — no such custom model exists or is
+# specified anywhere beyond that one name, and training a bespoke profile-feature
+# model is out of scope here; embedding a profile's plain-text summary with the same
+# general-purpose sentence encoder used for products/ingredients is the honest
+# substitute (flagged in skinlytics_vector_db_schema_v3.txt and PROGRESS.md, not
+# silently swapped). skin_assessments stays unlisted (image models are still stubs).
 NAMESPACE_EMBEDDING_MODELS: dict[str, tuple[str, int]] = {
     "products": ("sentence-transformers/all-MiniLM-L6-v2", 384),
     "ingredients": ("sentence-transformers/all-MiniLM-L6-v2", 384),
     "knowledge_articles": ("NeuML/pubmedbert-base-embeddings", 768),
+    "user_profiles": ("sentence-transformers/all-MiniLM-L6-v2", 384),
 }

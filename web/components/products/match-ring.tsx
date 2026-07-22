@@ -1,7 +1,8 @@
 import { cn } from "@/lib/utils";
 
 interface MatchRingProps {
-  /** 0-1 match score from the recommendation API. */
+  /** 0-100 match_score from the recommendation API (milestone_3.md §M3-D: "0-100
+   * match_score driving the Match ring"). */
   score: number;
   size?: number;
   className?: string;
@@ -14,7 +15,7 @@ export function MatchRing({ score, size = 40, className }: MatchRingProps) {
   const strokeWidth = 3;
   const radius = size / 2 - strokeWidth;
   const circumference = 2 * Math.PI * radius;
-  const clamped = Math.max(0, Math.min(1, score));
+  const clamped = Math.max(0, Math.min(1, score / 100));
   const offset = circumference - circumference * clamped;
 
   return (
