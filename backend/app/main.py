@@ -20,6 +20,7 @@ from app.services.consultant_profile.router import router as consultant_profile_
 from app.services.dermatologist_profile.router import router as dermatologist_profile_router
 from app.services.ingredients.router import router as ingredients_router
 from app.services.progress.router import router as progress_router
+from app.services.recommendations.products_router import router as products_router
 from app.services.recommendations.router import router as recommendations_router
 from app.services.routines.router import router as routines_router
 from app.services.scores.router import router as scores_router
@@ -126,6 +127,10 @@ def create_app() -> FastAPI:
     api_v1.include_router(scores_router, tags=["scores"])
     api_v1.include_router(routines_router, tags=["routines"])
     api_v1.include_router(recommendations_router, tags=["recommendations"])
+    # products_router (M3-C) already declares full paths (/products, /products/{id},
+    # /products/compare, /products/{id}/alternatives) — owned by the Product
+    # Recommendation service alongside recommendations_router (same products* tables).
+    api_v1.include_router(products_router, tags=["products"])
     # ingredients_router already declares full paths (/ingredients, /ingredients/{id},
     # /ingredients/{id}/suitability/me, /ingredients/interactions), M3-B.
     api_v1.include_router(ingredients_router, tags=["ingredients"])

@@ -26,6 +26,10 @@ class Product(Base):
     currency: Mapped[str | None] = mapped_column(default=None)
     volume_ml: Mapped[int | None] = mapped_column(default=None)
     spf_rating: Mapped[int | None] = mapped_column(default=None)
+    # M3-C: real Sephora product_info.csv columns (rating, reviews) — nullable,
+    # curated seed rows have neither (database_schemas README_v3_changes.md).
+    rating: Mapped[float | None] = mapped_column(Numeric(3, 2), default=None)
+    review_count: Mapped[int | None] = mapped_column(default=None)
     is_active: Mapped[bool | None] = mapped_column(default=True)
     created_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())

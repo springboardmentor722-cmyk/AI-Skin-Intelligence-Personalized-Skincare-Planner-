@@ -66,12 +66,11 @@ const RAW_NAV_ITEMS: Record<Role, RawNavItem[]> = {
     { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
     { label: "My Routine", path: "/routine", icon: ClipboardList },
     { label: "Daily Check-in", path: "/check-in", icon: CalendarCheck, built: false },
-    // Milestone 1 audit: repointed at the real, built Product Recommendations screen
-    // (app/(user)/recommendations) instead of a nonexistent /products catalog page —
-    // the nearest real match for "Products" today, not a guess at a second, separate
-    // product-browse feature. Flagged in the audit report as an assumption, not a
-    // silent decision.
-    { label: "Products", path: "/recommendations", icon: ShoppingBag },
+    // M3-C: repointed to the real product catalog (app/(user)/products) now that it
+    // exists — restores "Products" to its real meaning (milestone_3.md §3, flagged in
+    // that module's PR). Recommendations ("For you") is linked from the catalog and
+    // dashboard instead of owning the nav item.
+    { label: "Products", path: "/products", icon: ShoppingBag },
     { label: "Ingredients", path: "/ingredients", icon: FlaskConical },
     { label: "Progress", path: "/progress", icon: TrendingUp },
     { label: "Insights", path: "/insights", icon: Sparkles, built: false },

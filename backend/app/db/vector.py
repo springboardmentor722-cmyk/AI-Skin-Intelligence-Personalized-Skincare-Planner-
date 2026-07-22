@@ -97,6 +97,18 @@ def remove(namespace: str, vector_id: str) -> None:
     _save_meta(namespace, meta)
 
 
+def get_vector(namespace: str, vector_id: str) -> list[float] | None:
+    """Returns the already-projected embedding for a vector_id, or None if it isn't
+    indexed. Callers (e.g. product alternatives, M3-C) use this as a *query* vector
+    instead of computing a fresh embedding on the request path — embeddings are
+    computed only in the worker (milestone_3.md §8 "Inference flow")."""
+    entry = _load_meta(namespace).get(vector_id)
+    if entry is None:
+        return None
+    index = _load_index(namespace, dim=1)  # dim unused on an existing loaded index
+    return index.reconstruct(entry["faiss_id"]).tolist()
+
+
 def search(namespace: str, query_embedding: list[float], k: int, dim: int) -> list[dict[str, Any]]:
     """Metadata-filtering happens at the caller (stage 1's PG pre-filter narrows
     candidates before this ever runs, per the recommendation pipeline, §2)."""
