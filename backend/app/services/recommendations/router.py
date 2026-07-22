@@ -1,12 +1,12 @@
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import require_role
 from app.db.postgres import get_db
 from app.services.recommendations import service
-from app.services.recommendations.schemas import RecommendationRead
+from app.services.recommendations.schemas import RecommendationFeedbackCreate, RecommendationRead
 
 router = APIRouter()
 
@@ -18,3 +18,11 @@ async def get_my_recommendations(
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> list[RecommendationRead]:
     return await service.get_recommendations(db, user["id"])
+
+
+@router.post("/recommendations/feedback", status_code=status.HTTP_204_NO_CONTENT)
+async def submit_recommendation_feedback(
+    feedback: RecommendationFeedbackCreate,
+    user: Annotated[dict[str, Any], Depends(require_role("user"))],
+) -> None:
+    await service.submit_feedback(user["id"], feedback)

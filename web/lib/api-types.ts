@@ -386,6 +386,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/recommendations/feedback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit Recommendation Feedback */
+        post: operations["submit_recommendation_feedback_api_v1_recommendations_feedback_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/products": {
         parameters: {
             query?: never;
@@ -1881,6 +1898,24 @@ export interface components {
             /** Points */
             points: components["schemas"]["ScoreTrendPoint"][];
         };
+        /**
+         * RecommendationFeedbackCreate
+         * @description Mongo `recommendation_feedback` (NEW, M3-D, milestone_3.md §5) — the future
+         *     ranking-label stream (AI_ML.md "Feedback loop"). `recommendation_id` is optional:
+         *     a user can react to a product they saw outside a specific served set (e.g. from
+         *     the catalog), not only from `GET /recommendations/me`.
+         */
+        RecommendationFeedbackCreate: {
+            /** Product Id */
+            product_id: number;
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "thumbs_up" | "thumbs_down" | "saved" | "dismissed";
+            /** Recommendation Id */
+            recommendation_id?: number | null;
+        };
         /** RecommendationRead */
         RecommendationRead: {
             product: components["schemas"]["ProductRead"];
@@ -2894,6 +2929,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RecommendationRead"][];
+                };
+            };
+        };
+    };
+    submit_recommendation_feedback_api_v1_recommendations_feedback_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecommendationFeedbackCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

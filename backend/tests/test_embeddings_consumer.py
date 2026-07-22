@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import vector
 from app.db.mongo import get_mongo_db
 from app.services.recommendations.models import Product
+from app.services.skin_profile.models import SkinProfile
 from app.worker.consumers.embeddings import embed_and_upsert
 
 
@@ -47,6 +48,45 @@ async def test_embed_and_upsert_product_lands_in_the_vector_store_and_mongo(
         await get_mongo_db()["product_vectors_metadata"].delete_one({"product_id": product_id})
 
 
-async def test_embed_and_upsert_profile_is_a_documented_noop(db_session: AsyncSession) -> None:
-    """user_profiles_namespace doesn't exist yet (lands with the recommender, M3-D)."""
-    await embed_and_upsert(db_session, get_mongo_db(), "profile", "some-user-id")
+async def test_embed_and_upsert_profile_lands_in_the_user_profiles_namespace(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    """M3-D: the recommender's stage-2 query vector (service.py) is this namespace's
+    entry, never computed on the request path."""
+    profile = SkinProfile(
+        user_id=test_user_id,
+        skin_type_id=1,
+        allergies="Fragrance",
+        sensitivities="Retinol",
+        is_current=True,
+    )
+    db_session.add(profile)
+    await db_session.flush()
+    vector_id = f"user_{test_user_id}"
+
+    try:
+        await embed_and_upsert(db_session, get_mongo_db(), "profile", test_user_id)
+
+        metadata = vector.get_metadata("user_profiles", vector_id)
+        assert metadata is not None
+        assert metadata["user_id"] == test_user_id
+        assert metadata["skin_type"]
+        assert "Fragrance" in metadata["allergies"]
+        assert metadata["embedding_model"]
+
+        embedding = vector.get_vector("user_profiles", vector_id)
+        assert embedding is not None
+        assert len(embedding) == 384
+    finally:
+        vector.remove("user_profiles", vector_id)
+
+
+async def test_embed_and_upsert_profile_removes_the_vector_when_no_current_profile_exists(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    vector_id = f"user_{test_user_id}"
+    vector.upsert("user_profiles", vector_id, [0.1] * 384, {"user_id": test_user_id}, dim=384)
+
+    await embed_and_upsert(db_session, get_mongo_db(), "profile", test_user_id)
+
+    assert vector.get_metadata("user_profiles", vector_id) is None

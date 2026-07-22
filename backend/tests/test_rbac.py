@@ -105,6 +105,7 @@ async def test_require_verified_professional_rejects_missing_profile(
         ("GET", "/api/v1/routine"),
         ("POST", "/api/v1/routine/generate"),
         ("GET", "/api/v1/recommendations/me"),
+        ("POST", "/api/v1/recommendations/feedback"),
         ("GET", "/api/v1/progress/me/summary"),
         ("GET", "/api/v1/ingredients/1/suitability/me"),
         ("GET", "/api/v1/products/1"),

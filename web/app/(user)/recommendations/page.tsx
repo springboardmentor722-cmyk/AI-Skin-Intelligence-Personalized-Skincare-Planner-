@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Layers, RotateCw, Sparkles, TriangleAlert } from "lucide-react";
+import { Layers, RotateCw, Sparkles, ThumbsDown, ThumbsUp, TriangleAlert, X } from "lucide-react";
+import { toast } from "sonner";
 
 import { MatchRing } from "@/components/products/match-ring";
 import { StateCard } from "@/components/state-card";
@@ -68,7 +69,12 @@ export default function RecommendationsPage() {
     },
   });
 
-  const all = useMemo(() => query.data ?? [], [query.data]);
+  const [dismissedIds, setDismissedIds] = useState<number[]>([]);
+
+  const all = useMemo(
+    () => (query.data ?? []).filter((r) => !dismissedIds.includes(r.product.product_id)),
+    [query.data, dismissedIds]
+  );
 
   const categories = useMemo(
     () => Array.from(new Set(all.map((r) => r.product.category).filter((c): c is string => !!c))),
@@ -91,6 +97,30 @@ export default function RecommendationsPage() {
   const [compareIds, setCompareIds] = useState<number[]>([]);
   const [compareOpen, setCompareOpen] = useState(false);
   const [alternativesFor, setAlternativesFor] = useState<RecommendationRead | null>(null);
+
+  // POST /api/v1/recommendations/feedback (M3-D) — the future ranking-label stream
+  // (AI_ML.md "Feedback loop"). A one-shot user-triggered action, so useMutation is
+  // the right tool here (the documented useQuery-over-useMutation guidance,
+  // PROGRESS.md 2026-07-15, is specifically about run-once-on-mount effects).
+  const feedback = useMutation({
+    mutationFn: async (body: { product_id: number; action: "thumbs_up" | "thumbs_down" | "dismissed" }) => {
+      const { error } = await api.POST("/api/v1/recommendations/feedback", { body });
+      if (error) throw new Error("Couldn't save your feedback.");
+    },
+    onError: () => toast.error("Couldn't save your feedback."),
+  });
+
+  const sendFeedback = (
+    productId: number,
+    action: "thumbs_up" | "thumbs_down" | "dismissed"
+  ) => {
+    feedback.mutate({ product_id: productId, action });
+    if (action === "dismissed") {
+      setDismissedIds((prev) => [...prev, productId]);
+    } else {
+      toast.success(action === "thumbs_up" ? "Thanks for the feedback!" : "Thanks — noted.");
+    }
+  };
 
   // Budget slider starts permissive (the highest seen price) until the user touches it —
   // `null` means "no explicit choice yet", so this never needs an effect to sync.
@@ -350,6 +380,34 @@ export default function RecommendationsPage() {
                         Alternatives
                       </button>
                     </div>
+                    <div className="border-border mt-2 flex items-center justify-between border-t pt-2">
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          aria-label="This recommendation was helpful"
+                          onClick={() => sendFeedback(rec.product.product_id, "thumbs_up")}
+                          className="text-on-surface-variant hover:text-success rounded-md p-1"
+                        >
+                          <ThumbsUp className="size-3.5" strokeWidth={1.5} />
+                        </button>
+                        <button
+                          type="button"
+                          aria-label="This recommendation wasn't helpful"
+                          onClick={() => sendFeedback(rec.product.product_id, "thumbs_down")}
+                          className="text-on-surface-variant hover:text-destructive rounded-md p-1"
+                        >
+                          <ThumbsDown className="size-3.5" strokeWidth={1.5} />
+                        </button>
+                      </div>
+                      <button
+                        type="button"
+                        aria-label="Dismiss this recommendation"
+                        onClick={() => sendFeedback(rec.product.product_id, "dismissed")}
+                        className="text-on-surface-variant hover:text-destructive rounded-md p-1"
+                      >
+                        <X className="size-3.5" strokeWidth={1.5} />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -386,7 +444,7 @@ export default function RecommendationsPage() {
                   <div className="flex justify-between">
                     <dt className="text-on-surface-variant">Match</dt>
                     <dd className="font-geist tabular-nums">
-                      {Math.round(rec.match_score * 100)}%
+                      {Math.round(rec.match_score)}%
                     </dd>
                   </div>
                 </dl>

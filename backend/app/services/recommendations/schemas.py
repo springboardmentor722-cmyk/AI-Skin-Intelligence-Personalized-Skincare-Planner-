@@ -24,6 +24,17 @@ class RecommendationRead(BaseModel):
     reasons: list[str]
 
 
+class RecommendationFeedbackCreate(BaseModel):
+    """Mongo `recommendation_feedback` (NEW, M3-D, milestone_3.md §5) — the future
+    ranking-label stream (AI_ML.md "Feedback loop"). `recommendation_id` is optional:
+    a user can react to a product they saw outside a specific served set (e.g. from
+    the catalog), not only from `GET /recommendations/me`."""
+
+    product_id: int
+    action: Literal["thumbs_up", "thumbs_down", "saved", "dismissed"]
+    recommendation_id: int | None = None
+
+
 class ProductListMeta(BaseModel):
     page: int
     page_size: int
