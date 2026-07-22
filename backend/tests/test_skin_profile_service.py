@@ -23,6 +23,7 @@ from app.services.skin_profile.schemas import (
 from app.services.skin_profile.service import (
     create_profile,
     get_current_profile,
+    list_profile_history,
     list_recent_lifestyle_logs,
     list_skin_concerns,
     list_skin_types,
@@ -108,6 +109,33 @@ async def test_create_profile_versions_instead_of_overwriting(
     assert current is not None
     assert current.skin_profile_id == second.skin_profile_id
     assert current.skin_type_id == 3
+
+
+async def test_list_profile_history_returns_every_version_oldest_first(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    first = await create_profile(
+        db_session,
+        test_user_id,
+        SkinProfileCreate(
+            skin_type_id=1,
+            concerns=[SkinProfileConcernInput(concern_id=1, severity_rating=8, priority_level=8)],
+        ),
+    )
+    second = await create_profile(
+        db_session,
+        test_user_id,
+        SkinProfileCreate(
+            skin_type_id=1,
+            concerns=[SkinProfileConcernInput(concern_id=1, severity_rating=3, priority_level=5)],
+        ),
+    )
+
+    history = await list_profile_history(db_session, test_user_id)
+
+    assert [p.skin_profile_id for p in history] == [first.skin_profile_id, second.skin_profile_id]
+    assert history[0].concerns[0].severity_rating == 8
+    assert history[-1].concerns[0].severity_rating == 3
 
 
 async def test_create_profile_does_not_leak_across_users(db_session: AsyncSession) -> None:

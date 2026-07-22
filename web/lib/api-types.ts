@@ -556,6 +556,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/progress/me/photos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Progress Photos */
+        get: operations["get_my_progress_photos_api_v1_progress_me_photos_get"];
+        put?: never;
+        /** Upload My Progress Photo */
+        post: operations["upload_my_progress_photo_api_v1_progress_me_photos_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/progress/me/logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Progress Logs */
+        get: operations["get_my_progress_logs_api_v1_progress_me_logs_get"];
+        put?: never;
+        /** Upsert My Progress Log */
+        post: operations["upsert_my_progress_log_api_v1_progress_me_logs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/verification-queue": {
         parameters: {
             query?: never;
@@ -991,6 +1027,21 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AdherenceDay
+         * @description One cell of the wireframe's "Routine Adherence" heat grid — real signal from
+         *     `routine_logs` via the routines service interface (`list_active_step_ids` +
+         *     `list_recent_routine_logs`), never fabricated.
+         */
+        AdherenceDay: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Completed Ratio */
+            completed_ratio: number;
+        };
         /** AppearancePreferenceRead */
         AppearancePreferenceRead: {
             /**
@@ -1107,6 +1158,11 @@ export interface components {
             /** File */
             file: string;
         };
+        /** Body_upload_my_progress_photo_api_v1_progress_me_photos_post */
+        Body_upload_my_progress_photo_api_v1_progress_me_photos_post: {
+            /** File */
+            file: string;
+        };
         /** ClientDetailRead */
         ClientDetailRead: {
             /** User Id */
@@ -1191,6 +1247,15 @@ export interface components {
             score_trend: number[];
             /** Last Sync */
             last_sync: string | null;
+        };
+        /** ConcernChangeRead */
+        ConcernChangeRead: {
+            /** Concern */
+            concern: string;
+            /** Before */
+            before: number;
+            /** After */
+            after: number;
         };
         /** ConcernTreated */
         ConcernTreated: {
@@ -1763,6 +1828,16 @@ export interface components {
              */
             logged_at: string;
         };
+        /** Milestone */
+        Milestone: {
+            /** Label */
+            label: string;
+            /**
+             * Achieved On
+             * Format: date
+             */
+            achieved_on: string;
+        };
         /** PageMeta */
         PageMeta: {
             /** Page */
@@ -1893,10 +1968,74 @@ export interface components {
             /** Review Count */
             review_count: number | null;
         };
-        /** ProgressSummaryRead */
+        /** ProgressLogCreate */
+        ProgressLogCreate: {
+            /** Notes */
+            notes?: string | null;
+        };
+        /** ProgressLogRead */
+        ProgressLogRead: {
+            /** Week Number */
+            week_number: number;
+            /** Before Image Url */
+            before_image_url: string | null;
+            /** After Image Url */
+            after_image_url: string | null;
+            /** Improvement Score */
+            improvement_score: number | null;
+            /** Concern Changes */
+            concern_changes: components["schemas"]["ConcernChangeRead"][];
+            /** Trend Summary */
+            trend_summary: string | null;
+            /** Notes */
+            notes: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** ProgressPhotoRead */
+        ProgressPhotoRead: {
+            /** Progress Image Id */
+            progress_image_id: number;
+            /** Image Stage */
+            image_stage: string | null;
+            /**
+             * Uploaded At
+             * Format: date-time
+             */
+            uploaded_at: string;
+            /** Url */
+            url: string;
+        };
+        /** ProgressPhotosRead */
+        ProgressPhotosRead: {
+            /** Photos */
+            photos: components["schemas"]["ProgressPhotoRead"][];
+            before: components["schemas"]["ProgressPhotoRead"] | null;
+            after: components["schemas"]["ProgressPhotoRead"] | null;
+        };
+        /**
+         * ProgressSummaryRead
+         * @description Contract kept additive (milestone_3.md §M3-E: "progress/me/summary
+         *     unchanged" contract) — `points` is the original M1 field; everything else is
+         *     new and optional/empty-default, never breaking an existing consumer.
+         */
         ProgressSummaryRead: {
             /** Points */
             points: components["schemas"]["ScoreTrendPoint"][];
+            /**
+             * Adherence
+             * @default []
+             */
+            adherence: components["schemas"]["AdherenceDay"][];
+            insight?: components["schemas"]["TrendInsightRead"] | null;
+            /**
+             * Milestones
+             * @default []
+             */
+            milestones: components["schemas"]["Milestone"][];
         };
         /**
          * RecommendationFeedbackCreate
@@ -2113,6 +2252,22 @@ export interface components {
             allergy_flag: boolean;
             /** Avoid Flag */
             avoid_flag: boolean;
+        };
+        /** TrendInsightRead */
+        TrendInsightRead: {
+            /**
+             * Direction
+             * @enum {string}
+             */
+            direction: "improving" | "declining" | "stable";
+            /** Magnitude */
+            magnitude: number;
+            /** Confidence */
+            confidence: number;
+            /** Summary */
+            summary: string;
+            /** Low Confidence */
+            low_confidence: boolean;
         };
         /** UserMeResponse */
         UserMeResponse: {
@@ -3240,6 +3395,112 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProgressSummaryRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_my_progress_photos_api_v1_progress_me_photos_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgressPhotosRead"];
+                };
+            };
+        };
+    };
+    upload_my_progress_photo_api_v1_progress_me_photos_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_my_progress_photo_api_v1_progress_me_photos_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgressPhotosRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_my_progress_logs_api_v1_progress_me_logs_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgressLogRead"][];
+                };
+            };
+        };
+    };
+    upsert_my_progress_log_api_v1_progress_me_logs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProgressLogCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgressLogRead"];
                 };
             };
             /** @description Validation Error */

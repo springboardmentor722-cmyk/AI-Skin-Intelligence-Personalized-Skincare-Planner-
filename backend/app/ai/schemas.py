@@ -1,4 +1,5 @@
-from typing import Protocol
+import datetime
+from typing import Literal, Protocol
 
 from pydantic import BaseModel
 
@@ -60,6 +61,30 @@ class RecommendationFeatures(BaseModel):
     rating_norm: float
     price_fit: float
     popularity_norm: float
+
+
+class TrendInsight(BaseModel):
+    """Every field here is a real, computed claim, same discipline as
+    `SuitabilityResult` — `confidence` is R² of the linear fit (a standard,
+    honest "how well does a straight line explain this data" measure), not a
+    guessed number. `< 0.6` triggers the UI's low-confidence warning and is never
+    auto-persisted to history (milestone_3.md §8, AI_ML.md)."""
+
+    direction: Literal["improving", "declining", "stable"]
+    magnitude: float
+    confidence: float
+    summary: str
+
+
+class ProgressTrendAnalyzer(Protocol):
+    """Deterministic linear-trend + moving-average, not ML (M3-E) — same "no stub/
+    real AI_IMPL split" reasoning as `IngredientSuitability`/`Recommender`: fixed
+    arithmetic, no cost tradeoff a stub would buy. `series` is
+    (date, value) pairs, already sorted ascending by date by the caller."""
+
+    def analyze(
+        self, series: list[tuple[datetime.date, float]]
+    ) -> TrendInsight | None: ...
 
 
 class Recommender(Protocol):

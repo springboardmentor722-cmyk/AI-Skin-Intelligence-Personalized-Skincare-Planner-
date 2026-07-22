@@ -65,6 +65,10 @@
     { "concern": "String", "before": "Integer", "after": "Integer" }
   ],
   "trend_summary": "String",
+  "notes": "String",                // added M3-E — the milestone doc's own "notes,
+                                     // self-assessment" Features bullet; the only
+                                     // user-authored field, everything else above
+                                     // is computed server-side (progress/service.py)
   "created_at": "ISODate"
 }
 // Index: { user_id: 1, week_number: 1 } unique

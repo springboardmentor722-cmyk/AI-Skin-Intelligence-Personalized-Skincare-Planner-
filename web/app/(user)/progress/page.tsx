@@ -2,15 +2,26 @@
 
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
-import { Camera, RotateCw, Sparkles, Trophy, TrendingDown, TrendingUp, TriangleAlert } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMemo, useRef, useState } from "react";
+import {
+  Camera,
+  RotateCw,
+  Sparkles,
+  Trophy,
+  TrendingDown,
+  TrendingUp,
+  TriangleAlert,
+} from "lucide-react";
+import { toast } from "sonner";
 
 import { StateCard } from "@/components/state-card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Slider } from "@/components/ui/slider";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { api } from "@/lib/api";
+import { cn } from "@/lib/utils";
 
 // Dynamically imported — see the identical comment in app/(user)/dashboard/page.tsx:
 // keeps recharts (this app's single heaviest dependency) out of this page's first-visit
@@ -26,27 +37,84 @@ const RANGES = [
   { label: "90D", days: 90 },
 ] as const;
 
-// docs/WIREFRAMES.md screen 7 "Progress tracking". Only the score-trend slice is real
-// (GET /api/v1/progress/me/summary, reading PG skin_scores) — the wireframe's
-// before/after photo slider, concern-changes table, milestones, and PDF/Excel export
-// all depend on Mongo `progress_logs` and the Report Service, neither of which is built
-// yet (progress/service.py's own docstring: "separate, larger scope"). Those sections
-// are shown as clearly-labeled upcoming work rather than invented with fake data
-// (CONVENTIONS.md "raw exports never ship" / AGENTS.md §0 "don't invent, look it up").
+const firstOf = (val: number | readonly number[]): number =>
+  Array.isArray(val) ? val[0] : (val as number);
+
+// docs/WIREFRAMES.md screen 7 "Progress tracking". M3-E made the before/after photo
+// slider, adherence heat grid, and milestones real (backend: progress/service.py's
+// photo pipeline, adherence series, and streak/score-band milestone detection).
+// The wireframe's "Biometric Sub-factors" bars (Hydration/Sleep/Inflammation/
+// Elasticity/UV Exposure as five independent percentages) and fabricated milestone
+// badges ("Texture Specialist", "Consistent Hydration") are dropped outright — no
+// schema field backs a per-metric biometric score, and only real, computed
+// milestones (routine streaks, Skin Score decade crossings) are ever shown.
+// PDF/Excel export still depends on the Report Service (not built) and stays
+// "Coming soon".
 export default function ProgressPage() {
   const [days, setDays] = useState<number>(30);
+  const [sliderPosition, setSliderPosition] = useState(50);
+  const [notes, setNotes] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
 
-  const query = useQuery({
-    queryKey: ["progress", "me", days],
+  const summaryQuery = useQuery({
+    queryKey: ["progress", "me", "summary", days],
     queryFn: async () => {
       const { data } = await api.GET("/api/v1/progress/me/summary", {
         params: { query: { days } },
       });
-      return data?.points ?? [];
+      return data ?? null;
     },
   });
 
-  const points = useMemo(() => query.data ?? [], [query.data]);
+  const photosQuery = useQuery({
+    queryKey: ["progress", "me", "photos"],
+    queryFn: async () => {
+      const { data } = await api.GET("/api/v1/progress/me/photos");
+      return data ?? null;
+    },
+  });
+
+  const uploadPhoto = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      const { error } = await api.POST("/api/v1/progress/me/photos", {
+        // openapi-fetch passes FormData through untouched (no JSON serialization,
+        // browser sets the multipart boundary itself) — same pattern as
+        // consultant/dashboard/page.tsx's document upload.
+        body: formData as unknown as never,
+      });
+      if (error) throw new Error("Upload failed");
+    },
+    onSuccess: () => {
+      toast.success("Photo added");
+      queryClient.invalidateQueries({ queryKey: ["progress", "me", "photos"] });
+    },
+    onError: () => toast.error("Couldn't upload that photo. Try again."),
+  });
+
+  const saveLog = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await api.POST("/api/v1/progress/me/logs", {
+        body: { notes: notes || null },
+      });
+      if (error) throw new Error("Couldn't save your note.");
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("This week's note saved");
+      setNotes("");
+    },
+    onError: () => toast.error("Couldn't save your note. Try again."),
+  });
+
+  const points = useMemo(() => summaryQuery.data?.points ?? [], [summaryQuery.data]);
+  const adherence = summaryQuery.data?.adherence ?? [];
+  const insight = summaryQuery.data?.insight ?? null;
+  const milestones = summaryQuery.data?.milestones ?? [];
+  const photos = photosQuery.data;
+
   const chartData = useMemo(
     () => points.map((p) => ({ date: p.date, overall_score: p.overall_score })),
     [points]
@@ -89,15 +157,15 @@ export default function ProgressPage() {
         </ToggleGroup>
       </div>
 
-      {query.isLoading ? (
+      {summaryQuery.isLoading ? (
         <Skeleton className="h-80 w-full rounded-2xl" />
-      ) : query.isError ? (
+      ) : summaryQuery.isError ? (
         <StateCard
           tone="destructive"
           icon={TriangleAlert}
           description="Couldn't load your progress trend."
           action={
-            <Button variant="outline" onClick={() => query.refetch()}>
+            <Button variant="outline" onClick={() => summaryQuery.refetch()}>
               <RotateCw className="size-4" strokeWidth={1.5} />
               Retry
             </Button>
@@ -144,6 +212,17 @@ export default function ProgressPage() {
                   </p>
                 </>
               )}
+              {insight && (
+                <p
+                  className={cn(
+                    "mt-3 font-sans text-xs",
+                    insight.low_confidence ? "text-on-surface-variant" : "text-on-surface"
+                  )}
+                >
+                  {insight.summary}
+                  {insight.low_confidence && " (not enough data for high confidence yet)"}
+                </p>
+              )}
             </div>
 
             <div className="border-border bg-card rounded-2xl border p-6 lg:col-span-8">
@@ -161,24 +240,167 @@ export default function ProgressPage() {
           </div>
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <div className="border-border bg-card rounded-2xl border border-dashed p-6 text-center">
-              <Camera className="text-on-surface-variant/40 mx-auto mb-3 size-7" strokeWidth={1.5} />
-              <h3 className="font-heading text-on-surface text-sm font-semibold">
-                Before/after photos
+            <div className="border-border bg-card rounded-2xl border p-6 lg:col-span-2">
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="font-heading text-on-surface text-sm font-semibold">
+                  Visual evolution
+                </h3>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) uploadPhoto.mutate(file);
+                    e.target.value = "";
+                  }}
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={uploadPhoto.isPending}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Camera className="size-4" strokeWidth={1.5} />
+                  Add today&apos;s photo
+                </Button>
+              </div>
+              {photosQuery.isLoading ? (
+                <Skeleton className="h-56 w-full rounded-xl" />
+              ) : !photos || photos.photos.length === 0 ? (
+                <div className="border-border flex h-56 flex-col items-center justify-center gap-2 rounded-xl border border-dashed text-center">
+                  <Camera className="text-on-surface-variant/40 size-7" strokeWidth={1.5} />
+                  <p className="text-on-surface-variant font-sans text-xs">
+                    No photos yet — add one to start your visual timeline.
+                  </p>
+                </div>
+              ) : !photos.after ? (
+                <div className="bg-muted relative h-56 overflow-hidden rounded-xl">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- user-uploaded, presigned URL */}
+                  <img src={photos.before?.url} alt="Your first progress photo" className="h-full w-full object-cover" />
+                  <p className="text-on-surface-variant absolute right-2 bottom-2 rounded-full bg-black/50 px-2 py-0.5 font-sans text-[10px] text-white">
+                    Only one photo so far
+                  </p>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  <div className="bg-muted relative h-56 overflow-hidden rounded-xl select-none">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- user-uploaded, presigned URL */}
+                    <img
+                      src={photos.after.url}
+                      alt="Most recent progress photo"
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
+                    <div
+                      className="absolute inset-0 overflow-hidden"
+                      style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element -- user-uploaded, presigned URL */}
+                      <img
+                        src={photos.before?.url}
+                        alt="Earliest progress photo"
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                    <div
+                      className="bg-background pointer-events-none absolute top-0 bottom-0 w-0.5"
+                      style={{ left: `${sliderPosition}%` }}
+                    />
+                    <span className="absolute top-2 left-2 rounded-full bg-black/50 px-2 py-0.5 font-sans text-[10px] text-white">
+                      First
+                    </span>
+                    <span className="absolute top-2 right-2 rounded-full bg-black/50 px-2 py-0.5 font-sans text-[10px] text-white">
+                      Today
+                    </span>
+                  </div>
+                  <Slider
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={[sliderPosition]}
+                    onValueChange={(v) => setSliderPosition(firstOf(v))}
+                    aria-label="Compare first and most recent photo"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="border-border bg-card rounded-2xl border p-6">
+              <h3 className="font-heading text-on-surface mb-4 flex items-center gap-2 text-sm font-semibold">
+                <Trophy className="text-on-surface-variant size-4" strokeWidth={1.5} />
+                Milestones
               </h3>
-              <p className="text-on-surface-variant mt-1 font-sans text-xs">Coming soon</p>
+              {milestones.length === 0 ? (
+                <p className="text-on-surface-variant font-sans text-xs">
+                  Keep your routine streak going and watch your score — real milestones
+                  show up here as you earn them.
+                </p>
+              ) : (
+                <ul className="flex flex-col gap-3">
+                  {milestones.map((m) => (
+                    <li key={`${m.label}-${m.achieved_on}`} className="flex flex-col">
+                      <span className="font-sans text-sm font-semibold">{m.label}</span>
+                      <span className="text-on-surface-variant font-sans text-xs">
+                        {m.achieved_on}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
-            <div className="border-border bg-card rounded-2xl border border-dashed p-6 text-center">
-              <Trophy className="text-on-surface-variant/40 mx-auto mb-3 size-7" strokeWidth={1.5} />
-              <h3 className="font-heading text-on-surface text-sm font-semibold">Milestones</h3>
-              <p className="text-on-surface-variant mt-1 font-sans text-xs">Coming soon</p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <div className="border-border bg-card rounded-2xl border p-6 lg:col-span-2">
+              <h3 className="font-heading text-on-surface mb-4 text-sm font-semibold">
+                Routine adherence
+              </h3>
+              {adherence.length === 0 ? (
+                <p className="text-on-surface-variant font-sans text-xs">
+                  No active routine yet — build one from the My Routine screen to see
+                  adherence here.
+                </p>
+              ) : (
+                <div className="flex flex-wrap gap-1.5">
+                  {adherence.map((day) => (
+                    <div
+                      key={day.date}
+                      title={`${day.date}: ${Math.round(day.completed_ratio * 100)}% completed`}
+                      className="size-4 rounded-sm"
+                      style={{
+                        backgroundColor: `color-mix(in srgb, var(--secondary) ${Math.round(day.completed_ratio * 100)}%, var(--muted))`,
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
+
             <div className="border-border bg-card rounded-2xl border border-dashed p-6 text-center">
               <Sparkles className="text-on-surface-variant/40 mx-auto mb-3 size-7" strokeWidth={1.5} />
               <h3 className="font-heading text-on-surface text-sm font-semibold">
                 Export report
               </h3>
               <p className="text-on-surface-variant mt-1 font-sans text-xs">Coming soon</p>
+            </div>
+          </div>
+
+          <div className="border-border bg-card rounded-2xl border p-6">
+            <h3 className="font-heading text-on-surface mb-3 text-sm font-semibold">
+              This week&apos;s note
+            </h3>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="How has your skin felt this week? (optional)"
+              rows={3}
+              className="bg-muted text-on-surface w-full resize-none rounded-xl border-none px-4 py-3 font-sans text-sm focus:ring-2 focus:ring-[var(--secondary)]/40 focus:outline-none"
+            />
+            <div className="mt-3 flex justify-end">
+              <Button size="sm" disabled={saveLog.isPending} onClick={() => saveLog.mutate()}>
+                Save this week
+              </Button>
             </div>
           </div>
         </>

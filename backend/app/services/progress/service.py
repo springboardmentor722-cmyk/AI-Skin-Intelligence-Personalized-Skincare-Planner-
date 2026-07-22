@@ -1,25 +1,301 @@
 import datetime
+from typing import Any
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.services.progress.schemas import ProgressSummaryRead, ScoreTrendPoint
+from app.ai.trend import RealProgressTrendAnalyzer
+from app.core.storage import (
+    FileValidationError,
+    build_key,
+    get_presigned_url,
+    sniff_content_type,
+    strip_exif,
+    upload,
+)
+from app.services.progress.models import ProgressImage
+from app.services.progress.schemas import (
+    AdherenceDay,
+    ConcernChangeRead,
+    Milestone,
+    ProgressLogRead,
+    ProgressPhotoRead,
+    ProgressPhotosRead,
+    ProgressSummaryRead,
+    ScoreTrendPoint,
+    TrendInsightRead,
+)
+from app.services.routines import service as routines_service
 from app.services.scores import service as scores_service
+from app.services.skin_profile import service as skin_profile_service
+
+_PROGRESS_PHOTO_CONTENT_TYPES = {"image/jpeg", "image/png", "image/webp"}
+_LOW_CONFIDENCE_THRESHOLD = 0.6  # milestone_3.md §8's own UI-warning threshold
+_STREAK_MILESTONE_DAYS = (7, 14, 30)
+_trend_analyzer = RealProgressTrendAnalyzer()
+
+
+# --- Photos (PG progress_images + S3-compatible storage) ---
+
+
+async def upload_progress_photo(
+    db: AsyncSession,
+    user_id: str,
+    data: bytes,
+    filename: str,
+    image_stage: str = "progress",
+) -> ProgressImage:
+    """EXIF stripped before it ever reaches storage (milestone_3.md's own "EXIF
+    stripped, private bucket" requirement) — a phone photo's embedded GPS location
+    never leaves this process. `image_stage` defaults to "progress" (a plain
+    timeline entry, the wireframe's actual "Add today's photo" flow); "before"/
+    "after" pair retrieval (below) is computed from upload order, not a stage the
+    user has to pick per photo — no stage-picker UI exists in the wireframe."""
+    sniffed = sniff_content_type(data)
+    if sniffed is None or sniffed not in _PROGRESS_PHOTO_CONTENT_TYPES:
+        raise FileValidationError("Unsupported file type")
+    stripped = strip_exif(data, sniffed)
+
+    key = build_key(prefix="progress-photos", owner_user_id=user_id, filename=filename)
+    await upload(key, stripped, allowed_content_types=_PROGRESS_PHOTO_CONTENT_TYPES)
+
+    image = ProgressImage(user_id=user_id, image_url=key, image_stage=image_stage)
+    db.add(image)
+    await db.commit()
+    await db.refresh(image)
+    return image
+
+
+async def list_progress_photos(db: AsyncSession, user_id: str) -> list[ProgressImage]:
+    result = await db.execute(
+        select(ProgressImage)
+        .where(ProgressImage.user_id == user_id)
+        .order_by(ProgressImage.uploaded_at.asc())
+    )
+    return list(result.scalars().all())
+
+
+async def get_progress_photos(db: AsyncSession, user_id: str) -> ProgressPhotosRead:
+    """Before/after (milestone_3.md's own acceptance criterion) is the oldest vs
+    the most recent uploaded photo — matching the wireframe's simple "OCT 12 ->
+    TODAY" comparison, not a stage the user has to tag per upload."""
+    photos = await list_progress_photos(db, user_id)
+    reads = [
+        ProgressPhotoRead(
+            progress_image_id=photo.progress_image_id,
+            image_stage=photo.image_stage,
+            # server_default=func.now() means this is always set post-insert; the
+            # fallback only satisfies the type checker, never actually hit.
+            uploaded_at=photo.uploaded_at or datetime.datetime.now(datetime.UTC),
+            url=await get_presigned_url(photo.image_url) if photo.image_url else "",
+        )
+        for photo in photos
+    ]
+    before = reads[0] if reads else None
+    after = reads[-1] if len(reads) > 1 else None
+    return ProgressPhotosRead(photos=reads, before=before, after=after)
+
+
+# --- Adherence series (routine_logs, via the routines service interface) ---
+
+
+async def get_adherence_series(
+    db: AsyncSession, user_id: str, days: int = 30
+) -> list[AdherenceDay]:
+    step_ids = await routines_service.list_active_step_ids(db, user_id)
+    if not step_ids:
+        return []
+    active_step_ids = set(step_ids)
+    logs = await routines_service.list_recent_routine_logs(user_id, days=days)
+    logs_by_date = {log["log_date"].date(): log for log in logs}
+
+    today = datetime.datetime.now(datetime.UTC).date()
+    series: list[AdherenceDay] = []
+    for offset in range(days - 1, -1, -1):
+        day = today - datetime.timedelta(days=offset)
+        log = logs_by_date.get(day)
+        completed = (
+            sum(
+                1
+                for entry in log.get("completed_steps", [])
+                if entry.get("routine_step_id") in active_step_ids
+            )
+            if log
+            else 0
+        )
+        series.append(AdherenceDay(date=day, completed_ratio=min(1.0, completed / len(step_ids))))
+    return series
+
+
+# --- Milestone detection (streaks, score-band crossings) — pure functions ---
+
+
+def _detect_streak_milestones(adherence: list[AdherenceDay]) -> list[Milestone]:
+    streak = 0
+    milestones: list[Milestone] = []
+    for day in adherence:  # ascending
+        streak = streak + 1 if day.completed_ratio >= 1.0 else 0
+        if streak in _STREAK_MILESTONE_DAYS:
+            milestones.append(Milestone(label=f"{streak}-day routine streak", achieved_on=day.date))
+    return milestones
+
+
+def _detect_score_band_milestones(points: list[ScoreTrendPoint]) -> list[Milestone]:
+    milestones: list[Milestone] = []
+    for prev, curr in zip(points, points[1:], strict=False):
+        if prev.overall_score is None or curr.overall_score is None:
+            continue
+        prev_band = int(prev.overall_score // 10)
+        curr_band = int(curr.overall_score // 10)
+        if curr_band > prev_band:
+            milestones.append(
+                Milestone(label=f"Score crossed into the {curr_band * 10}s", achieved_on=curr.date)
+            )
+    return milestones
+
+
+# --- Weekly progress log (Mongo progress_logs, schema #3 — first real writer) ---
+
+
+async def _compute_concern_changes(db: AsyncSession, user_id: str) -> list[ConcernChangeRead]:
+    """Compares the *oldest* and *current* saved profile versions — real
+    severity_rating deltas, empty (not fabricated) until a user has saved a
+    profile more than once."""
+    history = await skin_profile_service.list_profile_history(db, user_id)
+    if len(history) < 2:
+        return []
+    oldest, current = history[0], history[-1]
+    all_concerns = await skin_profile_service.list_skin_concerns(db)
+    concern_names = {c.concern_id: c.concern_name for c in all_concerns}
+    before_by_concern = {
+        c.concern_id: c.severity_rating for c in oldest.concerns if c.severity_rating is not None
+    }
+    after_by_concern = {
+        c.concern_id: c.severity_rating for c in current.concerns if c.severity_rating is not None
+    }
+    shared = set(before_by_concern) & set(after_by_concern)
+    return [
+        ConcernChangeRead(
+            concern=concern_names[cid] or str(cid),
+            before=before_by_concern[cid],
+            after=after_by_concern[cid],
+        )
+        for cid in shared
+        if cid in concern_names and before_by_concern[cid] != after_by_concern[cid]
+    ]
+
+
+async def upsert_progress_log(
+    db: AsyncSession, mongo: Any, user_id: str, notes: str | None
+) -> ProgressLogRead:
+    """One doc per (user_id, week_number) — the schema's own documented unique
+    index. Every field except `notes` is computed here from real data, never
+    user-supplied (schemas.py's `ProgressLogCreate` docstring). Known limitation,
+    inherited from the documented schema rather than silently patched: `week_number`
+    alone isn't year-scoped, so the same ISO week in a later year collides with
+    this year's — flagged in PROGRESS.md, not fixed here without an owner-approved
+    schema change."""
+    now = datetime.datetime.now(datetime.UTC)
+    week_number = now.isocalendar().week
+
+    photos = await list_progress_photos(db, user_id)
+    before_photo = photos[0] if photos else None
+    after_photo = photos[-1] if len(photos) > 1 else None
+
+    scores = await scores_service.get_recent_scores(db, user_id, days=90)
+    scored_points = [
+        (score.calculated_at.date(), float(score.overall_score))
+        for score in scores
+        if score.calculated_at is not None and score.overall_score is not None
+    ]
+    improvement_score = (
+        round(scored_points[-1][1] - scored_points[0][1], 2) if len(scored_points) >= 2 else None
+    )
+
+    trend_summary = None
+    insight = _trend_analyzer.analyze(scored_points)
+    if insight is not None and insight.confidence >= _LOW_CONFIDENCE_THRESHOLD:
+        trend_summary = insight.summary
+
+    concern_changes = await _compute_concern_changes(db, user_id)
+
+    before_url = (
+        await get_presigned_url(before_photo.image_url)
+        if before_photo and before_photo.image_url
+        else None
+    )
+    after_url = (
+        await get_presigned_url(after_photo.image_url)
+        if after_photo and after_photo.image_url
+        else None
+    )
+
+    document = {
+        "user_id": user_id,
+        "week_number": week_number,
+        "before_image": before_photo.image_url if before_photo else None,
+        "after_image": after_photo.image_url if after_photo else None,
+        "improvement_score": improvement_score,
+        "concern_changes": [c.model_dump() for c in concern_changes],
+        "trend_summary": trend_summary,
+        "notes": notes,
+        "created_at": now,
+    }
+    await mongo["progress_logs"].update_one(
+        {"user_id": user_id, "week_number": week_number}, {"$set": document}, upsert=True
+    )
+
+    return ProgressLogRead(
+        week_number=week_number,
+        before_image_url=before_url,
+        after_image_url=after_url,
+        improvement_score=improvement_score,
+        concern_changes=concern_changes,
+        trend_summary=trend_summary,
+        notes=notes,
+        created_at=now,
+    )
+
+
+async def list_progress_logs(mongo: Any, user_id: str, limit: int = 12) -> list[dict[str, Any]]:
+    cursor = mongo["progress_logs"].find({"user_id": user_id}).sort("week_number", -1).limit(limit)
+    return [doc async for doc in cursor]
+
+
+# --- Summary (existing M1 endpoint, contract kept additive) ---
 
 
 async def get_progress_summary(
     db: AsyncSession, user_id: str, days: int = 30
 ) -> ProgressSummaryRead:
-    """Minimal M1 slice of Progress Tracking (docs/ARCHITECTURE.md §4 #8) — just the
-    dashboard's mini-chart, WIREFRAMES.md screen 3's `/progress/me/summary`. The full
-    Progress screen (before/after photos, Mongo `progress_logs`, weekly milestones —
-    WIREFRAMES.md screen 7) is separate, larger scope and isn't built here."""
+    """Minimal M1 slice (`points`) plus M3-E's real additions (`adherence`,
+    `insight`, `milestones`) — same contract, richer payload
+    (milestone_3.md §M3-E: "progress/me/summary unchanged", additive)."""
     scores = await scores_service.get_recent_scores(db, user_id, days=days)
+    points = [
+        ScoreTrendPoint(
+            date=score.calculated_at.date() if score.calculated_at else datetime.date.today(),
+            overall_score=score.overall_score,
+        )
+        for score in scores
+    ]
+
+    adherence = await get_adherence_series(db, user_id, days=days)
+
+    insight = None
+    scored_points = [(p.date, p.overall_score) for p in points if p.overall_score is not None]
+    trend = _trend_analyzer.analyze(scored_points)
+    if trend is not None:
+        insight = TrendInsightRead(
+            direction=trend.direction,
+            magnitude=trend.magnitude,
+            confidence=trend.confidence,
+            summary=trend.summary,
+            low_confidence=trend.confidence < _LOW_CONFIDENCE_THRESHOLD,
+        )
+
+    milestones = _detect_streak_milestones(adherence) + _detect_score_band_milestones(points)
+
     return ProgressSummaryRead(
-        points=[
-            ScoreTrendPoint(
-                date=score.calculated_at.date() if score.calculated_at else datetime.date.today(),
-                overall_score=score.overall_score,
-            )
-            for score in scores
-        ]
+        points=points, adherence=adherence, insight=insight, milestones=milestones
     )
