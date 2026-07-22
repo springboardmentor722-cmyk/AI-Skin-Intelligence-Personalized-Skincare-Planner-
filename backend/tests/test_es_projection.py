@@ -11,6 +11,7 @@ from app.db.elasticsearch import get_elasticsearch
 from app.services.ingredients.models import Ingredient
 from app.services.recommendations.models import Product
 from app.worker.consumers.es_projection import (
+    INDEX_MAPPINGS,
     ensure_indices,
     project_to_elasticsearch,
 )
@@ -85,3 +86,35 @@ async def test_ensure_indices_is_idempotent() -> None:
     assert await es.indices.exists(index="products_index")
     assert await es.indices.exists(index="ingredients_index")
     assert await es.indices.exists(index="knowledge_articles_index")
+
+
+async def test_ensure_indices_recreates_the_documented_mapping_after_an_external_delete(
+    monkeypatch: object,
+) -> None:
+    """Regression: rebuild.py's _clear_all() deletes the ES indices out from under
+    ensure_indices()'s in-memory `_ensured` cache — found live when a rebuild left
+    ingredients_index/products_index with Elasticsearch's dynamically-inferred
+    mapping (`.keyword` subfields, missing fields like `aliases`/`benefits`) instead
+    of the documented one (`.raw` subfields, the full field set), because
+    ensure_indices() thought it had "already ensured" an index that no longer
+    existed, so the next `es.index()` silently auto-created it wrong. Uses a
+    throwaway index name (monkeypatched into INDEX_MAPPINGS) rather than the real
+    `ingredients_index` — the real one backs other tests' live search data, and an
+    earlier version of this test deleted it out from under them."""
+    es = get_elasticsearch()
+    fake_index = "test_ephemeral_index"
+    monkeypatch.setitem(  # type: ignore[attr-defined]
+        INDEX_MAPPINGS, fake_index, {"properties": {"name": {"type": "keyword"}}}
+    )
+
+    try:
+        await ensure_indices()  # populates _ensured, as any earlier code path would have
+
+        await es.options(ignore_status=404).indices.delete(index=fake_index)
+        await ensure_indices()  # must notice the index is gone and recreate it properly
+
+        assert await es.indices.exists(index=fake_index)
+        mapping = (await es.indices.get_mapping(index=fake_index))[fake_index]["mappings"]
+        assert mapping["properties"] == INDEX_MAPPINGS[fake_index]["properties"]
+    finally:
+        await es.options(ignore_status=404).indices.delete(index=fake_index)

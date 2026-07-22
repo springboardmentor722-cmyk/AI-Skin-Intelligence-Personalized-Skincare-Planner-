@@ -76,19 +76,19 @@ INDEX_MAPPINGS = {
     "knowledge_articles_index": _KNOWLEDGE_ARTICLES_MAPPING,
 }
 
-_ensured: set[str] = set()
-
-
 async def ensure_indices() -> None:
     """Creates the 3 indices from their documented mappings if absent — idempotent,
-    safe to call before every projection (cheap once `_ensured` is warm)."""
+    safe to call before every projection. Always re-checks existence rather than
+    caching "already ensured" in memory: a prior version cached that flag, and
+    rebuild.py's full-rebuild path deletes these indices out from under a
+    long-running process, which left the cache believing an index existed when it
+    didn't — the next `es.index()` call then silently let Elasticsearch
+    auto-create it with an inferred mapping instead of the documented one (found
+    live, regression-tested in test_es_projection.py)."""
     es = get_elasticsearch()
     for name, mapping in INDEX_MAPPINGS.items():
-        if name in _ensured:
-            continue
         if not await es.indices.exists(index=name):
             await es.indices.create(index=name, mappings=mapping)
-        _ensured.add(name)
 
 
 async def build_product_document(db: AsyncSession, product_id: int) -> dict[str, Any] | None:

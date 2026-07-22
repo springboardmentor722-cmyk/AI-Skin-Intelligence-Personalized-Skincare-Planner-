@@ -72,7 +72,7 @@ const RAW_NAV_ITEMS: Record<Role, RawNavItem[]> = {
     // product-browse feature. Flagged in the audit report as an assumption, not a
     // silent decision.
     { label: "Products", path: "/recommendations", icon: ShoppingBag },
-    { label: "Ingredients", path: "/ingredients", icon: FlaskConical, built: false },
+    { label: "Ingredients", path: "/ingredients", icon: FlaskConical },
     { label: "Progress", path: "/progress", icon: TrendingUp },
     { label: "Insights", path: "/insights", icon: Sparkles, built: false },
     { label: "Reports", path: "/reports", icon: FileText, built: false },

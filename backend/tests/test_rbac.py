@@ -106,6 +106,7 @@ async def test_require_verified_professional_rejects_missing_profile(
         ("POST", "/api/v1/routine/generate"),
         ("GET", "/api/v1/recommendations/me"),
         ("GET", "/api/v1/progress/me/summary"),
+        ("GET", "/api/v1/ingredients/1/suitability/me"),
     ],
 )
 async def test_user_only_routes_reject_other_roles(
@@ -325,3 +326,23 @@ async def test_me_stays_role_agnostic(client: AsyncClient) -> None:
             app.dependency_overrides.pop(require_user, None)
         assert response.status_code == 200
         assert response.json()["role"] == role
+
+
+async def test_ingredient_browsing_routes_allow_every_signed_in_role(
+    client: AsyncClient,
+) -> None:
+    # PDF Module 5 serves professionals too — browsing/education isn't user-only,
+    # unlike the per-profile suitability read (test_user_only_routes_reject_other_roles).
+    for role in ("user", "consultant", "dermatologist", "admin"):
+        app.dependency_overrides[require_user] = lambda role=role: {
+            "id": f"{role}_1",
+            "role": role,
+            "claims": {},
+        }
+        try:
+            list_response = await client.get("/api/v1/ingredients")
+            detail_response = await client.get("/api/v1/ingredients/1")
+        finally:
+            app.dependency_overrides.pop(require_user, None)
+        assert list_response.status_code == 200
+        assert detail_response.status_code == 200
