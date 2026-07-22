@@ -67,3 +67,17 @@ Alembic migration `103dadbc13ce`. Nullable — curated seed rows
 (`admin/ingest/products.py`) populates them. Makes `AI_ML.md`'s "sorts by rating"
 stub semantics and the recommendation rank formula's `rating_norm` signal
 schema-true.
+
+## 2026-07-22 — M3-D: `product_recommendations` (first writer) + Mongo `recommendation_feedback` (NEW)
+
+No DDL change to `product_recommendations` — it already existed, unwritten, since
+M1/M2; the Recommender v2 pipeline (`app/services/recommendations/service.py`) is its
+first real writer, one row per product per served set (append-only audit trail, not
+an upsert-replaced "current" row). New Mongo collection `recommendation_feedback`
+(schema #9, `skinlytics_mongodb_schema_v3.txt`) backs `POST /recommendations/
+feedback` — the future ranking-label stream (`AI_ML.md` "Feedback loop"); empty
+until real usage accumulates, never seeded with fabricated labels (AGENTS.md §0.2).
+Vector DB: `user_profiles_namespace` embedding pipeline lands (worker consumer,
+`app/worker/consumers/embeddings.py`) — documented divergence from
+`skinlytics_vector_db_schema_v3.txt`'s aspirational "custom feature embedding" model
+name, noted in that file directly.

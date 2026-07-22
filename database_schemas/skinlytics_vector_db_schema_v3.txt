@@ -18,10 +18,19 @@ Namespaces  (dim · model)
 1. products_namespace            384   all-MiniLM-L6-v2
 2. ingredients_namespace         384   all-MiniLM-L6-v2  (BioBERT optional later)
 3. knowledge_articles_namespace  768   PubMedBERT
-4. user_profiles_namespace       384   custom feature embedding
+4. user_profiles_namespace       384   all-MiniLM-L6-v2  (see M3-D note below)
 5. skin_assessments_namespace   1280   EfficientNet-B0 output + metadata
 
 (M1: schema fixed only. Embedding pipelines land M2-M3.)
+
+M3-D note (documented divergence, app/ai/schemas.py's NAMESPACE_EMBEDDING_MODELS):
+user_profiles_namespace ships on the same general-purpose all-MiniLM-L6-v2 encoder as
+products/ingredients, not a bespoke "custom feature embedding" model — no such model
+was ever specified beyond this file's aspirational name, and training one is out of
+scope. The embedded text is a plain-language profile summary ("Oily skin, concern
+Acne, allergic to Fragrance, ..."), built and re-embedded by
+app/worker/consumers/embeddings.py whenever skin_profiles changes (same outbox row
+skin_profile/service.py has appended since M3-A).
 
 ====================================================
 1. products_namespace

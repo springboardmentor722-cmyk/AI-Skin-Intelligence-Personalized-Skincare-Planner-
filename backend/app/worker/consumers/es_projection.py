@@ -179,8 +179,9 @@ async def project_to_elasticsearch(
     db: AsyncSession, mongo: Any, aggregate_type: str, aggregate_id: str
 ) -> None:
     """Deletes the ES doc if the source row is gone (a real delete event or a
-    since-removed row), upserts otherwise. `profile` has no ES index yet — a
-    documented no-op until the recommender's user_profiles_namespace lands (M3-D)."""
+    since-removed row), upserts otherwise. `profile` is permanently a no-op here —
+    profiles are never searched via Elasticsearch, only via vector similarity
+    (app/worker/consumers/embeddings.py's user_profiles_namespace, M3-D)."""
     if aggregate_type == "profile":
         return
 

@@ -141,5 +141,17 @@
 }
 // Index: { user_id: 1, log_date: -1 } unique
 
+// 9. recommendation_feedback  (added M3-D — the future ranking-label stream,
+//    AI_ML.md "Feedback loop". Single writer: recommendations service.)
+{
+  "_id": "ObjectId",
+  "user_id": "String",              // FK -> Postgres "user"(id)
+  "product_id": "Integer",          // FK -> Postgres products.product_id
+  "recommendation_id": "Integer",   // FK -> Postgres product_recommendations.recommendation_id, nullable
+  "action": "String",               // 'thumbs_up' | 'thumbs_down' | 'saved' | 'dismissed'
+  "created_at": "ISODate"
+}
+// Index: { user_id: 1, created_at: -1 }
+
 // REMOVED in v2 (still removed): consultant_notes (Postgres only),
 // ingredient_insights (Postgres ingredients + ES prose).

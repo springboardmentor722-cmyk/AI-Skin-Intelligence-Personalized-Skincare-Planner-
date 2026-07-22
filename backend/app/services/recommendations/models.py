@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import ForeignKey, Index, Numeric, UniqueConstraint, func
+from sqlalchemy import ForeignKey, Index, Numeric, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.postgres import Base
@@ -67,3 +67,22 @@ class ProductIngredient(Base):
     product_id: Mapped[int] = mapped_column(ForeignKey("products.product_id", ondelete="CASCADE"))
     ingredient_id: Mapped[int] = mapped_column(ForeignKey("ingredients.ingredient_id"))
     concentration_notes: Mapped[str | None] = mapped_column(default=None)
+
+
+class ProductRecommendation(Base):
+    """No DDL change (M3-D, milestone_3.md §5) — this is simply the table's first
+    real writer. One row per product per *served* recommendation set (an audit
+    trail for consultants/admin, not an upsert-replaced "current state" row) — the
+    same append-only spirit as `audit_logs`. `recommendation_reason` is `reasons[]`
+    joined with "; " since the column is a single TEXT, not an array."""
+
+    __tablename__ = "product_recommendations"
+    __table_args__ = (Index("idx_product_recommendations_user", "user_id"),)
+
+    recommendation_id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.product_id"))
+    recommendation_score: Mapped[float | None] = mapped_column(Numeric(5, 2), default=None)
+    recommendation_reason: Mapped[str | None] = mapped_column(Text, default=None)
+    created_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
+    updated_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
