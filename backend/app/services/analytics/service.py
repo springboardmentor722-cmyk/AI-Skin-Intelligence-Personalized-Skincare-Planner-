@@ -2,11 +2,13 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.metrics import get_latency_stats
 from app.services.analytics.schemas import (
     AdherenceDistributionBucket,
     AnalyticsAdminRead,
     AnalyticsMeRead,
     CorrelationInsight,
+    LatencyStatsRead,
     RecommendationAcceptanceRead,
     ScoreAdherencePoint,
 )
@@ -170,12 +172,25 @@ async def _get_adherence_distribution(db: AsyncSession) -> list[AdherenceDistrib
     ]
 
 
+def _latency_read(stats: Any) -> LatencyStatsRead:
+    return LatencyStatsRead(
+        sample_count=stats.sample_count, p50_ms=stats.p50_ms, p95_ms=stats.p95_ms
+    )
+
+
 async def get_admin_analytics(db: AsyncSession, mongo: Any) -> AnalyticsAdminRead:
-    """`GET /analytics/admin` (milestone_3.md §M3-F) — platform-wide aggregates,
-    admin-role-gated. Never exposes per-user rows (ARCHITECTURE.md §2's clinical-
-    access rules stay untouched by this read-only aggregator)."""
+    """`GET /analytics/admin` (milestone_3.md §M3-F, latency fields added M3-G) —
+    platform-wide aggregates, admin-role-gated. Never exposes per-user rows
+    (ARCHITECTURE.md §2's clinical-access rules stay untouched by this read-only
+    aggregator). Latency stats are read-only here too — the write path lives in
+    app/services/instrumentation/ (dashboard TTI) and app/core/logging.py's
+    middleware (api/recommendations), never this module (M3-F's own
+    grep-verifiable "no analytics write path" holds)."""
     return AnalyticsAdminRead(
         total_assessments=await scores_service.count_all_assessments(db),
         recommendation_acceptance=await _get_recommendation_acceptance(mongo),
         adherence_distribution=await _get_adherence_distribution(db),
+        api_latency=_latency_read(await get_latency_stats("api")),
+        recommendation_latency=_latency_read(await get_latency_stats("recommendations")),
+        dashboard_tti=_latency_read(await get_latency_stats("dashboard_tti")),
     )

@@ -3,8 +3,15 @@
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useSyncExternalStore } from "react";
-import { ArrowRight, RotateCw, Sparkles, TriangleAlert } from "lucide-react";
+import { useEffect, useMemo, useRef, useSyncExternalStore } from "react";
+import {
+  ArrowRight,
+  CalendarCheck,
+  CircleCheck,
+  RotateCw,
+  Sparkles,
+  TriangleAlert,
+} from "lucide-react";
 
 import { RoutineChecklistCard } from "@/components/dashboard/routine-checklist-card";
 import { ProductRecommendationCard } from "@/components/products/product-recommendation-card";
@@ -15,6 +22,24 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
 import { SCORE_COMPONENTS } from "@/lib/score-components";
+
+const todayIso = () => new Date().toISOString().slice(0, 10);
+
+// M3-G: reports a real, browser-measured Time-To-Interactive sample once the
+// dashboard's primary data has settled (ARCHITECTURE.md §9's "dashboard load"
+// metric) — a genuine external-system side effect (sending a beacon), the
+// textbook-correct use of an effect, not the "derive state from data" pattern
+// the react-hooks/set-state-in-effect rule guards against (no setState here).
+function useReportDashboardTti(ready: boolean) {
+  const reported = useRef(false);
+  useEffect(() => {
+    if (!ready || reported.current) return;
+    reported.current = true;
+    const [navEntry] = performance.getEntriesByType("navigation") as PerformanceNavigationTiming[];
+    const durationMs = navEntry ? navEntry.domInteractive : performance.now();
+    void api.POST("/api/v1/instrumentation/dashboard-tti", { body: { duration_ms: durationMs } });
+  }, [ready]);
+}
 
 // Dynamically imported (not a static import) — recharts is this app's single heaviest
 // dependency, and lazy-loading it here keeps it out of Dashboard's own first-visit dev
@@ -132,6 +157,24 @@ export default function UserDashboardPage() {
     enabled: scoreQuery.data !== null,
   });
 
+  const lifestyleQuery = useQuery({
+    queryKey: ["lifestyle-logs", "me"],
+    queryFn: async () => {
+      const { data } = await api.GET("/api/v1/lifestyle-logs/me");
+      return data ?? [];
+    },
+    enabled: scoreQuery.data !== null,
+  });
+
+  const analyticsQuery = useQuery({
+    queryKey: ["analytics", "me"],
+    queryFn: async () => {
+      const { data } = await api.GET("/api/v1/analytics/me");
+      return data ?? null;
+    },
+    enabled: scoreQuery.data !== null,
+  });
+
   const chartData = useMemo(
     () =>
       (progressQuery.data ?? []).map((p) => ({
@@ -142,6 +185,24 @@ export default function UserDashboardPage() {
   );
 
   const { greeting, today } = useGreeting();
+
+  const routines = routinesQuery.data ?? [];
+  const dailyRoutines = routines.filter((r) => r.routine_type === "AM" || r.routine_type === "PM");
+  const totalSteps = dailyRoutines.reduce((sum, r) => sum + r.steps.length, 0);
+  const completedSteps = dailyRoutines.reduce(
+    (sum, r) => sum + r.steps.filter((s) => s.completed_today).length,
+    0
+  );
+  const loggedToday = (lifestyleQuery.data ?? []).some((log) => log.log_date === todayIso());
+  const checkInComplete = totalSteps > 0 && completedSteps === totalSteps && loggedToday;
+
+  const latestInsight = (analyticsQuery.data?.correlations ?? []).find(
+    (c) => c.correlation !== null
+  );
+
+  useReportDashboardTti(
+    !scoreQuery.isLoading && !routinesQuery.isLoading && !recommendationsQuery.isLoading
+  );
 
   return (
     <div className="flex flex-col gap-8">
@@ -273,6 +334,77 @@ export default function UserDashboardPage() {
                 </p>
               ) : (
                 <SkinScoreTrendChart data={chartData} variant="compact" />
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+            <div className="border-border bg-card rounded-2xl border p-6 lg:col-span-6">
+              <div className="mb-3 flex items-center justify-between">
+                <h3 className="font-heading text-on-surface text-lg font-semibold">
+                  Today&apos;s check-in
+                </h3>
+                {checkInComplete && (
+                  <CircleCheck className="text-tertiary size-5" strokeWidth={1.5} />
+                )}
+              </div>
+              {routinesQuery.isLoading || lifestyleQuery.isLoading ? (
+                <Skeleton className="h-16 w-full rounded-lg" />
+              ) : (
+                <>
+                  <p className="text-on-surface-variant font-sans text-sm">
+                    {totalSteps > 0
+                      ? `${completedSteps}/${totalSteps} routine steps done`
+                      : "No AM/PM routine yet"}
+                    {" · "}
+                    {loggedToday ? "Hydration/sleep logged" : "Hydration/sleep not logged yet"}
+                  </p>
+                  {!checkInComplete && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="mt-3"
+                      nativeButton={false}
+                      render={
+                        <Link href="/check-in">
+                          <CalendarCheck className="size-4" strokeWidth={1.5} />
+                          Finish today&apos;s check-in
+                        </Link>
+                      }
+                    />
+                  )}
+                </>
+              )}
+            </div>
+
+            <div className="border-border bg-card rounded-2xl border p-6 lg:col-span-6">
+              <div className="mb-3 flex items-center justify-between">
+                <h3 className="font-heading text-on-surface text-lg font-semibold">
+                  Latest insight
+                </h3>
+                <Link
+                  href="/insights"
+                  className="text-secondary flex items-center gap-1 font-sans text-sm font-medium"
+                >
+                  All insights
+                  <ArrowRight className="size-4" strokeWidth={1.5} />
+                </Link>
+              </div>
+              {analyticsQuery.isLoading ? (
+                <Skeleton className="h-16 w-full rounded-lg" />
+              ) : latestInsight ? (
+                <div>
+                  <p className="font-sans text-sm">{latestInsight.summary}</p>
+                  {latestInsight.confidence !== null && (
+                    <p className="text-on-surface-variant mt-1 font-geist text-[10px] tracking-[0.05em] uppercase">
+                      {Math.round(latestInsight.confidence * 100)}% confidence · {latestInsight.data_source}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <p className="text-on-surface-variant font-sans text-sm">
+                  Log a few more check-ins to unlock your first insight.
+                </p>
               )}
             </div>
           </div>
