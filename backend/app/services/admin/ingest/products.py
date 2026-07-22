@@ -37,6 +37,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.db.outbox import append_outbox
 from app.services.ingredients.models import Ingredient
 from app.services.recommendations.models import Product, ProductIngredient
 
@@ -205,6 +206,7 @@ async def load_into_database(db: AsyncSession, products: list[dict[str, Any]]) -
         )
         db.add(product)
         await db.flush()
+        await append_outbox(db, "product", str(product.product_id), "upsert")
 
         # dict.fromkeys dedupes while preserving order — a single product's own INCI
         # list can repeat the same canonicalized ingredient name (e.g. two entries
@@ -217,6 +219,9 @@ async def load_into_database(db: AsyncSession, products: list[dict[str, Any]]) -
                 ingredient = Ingredient(ingredient_name=ingredient_name)
                 db.add(ingredient)
                 await db.flush()
+                await append_outbox(
+                    db, "ingredient", str(ingredient.ingredient_id), "upsert"
+                )
                 ingredient_ids[ingredient_name] = ingredient.ingredient_id
             db.add(
                 ProductIngredient(

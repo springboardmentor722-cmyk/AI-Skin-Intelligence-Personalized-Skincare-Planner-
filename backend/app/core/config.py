@@ -26,8 +26,28 @@ class Settings(BaseSettings):
     # MongoDB — lifestyle logs, assessments, progress, preferences, weather.
     mongo_uri: str = "mongodb://localhost:27017/skinlytics"
 
-    # Redis — sessions, rate limits, caches, arq queues (worker lands M2, ADR-010).
+    # Redis — sessions, rate limits, caches, arq queues (worker lands M3-A, ADR-010).
     redis_url: str = "redis://localhost:6379/0"
+
+    # Elasticsearch — derived-only (products/ingredients/knowledge_articles_index),
+    # projected exclusively by app/worker/ (ADR-010, ADR-005 single-writer rule).
+    elasticsearch_url: str = "http://localhost:9200"
+
+    # Vector DB — FAISS locally (in-process, no service), Pinecone in prod (env keys
+    # stay blank in dev — never required, docs/milestones/milestone_3/milestone_3.md
+    # §2). FAISS index files live under repo-root `ml/faiss/{namespace}.index`
+    # (skinlytics_vector_db_schema_v3.txt) — `faiss_index_dir` is relative to this
+    # backend/ process's cwd (repo root, per Makefile/uv run conventions).
+    vector_db_provider: str = "faiss"
+    faiss_index_dir: str = "../ml/faiss"
+    pinecone_api_key: str = ""
+    pinecone_environment: str = ""
+    pinecone_index: str = ""
+
+    # AI interfaces (ADR-007): config-selected impl per interface, stub|real[|ranker].
+    # TextEmbedder is the first one made real (M3-A) — stub in tests (no model
+    # download/inference cost), real in the worker.
+    ai_impl_embedder: str = "stub"
 
     # Rate limiting (docs/ARCHITECTURE.md §9 "per-tier rate limits") — one general
     # fixed-window ceiling per identity (app/core/rate_limit.py), not yet split into

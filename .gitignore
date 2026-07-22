@@ -33,6 +33,10 @@ build/
 # --- Databases / local dev state ---
 *.sqlite3
 *.faiss
+# Derived FAISS index files (M3-A, ADR-010) — always rebuildable from PG/Mongo via
+# `make rebuild-derived`; never hand-authored, so never committed. ml/eval, ml/registry
+# (M3-H) are separate, tracked source trees, not covered by this.
+ml/faiss/
 
 # --- Generated (regenerate with `make openapi`; web/lib/api-types.ts IS committed) ---
 /openapi.json

@@ -70,17 +70,23 @@ skinlytics/
 │   ├── app/
 │   │   ├── main.py                   # app factory; gateway concerns (CORS, rate limit)
 │   │   ├── core/                     # config, security (JWKS verify), redis, logging
-│   │   ├── db/                       # postgres (SQLAlchemy), mongo, redis, seeds/ingest
+│   │   ├── db/                       # postgres (SQLAlchemy), mongo, redis, elasticsearch,
+│   │   │                            #   vector (FAISS), seeds/ingest
 │   │   ├── services/                 # service packages (map: ARCHITECTURE.md §4 + AGENTS.md §5)
 │   │   │   └── <name>/router.py service.py schemas.py models.py deps.py
-│   │   ├── ai/                       # model interfaces + stubs (ADR-007)
+│   │   ├── ai/                       # model interfaces + stubs (ADR-007); schemas.py,
+│   │   │                            #   embedder.py (real, M3-A)
 │   │   ├── integrations/             # external adapters (see DATASETS_AND_APIS.md)
+│   │   ├── worker/                   # arq worker + outbox projector (M3-A, ADR-010):
+│   │   │                            #   main.py, poller.py, rebuild.py, consumers/
 │   │   └── migrations/               # Alembic
+│   ├── Dockerfile                    # shared by `worker` (compose) and, at M4, `api`
 │   └── tests/
 │
 ├── ml/                               # PLANNED (M2+): training / experiments / eval
-├── graphify-out/                     # PLANNED: committed code graph (GRAPHIFY_SETUP.md)
-└── backend/app/workers/              # PLANNED (M3): arq jobs + outbox projector (ADR-010)
+│   └── faiss/                        # M3-A: derived FAISS index files, gitignored,
+│                                     #   always rebuildable (`make rebuild-derived`)
+└── graphify-out/                     # PLANNED: committed code graph (GRAPHIFY_SETUP.md)
 ```
 
 ## Backend (FastAPI, Python)

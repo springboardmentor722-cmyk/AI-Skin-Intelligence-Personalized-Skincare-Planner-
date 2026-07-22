@@ -61,6 +61,42 @@ services:
       timeout: 5s
       retries: 10
 
+  # ADR-010 (M3-A) — polls the outbox, projects to Elasticsearch + FAISS, runs slow
+  # jobs (arq, on the redis service above). Same image as api-to-be (backend/Dockerfile,
+  # ADR-005: monolith until M4) — `api`/`web` compose entries stay deferred to M4.
+  # In-cluster URLs (service names, not localhost) override the repo-root .env, which
+  # is written for the host machine's own processes (uv run uvicorn, npm run dev).
+  worker:
+    build:
+      context: ./backend
+    environment:
+      DATABASE_URL: postgresql://skinlytics:skinlytics@postgres:5432/skinlytics
+      MONGO_URI: mongodb://mongo:27017/skinlytics
+      REDIS_URL: redis://redis:6379/0
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+      S3_ENDPOINT_URL: http://minio:9000
+      S3_ACCESS_KEY_ID: skinlytics
+      S3_SECRET_ACCESS_KEY: skinlytics_dev_only
+      FAISS_INDEX_DIR: /data/faiss
+      AI_IMPL_EMBEDDER: real
+    volumes:
+      # Bind mount (not a named volume) — deliberately the same repo-root ml/faiss/
+      # host-run processes use (backend/.env's FAISS_INDEX_DIR=../ml/faiss, resolved
+      # from backend/). A named volume would give the worker its own isolated FAISS
+      # files a host-run API/pytest process could never see — found live, fixed
+      # before it shipped: a product landed in ES from inside the container but never
+      # in `ml/faiss/products.index` on the host.
+      - ./ml/faiss:/data/faiss
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      elasticsearch:
+        condition: service_started
+      mongo:
+        condition: service_started
+
 volumes:
   pgdata:
   mongodata:

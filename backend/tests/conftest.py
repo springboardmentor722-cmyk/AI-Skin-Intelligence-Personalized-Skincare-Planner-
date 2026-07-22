@@ -7,6 +7,8 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy import event as sa_event
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.ai.embedder import get_embedder
+from app.db.elasticsearch import get_elasticsearch
 from app.db.mongo import get_mongo_client
 from app.db.postgres import engine, external_user_table
 from app.db.redis import get_redis
@@ -28,6 +30,11 @@ def _fresh_redis_client() -> None:
     # cleared proactively here (Motor tolerates it better than redis-py in practice,
     # but there is no reason to rely on that).
     get_mongo_client.cache_clear()
+    # get_elasticsearch() (M3-A) — same shape again.
+    get_elasticsearch.cache_clear()
+    # get_embedder() (M3-A) — reads settings.ai_impl_embedder; tests that monkeypatch
+    # it need a clean cache, not a stale instance from an earlier test.
+    get_embedder.cache_clear()
 
 
 @pytest.fixture(autouse=True)

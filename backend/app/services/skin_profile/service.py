@@ -5,6 +5,7 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.mongo import get_mongo_db
+from app.db.outbox import append_outbox
 from app.db.redis import get_redis
 from app.services.skin_profile.models import (
     SkinConcern,
@@ -102,6 +103,11 @@ async def create_profile(
                 priority_level=concern.priority_level,
             )
         )
+
+    # M3-A: outbox row now, even though the worker's user_profiles_namespace consumer
+    # doesn't land until M3-D's recommender — appending here means no re-derivation of
+    # "what changed since" once that consumer exists (ADR-010).
+    await append_outbox(db, "profile", user_id, "upsert")
 
     await db.commit()
     await db.refresh(profile)
