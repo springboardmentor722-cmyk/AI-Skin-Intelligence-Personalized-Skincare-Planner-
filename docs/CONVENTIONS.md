@@ -20,14 +20,19 @@ reviewable and the M4 service split stays mechanical.
 ```
 skinlytics/
 ├── AGENTS.md  CLAUDE.md              # agent memory — start here
+├── .agents/rules/skinlytics-stitch.md # Stitch MCP extraction rules
 ├── PROGRESS.md                       # task state; agents update every session
-├── docker-compose.yml  Makefile  .env.example  setup.sh
-├── graphify-out/                     # committed code graph (shared agent context)
+├── AI_Skin Intelligence & Personalized Skincare Planner (1).pdf  # requirements PDF
+├── docker-compose.yml  Makefile  .env.example  .env.production  setup.sh
+├── .github/workflows/               # backend-ci.yml, frontend-ci.yml
 │
 ├── docs/
-│   ├── ARCHITECTURE.md  DATA_MODEL.md  DECISIONS.md  DESIGN.md
+│   ├── architecture.png              # approved system diagram (binding)
+│   ├── ARCHITECTURE.md  DECISIONS.md  DESIGN.md
 │   ├── CONVENTIONS.md   AI_ML.md      DATASETS_AND_APIS.md
-│   └── WIREFRAMES.md    AGENT_WORKFLOW.md  GRAPHIFY_SETUP.md  SUGGESTIONS.md
+│   ├── WIREFRAMES.md    AGENT_WORKFLOW.md  GRAPHIFY_SETUP.md  SUGGESTIONS.md
+│   ├── Skinlytics_Stitch_UI_Prompt_Pack_v2.md
+│   └── milestones/milestone_2/       # graded rubric (mile_2.docx + .md) + MASTER_PROMPT.md
 │
 ├── database_schemas/                 # DB design (source of the migrations)
 │   ├── skinlytics_postgresql_schema_v3.sql
@@ -37,6 +42,9 @@ skinlytics/
 │   ├── skinlytics_infrastructure_layer_v2.txt   # Redis + S3
 │   ├── skinlytics_identity_betterauth.md
 │   └── README_v3_changes.md
+│
+├── dataset_and_API_reference/        # AI_Skin_Datasets_APIs_Research.docx
+├── training_dataset/                 # MANIFEST.md + README + gitignored raw/ processed/
 │
 ├── web/                              # Next.js + shadcn + Better Auth
 │   ├── app/                          # App Router — (auth)/(user) are true route groups
@@ -55,22 +63,24 @@ skinlytics/
 │   ├── components/                   # app components (GlassBar, ScoreRing, …)
 │   ├── lib/auth.ts  lib/auth-client.ts
 │   ├── lib/api.ts                    # typed FastAPI client (attaches JWT)
-│   └── design/                       # exported Stitch screens (reference only)
+│   └── designs/wireframes/           # 82 extracted Stitch screens + source/
+│                                     #   (images/, reference-screenshots/) — reference only
 │
 ├── backend/                          # FastAPI modular monolith
 │   ├── app/
 │   │   ├── main.py                   # app factory; gateway concerns (CORS, rate limit)
 │   │   ├── core/                     # config, security (JWKS verify), redis, logging
-│   │   ├── db/                       # postgres (SQLAlchemy), mongo, es, vector, redis
-│   │   ├── services/                 # the 12 services, one package each
+│   │   ├── db/                       # postgres (SQLAlchemy), mongo, redis, seeds/ingest
+│   │   ├── services/                 # service packages (map: ARCHITECTURE.md §4 + AGENTS.md §5)
 │   │   │   └── <name>/router.py service.py schemas.py models.py deps.py
 │   │   ├── ai/                       # model interfaces + stubs (ADR-007)
 │   │   ├── integrations/             # external adapters (see DATASETS_AND_APIS.md)
-│   │   ├── workers/                  # arq jobs + outbox projector (ADR-010)
 │   │   └── migrations/               # Alembic
 │   └── tests/
 │
-└── ml/                               # training / experiments / eval harness (M2+)
+├── ml/                               # PLANNED (M2+): training / experiments / eval
+├── graphify-out/                     # PLANNED: committed code graph (GRAPHIFY_SETUP.md)
+└── backend/app/workers/              # PLANNED (M3): arq jobs + outbox projector (ADR-010)
 ```
 
 ## Backend (FastAPI, Python)

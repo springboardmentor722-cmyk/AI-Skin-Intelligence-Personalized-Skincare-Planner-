@@ -350,15 +350,21 @@ Full tree in `docs/CONVENTIONS.md`. Top level:
 ```
 skinlytics/
 ├── AGENTS.md  CLAUDE.md            # agent memory (start here)
+├── .agents/rules/                  # skinlytics-stitch.md — Stitch extraction rules
 ├── PROGRESS.md                     # milestone/task state — agents update this
-├── docker-compose.yml  Makefile  .env.example
-├── docs/                           # this file + DESIGN, DECISIONS, CONVENTIONS, AI_ML,
-│                                   # DATASETS_AND_APIS, WIREFRAMES, AGENT_WORKFLOW, SUGGESTIONS
+├── AI_Skin Intelligence & Personalized Skincare Planner (1).pdf  # requirements
+├── docker-compose.yml  Makefile  .env.example  .env.production  setup.sh
+├── .github/workflows/              # backend-ci.yml, frontend-ci.yml
+├── docs/                           # this file + architecture.png, DESIGN, DECISIONS,
+│                                   # CONVENTIONS, AI_ML, DATASETS_AND_APIS, WIREFRAMES,
+│                                   # AGENT_WORKFLOW, SUGGESTIONS, milestones/
 ├── database_schemas/               # PG v3, Mongo v3, Vector v3, ES, infra, Better Auth identity
-├── web/                            # Next.js + shadcn + Better Auth
+├── dataset_and_API_reference/      # dataset/API research doc
+├── training_dataset/               # MANIFEST.md + gitignored raw/ processed/
+├── web/                            # Next.js + shadcn + Better Auth (+ designs/wireframes/)
 ├── backend/                        # FastAPI modular monolith (app/services/*, app/ai/*)
-├── ml/                             # training/experiments/eval (M2+)
-└── graphify-out/                   # committed code-graph — shared agent context
+├── ml/                             # PLANNED (M2+): training/experiments/eval
+└── graphify-out/                   # PLANNED: committed code-graph (GRAPHIFY_SETUP.md)
 ```
 
 ## 13. Milestone roadmap (8 weeks) with exit criteria
