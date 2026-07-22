@@ -67,7 +67,11 @@ async def test_get_my_analytics_aligns_scores_with_real_lifestyle_logs(
     await create_profile(
         db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
     )
-    today = datetime.date.today()
+    # UTC, not local date.today() — compute_and_store_score stores skin_assessments
+    # rows keyed by UTC date (scores/service.py, "Use UTC on both sides") to avoid the
+    # local/UTC midnight-mismatch bug documented there; matching it here is what this
+    # test is actually verifying alignment against.
+    today = datetime.datetime.now(datetime.UTC).date()
     await upsert_lifestyle_log(
         test_user_id,
         LifestyleLogCreate(log_date=today, sleep_hours=8.0, water_intake_liters=2.0),
