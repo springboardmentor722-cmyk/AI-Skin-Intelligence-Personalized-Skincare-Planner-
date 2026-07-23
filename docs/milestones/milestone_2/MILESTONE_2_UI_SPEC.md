@@ -62,8 +62,12 @@ All four screens share one system. Build it once in `web/app/globals.css` +
 
 ### 1.1 Color
 
-Values marked **measured** come from `VISION_CALIBRATION.md` and are authoritative.
-Values marked *est.* still need a `sample`/`palette` pass in P1.
+**Resolved in P1 (`docs/milestones/milestone_2/UI_EXTRACTION.md`) — per
+`MILESTONE_2_MASTER_PROMPT.md` §1a THEME OVERRIDE, no raw hex below enters
+`app/globals.css`.** Every role is mapped onto an existing Skinlytics token (all
+already present — zero new CSS custom properties needed); the hex values below
+document the *screenshot's* colour for reference/role-identification only. See
+`UI_EXTRACTION.md §1` for the full role → existing-token table.
 
 | Token | Value | Source | Used for |
 |---|---|---|---|
@@ -134,7 +138,7 @@ All numeric columns and KPI values use `font-variant-numeric: tabular-nums`.
 
 | Token | Value |
 |---|---|
-| Card radius | `--radius-lg` ≈ 14–16px |
+| Card radius | **resolved P1: `--radius` (1rem/16px), already the exact existing token** |
 | Inner element radius (chips, tiles, buttons) | 10–12px |
 | Card padding | 20px (compact KPI cards) / 24px (content cards) |
 | Grid gutter | 20px |
