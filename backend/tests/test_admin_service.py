@@ -19,13 +19,19 @@ from app.services.admin.service import (
     create_document,
     get_document_view_url,
     get_pending_verification_counts,
+    get_platform_counts,
     get_profile_for_review,
+    get_top_skin_concerns,
     list_audit_logs,
     list_verification_queue,
     write_audit_log,
 )
 from app.services.consultant_profile.models import ConsultantProfile
 from app.services.dermatologist_profile.models import DermatologistProfile
+from app.services.recommendations.models import Product
+from app.services.routines.models import Routine
+from app.services.scores.models import SkinScore
+from app.services.skin_profile.models import SkinProfile, SkinProfileConcern
 
 
 @pytest.fixture
@@ -323,6 +329,36 @@ async def test_get_pending_verification_counts_reflects_real_rows(
 
     assert consultant_count >= 1
     assert dermatologist_count >= 1
+
+
+async def test_get_platform_counts_reflects_real_rows(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    db_session.add(SkinScore(user_id=test_user_id))
+    db_session.add(Routine(user_id=test_user_id, routine_type="AM", is_active=True))
+    db_session.add(Product())
+    await db_session.flush()
+
+    counts = await get_platform_counts(db_session)
+
+    assert counts.total_assessments >= 1
+    assert counts.active_routines >= 1
+    assert counts.total_products >= 1
+
+
+async def test_get_top_skin_concerns_counts_profiles_by_concern(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    profile = SkinProfile(user_id=test_user_id, skin_type_id=1)
+    db_session.add(profile)
+    await db_session.flush()
+    db_session.add(SkinProfileConcern(skin_profile_id=profile.skin_profile_id, concern_id=1))
+    await db_session.flush()
+
+    top_concerns = await get_top_skin_concerns(db_session)
+
+    assert any(row.count >= 1 for row in top_concerns)
+    assert all(row.concern_name for row in top_concerns)
 
 
 async def test_get_document_view_url_returns_a_working_presigned_url(

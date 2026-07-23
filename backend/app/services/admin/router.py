@@ -232,10 +232,14 @@ async def get_dashboard_stats(
 ) -> DashboardStats:
     consultant_count, dermatologist_count = await service.get_pending_verification_counts(db)
     recent, _total = await service.list_audit_logs(db, action=None, page=1, page_size=10)
+    platform_counts = await service.get_platform_counts(db)
+    top_concerns = await service.get_top_skin_concerns(db)
     return DashboardStats(
         pending_consultant_count=consultant_count,
         pending_dermatologist_count=dermatologist_count,
         recent_activity=[AuditLogRead.model_validate(item) for item in recent],
+        platform_counts=platform_counts,
+        top_concerns=top_concerns,
     )
 
 

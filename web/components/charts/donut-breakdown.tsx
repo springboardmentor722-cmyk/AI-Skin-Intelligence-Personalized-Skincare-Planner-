@@ -79,12 +79,12 @@ export function DonutBreakdown({
           </div>
         )}
       </div>
-      <ul className="flex flex-1 flex-col gap-2 text-sm">
+      <ul className="flex min-w-0 flex-1 flex-col gap-2 text-sm">
         {data.map((slice) => (
-          <li key={slice.key} className="flex items-center justify-between gap-2">
-            <span className="flex items-center gap-2 truncate">
-              <span className="size-2 shrink-0 rounded-full" style={{ background: slice.color }} />
-              <span className="truncate">{slice.label}</span>
+          <li key={slice.key} className="flex items-start justify-between gap-2">
+            <span className="flex min-w-0 items-center gap-2">
+              <span className="mt-1 size-2 shrink-0 rounded-full" style={{ background: slice.color }} />
+              <span className="leading-tight">{slice.label}</span>
             </span>
             <span className="text-muted-foreground shrink-0 tabular-nums">
               {legend === "count-percent" ? `${slice.value} (${slice.percent}%)` : `${slice.percent}%`}

@@ -558,3 +558,53 @@ the spec should read this as documented, deliberate scope, not drift to silently
 "fix." If either underlying feature is ever deprecated for real, remove the nav
 item in the same change — this ADR licenses keeping working features, not carrying
 dead ones forever.
+
+## ADR-023 — P4 dashboards: real data wherever it exists, fixtures only for genuinely unbuilt concepts
+**Status:** Accepted (M2-P4)
+**Context:** `MILESTONE_2_MASTER_PROMPT.md` §12's sequencing rule says P1–P5 build
+against typed fixtures, with P14 swapping to live calls later. That rule assumes a
+UI built from zero — but `app/(user)/dashboard/page.tsx` and
+`app/admin/dashboard/page.tsx` already exist as real, tested, live-data-driven
+pages (5+ real TanStack Query hooks on User's side; a real BFF route on Admin's).
+Rebuilding them against fixtures and waiting for P14 to "swap back" to the data
+they already have would be a real regression for two weeks of milestone work, not
+fidelity — the same category of mistake ADR-022 already named for the sidebar.
+**Decision:** P4 rewrites both pages' *layout* to match `UI_SPEC.md §4.1`/`§4.4`'s
+row structure using the P3 widget kit, keeping every existing real data source
+wired in (scores, routines, recommendations, progress, lifestyle logs, analytics/
+insights on User; role counts, pending verification, audit log on Admin) rather
+than replacing them with static numbers. Two small backend additions
+(`PlatformCounts`, `TopConcernStat` — `backend/app/services/admin/{schemas,
+service,router}.py`, both real `COUNT`/`GROUP BY` queries, tested) extend Admin's
+real KPI surface to cover 4 of the screenshot's 6 top-row cards and the "Top Skin
+Concerns" bars, rather than fixturing numbers a cheap real query already answers.
+Fixtures are used **only** where the screenshot names a concept this app
+genuinely has no backing for yet — logged per item, not silently:
+- **User: Skin Age.** Confirmed absent from the codebase (ADR-021 C6) — a fixture
+  placeholder until P10 builds the real derivation, at which point P14 wires it.
+- **Admin: Platform Revenue, System Uptime.** No billing/payments processing and
+  no uptime-monitoring service exist in this app at all — not a missing query,
+  a missing *system*. Fixture, revisit if/when M3/M4 actually builds either.
+- **Admin: Assessments Overview (Completed/In Progress/Pending) donut.** The
+  screenshot's 3-state workflow doesn't correspond to anything in the schema —
+  `skin_assessments` rows are synchronous compute-and-store, never "pending" or
+  "in progress." Fixture; do not invent a status column to make this real.
+- **Admin: User Growth trend chart.** Would require day-bucketed historical counts
+  from Better Auth's identity tables; `listUsers` has no such endpoint, and
+  querying the underlying table directly from FastAPI would violate ADR-016
+  ("identity reads via Better Auth, domain reads via FastAPI"). Fixture; a real
+  version needs either a Better Auth admin API addition or a scheduled snapshot
+  table — out of scope for a UI phase.
+- **Admin: Platform Analytics (Page Views/Active Sessions/Bounce Rate/Avg
+  Session).** Web-analytics metrics this app has no instrumentation for at all
+  (not a domain concept the backend owns). Fixture.
+- **Admin: System Health tiles.** Display-only status tiles with no live
+  healthcheck endpoint wired to the frontend yet. Fixture; a real version would
+  ping `/health`/`/health/ready` (already existing infra probes, `AGENTS.md` §2
+  rule 2) from the frontend, deferred as a small, separable follow-up.
+**Consequences:** `web/lib/fixtures/` holds only the six items above, typed to the
+P0-frozen contract shapes exactly (so a later real implementation is a fetch swap,
+matching P14's intent) — not a wholesale fixture layer for content this app
+already computes for real. Both dashboard pages stay functionally live for every
+returning user during this milestone; nothing regresses to a static number a real
+user would previously have seen computed from their own data.

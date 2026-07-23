@@ -1,35 +1,43 @@
 "use client";
 
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useRef, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import {
-  ArrowRight,
-  CalendarCheck,
-  CircleCheck,
-  RotateCw,
+  Droplet,
+  FlaskConical,
+  Moon,
   Sparkles,
+  Sun,
   TriangleAlert,
+  UserRound,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
-import { RoutineChecklistCard } from "@/components/dashboard/routine-checklist-card";
-import { ProductRecommendationCard } from "@/components/products/product-recommendation-card";
+import { ChecklistStrip, type ChecklistTask } from "@/components/dashboard/checklist-strip";
+import { InsightBanner } from "@/components/dashboard/insight-banner";
+import { ProductCarousel, type CarouselProduct } from "@/components/dashboard/product-carousel";
+import { RoutineChain, type RoutineChainStep } from "@/components/dashboard/routine-chain";
+import { StatCard } from "@/components/dashboard/stat-card";
+import { DonutBreakdown } from "@/components/charts/donut-breakdown";
+import { TrendChart } from "@/components/charts/trend-chart";
 import { SkinScoreRing } from "@/components/skin-score-ring";
 import { StateCard } from "@/components/state-card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
-import { SCORE_COMPONENTS } from "@/lib/score-components";
+import { SKIN_AGE_FIXTURE } from "@/lib/fixtures/dashboard-fixtures";
+import { useToggleRoutineStep } from "@/lib/hooks/use-toggle-routine-step";
+import { computePercent } from "@/lib/utils";
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
 
-// M3-G: reports a real, browser-measured Time-To-Interactive sample once the
-// dashboard's primary data has settled (ARCHITECTURE.md §9's "dashboard load"
-// metric) — a genuine external-system side effect (sending a beacon), the
-// textbook-correct use of an effect, not the "derive state from data" pattern
-// the react-hooks/set-state-in-effect rule guards against (no setState here).
+// docs/DECISIONS.md ADR-023: this page rebuilds MILESTONE_2_UI_SPEC.md §4.1's 4-row
+// layout from the P3 widget kit, but keeps every real data source the pre-M2-UI-pack
+// dashboard already had wired in (score, routines, recommendations, progress,
+// lifestyle logs, analytics, skin profile) — only "Skin Age" is a fixture (no real
+// derivation exists yet, ADR-021 C6).
+
 function useReportDashboardTti(ready: boolean) {
   const reported = useRef(false);
   useEffect(() => {
@@ -41,33 +49,6 @@ function useReportDashboardTti(ready: boolean) {
   }, [ready]);
 }
 
-// Dynamically imported (not a static import) — recharts is this app's single heaviest
-// dependency, and lazy-loading it here keeps it out of Dashboard's own first-visit dev
-// compile and initial JS payload entirely, only fetching it once a signed-in user with
-// a real score actually reaches the chart. No SSR (recharts needs a real DOM to
-// measure), Skeleton fallback matches the space it'll occupy once loaded.
-const SkinScoreTrendChart = dynamic(
-  () => import("@/components/charts/skin-score-trend-chart").then((m) => m.SkinScoreTrendChart),
-  { ssr: false, loading: () => <Skeleton className="h-40 w-full rounded-lg" /> }
-);
-
-// docs/WIREFRAMES.md screen 3 "User dashboard". Only the four documented, real-data
-// components are built: Skin Score Ring w/ weighted breakdown, today's routine
-// checklist, recommended products (3, match rings), progress mini-chart. The
-// wireframe HTML's own weather/reminders/AI-insight modules aren't in WIREFRAMES.md's
-// component list and have no backing endpoint — dropped rather than invented
-// (CONVENTIONS.md "raw exports never ship").
-
-// Both the greeting (depends on the viewer's local hour) and today's date (can render
-// with a different weekday/month order depending on the environment's default locale)
-// differ between the server that renders the initial HTML and the browser that
-// hydrates it — computing them directly during render caused a real hydration mismatch
-// (server "Thursday, July 9" vs. client "Thursday 9 July", different default locales).
-// useSyncExternalStore's getServerSnapshot is the React-sanctioned fix for exactly this
-// class of value: it renders a fixed, locale/timezone-agnostic placeholder during SSR
-// and hydration, then reads the real client-local value immediately after — same
-// pattern already used for useIsMobile (hooks/use-mobile.ts), instead of a
-// "mounted"-flag state-in-effect this repo's React Compiler lint rule disallows.
 let cachedGreetingSnapshot: { greeting: string; today: string } | null = null;
 
 function getGreetingSnapshot() {
@@ -76,51 +57,43 @@ function getGreetingSnapshot() {
     const hour = now.getHours();
     cachedGreetingSnapshot = {
       greeting: hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening",
-      today: now.toLocaleDateString("en-US", {
-        weekday: "long",
-        month: "long",
-        day: "numeric",
-      }),
+      today: now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" }),
     };
   }
   return cachedGreetingSnapshot;
 }
-
 const GREETING_SERVER_SNAPSHOT = { greeting: "Hello", today: "today" };
-
 function subscribeNever() {
   return () => {};
 }
-
 function useGreeting() {
-  return useSyncExternalStore(
-    subscribeNever,
-    getGreetingSnapshot,
-    () => GREETING_SERVER_SNAPSHOT
-  );
+  return useSyncExternalStore(subscribeNever, getGreetingSnapshot, () => GREETING_SERVER_SNAPSHOT);
 }
 
-function CardSkeleton({ className }: { className?: string }) {
-  return <Skeleton className={className ?? "h-64 w-full rounded-2xl"} />;
+// Keyword heuristic — RoutineStepRead has no step_category field to key off of, so
+// the icon is inferred from the step name (this app's existing seed data uses
+// consistent naming: "Cleanser", "SPF/Sunscreen", "Night Cream", etc).
+function iconForStep(stepName: string | null): LucideIcon {
+  const name = (stepName ?? "").toLowerCase();
+  if (name.includes("cleans")) return Droplet;
+  if (name.includes("spf") || name.includes("sun")) return Sun;
+  if (name.includes("night") || name.includes("sleep")) return Moon;
+  if (name.includes("serum") || name.includes("treatment")) return FlaskConical;
+  return Sparkles;
 }
 
-function CardError({ message, onRetry }: { message: string; onRetry: () => void }) {
-  return (
-    <StateCard
-      tone="destructive"
-      icon={TriangleAlert}
-      description={message}
-      action={
-        <Button variant="outline" onClick={onRetry}>
-          <RotateCw className="size-4" strokeWidth={1.5} />
-          Retry
-        </Button>
-      }
-    />
-  );
-}
+const TREND_RANGES = ["This Week", "This Month", "All Time"] as const;
+type TrendRange = (typeof TREND_RANGES)[number];
+const TREND_RANGE_DAYS: Record<TrendRange, number> = {
+  "This Week": 7,
+  "This Month": 30,
+  "All Time": Infinity,
+};
 
 export default function UserDashboardPage() {
+  const [trendRange, setTrendRange] = useState<TrendRange>("This Month");
+  const toggleStep = useToggleRoutineStep();
+
   const scoreQuery = useQuery({
     queryKey: ["scores", "me"],
     queryFn: async () => {
@@ -132,284 +105,380 @@ export default function UserDashboardPage() {
 
   const routinesQuery = useQuery({
     queryKey: ["routines", "me"],
-    queryFn: async () => {
-      const { data } = await api.GET("/api/v1/routine");
-      return data ?? [];
-    },
+    queryFn: async () => (await api.GET("/api/v1/routine")).data ?? [],
     enabled: scoreQuery.data !== null,
   });
 
   const recommendationsQuery = useQuery({
     queryKey: ["recommendations", "me"],
-    queryFn: async () => {
-      const { data } = await api.GET("/api/v1/recommendations/me");
-      return data ?? [];
-    },
+    queryFn: async () => (await api.GET("/api/v1/recommendations/me")).data ?? [],
     enabled: scoreQuery.data !== null,
   });
 
   const progressQuery = useQuery({
     queryKey: ["progress", "me", "summary"],
-    queryFn: async () => {
-      const { data } = await api.GET("/api/v1/progress/me/summary");
-      return data?.points ?? [];
-    },
+    queryFn: async () => (await api.GET("/api/v1/progress/me/summary")).data?.points ?? [],
     enabled: scoreQuery.data !== null,
   });
 
   const lifestyleQuery = useQuery({
     queryKey: ["lifestyle-logs", "me"],
-    queryFn: async () => {
-      const { data } = await api.GET("/api/v1/lifestyle-logs/me");
-      return data ?? [];
-    },
+    queryFn: async () => (await api.GET("/api/v1/lifestyle-logs/me")).data ?? [],
     enabled: scoreQuery.data !== null,
   });
 
   const analyticsQuery = useQuery({
     queryKey: ["analytics", "me"],
-    queryFn: async () => {
-      const { data } = await api.GET("/api/v1/analytics/me");
-      return data ?? null;
-    },
+    queryFn: async () => (await api.GET("/api/v1/analytics/me")).data ?? null,
     enabled: scoreQuery.data !== null,
   });
 
-  const chartData = useMemo(
-    () =>
-      (progressQuery.data ?? []).map((p) => ({
-        date: p.date,
-        overall_score: p.overall_score,
-      })),
-    [progressQuery.data]
-  );
+  const skinProfileQuery = useQuery({
+    queryKey: ["skin-profiles", "me"],
+    queryFn: async () => (await api.GET("/api/v1/skin-profiles/me")).data ?? null,
+    enabled: scoreQuery.data !== null,
+  });
+
+  const skinTypesQuery = useQuery({
+    queryKey: ["skin-types"],
+    queryFn: async () => (await api.GET("/api/v1/skin-types")).data ?? [],
+    enabled: scoreQuery.data !== null,
+    staleTime: Infinity,
+  });
+
+  const skinConcernsQuery = useQuery({
+    queryKey: ["skin-concerns"],
+    queryFn: async () => (await api.GET("/api/v1/skin-concerns")).data ?? [],
+    enabled: scoreQuery.data !== null,
+    staleTime: Infinity,
+  });
 
   const { greeting, today } = useGreeting();
 
-  const routines = routinesQuery.data ?? [];
-  const dailyRoutines = routines.filter((r) => r.routine_type === "AM" || r.routine_type === "PM");
-  const totalSteps = dailyRoutines.reduce((sum, r) => sum + r.steps.length, 0);
-  const completedSteps = dailyRoutines.reduce(
-    (sum, r) => sum + r.steps.filter((s) => s.completed_today).length,
-    0
+  const fullChartData = useMemo(
+    () =>
+      (progressQuery.data ?? [])
+        .filter((p) => p.overall_score != null)
+        .map((p) => ({ x: p.date, y: p.overall_score as number })),
+    [progressQuery.data]
   );
-  const loggedToday = (lifestyleQuery.data ?? []).some((log) => log.log_date === todayIso());
-  const checkInComplete = totalSteps > 0 && completedSteps === totalSteps && loggedToday;
+  const chartData = useMemo(() => {
+    const days = TREND_RANGE_DAYS[trendRange];
+    return Number.isFinite(days) ? fullChartData.slice(-days) : fullChartData;
+  }, [fullChartData, trendRange]);
+  const scoreDelta = useMemo(() => {
+    if (fullChartData.length < 2) return null;
+    const diff = fullChartData[fullChartData.length - 1].y - fullChartData[0].y;
+    return {
+      label: `${Math.abs(Math.round(diff))} pts this range`,
+      direction: diff >= 0 ? ("up" as const) : ("down" as const),
+    };
+  }, [fullChartData]);
 
-  const latestInsight = (analyticsQuery.data?.correlations ?? []).find(
-    (c) => c.correlation !== null
-  );
+  const routines = routinesQuery.data ?? [];
+  const amSteps = routines.find((r) => r.routine_type === "AM")?.steps ?? [];
+  const pmSteps = routines.find((r) => r.routine_type === "PM")?.steps ?? [];
+  const allSteps = [...amSteps, ...pmSteps];
+  const checklistTasks: ChecklistTask[] = allSteps.map((s) => ({
+    key: s.step_id,
+    label: s.step_name ?? "Step",
+    done: s.completed_today,
+  }));
+
+  const skinTypeName = useMemo(() => {
+    const typeId = skinProfileQuery.data?.skin_type_id;
+    return skinTypesQuery.data?.find((t) => t.skin_type_id === typeId)?.skin_type_name ?? null;
+  }, [skinProfileQuery.data, skinTypesQuery.data]);
+
+  const topConcernName = useMemo(() => {
+    const concerns = skinProfileQuery.data?.concerns ?? [];
+    if (concerns.length === 0) return null;
+    const top = [...concerns].sort(
+      (a, b) => (b.severity_rating ?? 0) - (a.severity_rating ?? 0)
+    )[0];
+    return skinConcernsQuery.data?.find((c) => c.concern_id === top.concern_id)?.concern_name ?? null;
+  }, [skinProfileQuery.data, skinConcernsQuery.data]);
+
+  const concernDonutData = useMemo(() => {
+    const concerns = skinProfileQuery.data?.concerns ?? [];
+    const total = concerns.reduce((sum, c) => sum + (c.severity_rating ?? 0), 0);
+    const colors = [
+      "var(--chart-1)",
+      "var(--chart-2)",
+      "var(--chart-3)",
+      "var(--chart-4)",
+      "var(--chart-5)",
+    ];
+    return concerns
+      .map((c, i) => ({
+        key: String(c.concern_id),
+        label:
+          skinConcernsQuery.data?.find((sc) => sc.concern_id === c.concern_id)?.concern_name ??
+          "Concern",
+        value: c.severity_rating ?? 0,
+        percent: computePercent(c.severity_rating ?? 0, total),
+        color: colors[i % colors.length],
+      }))
+      .sort((a, b) => b.percent - a.percent);
+  }, [skinProfileQuery.data, skinConcernsQuery.data]);
+
+  const latestLifestyleLog =
+    (lifestyleQuery.data ?? []).find((l) => l.log_date === todayIso()) ??
+    (lifestyleQuery.data ?? [])[0] ??
+    null;
+  const hydrationPercent =
+    latestLifestyleLog?.water_intake_liters != null
+      ? computePercent(latestLifestyleLog.water_intake_liters, 2.5)
+      : null;
+  const hydrationLabel =
+    hydrationPercent == null ? undefined : hydrationPercent >= 80 ? "Good" : hydrationPercent >= 50 ? "Fair" : "Low";
+
+  const carouselProducts: CarouselProduct[] = (recommendationsQuery.data ?? [])
+    .slice(0, 8)
+    .map((rec) => ({
+      key: rec.product.product_id,
+      name: rec.product.product_name ?? "Product",
+      imageUrl: rec.product.image_url ?? undefined,
+      price: rec.product.price,
+      currency: rec.product.currency,
+      rating: rec.product.rating ?? undefined,
+      badge: rec.match_score >= 0.8 ? "Best Match" : undefined,
+    }));
+
+  const latestInsight = (analyticsQuery.data?.correlations ?? []).find((c) => c.correlation !== null);
 
   useReportDashboardTti(
     !scoreQuery.isLoading && !routinesQuery.isLoading && !recommendationsQuery.isLoading
   );
 
+  if (scoreQuery.isLoading) {
+    return <Skeleton className="h-96 w-full rounded-2xl" />;
+  }
+  if (scoreQuery.data === null) {
+    return (
+      <StateCard
+        icon={Sparkles}
+        title="Complete your skin profile to unlock your dashboard"
+        description="Your Skin Score, routine, and recommendations are calculated from your skin profile — set it up to get started."
+        action={<Button nativeButton={false} render={<Link href="/profile">Complete skin profile</Link>} />}
+      />
+    );
+  }
+  if (scoreQuery.isError) {
+    return (
+      <StateCard
+        tone="destructive"
+        icon={TriangleAlert}
+        description="Couldn't load your Skin Score."
+        action={
+          <Button variant="outline" onClick={() => scoreQuery.refetch()}>
+            Retry
+          </Button>
+        }
+      />
+    );
+  }
+
+  const score = scoreQuery.data!;
+
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6">
       <div>
-        <h1 className="font-heading text-on-surface text-2xl font-bold">{greeting}</h1>
+        <h1 className="font-heading text-on-surface text-2xl font-bold">{greeting}! 👋</h1>
         <p className="text-on-surface-variant mt-1 font-sans text-sm">
-          Here&apos;s your clinical summary for {today}.
+          Here&apos;s your skin summary and personalized recommendations for {today}.
         </p>
       </div>
 
-      {scoreQuery.isLoading ? (
-        <CardSkeleton className="h-96 w-full rounded-2xl" />
-      ) : scoreQuery.data === null ? (
-        <StateCard
-          icon={Sparkles}
-          title="Complete your skin profile to unlock your dashboard"
-          description="Your Skin Score, routine, and recommendations are calculated from your skin profile — set it up to get started."
-          action={
-            <Button nativeButton={false} render={<Link href="/profile">Complete skin profile</Link>} />
-          }
-        />
-      ) : scoreQuery.isError ? (
-        <CardError
-          message="Couldn't load your Skin Score."
-          onRetry={() => scoreQuery.refetch()}
-        />
-      ) : (
-        <>
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-            <div className="border-border bg-card rounded-2xl border p-6 lg:col-span-5">
-              <h3 className="font-heading text-on-surface mb-4 text-lg font-semibold">Skin score</h3>
-              <div className="flex justify-center py-4">
-                <SkinScoreRing score={scoreQuery.data!.overall_score ?? 0} size={200} />
-              </div>
-              <div className="mt-4 flex flex-col gap-3">
-                {SCORE_COMPONENTS.map((c) => {
-                  const value = scoreQuery.data![c.key] ?? 0;
-                  const weight = Math.round((scoreQuery.data!.weights[c.weight] ?? 0) * 100);
-                  return (
-                    <div key={c.key} className="flex flex-col gap-1">
-                      <div className="flex items-end justify-between text-xs">
-                        <span className="text-on-surface-variant font-geist font-semibold tracking-[0.05em] uppercase">
-                          {c.label} ({weight}%)
-                        </span>
-                        <span className="font-geist text-on-surface">{Math.round(value)}/100</span>
-                      </div>
-                      <Progress
-                        value={Math.max(0, Math.min(100, value))}
-                        trackClassName="h-1.5"
-                        indicatorClassName="bg-secondary"
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+      {/* Row 1 — 5 KPI cards, UI_SPEC.md §4.1 (unequal widths: hero card widest) */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-12">
+        <div className="border-border bg-card flex flex-col items-center gap-3 rounded-2xl border p-5 lg:col-span-4">
+          <p className="text-muted-foreground self-start text-xs font-medium">Skin Health Score</p>
+          <SkinScoreRing score={score.overall_score ?? 0} size={110} label="" />
+          {scoreDelta && (
+            <span
+              className={`text-xs font-medium ${scoreDelta.direction === "up" ? "text-success" : "text-error"}`}
+            >
+              {scoreDelta.direction === "up" ? "↑" : "↓"} {scoreDelta.label}
+            </span>
+          )}
+        </div>
+        <div className="lg:col-span-2">
+          <StatCard
+            label="Skin Type"
+            value={skinTypeName ?? undefined}
+            state={
+              skinProfileQuery.isLoading || skinTypesQuery.isLoading
+                ? "loading"
+                : !skinTypeName
+                  ? "empty"
+                  : "ready"
+            }
+            icon={UserRound}
+            tint="primary"
+            footerLink={{ label: "View Details", href: "/profile" }}
+            emptyMessage="Set up your skin profile."
+            emptyActionLabel="Set up"
+            emptyActionHref="/profile"
+          />
+        </div>
+        <div className="lg:col-span-2">
+          <StatCard
+            label="Top Concerns"
+            value={topConcernName ?? undefined}
+            state={
+              skinProfileQuery.isLoading || skinConcernsQuery.isLoading
+                ? "loading"
+                : !topConcernName
+                  ? "empty"
+                  : "ready"
+            }
+            icon={TriangleAlert}
+            tint="danger"
+            footerLink={{ label: "View Analysis", href: "/assessment/results" }}
+            emptyMessage="No concerns logged."
+          />
+        </div>
+        <div className="lg:col-span-2">
+          <StatCard
+            label="Skin Age"
+            value={SKIN_AGE_FIXTURE.skinAge}
+            icon={Sparkles}
+            tint="tertiary"
+            delta={{ label: `Actual age ${SKIN_AGE_FIXTURE.actualAge}`, direction: "neutral" }}
+            footerLink={{ label: "View Details", href: "/progress" }}
+          />
+        </div>
+        <div className="lg:col-span-2">
+          <StatCard
+            label="Hydration Level"
+            value={hydrationLabel}
+            state={lifestyleQuery.isLoading ? "loading" : hydrationPercent == null ? "empty" : "ready"}
+            icon={Droplet}
+            tint="info"
+            delta={
+              hydrationPercent != null
+                ? { label: `${hydrationPercent}% of 2.5L goal`, direction: "neutral" }
+                : undefined
+            }
+            emptyMessage="Log your water intake."
+            emptyActionLabel="Check in"
+            emptyActionHref="/check-in"
+          />
+        </div>
+      </div>
 
-            <div className="lg:col-span-7">
-              {routinesQuery.isLoading ? (
-                <CardSkeleton />
-              ) : routinesQuery.isError ? (
-                <CardError message="Couldn't load your routine." onRetry={() => routinesQuery.refetch()} />
-              ) : (
-                <RoutineChecklistCard routines={routinesQuery.data ?? []} />
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-            <div className="border-border bg-card rounded-2xl border p-6 lg:col-span-8">
-              <div className="mb-4 flex items-center justify-between">
-                <h3 className="font-heading text-on-surface text-lg font-semibold">
-                  Recommended for you
-                </h3>
-                <Link
-                  href="/recommendations"
-                  className="text-secondary flex items-center gap-1 font-sans text-sm font-medium"
-                >
-                  View all
-                  <ArrowRight className="size-4" strokeWidth={1.5} />
-                </Link>
-              </div>
-              {recommendationsQuery.isLoading ? (
-                <div className="grid grid-cols-3 gap-4">
-                  {Array.from({ length: 3 }).map((_, i) => (
-                    <Skeleton key={i} className="aspect-square w-full rounded-lg" />
-                  ))}
-                </div>
-              ) : recommendationsQuery.isError ? (
-                <CardError
-                  message="Couldn't load recommendations."
-                  onRetry={() => recommendationsQuery.refetch()}
-                />
-              ) : (recommendationsQuery.data ?? []).length === 0 ? (
-                <p className="text-on-surface-variant font-sans text-sm">
-                  No recommendations yet — add concerns to your skin profile to get matched
-                  products.
-                </p>
-              ) : (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                  {(recommendationsQuery.data ?? []).slice(0, 3).map((rec) => (
-                    <ProductRecommendationCard key={rec.product.product_id} recommendation={rec} compact />
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="border-border bg-card rounded-2xl border p-6 lg:col-span-4">
-              <div className="mb-4 flex items-center justify-between">
-                <h3 className="font-heading text-on-surface text-lg font-semibold">Progress</h3>
-                <Link
-                  href="/progress"
-                  className="text-secondary flex items-center gap-1 font-sans text-sm font-medium"
-                >
-                  Details
-                  <ArrowRight className="size-4" strokeWidth={1.5} />
-                </Link>
-              </div>
-              {progressQuery.isLoading ? (
-                <Skeleton className="h-40 w-full rounded-lg" />
-              ) : progressQuery.isError ? (
-                <CardError
-                  message="Couldn't load your progress trend."
-                  onRetry={() => progressQuery.refetch()}
-                />
-              ) : chartData.length < 2 ? (
-                <p className="text-on-surface-variant font-sans text-sm">
-                  Check back after a few days to see your Skin Score trend.
-                </p>
-              ) : (
-                <SkinScoreTrendChart data={chartData} variant="compact" />
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-            <div className="border-border bg-card rounded-2xl border p-6 lg:col-span-6">
-              <div className="mb-3 flex items-center justify-between">
-                <h3 className="font-heading text-on-surface text-lg font-semibold">
-                  Today&apos;s check-in
-                </h3>
-                {checkInComplete && (
-                  <CircleCheck className="text-tertiary size-5" strokeWidth={1.5} />
+      {/* Row 2 — Today's Routine · Skin Health Progress · AI Skin Insights */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+        <div className="border-border bg-card flex flex-col gap-4 rounded-2xl border p-5 lg:col-span-4">
+          <h3 className="font-heading text-base font-semibold">Today&apos;s Routine</h3>
+          {routinesQuery.isLoading ? (
+            <Skeleton className="h-24 w-full" />
+          ) : (
+            <>
+              <RoutineChain
+                period="AM"
+                steps={amSteps.map(
+                  (s): RoutineChainStep => ({
+                    key: s.step_id,
+                    icon: iconForStep(s.step_name),
+                    label: s.step_name ?? "Step",
+                    done: s.completed_today,
+                  })
                 )}
-              </div>
-              {routinesQuery.isLoading || lifestyleQuery.isLoading ? (
-                <Skeleton className="h-16 w-full rounded-lg" />
-              ) : (
-                <>
-                  <p className="text-on-surface-variant font-sans text-sm">
-                    {totalSteps > 0
-                      ? `${completedSteps}/${totalSteps} routine steps done`
-                      : "No AM/PM routine yet"}
-                    {" · "}
-                    {loggedToday ? "Hydration/sleep logged" : "Hydration/sleep not logged yet"}
-                  </p>
-                  {!checkInComplete && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="mt-3"
-                      nativeButton={false}
-                      render={
-                        <Link href="/check-in">
-                          <CalendarCheck className="size-4" strokeWidth={1.5} />
-                          Finish today&apos;s check-in
-                        </Link>
-                      }
-                    />
-                  )}
-                </>
-              )}
-            </div>
+              />
+              <RoutineChain
+                period="PM"
+                steps={pmSteps.map(
+                  (s): RoutineChainStep => ({
+                    key: s.step_id,
+                    icon: iconForStep(s.step_name),
+                    label: s.step_name ?? "Step",
+                    done: s.completed_today,
+                  })
+                )}
+              />
+            </>
+          )}
+          <Button variant="outline" size="sm" className="w-full" render={<Link href="/routine" />}>
+            View Full Routine <span aria-hidden>→</span>
+          </Button>
+        </div>
 
-            <div className="border-border bg-card rounded-2xl border p-6 lg:col-span-6">
-              <div className="mb-3 flex items-center justify-between">
-                <h3 className="font-heading text-on-surface text-lg font-semibold">
-                  Latest insight
-                </h3>
-                <Link
-                  href="/insights"
-                  className="text-secondary flex items-center gap-1 font-sans text-sm font-medium"
-                >
-                  All insights
-                  <ArrowRight className="size-4" strokeWidth={1.5} />
-                </Link>
-              </div>
-              {analyticsQuery.isLoading ? (
-                <Skeleton className="h-16 w-full rounded-lg" />
-              ) : latestInsight ? (
-                <div>
-                  <p className="font-sans text-sm">{latestInsight.summary}</p>
-                  {latestInsight.confidence !== null && (
-                    <p className="text-on-surface-variant mt-1 font-geist text-[10px] tracking-[0.05em] uppercase">
-                      {Math.round(latestInsight.confidence * 100)}% confidence · {latestInsight.data_source}
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <p className="text-on-surface-variant font-sans text-sm">
-                  Log a few more check-ins to unlock your first insight.
-                </p>
-              )}
-            </div>
+        <div className="border-border bg-card flex flex-col gap-2 rounded-2xl border p-5 lg:col-span-4">
+          <h3 className="font-heading text-base font-semibold">Skin Health Progress</h3>
+          <TrendChart
+            state={progressQuery.isLoading ? "loading" : chartData.length < 2 ? "empty" : "ready"}
+            series={chartData}
+            seriesLabel="Skin score"
+            rangeOptions={[...TREND_RANGES]}
+            rangeValue={trendRange}
+            onRangeChange={(v) => setTrendRange(v as TrendRange)}
+            emptyMessage="Check back after a few days to see your Skin Score trend."
+            footerNote={
+              scoreDelta ? `Your skin health has changed by ${scoreDelta.label} in this range.` : undefined
+            }
+          />
+        </div>
+
+        <div className="lg:col-span-4">
+          <InsightBanner
+            variant="tip"
+            title="AI Skin Insights"
+            state={analyticsQuery.isLoading ? "loading" : !latestInsight ? "empty" : "ready"}
+            lines={latestInsight ? [latestInsight.summary] : undefined}
+            emptyMessage="Log a few more check-ins to unlock your first insight."
+            actionLabel="View All Insights"
+            actionHref="/insights"
+          />
+        </div>
+      </div>
+
+      {/* Row 3 — Recommended Products · Skin Concerns Overview */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+        <div className="border-border bg-card rounded-2xl border p-5 lg:col-span-7">
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="font-heading text-base font-semibold">Recommended Products for You</h3>
+            <Link href="/recommendations" className="text-secondary text-sm font-medium hover:underline">
+              View All
+            </Link>
           </div>
-        </>
-      )}
+          <ProductCarousel
+            state={recommendationsQuery.isLoading ? "loading" : carouselProducts.length === 0 ? "empty" : "ready"}
+            products={carouselProducts}
+            emptyMessage="Add concerns to your skin profile to get matched products."
+            emptyActionLabel="Update profile"
+            emptyActionHref="/profile"
+          />
+        </div>
+        <div className="border-border bg-card rounded-2xl border p-5 lg:col-span-5">
+          <h3 className="font-heading mb-3 text-base font-semibold">Skin Concerns Overview</h3>
+          <DonutBreakdown
+            state={skinProfileQuery.isLoading ? "loading" : concernDonutData.length === 0 ? "empty" : "ready"}
+            data={concernDonutData}
+            centerValue={concernDonutData.length}
+            centerLabel="Primary Concerns"
+            legend="percent"
+            emptyMessage="No concerns logged yet."
+          />
+        </div>
+      </div>
+
+      {/* Row 4 — full-width Daily Checklist */}
+      <div className="border-border bg-card rounded-2xl border p-5">
+        <h3 className="font-heading mb-3 text-base font-semibold">Daily Checklist</h3>
+        <ChecklistStrip
+          state={routinesQuery.isLoading ? "loading" : checklistTasks.length === 0 ? "empty" : "ready"}
+          tasks={checklistTasks}
+          onToggle={(key) => {
+            const step = allSteps.find((s) => s.step_id === key);
+            if (step) toggleStep.mutate({ stepId: step.step_id, completed: !step.completed_today });
+          }}
+          emptyMessage="Generate a routine to get your daily checklist."
+          emptyActionLabel="Generate routine"
+          emptyActionHref="/routine"
+        />
+      </div>
     </div>
   );
 }

@@ -65,9 +65,12 @@ test.describe("admin panel", () => {
       await signOut(page.request);
       await signInAsAdmin(page, adminEmail, password);
 
-      // Dashboard: real KPI cards, no invented numbers.
+      // Dashboard: real KPI cards (Milestone 2 P4 layout — MILESTONE_2_UI_SPEC.md
+      // §4.4, docs/DECISIONS.md ADR-023). "Admin dashboard" -> the real greeting
+      // copy; "Consultants" moved from its own KPI card into the User Overview
+      // donut's legend, still real data either way.
       await page.goto("/admin/dashboard");
-      await expect(page.getByText("Admin dashboard")).toBeVisible();
+      await expect(page.getByText(/welcome back, admin/i)).toBeVisible();
       await expect(page.getByText("Consultants", { exact: true })).toBeVisible();
 
       // Users: search for the throwaway target, ban it, confirm the badge flips.
