@@ -5,8 +5,8 @@
     "semantic_hash": "023109dbd695abeb21303f830aa0bb5f"
   },
   ".claude/settings.local.json": {
-    "mtime": 1784837187.262071,
-    "ast_hash": "77f54ca11a18c21d9cc54eb384c3747f",
+    "mtime": 1784838727.6110914,
+    "ast_hash": "47638197d31ba4442f3dbab2c599e20b",
     "semantic_hash": ""
   },
   ".claude/skills/shadcn/evals/evals.json": {
@@ -1855,8 +1855,8 @@
     "semantic_hash": ""
   },
   "docs/DECISIONS.md": {
-    "mtime": 1784631632.864802,
-    "ast_hash": "7861ed94a159a20601b1becde2e00bec",
+    "mtime": 1784838333.6822,
+    "ast_hash": "3ddee501c6617c72642a410c3bc4eb66",
     "semantic_hash": ""
   },
   "docs/DESIGN.md": {
@@ -3685,13 +3685,13 @@
     "semantic_hash": ""
   },
   "tools/vision/core.py": {
-    "mtime": 1784836490.0697055,
-    "ast_hash": "790555828c4d8687d6306ec1408e257d",
+    "mtime": 1784838333.777492,
+    "ast_hash": "68b045bfd061735e0a88bce8bf7f8dcf",
     "semantic_hash": ""
   },
   "tools/vision/extract.py": {
-    "mtime": 1784836490.0697055,
-    "ast_hash": "f563d4e5d6c65fab3ffa3715744add5d",
+    "mtime": 1784838333.7789698,
+    "ast_hash": "61225d2450c7b11c1cfc1f8ac3212675",
     "semantic_hash": ""
   },
   ".claude/skills/ui-ux-pro-max/SKILL.md": {
@@ -3700,43 +3700,58 @@
     "semantic_hash": ""
   },
   "docs/milestones/milestone_2/MILESTONE_2_MASTER_PROMPT.md": {
-    "mtime": 1784836490.0538397,
-    "ast_hash": "79a818b82fbc7330dee02d6d8f02fbfa",
+    "mtime": 1784838333.726113,
+    "ast_hash": "c8ab3713f0faa86d1e34e604d500f4c4",
     "semantic_hash": ""
   },
   "docs/milestones/milestone_2/MILESTONE_2_UI_SPEC.md": {
-    "mtime": 1784836490.0538397,
-    "ast_hash": "a6ca033400969299804e6010e09db573",
+    "mtime": 1784838333.726113,
+    "ast_hash": "85f9b400e847a1d1c4a7d2b9c351a25a",
     "semantic_hash": ""
   },
   "docs/milestones/milestone_2/VISION_CALIBRATION.md": {
-    "mtime": 1784835771.0986533,
-    "ast_hash": "3abcb51954c22092d4841f7dd9cf324c",
+    "mtime": 1784838333.7460277,
+    "ast_hash": "d89ea45135c6706b00ee38c5e5604121",
     "semantic_hash": ""
   },
   "tools/vision/README.md": {
-    "mtime": 1784835771.1441228,
-    "ast_hash": "7f7a395bc83c10f6a76df20f0f95ec60",
+    "mtime": 1784838333.7764616,
+    "ast_hash": "7a20e8c29b125f17d0bc755125d2ced0",
     "semantic_hash": ""
   },
   "docs/milestones/milestone_2/Admin.png": {
-    "mtime": 1784830307.4229565,
+    "mtime": 1784838333.7039225,
     "ast_hash": "f664a5138763a6c26cec908501703a04",
     "semantic_hash": ""
   },
   "docs/milestones/milestone_2/Consultant.png": {
-    "mtime": 1784830356.081273,
+    "mtime": 1784838333.7137895,
     "ast_hash": "35802381d914c37f205a89bc41e80e3f",
     "semantic_hash": ""
   },
   "docs/milestones/milestone_2/Derma.png": {
-    "mtime": 1784830334.7227578,
+    "mtime": 1784838333.7232459,
     "ast_hash": "e8bf30c16dbe7d49b1930c6d58e06475",
     "semantic_hash": ""
   },
   "docs/milestones/milestone_2/User.png": {
-    "mtime": 1784830372.5666885,
+    "mtime": 1784838333.7423277,
     "ast_hash": "e88d394a5fe295df2073cb9246928387",
+    "semantic_hash": ""
+  },
+  "docs/milestones/milestone_2/M2_API_CONTRACT.md": {
+    "mtime": 1784838333.726113,
+    "ast_hash": "96935f9a2d21dfd837d391338c17b56d",
+    "semantic_hash": ""
+  },
+  "docs/milestones/milestone_2/M2_GAP_ANALYSIS.md": {
+    "mtime": 1784838333.726113,
+    "ast_hash": "d3ab00da915fadd6702f8ac57ccc5da6",
+    "semantic_hash": ""
+  },
+  "docs/milestones/milestone_2/M2_TASK_LEDGER.md": {
+    "mtime": 1784838333.726113,
+    "ast_hash": "217b20e165012ac438d3c279acd3518b",
     "semantic_hash": ""
   }
 }
