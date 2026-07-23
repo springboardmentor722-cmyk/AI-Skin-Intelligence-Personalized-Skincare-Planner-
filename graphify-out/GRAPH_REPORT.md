@@ -1,16 +1,16 @@
 # Graph Report - AI-Skin-Intelligence-Personalized-Skincare-Planner-  (2026-07-24)
 
 ## Corpus Check
-- 436 files · ~1,042,046 words
+- 474 files · ~1,045,182 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 3544 nodes · 8018 edges · 192 communities (173 shown, 19 thin omitted)
+- 3635 nodes · 8057 edges · 225 communities (203 shown, 22 thin omitted)
 - Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 211 edges (avg confidence: 0.7)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `40111304`
+- Built from commit: `868ea4a9`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -184,10 +184,15 @@
 - consultant_profile/router.py
 - .__call__
 - .__call__
+- react-dom
 - test_ingredients_router.py
-- test_rate_limit.py
 - M2 API Contract — frozen for P0
 - M2 Task Ledger
+- zod
+- test_rate_limit.py
+- .__call__
+- use-weather-uv.ts
+- role-sidebar-labels.spec.ts
 
 ## God Nodes (most connected - your core abstractions)
 1. `cn()` - 218 edges
@@ -197,7 +202,7 @@
 5. `get_mongo_db()` - 70 edges
 6. `SkinProfileCreate` - 65 edges
 7. `require_user()` - 57 edges
-8. `Button()` - 53 edges
+8. `Button()` - 52 edges
 9. `get_or_generate_routines()` - 47 edges
 10. `Base` - 43 edges
 
@@ -216,43 +221,43 @@
 ## Import Cycles
 - 3-file cycle: `backend/app/services/routines/service.py -> backend/app/services/scores/service.py -> backend/app/services/scores/scoring_engine.py -> backend/app/services/routines/service.py`
 
-## Communities (192 total, 19 thin omitted)
+## Communities (225 total, 22 thin omitted)
 
 ### Community 0 - "get_db"
-Cohesion: 0.05
-Nodes (115): require_role(), get_db(), AsyncSession, approve_verification(), assign_consultant_client(), create_audit_log(), deactivate_professional(), get_audit_logs() (+107 more)
+Cohesion: 0.07
+Nodes (87): require_role(), get_db(), AsyncSession, approve_verification(), assign_consultant_client(), create_audit_log(), deactivate_professional(), get_audit_logs() (+79 more)
 
 ### Community 1 - "require_user"
 Cohesion: 0.12
 Nodes (43): delete_my_document(), get_my_profile(), list_my_documents(), Any, AsyncSession, Depends, DocumentType, File (+35 more)
 
 ### Community 2 - "ingredients/service.py"
-Cohesion: 0.26
-Nodes (21): Ingredient, AvoidForSkinType, ConcernTreated, EducationSnippet, IngredientDetail, IngredientListMeta, IngredientListPage, IngredientRead (+13 more)
+Cohesion: 0.07
+Nodes (59): get_interaction(), Interaction, TypedDict, Curated pairwise ingredient interaction rules (M3-B, PDF Module 5 "interaction, None means "no curated interaction documented" — never a fabricated verdict, get_ingredient(), get_interactions(), get_my_suitability() (+51 more)
 
 ### Community 3 - "button.tsx"
 Cohesion: 0.06
-Nodes (56): AdminDashboardPage(), AuditLogEntry, DashboardStatsResponse, formatAction(), LatencyStatsRead, ASSIGNABLE_ROLES, BetterAuthUser, ListUsersResponse (+48 more)
+Nodes (51): AdminDashboardPage(), AuditLogEntry, DashboardStatsResponse, formatAction(), LatencyStatsRead, ASSIGNABLE_ROLES, BetterAuthUser, ListUsersResponse (+43 more)
 
 ### Community 4 - "call_with_resilience"
 Cohesion: 0.06
-Nodes (48): Adapter, AdapterError, call_with_resilience(), CircuitBreaker, Any, Exception, Protocol, Raised once an adapter's resilience policy (retries + circuit breaker) is     e (+40 more)
+Nodes (52): get_settings(), Env vars documented in /.env.example — read from there, not invented here., Settings, Adapter, AdapterError, call_with_resilience(), CircuitBreaker, Any (+44 more)
 
 ### Community 5 - "test_clinical_review_service.py"
 Cohesion: 0.09
 Nodes (53): ConsultantClient, ConsultantNote, One row per professional-client assignment. `status` gates whether the     prof, add_client_note(), get_client(), get_client_notes(), get_my_clients(), Any (+45 more)
 
 ### Community 6 - "test_admin_service.py"
-Cohesion: 0.09
-Nodes (55): Validate, never authenticate — Better Auth is the auth authority (ADR-002/003)., AuditLog, Polymorphic across ConsultantProfile/DermatologistProfile via `owner_user_id`,, General-purpose system audit log — Admin's "Audit Logs"/"Activity Logs"     scr, VerificationDocument, apply_verification_action(), assign_client(), create_document() (+47 more)
+Cohesion: 0.10
+Nodes (55): AuditLog, Polymorphic across ConsultantProfile/DermatologistProfile via `owner_user_id`,, General-purpose system audit log — Admin's "Audit Logs"/"Activity Logs"     scr, VerificationDocument, apply_verification_action(), assign_client(), create_document(), delete_document() (+47 more)
 
 ### Community 7 - "cn"
-Cohesion: 0.12
-Nodes (29): get_admin_analytics(), get_my_analytics(), Any, AsyncSession, Depends, ge, le, Query (+21 more)
+Cohesion: 0.10
+Nodes (36): get_admin_analytics(), get_my_analytics(), Any, AsyncSession, Depends, ge, le, Query (+28 more)
 
 ### Community 8 - "Base"
-Cohesion: 0.10
-Nodes (46): seed_products(), Product, ProductIngredient, ProductRecommendation, ProductSkinType, No DDL change (M3-D, milestone_3.md §5) — this is simply the table's first, evaluate_products_suitability(), _get_budget_preference() (+38 more)
+Cohesion: 0.07
+Nodes (69): _IngredientSeed, main(), _ProductSeed, TypedDict, Idempotent local/dev seed data — `make seed` / `python -m app.db.seed`.  Seeds, seed_ingredients(), seed_products(), Ingredient (+61 more)
 
 ### Community 9 - "lib/auth.ts"
 Cohesion: 0.06
@@ -263,60 +268,60 @@ Cohesion: 0.07
 Nodes (32): PANELS, ADR-0007, ADR-0014, geist, inter, metadata, sora, AppearanceSync() (+24 more)
 
 ### Community 11 - "get_elasticsearch"
-Cohesion: 0.06
-Nodes (53): AsyncElasticsearch, AsyncIOMotorClient, AsyncIOMotorDatabase, get_settings(), Env vars documented in /.env.example — read from there, not invented here., Settings, get_elasticsearch(), is_elasticsearch_available() (+45 more)
+Cohesion: 0.09
+Nodes (30): AsyncIOMotorClient, AsyncIOMotorDatabase, ingest_for_concern(), main(), Real PubMed ingestion — `make ingest-knowledge` / `python -m app.db.ingest_knowl, get_mongo_client(), get_mongo_db(), Any (+22 more)
 
 ### Community 12 - "test_dermatologist_profile_service.py"
 Cohesion: 0.13
 Nodes (18): CHART_SWATCHES, DesignSystemShowcasePage(), RADIUS_SWATCHES, SCORE_BAND_EXAMPLES, SEMANTIC_SWATCHES, TYPE_SCALE, Card(), CardAction() (+10 more)
 
 ### Community 13 - "sidebar.tsx"
-Cohesion: 0.04
-Nodes (82): InsightsPage(), AppSidebar(), AppSidebarProps, Breadcrumb(), BreadcrumbEllipsis(), BreadcrumbItem(), BreadcrumbLink(), BreadcrumbList() (+74 more)
+Cohesion: 0.03
+Nodes (103): InsightsPage(), ThemeToggle(), Avatar(), AvatarBadge(), AvatarFallback(), AvatarGroup(), AvatarGroupCount(), AvatarImage() (+95 more)
 
 ### Community 14 - "test_routines_service.py"
-Cohesion: 0.14
-Nodes (48): _am_pm_categories_for_skin_type(), _current_season(), get_or_generate_routines(), ProductRead, Deterministic, `hash(user_id)`-seeded routine generation (ADR-007 spirit) — no, search_products_for_edit(), SkinProfileCreate, create_profile() (+40 more)
+Cohesion: 0.15
+Nodes (49): _am_pm_categories_for_skin_type(), get_or_generate_routines(), ProductRead, Deterministic, `hash(user_id)`-seeded routine generation (ADR-007 spirit) — no, search_products_for_edit(), Taxonomy/reference table — seeded, rarely written after (Normal/Dry/Oily/     C, SkinType, SkinProfileCreate (+41 more)
 
 ### Community 15 - "recommendations/page.tsx"
 Cohesion: 0.04
 Nodes (48): Arrow / Item / Group / Label / CheckboxItem / RadioGroup / RadioItem / ItemIndicator / Separator / Sub / SubTrigger / SubContent, Arrow → Menu.Arrow, Base UI only, data attributes, CSS variables, Base UI only props worth knowing (Menu), Base UI only props worth knowing (NavigationMenu), CheckboxItem → Menu.CheckboxItem, Content → ContextMenu.Portal > Positioner > Popup, Content → Menu.Portal > Menu.Positioner > Menu.Popup (+40 more)
 
 ### Community 16 - "test_scores_service.py"
-Cohesion: 0.06
-Nodes (64): ScoringWeights, SkinScore, BaseModel, ScoreRead, ScoreWeightsRead, calculate_skin_health_score(), _hydration_score(), _lifestyle_score() (+56 more)
+Cohesion: 0.07
+Nodes (58): SkinScore, BaseModel, ScoreRead, ScoreWeightsRead, calculate_skin_health_score(), _hydration_score(), _lifestyle_score(), Any (+50 more)
 
 ### Community 17 - "skinlytics_postgresql_schema_v3.sql"
 Cohesion: 0.11
 Nodes (37): account, audit_logs, consultant_clients, consultant_notes, consultant_profiles, dermatologist_profiles, ingredient_concern_treats, ingredient_skintype_avoid (+29 more)
 
 ### Community 18 - "utils.ts"
-Cohesion: 0.04
-Nodes (70): AssessmentBasicsPage(), GOALS, ALLERGY_OPTIONS, AssessmentLifestylePage(), firstOf(), SLEEP_QUALITY_ITEMS, SLEEP_QUALITY_OPTIONS, STRESS_LABELS (+62 more)
+Cohesion: 0.05
+Nodes (59): ALLERGY_OPTIONS, AssessmentLifestylePage(), firstOf(), SLEEP_QUALITY_ITEMS, SLEEP_QUALITY_OPTIONS, STRESS_LABELS, SUN_EXPOSURE_OPTIONS, CATEGORIES (+51 more)
 
 ### Community 19 - "signup/page.tsx"
-Cohesion: 0.10
-Nodes (21): LoginForm(), safeRedirectTarget(), ROLE_CARDS, SignupPage(), STRENGTH_COLORS, AuthSplitLayout(), GoogleIcon(), Checkbox() (+13 more)
+Cohesion: 0.17
+Nodes (9): SignupPage(), forgotPasswordSchema, ForgotPasswordValues, passwordStrength(), resetPasswordSchema, ResetPasswordValues, SIGNUP_ROLES, signupSchema (+1 more)
 
 ### Community 20 - "glass-topbar.tsx"
 Cohesion: 0.05
 Nodes (42): BM25, detect_domain(), _load_csv(), Lowercase, split, remove punctuation, filter short words, Build BM25 index from documents, Score all documents against query, Load CSV and return list of dicts, Core search function using BM25 (+34 more)
 
 ### Community 21 - "test_skin_profile_service.py"
-Cohesion: 0.11
-Nodes (31): One row per saved profile version — `is_current` marks the active one, prior, SkinProfile, EnvironmentalExposure, BaseModel, SkinConcernRead, SkinProfileConcernInput, SkinProfileConcernRead, SkinProfileRead (+23 more)
+Cohesion: 0.10
+Nodes (47): One row per saved profile version — `is_current` marks the active one, prior, SkinProfile, SkinProfileConcern, get_my_lifestyle_logs(), EnvironmentalExposure, LifestyleLogCreate, LifestyleLogRead, BaseModel (+39 more)
 
 ### Community 22 - "postgres.py"
-Cohesion: 0.07
-Nodes (42): ingest_for_concern(), main(), Real PubMed ingestion — `make ingest-knowledge` / `python -m app.db.ingest_knowl, append_outbox(), Outbox, Any, AsyncSession, Base (+34 more)
+Cohesion: 0.10
+Nodes (24): Validate, never authenticate — Better Auth is the auth authority (ADR-002/003)., Base, Shared declarative base. Each service owns its own tables (ADR-005) — a service, do_run_migrations(), include_object(), Any, In this scenario we need to create an Engine     and associate a connection wit, Run migrations in 'online' mode. (+16 more)
 
 ### Community 23 - "append_outbox"
 Cohesion: 0.05
 Nodes (41): 1. Accessibility (CRITICAL), 2. Touch & Interaction (CRITICAL), 3. Performance (HIGH), 4. Layout & Responsive (HIGH), 5. Typography & Color (MEDIUM), 6. Animation (MEDIUM), 7. Style Selection (MEDIUM), 8. Charts & Data (LOW) (+33 more)
 
 ### Community 24 - "vector.py"
-Cohesion: 0.06
-Nodes (67): get_embedder(), _normalize(), Deterministic, hash-seeded — same ADR-007 spirit as every other stub in this, SentenceTransformers-backed, lazy-loaded (no model load at import time — only, RealTextEmbedder, StubTextEmbedder, One embedding model per namespace, pinned (mixing versions corrupts     similar, TextEmbedder (+59 more)
+Cohesion: 0.14
+Nodes (33): clear(), count(), _dir(), _faiss_id(), get_vector(), _index_path(), _load_index(), _load_meta() (+25 more)
 
 ### Community 25 - "results/page.tsx"
 Cohesion: 0.04
@@ -336,22 +341,22 @@ Nodes (28): dom, dom.iterable, esnext, **/*.mts, .next/dev/types/**/*.ts, next-e
 
 ### Community 29 - "nav-config.ts"
 Cohesion: 0.05
-Nodes (62): Action, ACTION_LABELS, FIELD_LABELS, formatValue(), REASON_REQUIRED, Role, VerificationReviewPage(), ConsultantBackgroundPage() (+54 more)
+Nodes (60): ConsultantBackgroundPage(), ConsultantContactPage(), REQUIREMENTS, ConsultantPracticePage(), ConsultantReviewPage(), FIELD_LABELS, formatValue(), SUMMARY_SECTIONS (+52 more)
 
 ### Community 30 - "routine/page.tsx"
-Cohesion: 0.05
-Nodes (40): ADR-0005, COMING_SOON, DermatologistProfile, DOCUMENT_TYPES, DocumentType, ProfileSummaryCard(), STATUS_COPY, TONE_CLASSES (+32 more)
+Cohesion: 0.07
+Nodes (33): ADR-0005, CORE_TABS, MyRoutinePage(), RoutineRead, RoutineStepCard(), RoutineStepRead, RoutineType, RoutineChecklistCardProps (+25 more)
 
 ### Community 31 - "routines/service.py"
-Cohesion: 0.14
-Nodes (35): Deterministic RNG for M1 AI stubs (ADR-007: 'deterministic, hash(user_id)-seeded, seeded_random(), Routine, RoutineProduct, RoutineStep, add_step(), _assert_product_is_safe(), count_completed_steps_by_user() (+27 more)
+Cohesion: 0.21
+Nodes (26): Deterministic RNG for M1 AI stubs (ADR-007: 'deterministic, hash(user_id)-seeded, seeded_random(), Routine, RoutineProduct, RoutineStep, add_step(), _assert_product_is_safe(), delete_step() (+18 more)
 
 ### Community 32 - "storage.py"
 Cohesion: 0.13
-Nodes (32): build_key(), _client_kwargs(), delete(), FileValidationError, get_presigned_url(), Exception, S3-compatible object storage adapter (docs/ARCHITECTURE.md §7, database_schemas/, `{prefix}/user_{id}/{uuid}_{filename}` — matches the infra doc's     `{entity_t (+24 more)
+Nodes (31): build_key(), _client_kwargs(), delete(), FileValidationError, get_presigned_url(), Exception, S3-compatible object storage adapter (docs/ARCHITECTURE.md §7, database_schemas/, `{prefix}/user_{id}/{uuid}_{filename}` — matches the infra doc's     `{entity_t (+23 more)
 
 ### Community 33 - "test_consultant_profile_service.py"
-Cohesion: 0.17
+Cohesion: 0.18
 Nodes (28): ConsultantProfileSubmit, ConsultantProfileUpdate, BaseModel, PATCH — every field optional; only supplied fields change. Never touches     ve, VerificationDocumentRead, delete_own_document(), get_own_profile(), list_own_documents() (+20 more)
 
 ### Community 34 - "devDependencies"
@@ -364,11 +369,11 @@ Nodes (36): download_dataset(), KaggleCredentialsError, load_into_database(), ma
 
 ### Community 36 - "(user)/dashboard/page.tsx"
 Cohesion: 0.10
-Nodes (41): compare_products(), get_alternatives(), get_product(), list_products(), _parse_ids(), Any, _ANY_SIGNED_IN, AsyncSession (+33 more)
+Nodes (50): compare_products(), get_alternatives(), get_product(), list_products(), _parse_ids(), Any, _ANY_SIGNED_IN, AsyncSession (+42 more)
 
 ### Community 37 - "dermatologist-onboarding/onboarding-shell.tsx"
-Cohesion: 0.12
-Nodes (41): database_schemas/skinlytics_postgresql_schema_v3.sql — extends the Better Auth, database_schemas/skinlytics_postgresql_schema_v3.sql's "APPEARANCE PREFERENCES", UserAppearancePreference, UserProfile, get_me(), get_my_appearance(), get_my_profile(), Any (+33 more)
+Cohesion: 0.13
+Nodes (39): database_schemas/skinlytics_postgresql_schema_v3.sql's "APPEARANCE PREFERENCES", UserAppearancePreference, get_me(), get_my_appearance(), get_my_profile(), Any, AppearancePreferenceUpdate, AsyncSession (+31 more)
 
 ### Community 38 - "test_suitability.py"
 Cohesion: 0.04
@@ -376,55 +381,55 @@ Nodes (44): Base UI only props worth knowing (checkbox), Base UI only props wort
 
 ### Community 39 - "dependencies"
 Cohesion: 0.05
-Nodes (41): @base-ui/react, better-auth, class-variance-authority, clsx, cmdk, ioredis, lucide-react, next (+33 more)
+Nodes (39): @base-ui/react, better-auth, class-variance-authority, clsx, cmdk, @hookform/resolvers, ioredis, lucide-react (+31 more)
 
 ### Community 40 - "helpers.ts"
-Cohesion: 0.25
-Nodes (13): ADR-0012, signInAsAdmin(), signIn(), signUpAndLand(), signIn(), clearRateLimits(), deleteMongoLogsForUser(), deleteTestUser() (+5 more)
+Cohesion: 0.28
+Nodes (11): ADR-0012, signInAsAdmin(), signIn(), clearRateLimits(), deleteMongoLogsForUser(), deleteTestUser(), pool(), promoteRole() (+3 more)
 
 ### Community 41 - "chart.tsx"
-Cohesion: 0.18
-Nodes (12): SkinScoreTrendChartProps, ChartConfig, ChartContainer(), ChartContext, ChartContextProps, ChartLegendContent(), ChartTooltipContent(), getPayloadConfigFromPayload() (+4 more)
+Cohesion: 0.17
+Nodes (14): react, SkinScoreTrendChartProps, ChartConfig, ChartContainer(), ChartContext, ChartContextProps, ChartLegendContent(), ChartTooltipContent() (+6 more)
 
 ### Community 42 - "app/page.tsx"
 Cohesion: 0.12
 Nodes (13): FEATURES, FeaturesGrid(), HowItWorksSection(), STEPS, FOOTER_COLUMNS, LandingFooter(), PricingSection(), ROLES (+5 more)
 
 ### Community 43 - "consultant_profile/router.py"
-Cohesion: 0.14
-Nodes (22): GlassTopbarProps, NavUserProps, NAV_LINKS, ThemeToggle(), Avatar(), AvatarBadge(), AvatarFallback(), AvatarGroup() (+14 more)
+Cohesion: 0.12
+Nodes (26): append_outbox(), Outbox, Any, AsyncSession, invalidate_recommendation_cache_for_catalog_change(), AI_ML.md's recommendation pipeline: cache "INVALIDATED on any profile/     pref, poll_outbox_tick(), WorkerSettings (+18 more)
 
 ### Community 44 - "assessment/context.tsx"
-Cohesion: 0.09
-Nodes (23): AssessmentConcernPriority, AssessmentContext, AssessmentContextValue, AssessmentProvider(), AssessmentSensitivities, AssessmentSnapshot, AssessmentState, commit() (+15 more)
+Cohesion: 0.15
+Nodes (15): AssessmentConcernPriority, AssessmentContext, AssessmentContextValue, AssessmentProvider(), AssessmentSensitivities, AssessmentSnapshot, commit(), DEFAULT_STATE (+7 more)
 
 ### Community 45 - "components.json"
 Cohesion: 0.09
 Nodes (21): aliases, components, hooks, lib, ui, utils, iconLibrary, menuAccent (+13 more)
 
 ### Community 46 - "scores/service.py"
-Cohesion: 0.16
-Nodes (23): Gates *operational* consultant/dermatologist endpoints (M2+) on the matching, require_verified_professional(), Any, AsyncClient, AsyncSession, RBAC — `require_role`/`require_verified_professional` unit coverage plus a repr, test_admin_only_routes_reject_non_admin_roles(), test_consultant_profile_management_routes_reject_plain_user_role() (+15 more)
+Cohesion: 0.15
+Nodes (24): Gates *operational* consultant/dermatologist endpoints (M2+) on the matching, require_verified_professional(), Any, AsyncClient, AsyncSession, RBAC — `require_role`/`require_verified_professional` unit coverage plus a repr, test_admin_only_routes_reject_non_admin_roles(), test_consultant_profile_management_routes_reject_plain_user_role() (+16 more)
 
 ### Community 47 - "consultant-onboarding/onboarding-shell.tsx"
 Cohesion: 0.20
 Nodes (10): scripts, build, dev, format, format:check, lint, start, test (+2 more)
 
 ### Community 48 - "app/main.py"
-Cohesion: 0.09
-Nodes (25): error_envelope(), FastAPI, Request, One error envelope everywhere (docs/CONVENTIONS.md): { "error": { "code", "mess, register_exception_handlers(), configure_logging(), get_request_id(), ASGIApp (+17 more)
+Cohesion: 0.08
+Nodes (28): error_envelope(), FastAPI, Request, One error envelope everywhere (docs/CONVENTIONS.md): { "error": { "code", "mess, register_exception_handlers(), configure_logging(), get_request_id(), ASGIApp (+20 more)
 
 ### Community 49 - "_routine_adherence_score"
 Cohesion: 0.07
 Nodes (27): 10. Theming implementation (shadcn mapping), 11. Accessibility floor, 12. Do / Don't, 1. Brand & style, 2. Color system, 2a. Alternate palettes (Theme system, Phase 3), 3. Glassmorphism — the elevation crown, 4. Typography — tri-font strategy (+19 more)
 
 ### Community 50 - "field.tsx"
-Cohesion: 0.06
-Nodes (73): BaseModel, date, Every field here is a real, computed claim, same discipline as     `Suitability, TrendInsight, date, Deterministic linear-trend (ordinary least squares) over the series' values, RealProgressTrendAnalyzer, ProgressImage (+65 more)
+Cohesion: 0.09
+Nodes (57): ProgressImage, `image_url` is the DDL's literal column name, but stores the S3-compatible, get_my_progress_logs(), get_my_progress_photos(), get_my_progress_summary(), Any, AsyncSession, Depends (+49 more)
 
 ### Community 51 - "consultant-onboarding/context.tsx"
 Cohesion: 0.13
-Nodes (26): get_latency_stats(), LatencyStats, _percentile(), NamedTuple, Best-effort — a Redis outage degrades this rolling metric, it must never     ta, Degrades to an honest empty reading (never a guessed number) if Redis is     un, record_latency(), get_redis() (+18 more)
+Nodes (29): get_latency_stats(), LatencyStats, _percentile(), NamedTuple, Best-effort — a Redis outage degrades this rolling metric, it must never     ta, Degrades to an honest empty reading (never a guessed number) if Redis is     un, record_latency(), get_redis() (+21 more)
 
 ### Community 52 - "dermatologist-onboarding/context.tsx"
 Cohesion: 0.19
@@ -447,28 +452,28 @@ Cohesion: 0.08
 Nodes (25): 0. How to read the screenshots, 1.1 Color, 1.2 Typography, 1.3 Shape, spacing, elevation, 1.4 The three visual rules that make it look like the screenshot, 1. Design tokens, 2.1 Brand block (top of sidebar, all roles), 2.2 Nav item anatomy (+17 more)
 
 ### Community 57 - "[routineId]/page.tsx"
-Cohesion: 0.24
-Nodes (11): get_interaction(), Interaction, TypedDict, Curated pairwise ingredient interaction rules (M3-B, PDF Module 5 "interaction, None means "no curated interaction documented" — never a fabricated verdict, app/ai/interactions.py — curated pairwise ingredient interaction rules (M3-B)., test_known_conflicting_pair_returns_avoid_verdict(), test_known_synergistic_pair_returns_synergy_verdict() (+3 more)
+Cohesion: 0.12
+Nodes (18): get_embedder(), _normalize(), Deterministic, hash-seeded — same ADR-007 spirit as every other stub in this, SentenceTransformers-backed, lazy-loaded (no model load at import time — only, RealTextEmbedder, StubTextEmbedder, One embedding model per namespace, pinned (mixing versions corrupts     similar, TextEmbedder (+10 more)
 
 ### Community 58 - "conftest.py"
 Cohesion: 0.33
 Nodes (5): name, overrides, postcss, private, version
 
 ### Community 59 - "scripts"
-Cohesion: 0.09
-Nodes (22): ADR-001 — Drop the runtime graph database, ADR-002 — Better Auth is the single auth authority, ADR-003 — User IDs are strings (TEXT); identity tables are Better-Auth-owned, ADR-004 — Frontend: Next.js + Tailwind + shadcn/ui, Recharts, Stitch designs, ADR-005 — Modular monolith for M1–M3, containers at M4, ADR-006 — Adopt Graphify (the dev tool) for agent context persistence, ADR-007 — AI is stubbed until Milestone 2, ADR-008 — "Frosted Lab Glass" design language (glassmorphism on navy/blue/teal) (+14 more)
+Cohesion: 0.08
+Nodes (23): ADR-001 — Drop the runtime graph database, ADR-002 — Better Auth is the single auth authority, ADR-003 — User IDs are strings (TEXT); identity tables are Better-Auth-owned, ADR-004 — Frontend: Next.js + Tailwind + shadcn/ui, Recharts, Stitch designs, ADR-005 — Modular monolith for M1–M3, containers at M4, ADR-006 — Adopt Graphify (the dev tool) for agent context persistence, ADR-007 — AI is stubbed until Milestone 2, ADR-008 — "Frosted Lab Glass" design language (glassmorphism on navy/blue/teal) (+15 more)
 
 ### Community 60 - "docker_run.py"
 Cohesion: 0.42
 Nodes (8): ensure_root_env(), ensure_web_env_symlink(), fail(), find_docker(), main(), NoReturn, start_docker_compose(), wait_for_postgres()
 
 ### Community 61 - "product-recommendation-card.tsx"
-Cohesion: 0.24
-Nodes (21): get_alternatives(), get_product_detail(), Same category + budget-band (+/-30%) hard filters, overlapping-concerns     pri, _create_profile(), _create_temp_product(), _create_test_user(), AsyncSession, Product catalog/detail/compare/alternatives (M3-C, PDF Module 6 surface). Real (+13 more)
+Cohesion: 0.26
+Nodes (15): delete_my_document(), get_my_profile(), list_my_documents(), Any, AsyncSession, Depends, DocumentType, File (+7 more)
 
 ### Community 63 - "consultant-onboarding.ts"
-Cohesion: 0.19
-Nodes (19): ProductConcern, build_article_document(), build_ingredient_document(), build_product_document(), ensure_indices(), project_to_elasticsearch(), Any, AsyncSession (+11 more)
+Cohesion: 0.13
+Nodes (25): AsyncElasticsearch, get_elasticsearch(), is_elasticsearch_available(), Lazy client — nothing connects until the first real call. Only     app/worker/, Absent-safe health check — callers fall back to a documented degraded path, build_article_document(), build_ingredient_document(), ensure_indices() (+17 more)
 
 ### Community 64 - "backend_run.py"
 Cohesion: 0.43
@@ -483,8 +488,8 @@ Cohesion: 0.43
 Nodes (7): fail(), is_port_open(), main(), NoReturn, read_env_var(), require_on_path(), warn_if_postgres_unreachable()
 
 ### Community 67 - "get_my_progress_summary"
-Cohesion: 0.23
-Nodes (17): list_all_ingredients(), First real function this service ever had (models.py's own docstring). A     na, _create_profile(), _create_test_user(), AsyncSession, Branch 6 (feature/admin-panel) — `list_all_ingredients` (Admin's read-only Ingr, test_get_ingredient_detail_includes_real_treats_and_avoid_data(), test_get_ingredient_detail_returns_none_for_a_missing_id() (+9 more)
+Cohesion: 0.17
+Nodes (10): IngredientSuitability, ProgressTrendAnalyzer, date, Protocol, Rule-based, not ML (M3-B) — the zero-missed-allergy hard requirement     (AI_ML, Every field here is a real, computed claim, same discipline as     `Suitability, Deterministic linear-trend + moving-average, not ML (M3-E) — same "no stub/, The stage-4 rank step (milestone_3.md §2/§8). Deliberately no stub/real     `AI (+2 more)
 
 ### Community 68 - "test_health.py"
 Cohesion: 0.53
@@ -499,12 +504,12 @@ Cohesion: 0.12
 Nodes (17): `add` — Add components, `apply` — Apply a preset to an existing project, `build` — Build a custom registry, Commands, Contents, `diff` — Check for updates, `docs` — Get component documentation URLs, Dry-Run Mode (+9 more)
 
 ### Community 71 - "security.py"
-Cohesion: 0.31
-Nodes (5): AppShell(), AppShellProps, authClient, Role, ROLE_HOME
+Cohesion: 0.10
+Nodes (25): ADR-0003, ADR-0022, ACTIVE_VARIANT_CLASSES, AppSidebar(), AppSidebarProps, GlassTopbar(), NavUser(), LandingNavbar() (+17 more)
 
 ### Community 72 - ".__call__"
-Cohesion: 0.19
-Nodes (12): commit(), ConsultantOnboardingProvider(), ConsultantOnboardingState, ContextValue, DEFAULT_STATE, getClientSnapshot(), listeners, OnboardingContext (+4 more)
+Cohesion: 0.10
+Nodes (21): COMING_SOON, ConsultantProfile, DOCUMENT_TYPES, DocumentType, ProfileSummaryCard(), STATUS_COPY, TONE_CLASSES, VerificationDocument (+13 more)
 
 ### Community 73 - "tw-animate-css"
 Cohesion: 0.12
@@ -519,8 +524,8 @@ Cohesion: 0.35
 Nodes (13): ArgumentParser, build_parser(), cmd_crop(), cmd_diff(), cmd_grid(), cmd_ocr(), cmd_palette(), cmd_probe() (+5 more)
 
 ### Community 92 - "@hookform/resolvers"
-Cohesion: 0.18
-Nodes (9): COMING_SOON, ConsultantProfile, DOCUMENT_TYPES, DocumentType, ProfileSummaryCard(), STATUS_COPY, TONE_CLASSES, VerificationDocument (+1 more)
+Cohesion: 0.12
+Nodes (17): getGreetingSnapshot(), GREETING_SERVER_SNAPSHOT, SkinScoreTrendChart, subscribeNever(), todayIso(), useGreeting(), UserDashboardPage(), useReportDashboardTti() (+9 more)
 
 ### Community 93 - "products.py"
 Cohesion: 0.13
@@ -531,24 +536,20 @@ Cohesion: 0.15
 Nodes (12): 1. Capture geometry, 2. Surfaces — and why single-pixel sampling fails here, 3. Brand palette, 4. Layout — measured, 5. OCR — verified working, 6. Known limits — read before trusting output, Admin, Consultant (+4 more)
 
 ### Community 95 - "class-variance-authority"
-Cohesion: 0.16
-Nodes (13): getGreetingSnapshot(), GREETING_SERVER_SNAPSHOT, SkinScoreTrendChart, subscribeNever(), todayIso(), useGreeting(), UserDashboardPage(), useReportDashboardTti() (+5 more)
+Cohesion: 0.25
+Nodes (12): date, Deterministic linear-trend (ordinary least squares) over the series' values, RealProgressTrendAnalyzer, _dates(), date, app/ai/trend.py — deterministic linear-trend + moving-average insight (mileston, test_a_clean_downward_line_is_declining(), test_a_clean_upward_line_is_improving_with_high_confidence() (+4 more)
 
 ### Community 96 - "test_products_router.py"
-Cohesion: 0.47
-Nodes (9): _as(), AsyncClient, app/services/recommendations/products_router.py (M3-C) — HTTP-layer contract: c, test_alternatives_returns_200_with_an_empty_list_for_a_missing_product(), test_compare_404s_when_any_id_is_missing(), test_compare_accepts_a_valid_pair(), test_compare_rejects_a_single_id(), test_compare_rejects_more_than_three_ids() (+1 more)
-
-### Community 98 - "sonner"
-Cohesion: 0.14
-Nodes (23): _correlation_insight(), _pearson(), LifestyleLogCreate, list_recent_lifestyle_logs(), Any, LifestyleLogCreate, upsert_lifestyle_log(), AsyncSession (+15 more)
+Cohesion: 0.16
+Nodes (23): _decode(), _jwk_client(), Any, require_user(), _as(), AsyncClient, app/services/analytics/router.py (M3-F) — HTTP-layer contract: real requests re, test_get_admin_analytics_returns_the_documented_shape() (+15 more)
 
 ### Community 99 - "next-themes"
 Cohesion: 0.18
 Nodes (11): 12. Sequencing rule, 1. Sources of truth — read these before writing any code, 1a. THEME OVERRIDE — read before any UI work, 2. Git protocol — strictly enforced, no exceptions, 3. Auto mode — how autonomously to work, 4. Skills and plugins — use them, don't hand-roll, 6. Verification gates — nothing merges until these are green, 7. Definition of Done — every task, no exceptions (+3 more)
 
 ### Community 102 - "tailwind-merge"
-Cohesion: 0.33
-Nodes (8): react, SidebarMenuSkeleton(), SidebarProvider(), getServerSnapshot(), getSnapshot(), subscribe(), useIsMobile(), react
+Cohesion: 0.70
+Nodes (4): getServerSnapshot(), getSnapshot(), subscribe(), useIsMobile()
 
 ### Community 116 - "tw-animate-css"
 Cohesion: 0.21
@@ -619,8 +620,8 @@ Cohesion: 0.32
 Nodes (6): Any, Depends, report_dashboard_tti(), DashboardTtiReport, BaseModel, A real, browser-measured Time-To-Interactive sample (M3-G,     ARCHITECTURE.md
 
 ### Community 133 - "progress/page.tsx"
-Cohesion: 0.26
-Nodes (9): firstOf(), ProgressPage(), RANGES, SkinScoreTrendChart, ToggleGroup(), ToggleGroupContext, ToggleGroupItem(), Toggle() (+1 more)
+Cohesion: 0.43
+Nodes (5): ToggleGroup(), ToggleGroupContext, ToggleGroupItem(), Toggle(), toggleVariants
 
 ### Community 134 - "test_products_service.py"
 Cohesion: 0.25
@@ -643,8 +644,8 @@ Cohesion: 0.20
 Nodes (9): Accordion animation placement, Button, Conventions, DropdownMenu / ContextMenu SubContent, Select, SubTrigger open styling, Tabs, Target wrapper shapes (golden-derived specifics) (+1 more)
 
 ### Community 139 - "test_users.py"
-Cohesion: 0.31
-Nodes (7): NavUser(), FinalCtaSection(), HeroSection(), LandingNavbar(), CurrentUser, initialsOf(), useCurrentUser()
+Cohesion: 0.22
+Nodes (7): client(), db_session(), AsyncClient, AsyncSession, Inserts a throwaway row into Better Auth's `user` table (see     app/db/postgre, A real session against the real (live, populated) Postgres, wrapped in an outer, test_user_id()
 
 ### Community 140 - "scroll-area"
 Cohesion: 0.22
@@ -723,12 +724,12 @@ Cohesion: 0.33
 Nodes (6): Base UI only props worth knowing, CSS variables, Data attributes, progress, Progress.Indicator → Progress.Indicator, Progress.Root → Progress.Root
 
 ### Community 159 - "dermatologist/dashboard/page.tsx"
-Cohesion: 0.10
-Nodes (27): ContentBasedRecommender, The stage-4 rank step (milestone_3.md §2/§8) — see app/ai/schemas.py's     `Rec, IngredientSuitability, ProgressTrendAnalyzer, Protocol, Every field here is a real, auditable claim — never a probability that just, Rule-based, not ML (M3-B) — the zero-missed-allergy hard requirement     (AI_ML, Stage-4 rank inputs (milestone_3.md §8) — every field pre-normalized to     [0, (+19 more)
+Cohesion: 0.21
+Nodes (14): ContentBasedRecommender, The stage-4 rank step (milestone_3.md §2/§8) — see app/ai/schemas.py's     `Rec, Stage-4 rank inputs (milestone_3.md §8) — every field pre-normalized to     [0,, RecommendationFeatures, NamedTuple, Bulk sibling of products_service.py's get_product_detail per-ingredient     eva, SuitabilityAggregate, app/ai/recommender.py — the stage-4 rank formula (milestone_3.md §8): match = 0 (+6 more)
 
-### Community 160 - "dermatologist_profile/router.py"
-Cohesion: 0.22
-Nodes (8): EXTRA_TITLES, NAV_ITEMS, NavItem, RAW_NAV_ITEMS, RawNavItem, ROLE_LABELS, ROLE_PATH_PREFIX, ADR-0003
+### Community 161 - ".__call__"
+Cohesion: 0.31
+Nodes (7): BaseModel, Every field here is a real, auditable claim — never a probability that just, SuitabilityResult, (exact, substring) — free_text is a comma-separated list of user-entered     ta, Rule-based, not ML — see app/ai/schemas.py's IngredientSuitability Protocol, RealIngredientSuitability, _tag_match()
 
 ### Community 162 - "No Base UI counterpart"
 Cohesion: 0.40
@@ -751,8 +752,8 @@ Cohesion: 0.50
 Nodes (3): Re-running the Kaggle pipeline, Status, training_dataset/
 
 ### Community 169 - "test_analytics_router.py"
-Cohesion: 0.60
-Nodes (5): _as(), AsyncClient, app/services/analytics/router.py (M3-F) — HTTP-layer contract: real requests re, test_get_admin_analytics_returns_the_documented_shape(), test_get_my_analytics_returns_the_documented_shape()
+Cohesion: 0.24
+Nodes (15): get_metadata(), embed_and_upsert(), _embed_article(), _embed_ingredient(), _embed_product(), _embed_profile(), Any, AsyncSession (+7 more)
 
 ### Community 170 - "require_verified_professional"
 Cohesion: 0.18
@@ -762,13 +763,17 @@ Nodes (10): 1. Skin profile management + lifestyle/sleep/hydration/environment t
 Cohesion: 0.33
 Nodes (5): Fairness gap — real, not silently worked around, Not medical advice, skin-lesion-screener-0.1.0, What this is — and isn't, Why it isn't wired into the backend yet
 
+### Community 172 - "clients/[userId]/page.tsx"
+Cohesion: 0.08
+Nodes (27): AssessmentBasicsPage(), GOALS, AssessmentConcernsPage(), ANALYSIS_POINTS, AssessmentResultsPage(), ScoreRead, useSubmitAssessment(), AssessmentSkinTypePage() (+19 more)
+
 ### Community 173 - "skin_profile/service.py"
 Cohesion: 0.40
 Nodes (4): APPENDIX A — Milestone 2 requirements extracted from `mile_2.docx`, How to use this file, PART 2 — PHASE MAP, Skinlytics — Milestone 2 Master Prompt Pack
 
 ### Community 174 - "test_instrumentation_router.py"
-Cohesion: 0.57
-Nodes (6): _as(), AsyncClient, app/services/instrumentation/router.py (M3-G) — the dashboard-TTI reporting end, test_report_dashboard_tti_accepts_any_signed_in_role(), test_report_dashboard_tti_rejects_a_nonsensical_negative_duration(), test_report_dashboard_tti_round_trips_into_the_latency_store()
+Cohesion: 0.26
+Nodes (7): AppShell(), AppShellProps, GlassTopbarProps, NavUserProps, authClient, Role, ROLE_HOME
 
 ### Community 176 - "Skinlytics — `ml/`"
 Cohesion: 0.50
@@ -779,24 +784,20 @@ Cohesion: 0.40
 Nodes (5): APPENDIX B — Quick reference, Branch and commit cheat sheet, Failure protocol, Grep-able task index, Phase gate command block
 
 ### Community 185 - "consultant_profile/router.py"
-Cohesion: 0.50
-Nodes (4): GlassTopbar(), Coords, useBrowserCoords(), useWeatherUV()
+Cohesion: 0.20
+Nodes (10): LoginForm(), safeRedirectTarget(), GoogleIcon(), FinalCtaSection(), HeroSection(), loginSchema, LoginValues, CurrentUser (+2 more)
 
 ### Community 186 - ".__call__"
-Cohesion: 0.50
-Nodes (3): Receive, Scope, Send
+Cohesion: 0.18
+Nodes (9): COMING_SOON, DermatologistProfile, DOCUMENT_TYPES, DocumentType, ProfileSummaryCard(), STATUS_COPY, TONE_CLASSES, VerificationDocument (+1 more)
 
 ### Community 187 - ".__call__"
-Cohesion: 0.50
-Nodes (3): Receive, Scope, Send
+Cohesion: 0.25
+Nodes (10): get_my_recommendations(), Any, AsyncSession, Depends, RecommendationRead, submit_recommendation_feedback(), Mongo `recommendation_feedback` (NEW, M3-D, milestone_3.md §5) — the future, RecommendationFeedbackCreate (+2 more)
 
 ### Community 190 - "test_ingredients_router.py"
-Cohesion: 0.21
-Nodes (18): _decode(), _jwk_client(), Any, require_user(), _as(), AsyncClient, app/services/ingredients/router.py (M3-B) — HTTP-layer contract: interactions a, test_get_ingredient_404s_for_a_missing_id() (+10 more)
-
-### Community 192 - "test_rate_limit.py"
-Cohesion: 0.32
-Nodes (7): AsyncClient, MonkeyPatch, app/core/rate_limit.py — real ASGI middleware, exercised through the actual app, Production-readiness audit finding: confirmed live (docker stop on the real, test_health_paths_are_exempt_from_rate_limiting(), test_ordinary_request_passes_through_when_redis_is_healthy(), test_rate_limiting_fails_open_when_redis_is_unreachable()
+Cohesion: 0.47
+Nodes (9): _as(), AsyncClient, app/services/ingredients/router.py (M3-B) — HTTP-layer contract: interactions a, test_get_ingredient_404s_for_a_missing_id(), test_interactions_accepts_a_valid_id_range(), test_interactions_rejects_a_single_id(), test_interactions_rejects_more_than_five_ids(), test_interactions_rejects_non_integer_ids() (+1 more)
 
 ### Community 193 - "M2 API Contract — frozen for P0"
 Cohesion: 0.29
@@ -806,25 +807,37 @@ Nodes (6): 1. `POST /api/v1/assessment/submit`, 2. `GET /api/v1/assessment/score
 Cohesion: 0.50
 Nodes (3): M2 Task Ledger, Skill/plugin discovery result (M2-P00-T01), Vision toolchain smoke test (M2-P00-T02)
 
+### Community 221 - "test_rate_limit.py"
+Cohesion: 0.32
+Nodes (7): AsyncClient, MonkeyPatch, app/core/rate_limit.py — real ASGI middleware, exercised through the actual app, Production-readiness audit finding: confirmed live (docker stop on the real, test_health_paths_are_exempt_from_rate_limiting(), test_ordinary_request_passes_through_when_redis_is_healthy(), test_rate_limiting_fails_open_when_redis_is_unreachable()
+
+### Community 222 - ".__call__"
+Cohesion: 0.50
+Nodes (3): Receive, Scope, Send
+
+### Community 223 - "use-weather-uv.ts"
+Cohesion: 0.67
+Nodes (3): Coords, useBrowserCoords(), useWeatherUV()
+
 ## Knowledge Gaps
-- **987 isolated node(s):** `WorkerSettings`, `skinlytics-backend`, `verification`, `jwks`, `outbox` (+982 more)
+- **996 isolated node(s):** `ADR-001 — Drop the runtime graph database`, `ADR-002 — Better Auth is the single auth authority`, `ADR-003 — User IDs are strings (TEXT); identity tables are Better-Auth-owned`, `ADR-004 — Frontend: Next.js + Tailwind + shadcn/ui, Recharts, Stitch designs`, `ADR-005 — Modular monolith for M1–M3, containers at M4` (+991 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **19 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **22 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `cn()` connect `sidebar.tsx` to `button.tsx`, `progress/page.tsx`, `tailwind-merge`, `chart.tsx`, `appearance-settings.tsx`, `consultant_profile/router.py`, `test_dermatologist_profile_service.py`, `utils.ts`, `signup/page.tsx`, `nav-config.ts`, `routine/page.tsx`, `class-variance-authority`?**
+- **Why does `cn()` connect `sidebar.tsx` to `button.tsx`, `progress/page.tsx`, `chart.tsx`, `appearance-settings.tsx`, `clients/[userId]/page.tsx`, `test_dermatologist_profile_service.py`, `utils.ts`, `signup/page.tsx`, `@hookform/resolvers`, `nav-config.ts`, `routine/page.tsx`?**
+  _High betweenness centrality (0.022) - this node is a cross-community bridge._
+- **Why does `get_mongo_db()` connect `get_elasticsearch` to `ingredients/service.py`, `call_with_resilience`, `cn`, `Base`, `test_analytics_router.py`, `consultant_profile/router.py`, `test_progress_router.py`, `test_routines_service.py`, `app/main.py`, `test_scores_service.py`, `field.tsx`, `test_skin_profile_service.py`, `get_mongo_db`, `.__call__`, `run_suitability_eval`, `routines/service.py`?**
   _High betweenness centrality (0.019) - this node is a cross-community bridge._
-- **Why does `get_mongo_db()` connect `get_elasticsearch` to `get_db`, `ingredients/service.py`, `call_with_resilience`, `cn`, `Base`, `test_routines_service.py`, `test_scores_service.py`, `test_skin_profile_service.py`, `postgres.py`, `vector.py`, `get_mongo_db`, `routines/service.py`, `(user)/dashboard/page.tsx`, `app/main.py`, `field.tsx`, `get_my_progress_summary`, `sonner`, `test_progress_router.py`, `run_suitability_eval`?**
-  _High betweenness centrality (0.017) - this node is a cross-community bridge._
-- **Why does `get_db()` connect `get_db` to `require_user`, `ingredients/service.py`, `(user)/dashboard/page.tsx`, `test_clinical_review_service.py`, `test_admin_service.py`, `cn`, `dermatologist-onboarding/onboarding-shell.tsx`, `test_scores_service.py`, `field.tsx`, `postgres.py`?**
-  _High betweenness centrality (0.013) - this node is a cross-community bridge._
-- **What connects `WorkerSettings`, `skinlytics-backend`, `verification` to the rest of the system?**
-  _987 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Why does `get_redis()` connect `consultant-onboarding/context.tsx` to `test_products_router.py`, `call_with_resilience`, `Base`, `consultant_profile/router.py`, `test_users.py`, `test_routines_service.py`, `scores/service.py`, `app/main.py`, `test_skin_profile_service.py`, `postgres.py`, `test_rate_limit.py`?**
+  _High betweenness centrality (0.014) - this node is a cross-community bridge._
+- **What connects `ADR-001 — Drop the runtime graph database`, `ADR-002 — Better Auth is the single auth authority`, `ADR-003 — User IDs are strings (TEXT); identity tables are Better-Auth-owned` to the rest of the system?**
+  _996 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `get_db` be split into smaller, more focused modules?**
-  _Cohesion score 0.052567402790949735 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.07277167277167278 - nodes in this community are weakly interconnected._
 - **Should `require_user` be split into smaller, more focused modules?**
   _Cohesion score 0.1196808510638298 - nodes in this community are weakly interconnected._
-- **Should `button.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.05855263157894737 - nodes in this community are weakly interconnected._
+- **Should `ingredients/service.py` be split into smaller, more focused modules?**
+  _Cohesion score 0.07365967365967366 - nodes in this community are weakly interconnected._
