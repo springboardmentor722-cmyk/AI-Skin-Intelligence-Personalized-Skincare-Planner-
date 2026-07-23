@@ -416,4 +416,123 @@ those future settings don't need a second migration. Org/white-label branding
 (mentioned as a future direction) would extend this same pattern — a palette scoped
 to an organization instead of a user — not replace it.
 
-<!-- Next ADR: ADR-020 — add yours here -->
+## ADR-020 — Milestone 2 UI-fidelity pack: operating contract + scope, resolved against PROGRESS.md's "already delivered" state
+**Status:** Accepted (M2-P0)
+**Context:** A second M2 planning pack landed in `docs/milestones/milestone_2/`
+alongside the original one, under different literal filenames: `MILESTONE_2_MASTER_PROMPT.md`
+(1398 lines, 15 phases P0–P14, full UI+backend rebuild) and `MILESTONE_2_UI_SPEC.md`,
+next to the original `MASTER_PROMPT.md` (307 lines, gitignored via `.gitignore:92`,
+6 phases, the already-executed `skin_scores→skin_assessments` literal rename) and
+`mile_2.docx`. A second docx (`MILESTONE 2.docx`, untracked, Jul 23) also sits next
+to the original `mile_2.docx` (tracked, Jul 21). This is exactly the ambiguity
+AGENTS.md §0 says to stop and ask about rather than silently guess.
+Compounding it: `MILESTONE_2_MASTER_PROMPT.md`'s own P0 contract-freeze section names
+`POST /api/v1/assessment/submit` and `GET /api/v1/assessment/score/{id}` as canonical —
+but `PROGRESS.md` (canonical, tracked, audited 2026-07-22) already declared M2 fully
+delivered under different endpoint names (`/api/v1/assessment/evaluate`,
+`/api/v1/assessment/score`, both already docx-aliased per the original
+`MASTER_PROMPT.md` Phase 1, see `backend/app/services/scores/router.py`'s own
+inline comment). `MILESTONE_2_UI_SPEC.md §7` (the doc's own contradiction-resolution
+list) does not cover this gap — it only resolves UI-content questions, not
+"does the backend already exist." This is the plan's own stated STOP condition
+("two source-of-truth documents conflict... and the conflict is not already
+answered in UI_SPEC.md §7") — surfaced to the user rather than silently resolved
+in a branch.
+**Decision (user-confirmed, 2026-07-24):**
+1. `MILESTONE_2_MASTER_PROMPT.md` + `MILESTONE_2_UI_SPEC.md` are the operating
+   contract for this run — not the old `MASTER_PROMPT.md` (that plan's rename work
+   is done and stays done; nothing in it is reopened).
+2. The assessment endpoint contract is renamed to the new pack's literal names
+   (`POST /api/v1/assessment/submit`, `GET /api/v1/assessment/score/{id}`) rather
+   than treating P6–P12 as "verify existing service only" — a real, deliberate
+   second rename layered on top of the 2026-07-15 one, executed the same way (new
+   canonical routes, old paths kept as deprecated aliases until `web/` consumers are
+   swept, then removed). `PROGRESS.md`'s "M2 delivered, nothing pending" framing is
+   superseded for this one surface by this decision; every other M2 claim in
+   `PROGRESS.md` (scoring formula, routine generation, rename migration) still
+   stands and is not being rebuilt from scratch.
+3. **Diffed in full (P0, this branch) — they are two different documents, not two
+   copies of one.** `mile_2.docx` (tracked, Jul 21) is the step-by-step build tutorial
+   the *original* rename work was executed against — it's what every existing
+   router/schema comment cites, and it never states a literal hydration number
+   ("compare... against standard recommendations"). `MILESTONE 2.docx` (untracked,
+   Jul 23) is a materially different, later requirements pass — it's where
+   `skin_types.json`/`skin_concerns.json`'s literal content, the wizard's worked
+   payload example, the `/assessment/submit` + `/assessment/score/{id}` endpoint
+   table (confirmed in its embedded `image1.png`, extracted this branch — Method/
+   Endpoint/Description table verbatim), and the literal **"3.0L daily fluid
+   benchmark"** all come from. `MILESTONE_2_MASTER_PROMPT.md` and
+   `MILESTONE_2_UI_SPEC.md` were written against `MILESTONE 2.docx`, not
+   `mile_2.docx` — confirmed by direct text match (its P8 worked example, its P10
+   formula text, and its Appendix A endpoint table are verbatim quotes from
+   `MILESTONE 2.docx`, not `mile_2.docx`). **`MILESTONE 2.docx` is therefore the
+   canonical spec for every task this pack drives**; `mile_2.docx` remains the
+   accurate record of what the *original*, already-merged M2 rename work (old
+   `MASTER_PROMPT.md`) was built against and stays correct for that slice.
+**Consequences:** `docs/milestones/milestone_2/M2_GAP_ANALYSIS.md`,
+`M2_API_CONTRACT.md`, and `M2_TASK_LEDGER.md` (this same P0 branch) are written
+against this resolution — they describe a UI-fidelity + endpoint-rename pass on top
+of a largely-complete backend, not a from-scratch build, despite P6–P12's phase
+prompts reading as if nothing exists yet. A later session must not reopen point 1
+or 2 without a new user conversation; a stale `PROGRESS.md` claim that this decision
+touches should be corrected in place, not read as still authoritative.
+
+## ADR-021 — UI_SPEC.md §7 (C1–C7) resolutions — two corrected against actual code, not rubber-stamped
+**Status:** Accepted (M2-P0)
+**Context:** `MILESTONE_2_UI_SPEC.md §7` lists seven contradictions (C1–C7) between
+`mile_2.docx`, the four dashboard screenshots, and the existing schema, each with a
+"recommended resolution." Per this pack's own contract-freeze instruction, these
+needed checking against the live code, not adopted on the spec's say-so — two of the
+seven turned out to be wrong about current code and are corrected here rather than
+copied forward.
+**Decision, per item:**
+- **C1 (5th skin type "Normal"):** Adopt as recommended. `skin_types` is a plain
+  lookup table (`database_schemas/skinlytics_postgresql_schema_v3.sql:113`,
+  `skin_type_id SERIAL PRIMARY KEY, skin_type_name VARCHAR(50) UNIQUE`), not a CHECK-
+  constrained enum — adding Normal is a seed-data INSERT, not a migration. Simpler
+  than the spec assumed; no schema change needed.
+- **C2 (10 concerns, not 4):** Adopt as recommended. `skin_types.json` /
+  `skin_concerns.json` don't exist anywhere in the repo yet (confirmed, P6 is a real
+  gap) — build both files with all 10 from a clean slate, docx's 4 verbatim + 6 more
+  in the same shape.
+- **C3 (hydration benchmark 3.0 L vs 2.5 L goal) — RE-VERIFIED against the actual
+  governing docx, reversing this ADR's own first-pass correction below:** an
+  earlier draft of this entry called the spec's "3.0 L" premise wrong, reasoning
+  from the live code (`scoring_engine.py:113`'s `/2.0`) and the *original*
+  `mile_2.docx` (which only says "compare against standard recommendations," no
+  literal number). That comparison used the wrong docx. Per point 3 above,
+  `MILESTONE 2.docx` — the actual document this pack is built from — states
+  explicitly and twice ("Evaluated against a 3.0L daily fluid benchmark") that 3.0 L
+  is the real, current, literal benchmark. **Adopt as recommended, reversed:** the
+  scoring benchmark changes from 2.0 L to **3.0 L** (P10 task, a real code change
+  with a real docx citation, not a documentation-only fix); the dashboard ring's
+  2.5 L is a separate, correctly-distinct per-user display goal (both numbers, both
+  now correctly sourced). The lesson, not just the fix: this is exactly why P0 exists
+  — an unverified paraphrase (this ADR's own first draft, `UI_SPEC.md §7`, and the
+  old `MASTER_PROMPT.md` Phase 2 all independently got this wrong by not checking
+  the actual current docx) would have shipped a wrong number with high confidence.
+- **C4 (flat payload fields vs. list-of-concerns) — CORRECTED, not adopted as
+  written:** the spec's premise is wrong. The live payload
+  (`backend/app/services/skin_profile/schemas.py:24,41`) is already
+  `concerns: list[SkinProfileConcernInput]` with `severity_rating: int` per concern
+  — the exact shape C4 recommends, already built, already superior to the docx's
+  flat-field illustration. No adapter, no deprecation shim, no code change needed
+  here; this item is already resolved and closes as a documentation correction only.
+- **C5 (asset paths under `web/public/assets/...`):** Adopt as recommended.
+  Directories don't exist yet (confirmed) — create them in P6 so the docx's literal
+  `image_url` values resolve unchanged.
+- **C6 (Skin Age formula):** Adopt as recommended. Confirmed genuinely absent from
+  the codebase (`grep` for `skin_age`/`skinAge` returns nothing) — a real gap, not a
+  hardcoded screenshot number. Formula (derived from the skin-condition sub-score
+  and actual age) is designed and unit-tested in the phase that builds it (P4/P10),
+  not invented here.
+- **C7 (screenshot numbers are fixture data):** Adopt as recommended. `web/lib/
+  fixtures/` doesn't exist yet (confirmed) — built in P4/P5 as typed, contract-shaped
+  mocks matching the schemas this ADR and `M2_API_CONTRACT.md` freeze.
+**Consequences:** `MILESTONE_2_UI_SPEC.md §1`'s C3 line and §7's C4 row are stale
+against this ADR — a later editing pass should update the spec file itself to match,
+but the spec is normative for structure/copy only (per its own header), not for
+backend numbers, so this ADR — not the spec text — governs the hydration benchmark
+and the payload shape going forward.
+
+<!-- Next ADR: ADR-022 — add yours here -->

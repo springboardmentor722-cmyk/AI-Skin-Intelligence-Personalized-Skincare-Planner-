@@ -5,8 +5,8 @@
     "semantic_hash": "023109dbd695abeb21303f830aa0bb5f"
   },
   ".claude/settings.local.json": {
-    "mtime": 1784750691.3597746,
-    "ast_hash": "d0c8510cd898d70043e97838516f7e9a",
+    "mtime": 1784837187.262071,
+    "ast_hash": "77f54ca11a18c21d9cc54eb384c3747f",
     "semantic_hash": ""
   },
   ".claude/skills/shadcn/evals/evals.json": {
@@ -1840,12 +1840,12 @@
     "semantic_hash": ""
   },
   "docs/ARCHITECTURE.md": {
-    "mtime": 1784752935.8245525,
+    "mtime": 1784837157.39309,
     "ast_hash": "6e0ac62cff024b317c7b1f815d59d8d4",
     "semantic_hash": ""
   },
   "docs/CONVENTIONS.md": {
-    "mtime": 1784752935.8245525,
+    "mtime": 1784837157.4002826,
     "ast_hash": "c5be23f75400afb65f085e9819ffe078",
     "semantic_hash": ""
   },
@@ -3667,6 +3667,76 @@
   "ml/registry/skin-lesion-screener-0.1.0/README.md": {
     "mtime": 1784752317.066714,
     "ast_hash": "fd3e13b0835c8abcc8a4fc2085601485",
+    "semantic_hash": ""
+  },
+  ".claude/skills/ui-ux-pro-max/scripts/core.py": {
+    "mtime": 1784830897.8376584,
+    "ast_hash": "3df4734a785963a8242a56c1b926adfd",
+    "semantic_hash": ""
+  },
+  ".claude/skills/ui-ux-pro-max/scripts/design_system.py": {
+    "mtime": 1784830897.8504472,
+    "ast_hash": "08f84d04608a19049c90fc2b1ef314f9",
+    "semantic_hash": ""
+  },
+  ".claude/skills/ui-ux-pro-max/scripts/search.py": {
+    "mtime": 1784830897.856088,
+    "ast_hash": "8c7e35426fe8f6f3ed91e9dce0ed7af1",
+    "semantic_hash": ""
+  },
+  "tools/vision/core.py": {
+    "mtime": 1784836490.0697055,
+    "ast_hash": "790555828c4d8687d6306ec1408e257d",
+    "semantic_hash": ""
+  },
+  "tools/vision/extract.py": {
+    "mtime": 1784836490.0697055,
+    "ast_hash": "f563d4e5d6c65fab3ffa3715744add5d",
+    "semantic_hash": ""
+  },
+  ".claude/skills/ui-ux-pro-max/SKILL.md": {
+    "mtime": 1784830966.2724638,
+    "ast_hash": "e092c3924799d4fc4194f994d8394cc3",
+    "semantic_hash": ""
+  },
+  "docs/milestones/milestone_2/MILESTONE_2_MASTER_PROMPT.md": {
+    "mtime": 1784836490.0538397,
+    "ast_hash": "79a818b82fbc7330dee02d6d8f02fbfa",
+    "semantic_hash": ""
+  },
+  "docs/milestones/milestone_2/MILESTONE_2_UI_SPEC.md": {
+    "mtime": 1784836490.0538397,
+    "ast_hash": "a6ca033400969299804e6010e09db573",
+    "semantic_hash": ""
+  },
+  "docs/milestones/milestone_2/VISION_CALIBRATION.md": {
+    "mtime": 1784835771.0986533,
+    "ast_hash": "3abcb51954c22092d4841f7dd9cf324c",
+    "semantic_hash": ""
+  },
+  "tools/vision/README.md": {
+    "mtime": 1784835771.1441228,
+    "ast_hash": "7f7a395bc83c10f6a76df20f0f95ec60",
+    "semantic_hash": ""
+  },
+  "docs/milestones/milestone_2/Admin.png": {
+    "mtime": 1784830307.4229565,
+    "ast_hash": "f664a5138763a6c26cec908501703a04",
+    "semantic_hash": ""
+  },
+  "docs/milestones/milestone_2/Consultant.png": {
+    "mtime": 1784830356.081273,
+    "ast_hash": "35802381d914c37f205a89bc41e80e3f",
+    "semantic_hash": ""
+  },
+  "docs/milestones/milestone_2/Derma.png": {
+    "mtime": 1784830334.7227578,
+    "ast_hash": "e8bf30c16dbe7d49b1930c6d58e06475",
+    "semantic_hash": ""
+  },
+  "docs/milestones/milestone_2/User.png": {
+    "mtime": 1784830372.5666885,
+    "ast_hash": "e88d394a5fe295df2073cb9246928387",
     "semantic_hash": ""
   }
 }
