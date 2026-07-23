@@ -5,8 +5,8 @@
     "semantic_hash": "023109dbd695abeb21303f830aa0bb5f"
   },
   ".claude/settings.local.json": {
-    "mtime": 1784838727.6110914,
-    "ast_hash": "47638197d31ba4442f3dbab2c599e20b",
+    "mtime": 1784838994.0052795,
+    "ast_hash": "4a2089655ad59698f360a9487498f1e4",
     "semantic_hash": ""
   },
   ".claude/skills/shadcn/evals/evals.json": {
@@ -1545,9 +1545,9 @@
     "semantic_hash": "9a032f449f28c73496481712891f6585"
   },
   "web/lib/score-components.ts": {
-    "mtime": 1784630988.9299097,
-    "ast_hash": "b5535078900f773b752d48bdc955b5c9",
-    "semantic_hash": "b5535078900f773b752d48bdc955b5c9"
+    "mtime": 1784839295.7120469,
+    "ast_hash": "e7ce5035af9806d741af0acf842c8f36",
+    "semantic_hash": ""
   },
   "web/lib/secondary-storage.ts": {
     "mtime": 1784630988.9299097,
@@ -3705,8 +3705,8 @@
     "semantic_hash": ""
   },
   "docs/milestones/milestone_2/MILESTONE_2_UI_SPEC.md": {
-    "mtime": 1784838333.726113,
-    "ast_hash": "85f9b400e847a1d1c4a7d2b9c351a25a",
+    "mtime": 1784839295.705398,
+    "ast_hash": "65a4dc8c1d729ee2f5ddd0e1d69fee62",
     "semantic_hash": ""
   },
   "docs/milestones/milestone_2/VISION_CALIBRATION.md": {
@@ -3745,13 +3745,33 @@
     "semantic_hash": ""
   },
   "docs/milestones/milestone_2/M2_GAP_ANALYSIS.md": {
-    "mtime": 1784838333.726113,
-    "ast_hash": "d3ab00da915fadd6702f8ac57ccc5da6",
+    "mtime": 1784839295.705398,
+    "ast_hash": "6f7370ae22a806fafc4219907a5b2045",
     "semantic_hash": ""
   },
   "docs/milestones/milestone_2/M2_TASK_LEDGER.md": {
     "mtime": 1784838333.726113,
     "ast_hash": "217b20e165012ac438d3c279acd3518b",
+    "semantic_hash": ""
+  },
+  "web/components/ui/scroll-area.tsx": {
+    "mtime": 1784839295.7120469,
+    "ast_hash": "7e213fb00f86a1b00b2df7cfab32525d",
+    "semantic_hash": ""
+  },
+  "web/components/ui/table.tsx": {
+    "mtime": 1784839295.7120469,
+    "ast_hash": "7424f42ca135637e99ac19646cbb6625",
+    "semantic_hash": ""
+  },
+  "web/app/(dev)/design-system/page.tsx": {
+    "mtime": 1784839295.711029,
+    "ast_hash": "1ea7b8578e601c0fdcf9721a8f1e8cda",
+    "semantic_hash": ""
+  },
+  "docs/milestones/milestone_2/UI_EXTRACTION.md": {
+    "mtime": 1784839295.705398,
+    "ast_hash": "a10875be34a8a251cd307dde1254a28f",
     "semantic_hash": ""
   }
 }
