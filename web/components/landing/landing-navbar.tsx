@@ -18,7 +18,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { authClient } from "@/lib/auth-client";
-import { NAV_ITEMS, ROLE_HOME } from "@/lib/nav-config";
+import { getSettingsHref, ROLE_HOME } from "@/lib/nav-config";
 import { useCurrentUser } from "@/lib/use-current-user";
 
 const NAV_LINKS = [
@@ -44,7 +44,7 @@ export function LandingNavbar() {
   };
 
   const settingsHref = role
-    ? NAV_ITEMS[role].find((item) => item.label === "Settings")?.href
+    ? getSettingsHref(role)
     : undefined;
 
   return (

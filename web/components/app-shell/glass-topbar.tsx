@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bell, LogOut, Search, Settings, SunMedium } from "lucide-react";
+import { Bell, CalendarDays, LogOut, Search, Settings, SunMedium, UserPlus } from "lucide-react";
 
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,7 +28,14 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
 import { useWeatherUV } from "@/lib/hooks/use-weather-uv";
-import { EXTRA_TITLES, NAV_ITEMS, ROLE_LABELS, type Role } from "@/lib/nav-config";
+import {
+  EXTRA_TITLES,
+  getSettingsHref,
+  NAV_ITEMS,
+  ROLE_LABELS,
+  ROLE_TOPBAR,
+  type Role,
+} from "@/lib/nav-config";
 import { useCurrentUser } from "@/lib/use-current-user";
 
 interface GlassTopbarProps {
@@ -60,7 +68,13 @@ export function GlassTopbar({ role, userName, title }: GlassTopbarProps) {
     EXTRA_TITLES[pathname] ??
     "";
 
-  const settingsHref = NAV_ITEMS[role].find((item) => item.label === "Settings")?.href;
+  const settingsHref = getSettingsHref(role);
+  const topbar = ROLE_TOPBAR[role];
+  const today = new Date().toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
 
   const handleSignOut = async () => {
     await authClient.signOut();
@@ -90,13 +104,24 @@ export function GlassTopbar({ role, userName, title }: GlassTopbarProps) {
         </div>
 
         <div className="flex items-center gap-2">
+          {topbar.primaryActionLabel && topbar.primaryActionHref && (
+            <Button
+              size="sm"
+              className="hidden sm:inline-flex"
+              render={<Link href={topbar.primaryActionHref} />}
+            >
+              <UserPlus data-icon="inline-start" />
+              {topbar.primaryActionLabel}
+            </Button>
+          )}
+
           <button
             type="button"
             onClick={() => setSearchOpen(true)}
             className="border-border bg-card/60 text-on-surface-variant hover:text-on-surface flex items-center gap-2 rounded-full border px-3 py-1.5 font-sans text-sm transition-colors"
           >
             <Search className="size-4" strokeWidth={1.5} />
-            <span className="hidden sm:inline">Search…</span>
+            <span className="hidden sm:inline">{topbar.searchPlaceholder ?? "Search…"}</span>
             <kbd className="font-geist border-border bg-muted hidden rounded-md border px-1.5 py-0.5 text-[11px] tabular-nums sm:inline">
               ⌘K
             </kbd>
@@ -110,13 +135,22 @@ export function GlassTopbar({ role, userName, title }: GlassTopbarProps) {
             <span>UV {uvLabel}</span>
           </div>
 
+          <div className="border-border bg-card/60 text-on-surface-variant font-geist hidden items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs tabular-nums md:flex">
+            <CalendarDays className="size-3.5" strokeWidth={1.5} />
+            <span>{today}</span>
+          </div>
+
           <button
             type="button"
             aria-label="Notifications"
             className="text-on-surface-variant hover:bg-muted hover:text-on-surface relative flex size-9 items-center justify-center rounded-full transition-colors"
           >
             <Bell className="size-[18px]" strokeWidth={1.5} />
-            <span className="bg-destructive absolute top-2 right-2 size-2 rounded-full" />
+            {topbar.bellCount > 0 && (
+              <span className="bg-destructive text-on-error absolute top-0.5 right-0.5 flex size-4 items-center justify-center rounded-full text-[10px] font-medium tabular-nums">
+                {topbar.bellCount}
+              </span>
+            )}
           </button>
 
           <ThemeToggle />
@@ -134,6 +168,14 @@ export function GlassTopbar({ role, userName, title }: GlassTopbarProps) {
                       {user.initials}
                     </AvatarFallback>
                   </Avatar>
+                  <span className="hidden flex-col items-start lg:flex">
+                    <span className="text-on-surface font-sans text-xs leading-tight font-medium">
+                      {user.name}
+                    </span>
+                    <span className="text-on-surface-variant text-[11px] leading-tight">
+                      {topbar.avatarCaption}
+                    </span>
+                  </span>
                 </button>
               }
             />

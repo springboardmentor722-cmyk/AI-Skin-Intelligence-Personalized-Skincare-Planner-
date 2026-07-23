@@ -5,8 +5,8 @@
     "semantic_hash": "023109dbd695abeb21303f830aa0bb5f"
   },
   ".claude/settings.local.json": {
-    "mtime": 1784838994.0052795,
-    "ast_hash": "4a2089655ad59698f360a9487498f1e4",
+    "mtime": 1784841657.7559574,
+    "ast_hash": "04aef1003530b99dcda1a38ab9b1b7fc",
     "semantic_hash": ""
   },
   ".claude/skills/shadcn/evals/evals.json": {
@@ -1110,9 +1110,9 @@
     "semantic_hash": "3d9a4d9fa84db032bcbd358002f4966e"
   },
   "web/components/app-shell/app-sidebar.tsx": {
-    "mtime": 1784630988.7260377,
-    "ast_hash": "2334066fc4c505e2ef265b0b52926bdf",
-    "semantic_hash": "2334066fc4c505e2ef265b0b52926bdf"
+    "mtime": 1784841482.501415,
+    "ast_hash": "df15bca1e05910868ed35fada2736b1f",
+    "semantic_hash": ""
   },
   "web/components/app-shell/appearance-sync.tsx": {
     "mtime": 1784630988.7260377,
@@ -1120,14 +1120,14 @@
     "semantic_hash": "cecdd7fd8c842cf96a347d7dd6414bec"
   },
   "web/components/app-shell/glass-topbar.tsx": {
-    "mtime": 1784630988.7260377,
-    "ast_hash": "b011e1d4c6ed9bb4111fc9804b6447b9",
-    "semantic_hash": "b011e1d4c6ed9bb4111fc9804b6447b9"
+    "mtime": 1784840980.8424146,
+    "ast_hash": "5e4c03fcb8e31c7e11de9c31bb0105f5",
+    "semantic_hash": ""
   },
   "web/components/app-shell/nav-user.tsx": {
-    "mtime": 1784630988.7260377,
-    "ast_hash": "5c0ccdd6e69a8bc033d7cc40de58e777",
-    "semantic_hash": "5c0ccdd6e69a8bc033d7cc40de58e777"
+    "mtime": 1784840980.843902,
+    "ast_hash": "059ebf3e0034c4ced8c1f936f07aa292",
+    "semantic_hash": ""
   },
   "web/components/assessment/assessment-shell.tsx": {
     "mtime": 1784630988.7260377,
@@ -1205,9 +1205,9 @@
     "semantic_hash": "a6389a16c5fe3e6a60c03a580c58b0b9"
   },
   "web/components/landing/landing-navbar.tsx": {
-    "mtime": 1784630988.7361903,
-    "ast_hash": "d1823b8c3126a2282188b0219e15bc0f",
-    "semantic_hash": "d1823b8c3126a2282188b0219e15bc0f"
+    "mtime": 1784840980.8449082,
+    "ast_hash": "89b2bd15267042245e0d6b8290fbce67",
+    "semantic_hash": ""
   },
   "web/components/landing/pricing-section.tsx": {
     "mtime": 1784630988.7361903,
@@ -1510,8 +1510,8 @@
     "semantic_hash": "5d5ae1dd1fe8f1c49c7472024dfadde1"
   },
   "web/lib/nav-config.ts": {
-    "mtime": 1784752552.6876955,
-    "ast_hash": "7957e840291f64fd0facf98443215ff7",
+    "mtime": 1784840980.8459084,
+    "ast_hash": "28405a1daa50025e11f8e180538029c7",
     "semantic_hash": ""
   },
   "web/lib/permissions.ts": {
@@ -1605,9 +1605,9 @@
     "semantic_hash": "da22ff9a39c2cb9c840dc3c2fd51f0cc"
   },
   "web/tests/e2e/app-shell.spec.ts": {
-    "mtime": 1784630988.9480424,
-    "ast_hash": "3041d95964541091888ed7c1d68f6870",
-    "semantic_hash": "3041d95964541091888ed7c1d68f6870"
+    "mtime": 1784840980.8459084,
+    "ast_hash": "44b3f139fb5ba1a1c633f38ac740678a",
+    "semantic_hash": ""
   },
   "web/tests/e2e/appearance-settings.spec.ts": {
     "mtime": 1784630988.9480424,
@@ -1855,8 +1855,8 @@
     "semantic_hash": ""
   },
   "docs/DECISIONS.md": {
-    "mtime": 1784838333.6822,
-    "ast_hash": "3ddee501c6617c72642a410c3bc4eb66",
+    "mtime": 1784841736.1515956,
+    "ast_hash": "69f852228f6ba98f8adae18cb0e497a4",
     "semantic_hash": ""
   },
   "docs/DESIGN.md": {
@@ -3772,6 +3772,196 @@
   "docs/milestones/milestone_2/UI_EXTRACTION.md": {
     "mtime": 1784839295.705398,
     "ast_hash": "a10875be34a8a251cd307dde1254a28f",
+    "semantic_hash": ""
+  },
+  "web/app/(user)/ask-ai/page.tsx": {
+    "mtime": 1784839721.859416,
+    "ast_hash": "6627c6f4725ea48b5e20f2d4f24d2b3e",
+    "semantic_hash": ""
+  },
+  "web/app/(user)/reminders/page.tsx": {
+    "mtime": 1784839721.859416,
+    "ast_hash": "97874b5479b7e2fedfd50460929965fc",
+    "semantic_hash": ""
+  },
+  "web/app/(user)/reports/page.tsx": {
+    "mtime": 1784839721.8550851,
+    "ast_hash": "50af255365d1deb50c06d50cca205d54",
+    "semantic_hash": ""
+  },
+  "web/app/(user)/upload-photo/page.tsx": {
+    "mtime": 1784839721.8604236,
+    "ast_hash": "a50752cf12849ee9ee4e44914794b8c2",
+    "semantic_hash": ""
+  },
+  "web/app/admin/assessments/page.tsx": {
+    "mtime": 1784839721.8759503,
+    "ast_hash": "dbba40c35479640a78777e60d768c6a6",
+    "semantic_hash": ""
+  },
+  "web/app/admin/audit-logs/page.tsx": {
+    "mtime": 1784839721.8797793,
+    "ast_hash": "20f5169ef86d471b8718ee0f34548e07",
+    "semantic_hash": ""
+  },
+  "web/app/admin/backup-restore/page.tsx": {
+    "mtime": 1784839721.8817787,
+    "ast_hash": "3f472e0a4547cafa8354738a1c1a869e",
+    "semantic_hash": ""
+  },
+  "web/app/admin/ingredients/page.tsx": {
+    "mtime": 1784839721.8784976,
+    "ast_hash": "8c846a6428df7bb7f3a9f43ebfd772af",
+    "semantic_hash": ""
+  },
+  "web/app/admin/notifications/page.tsx": {
+    "mtime": 1784839721.8797793,
+    "ast_hash": "8a48771726e9a174f2082c2baae371cd",
+    "semantic_hash": ""
+  },
+  "web/app/admin/products/page.tsx": {
+    "mtime": 1784839721.877017,
+    "ast_hash": "0dd6f77eccd5566a9c6259c13c7b4c6e",
+    "semantic_hash": ""
+  },
+  "web/app/admin/roles-permissions/page.tsx": {
+    "mtime": 1784839721.8759503,
+    "ast_hash": "2f6ad61c06f1a4760890c0bb38c8434c",
+    "semantic_hash": ""
+  },
+  "web/app/admin/routines/page.tsx": {
+    "mtime": 1784839721.877017,
+    "ast_hash": "137d502f4a86ab0a567c1b42b30eaf00",
+    "semantic_hash": ""
+  },
+  "web/app/admin/security/page.tsx": {
+    "mtime": 1784839721.88078,
+    "ast_hash": "9c975bb6149b9829561e4b302964fe98",
+    "semantic_hash": ""
+  },
+  "web/app/consultant/assessments/page.tsx": {
+    "mtime": 1784839721.8604236,
+    "ast_hash": "19ddfd17e54a3c9f560f4c55978a452f",
+    "semantic_hash": ""
+  },
+  "web/app/consultant/concerns-guide/page.tsx": {
+    "mtime": 1784839721.866551,
+    "ast_hash": "45ca87e982f187bb3c3dbe24722c8283",
+    "semantic_hash": ""
+  },
+  "web/app/consultant/follow-ups/page.tsx": {
+    "mtime": 1784839721.8604236,
+    "ast_hash": "a75fde475148a4f982c4ea13894468c4",
+    "semantic_hash": ""
+  },
+  "web/app/consultant/ingredient-database/page.tsx": {
+    "mtime": 1784839721.8655374,
+    "ast_hash": "d5df201d724182a619d1364acd3b0cc0",
+    "semantic_hash": ""
+  },
+  "web/app/consultant/progress/page.tsx": {
+    "mtime": 1784839721.8604236,
+    "ast_hash": "5bd9d8857e3915a2a36ee74e7e28322e",
+    "semantic_hash": ""
+  },
+  "web/app/consultant/recommendations/page.tsx": {
+    "mtime": 1784839721.8604236,
+    "ast_hash": "2063a2abe24531282673bf062273ec48",
+    "semantic_hash": ""
+  },
+  "web/app/consultant/reminders/page.tsx": {
+    "mtime": 1784839721.8655374,
+    "ast_hash": "fd448559c7a7663a116f1dfd2f5d1204",
+    "semantic_hash": ""
+  },
+  "web/app/consultant/reports/page.tsx": {
+    "mtime": 1784839721.8604236,
+    "ast_hash": "afb114a274055ce1ef5152c2f1e4e929",
+    "semantic_hash": ""
+  },
+  "web/app/consultant/routine-plans/page.tsx": {
+    "mtime": 1784839721.8604236,
+    "ast_hash": "99908da0b21a434128b63ce17f8bfe3e",
+    "semantic_hash": ""
+  },
+  "web/app/consultant/treatment-protocols/page.tsx": {
+    "mtime": 1784839721.866551,
+    "ast_hash": "75395c7bbfb3c429e1643ba34ecab6bf",
+    "semantic_hash": ""
+  },
+  "web/app/dermatologist/assessments/page.tsx": {
+    "mtime": 1784839721.866551,
+    "ast_hash": "19ddfd17e54a3c9f560f4c55978a452f",
+    "semantic_hash": ""
+  },
+  "web/app/dermatologist/clinical-insights/page.tsx": {
+    "mtime": 1784839721.8688998,
+    "ast_hash": "8e3c18fd829f227ea926ebd1c0cb1153",
+    "semantic_hash": ""
+  },
+  "web/app/dermatologist/conditions-guide/page.tsx": {
+    "mtime": 1784839721.874259,
+    "ast_hash": "eca32604d70311b7ce4f3354d7d3cb8c",
+    "semantic_hash": ""
+  },
+  "web/app/dermatologist/consultations/page.tsx": {
+    "mtime": 1784839721.8709066,
+    "ast_hash": "05f5153a26d3ec0db6d5de591cc22492",
+    "semantic_hash": ""
+  },
+  "web/app/dermatologist/follow-ups/page.tsx": {
+    "mtime": 1784839721.8715575,
+    "ast_hash": "1816f0e6d2785fd99ee708deeef2912f",
+    "semantic_hash": ""
+  },
+  "web/app/dermatologist/ingredient-database/page.tsx": {
+    "mtime": 1784839721.873248,
+    "ast_hash": "d5df201d724182a619d1364acd3b0cc0",
+    "semantic_hash": ""
+  },
+  "web/app/dermatologist/prescriptions/page.tsx": {
+    "mtime": 1784839721.8688998,
+    "ast_hash": "811feada66c67dc326490c45eb8abed9",
+    "semantic_hash": ""
+  },
+  "web/app/dermatologist/progress/page.tsx": {
+    "mtime": 1784839721.8688998,
+    "ast_hash": "fabbfcaab60190b87625d25867976de8",
+    "semantic_hash": ""
+  },
+  "web/app/dermatologist/reminders/page.tsx": {
+    "mtime": 1784839721.8724303,
+    "ast_hash": "cfd363cfb5f1585b067032a258263db4",
+    "semantic_hash": ""
+  },
+  "web/app/dermatologist/reports/page.tsx": {
+    "mtime": 1784839721.8709066,
+    "ast_hash": "06bdd497f2c54ed9438b648db3a45e28",
+    "semantic_hash": ""
+  },
+  "web/app/dermatologist/research/page.tsx": {
+    "mtime": 1784839721.8749304,
+    "ast_hash": "fb46cbd5e195b8f5d0d39b0c0f1f81a6",
+    "semantic_hash": ""
+  },
+  "web/app/dermatologist/treatment-plans/page.tsx": {
+    "mtime": 1784839721.8688998,
+    "ast_hash": "42e17e830d480f04254db945eb5e8943",
+    "semantic_hash": ""
+  },
+  "web/app/dermatologist/treatment-protocols/page.tsx": {
+    "mtime": 1784839721.873248,
+    "ast_hash": "75395c7bbfb3c429e1643ba34ecab6bf",
+    "semantic_hash": ""
+  },
+  "web/components/app-shell/coming-soon.tsx": {
+    "mtime": 1784839585.865754,
+    "ast_hash": "f9277cb202640be0dbbd67f8458f38e4",
+    "semantic_hash": ""
+  },
+  "web/tests/e2e/role-sidebar-labels.spec.ts": {
+    "mtime": 1784841043.6626482,
+    "ast_hash": "22a63566cbb1893e703d6fd06d992c1f",
     "semantic_hash": ""
   }
 }
