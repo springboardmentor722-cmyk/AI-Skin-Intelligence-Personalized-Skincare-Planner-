@@ -5,8 +5,8 @@
     "semantic_hash": "023109dbd695abeb21303f830aa0bb5f"
   },
   ".claude/settings.local.json": {
-    "mtime": 1784841657.7559574,
-    "ast_hash": "04aef1003530b99dcda1a38ab9b1b7fc",
+    "mtime": 1784842623.763862,
+    "ast_hash": "9447e2088cabcab5eb4ee7f09757ffbd",
     "semantic_hash": ""
   },
   ".claude/skills/shadcn/evals/evals.json": {
@@ -1565,9 +1565,9 @@
     "semantic_hash": "1e2ee8942b605b901b7867c69ab25504"
   },
   "web/lib/utils.ts": {
-    "mtime": 1784630988.9358718,
-    "ast_hash": "343808001aac92f091335ae80490085d",
-    "semantic_hash": "343808001aac92f091335ae80490085d"
+    "mtime": 1784842936.728447,
+    "ast_hash": "53714fdb0c1d4f61e3b820a1ffa61dc5",
+    "semantic_hash": ""
   },
   "web/next.config.ts": {
     "mtime": 1784630988.9358718,
@@ -1575,9 +1575,9 @@
     "semantic_hash": "c027eb62ab6c07d1b33b020a9ca44f9d"
   },
   "web/package.json": {
-    "mtime": 1784630988.9358718,
-    "ast_hash": "4eee8a06a26d64cd6ce8fdcbfbf9d998",
-    "semantic_hash": "4eee8a06a26d64cd6ce8fdcbfbf9d998"
+    "mtime": 1784842936.7298532,
+    "ast_hash": "d997c0356df3914946235bc44cd64c0b",
+    "semantic_hash": ""
   },
   "web/playwright.config.ts": {
     "mtime": 1784630988.9358718,
@@ -1660,9 +1660,9 @@
     "semantic_hash": "f9711a528d97d010bc479cfb18691343"
   },
   "web/tsconfig.json": {
-    "mtime": 1784630988.9537494,
-    "ast_hash": "ab575e944f15d39a5486cf9fca385c5e",
-    "semantic_hash": "ab575e944f15d39a5486cf9fca385c5e"
+    "mtime": 1784842936.731505,
+    "ast_hash": "098a771fe0e5b42b5eff0fa796567f78",
+    "semantic_hash": ""
   },
   "web_run.py": {
     "mtime": 1784655834.7966647,
@@ -3765,8 +3765,8 @@
     "semantic_hash": ""
   },
   "web/app/(dev)/design-system/page.tsx": {
-    "mtime": 1784839295.711029,
-    "ast_hash": "1ea7b8578e601c0fdcf9721a8f1e8cda",
+    "mtime": 1784842936.715542,
+    "ast_hash": "7e096a3a2b811d010a914e5fedfe4d77",
     "semantic_hash": ""
   },
   "docs/milestones/milestone_2/UI_EXTRACTION.md": {
@@ -3962,6 +3962,91 @@
   "web/tests/e2e/role-sidebar-labels.spec.ts": {
     "mtime": 1784841767.197616,
     "ast_hash": "d4cb6bb9f54e73f50d9a7ade6ee7d89e",
+    "semantic_hash": ""
+  },
+  "web/components/charts/donut-breakdown.tsx": {
+    "mtime": 1784842936.7165594,
+    "ast_hash": "5a94274514944a99011a4f1616349621",
+    "semantic_hash": ""
+  },
+  "web/components/charts/ranked-bar-list.tsx": {
+    "mtime": 1784842936.7178617,
+    "ast_hash": "ccdc150ed1c6a8da7868e4cf50368489",
+    "semantic_hash": ""
+  },
+  "web/components/charts/score-chip.tsx": {
+    "mtime": 1784842936.7183475,
+    "ast_hash": "8f1f331009f6402ce44472657f6783d4",
+    "semantic_hash": ""
+  },
+  "web/components/charts/score-ring.tsx": {
+    "mtime": 1784842936.719014,
+    "ast_hash": "0b4a5e932729c89744d02fb652b50756",
+    "semantic_hash": ""
+  },
+  "web/components/charts/trend-chart.tsx": {
+    "mtime": 1784842936.719014,
+    "ast_hash": "5ca162591a0d9389ebe86eaa50842dc3",
+    "semantic_hash": ""
+  },
+  "web/components/dashboard/checklist-strip.tsx": {
+    "mtime": 1784842936.7205405,
+    "ast_hash": "9fd75f2d7652e5aad73b153780fc5e92",
+    "semantic_hash": ""
+  },
+  "web/components/dashboard/insight-banner.tsx": {
+    "mtime": 1784842936.7215514,
+    "ast_hash": "16561d8b318f5497de4333a78c8327cc",
+    "semantic_hash": ""
+  },
+  "web/components/dashboard/product-carousel.tsx": {
+    "mtime": 1784842936.7215514,
+    "ast_hash": "77f9c422247b36c84e81e192e3d929c4",
+    "semantic_hash": ""
+  },
+  "web/components/dashboard/quick-action-grid.tsx": {
+    "mtime": 1784842936.7215514,
+    "ast_hash": "591d59248ddf9ae8ed48dcf7aa5e9141",
+    "semantic_hash": ""
+  },
+  "web/components/dashboard/roster-table.tsx": {
+    "mtime": 1784842936.723791,
+    "ast_hash": "6b4abcf880bb48ba6c8d047e75e45b77",
+    "semantic_hash": ""
+  },
+  "web/components/dashboard/routine-chain.tsx": {
+    "mtime": 1784842936.7242844,
+    "ast_hash": "7891cdc0d5d2a3ab68c642a3135ef312",
+    "semantic_hash": ""
+  },
+  "web/components/dashboard/stat-card.tsx": {
+    "mtime": 1784842936.7247393,
+    "ast_hash": "9ab6c58bf688459a77dff41d66291282",
+    "semantic_hash": ""
+  },
+  "web/components/dashboard/status-tile-grid.tsx": {
+    "mtime": 1784842936.7257762,
+    "ast_hash": "19968048c8c04acf6c272c46854740fd",
+    "semantic_hash": ""
+  },
+  "web/components/dashboard/timeline-list.tsx": {
+    "mtime": 1784842936.7263,
+    "ast_hash": "fd342feefab8a3aacbbdebe0116d0174",
+    "semantic_hash": ""
+  },
+  "web/components/dashboard/widget-states.tsx": {
+    "mtime": 1784842936.7268307,
+    "ast_hash": "77979354cec6008a0b211076ae711413",
+    "semantic_hash": ""
+  },
+  "web/lib/__tests__/widget-utils.test.ts": {
+    "mtime": 1784842936.7279074,
+    "ast_hash": "d0baec03cf24579a8a806c066b9a3688",
+    "semantic_hash": ""
+  },
+  "web/tests/e2e/design-system-showcase.spec.ts": {
+    "mtime": 1784842936.7304182,
+    "ast_hash": "37748fe6a07c390f04ab40284f8c46ce",
     "semantic_hash": ""
   }
 }
