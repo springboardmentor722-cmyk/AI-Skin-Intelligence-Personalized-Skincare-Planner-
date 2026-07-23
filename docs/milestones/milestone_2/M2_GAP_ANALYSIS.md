@@ -59,9 +59,9 @@ covers the AM/PM category matrix and season logic (432, 498, 511).
 corrected in a later docs pass (not this branch's job; flagging here so it isn't
 lost). `backend/tests/test_interactions.py` exists.
 
-**Gap:** no dedicated ingredient-analyzer frontend route found under `web/app/`
-(nav-config points `/ingredients` at a stub or the profile flow — needs P-phase
-confirmation, not re-verified line-by-line in this recon pass).
+**Corrected in P1 (confirmed via `npm run build`'s route table):** `/ingredients`
+and `/ingredients/[id]` both exist as real routes — no frontend gap here after all.
+P12 confirms content coverage, not existence.
 
 ## 5. In-built visual datasets + wizard UI
 
