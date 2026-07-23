@@ -7,10 +7,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.storage import get_presigned_url
 from app.services.admin.models import AuditLog, VerificationDocument
-from app.services.admin.schemas import ProfessionalRole
+from app.services.admin.schemas import PlatformCounts, ProfessionalRole, TopConcernStat
 from app.services.clinical_review import service as clinical_review_service
 from app.services.consultant_profile.models import ConsultantProfile
 from app.services.dermatologist_profile.models import DermatologistProfile
+from app.services.recommendations.models import Product
+from app.services.routines.models import Routine
+from app.services.scores.models import SkinScore
+from app.services.skin_profile.models import SkinConcern, SkinProfileConcern
 
 ProfileRow = ConsultantProfile | DermatologistProfile
 # Bound via a concrete class literal at each call site (never a role-keyed dict/
@@ -289,3 +293,42 @@ async def get_pending_verification_counts(db: AsyncSession) -> tuple[int, int]:
         )
     ).scalar_one()
     return consultant_count, dermatologist_count
+
+
+async def get_platform_counts(db: AsyncSession) -> PlatformCounts:
+    """Milestone 2 P4 — the 3 Admin KPIs with a real backing table each. Platform
+    Revenue/System Uptime aren't here; see PlatformCounts' own docstring."""
+    total_assessments = (
+        await db.execute(select(func.count()).select_from(SkinScore))
+    ).scalar_one()
+    active_routines = (
+        await db.execute(
+            select(func.count()).select_from(Routine).where(Routine.is_active.is_(True))
+        )
+    ).scalar_one()
+    total_products = (await db.execute(select(func.count()).select_from(Product))).scalar_one()
+    return PlatformCounts(
+        total_assessments=total_assessments,
+        active_routines=active_routines,
+        total_products=total_products,
+    )
+
+
+async def get_top_skin_concerns(db: AsyncSession, limit: int = 5) -> list[TopConcernStat]:
+    """Platform-wide concern frequency — how many skin profiles report each concern,
+    most common first. Distinct from the per-user prioritisation the Assessment
+    Engine computes (scores/service.py) — this is an aggregate, not a ranking of one
+    user's concerns."""
+    rows = (
+        await db.execute(
+            select(SkinConcern.concern_name, func.count(SkinProfileConcern.skin_profile_id))
+            .select_from(SkinProfileConcern)
+            .join(SkinConcern, SkinConcern.concern_id == SkinProfileConcern.concern_id)
+            .group_by(SkinConcern.concern_name)
+            .order_by(func.count(SkinProfileConcern.skin_profile_id).desc())
+            .limit(limit)
+        )
+    ).all()
+    return [
+        TopConcernStat(concern_name=name, count=count) for name, count in rows if name is not None
+    ]

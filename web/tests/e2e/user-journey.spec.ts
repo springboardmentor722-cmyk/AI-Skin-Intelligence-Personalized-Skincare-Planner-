@@ -91,26 +91,53 @@ test("signup -> assessment wizard -> dashboard/routine/recommendations/profile, 
       await expect(page.getByText(new RegExp(`${label} \\(\\d+%\\)`, "i"))).toBeVisible();
     }
 
-    // --- Dashboard: real score, real routine, real recommendations ---
+    // A brand-new signup has exactly one skin_assessments row (today), so the
+    // Skin Health Progress trend chart legitimately renders its empty state
+    // ("Check back after a few days") — correct behaviour, but it means the P4
+    // vision-diff screenshot below would compare a real *empty* chart card against
+    // the source screenshot's real *populated* one, which isn't the same fidelity
+    // question. Backdating a few more real rows for the same user (same shape
+    // get_recent_scores/scores_service.py already reads, no new column, no fixture)
+    // gives the screenshot a fair, still-100%-real trend to render.
+    const seedDb = pool();
+    try {
+      for (const [daysAgo, score] of [[21, 66], [14, 70], [7, 74]] as const) {
+        await seedDb.query(
+          `insert into skin_assessments (user_id, overall_score, calculated_at)
+           values ($1, $2, now() - ($3 || ' days')::interval)`,
+          [userId, score, daysAgo]
+        );
+      }
+    } finally {
+      await seedDb.end();
+    }
+
+    // --- Dashboard: real score, real routine, real recommendations (Milestone 2
+    // P4 layout — MILESTONE_2_UI_SPEC.md §4.1's 4 rows, docs/DECISIONS.md ADR-023) ---
     await page.goto("/dashboard");
     await expect(
       page.getByText(/complete your skin profile to unlock your dashboard/i)
     ).not.toBeVisible();
-    await expect(page.getByRole("heading", { name: "Skin score" })).toBeVisible({
-      timeout: 10_000,
-    });
-    for (const label of ["Condition", "Lifestyle", "Routine", "Sleep", "Hydration"]) {
-      await expect(page.getByText(new RegExp(label, "i")).first()).toBeVisible();
+    await expect(page.getByText("Skin Health Score")).toBeVisible({ timeout: 10_000 });
+    for (const label of ["Skin Type", "Top Concerns", "Skin Age", "Hydration Level"]) {
+      await expect(page.getByText(label).first()).toBeVisible();
     }
     await expect(page.getByText(/today's routine/i)).toBeVisible();
     // The AM/PM-only filter fixed this session — Weekly must never leak onto the
     // dashboard's daily checklist card.
-    await expect(page.getByText(/evening protocol/i)).toBeVisible();
-    await expect(page.getByText(/weekly/i)).not.toBeVisible();
-    await expect(page.getByText(/recommended for you/i)).toBeVisible();
+    await expect(page.getByText("Evening Routine")).toBeVisible();
+    await expect(page.getByText(/^weekly$/i)).not.toBeVisible();
+    await expect(page.getByText("Recommended Products for You")).toBeVisible();
     for (const unsafe of AVOID_FLAGGED_PRODUCTS) {
       await expect(page.getByText(unsafe)).not.toBeVisible();
     }
+
+    // Master prompt §5.6 closing-the-loop screenshot for tools/vision/extract.py.
+    await page.setViewportSize({ width: 1440, height: 960 });
+    await page.screenshot({
+      path: "../docs/milestones/milestone_2/build/user-dashboard.png",
+      fullPage: false,
+    });
 
     // --- /routine: all three tabs, safety filter, real checkbox persistence ---
     await page.goto("/routine");

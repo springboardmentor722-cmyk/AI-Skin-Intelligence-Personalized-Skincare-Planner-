@@ -1593,7 +1593,8 @@ export interface components {
          * @description Admin dashboard (Branch 6) — real counts only, no invented KPIs. User-role
          *     counts come from Better Auth (web/app/api/admin/dashboard-stats/route.ts calls
          *     its own listUsers, not this endpoint) — this covers only what FastAPI actually
-         *     owns: the verification queue and the audit trail.
+         *     owns: the verification queue and the audit trail, platform counts, and the
+         *     top-concerns aggregate (Milestone 2 P4).
          */
         DashboardStats: {
             /** Pending Consultant Count */
@@ -1602,6 +1603,9 @@ export interface components {
             pending_dermatologist_count: number;
             /** Recent Activity */
             recent_activity: components["schemas"]["AuditLogRead"][];
+            platform_counts: components["schemas"]["PlatformCounts"];
+            /** Top Concerns */
+            top_concerns: components["schemas"]["TopConcernStat"][];
         };
         /**
          * DashboardTtiReport
@@ -1969,6 +1973,22 @@ export interface components {
             page_size: number;
             /** Total */
             total: number;
+        };
+        /**
+         * PlatformCounts
+         * @description Milestone 2 P4 — Admin dashboard's 3 additional real KPIs (Assessments
+         *     Completed, Active Routines, Total Products). Platform Revenue and System Uptime
+         *     have no real backing (no billing/payments processing, no uptime monitoring
+         *     service) and stay UI-layer fixtures — see docs/DECISIONS.md ADR-023, not
+         *     invented here.
+         */
+        PlatformCounts: {
+            /** Total Assessments */
+            total_assessments: number;
+            /** Active Routines */
+            active_routines: number;
+            /** Total Products */
+            total_products: number;
         };
         /** ProductAlternativesRead */
         ProductAlternativesRead: {
@@ -2396,6 +2416,18 @@ export interface components {
             allergy_flag: boolean;
             /** Avoid Flag */
             avoid_flag: boolean;
+        };
+        /**
+         * TopConcernStat
+         * @description One row of the admin-wide top-concerns aggregate — count of skin profiles
+         *     reporting this concern, platform-wide (not one user's, unlike the Assessment
+         *     Engine's per-user prioritisation).
+         */
+        TopConcernStat: {
+            /** Concern Name */
+            concern_name: string;
+            /** Count */
+            count: number;
         };
         /** TrendInsightRead */
         TrendInsightRead: {
