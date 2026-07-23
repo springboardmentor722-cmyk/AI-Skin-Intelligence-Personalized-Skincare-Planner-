@@ -535,4 +535,26 @@ but the spec is normative for structure/copy only (per its own header), not for
 backend numbers, so this ADR — not the spec text — governs the hydration benchmark
 and the payload shape going forward.
 
-<!-- Next ADR: ADR-022 — add yours here -->
+## ADR-022 — Role sidebar: two real features kept beyond MILESTONE_2_UI_SPEC.md §3's literal trees
+**Status:** Accepted (M2-P2)
+**Context:** `MILESTONE_2_MASTER_PROMPT.md` P2 says to transcribe the four nav trees
+from `UI_SPEC.md §3` exactly — labels, subtitles, order, grouping. Two items already
+live in this app aren't in those screenshot-derived trees at all: User's `/insights`
+(M3-F, real correlation analytics over logged history) and Admin's `/monitoring`
+(real system-health screen). Both are real, already-shipped, already-tested
+features — a literal transcription would silently remove them from the nav
+entirely, which is a regression dressed up as fidelity, not fidelity itself.
+**Decision:** Keep both, placed sensibly rather than dropped: User's Insights sits
+in MAIN MENU alongside the docx's own (separate, still-unbuilt) "Reports" item —
+different PDF modules, Module 8 (Progress Tracking & Analytics) vs Module 11
+(Reports & Export). Admin's Monitoring sits in the new SYSTEM & SECURITY section
+alongside the three new stub items, since system health is already that section's
+theme. Every other item in both roles' trees is the literal UI_SPEC transcription,
+unchanged.
+**Consequences:** The User and Admin nav trees each carry one more real item than
+`UI_SPEC.md §3` literally lists (11+1 and 11+1 respectively, footnoted in
+`lib/nav-config.ts`'s own comments). A future session diffing nav-config.ts against
+the spec should read this as documented, deliberate scope, not drift to silently
+"fix." If either underlying feature is ever deprecated for real, remove the nav
+item in the same change — this ADR licenses keeping working features, not carrying
+dead ones forever.
