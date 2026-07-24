@@ -1100,6 +1100,13 @@ export interface components {
             /** User Count */
             user_count: number;
         };
+        /** AllergyIngredientRead */
+        AllergyIngredientRead: {
+            /** Ingredient Id */
+            ingredient_id: number;
+            /** Ingredient Name */
+            ingredient_name: string | null;
+        };
         /** AnalyticsAdminRead */
         AnalyticsAdminRead: {
             /** Total Assessments */
@@ -2347,6 +2354,8 @@ export interface components {
             sensitivities?: string | null;
             /** Concerns */
             concerns?: components["schemas"]["SkinProfileConcernInput"][];
+            /** Allergy Ingredient Ids */
+            allergy_ingredient_ids?: number[];
         };
         /** SkinProfileRead */
         SkinProfileRead: {
@@ -2362,6 +2371,8 @@ export interface components {
             sensitivities: string | null;
             /** Concerns */
             concerns: components["schemas"]["SkinProfileConcernRead"][];
+            /** Allergy Ingredients */
+            allergy_ingredients?: components["schemas"]["AllergyIngredientRead"][];
             /** Created At */
             created_at: string | null;
             /** Updated At */

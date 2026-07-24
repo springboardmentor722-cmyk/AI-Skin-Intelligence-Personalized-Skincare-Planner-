@@ -33,12 +33,23 @@ class SkinProfileConcernRead(BaseModel):
     priority_level: int | None
 
 
+class AllergyIngredientRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    ingredient_id: int
+    ingredient_name: str | None
+
+
 class SkinProfileCreate(BaseModel):
     skin_type_id: int
     age_group: str | None = None
     allergies: str | None = None
     sensitivities: str | None = None
     concerns: list[SkinProfileConcernInput] = Field(default_factory=list)
+    # Milestone 2 P7 (docs/DECISIONS.md ADR-026): structured ingredient ids, the
+    # primary allergy list going forward — `allergies` (TEXT, above) stays as an
+    # unrelated free-text fallback, not replaced.
+    allergy_ingredient_ids: list[int] = Field(default_factory=list)
 
 
 class SkinProfileRead(BaseModel):
@@ -50,6 +61,7 @@ class SkinProfileRead(BaseModel):
     allergies: str | None
     sensitivities: str | None
     concerns: list[SkinProfileConcernRead]
+    allergy_ingredients: list[AllergyIngredientRead] = Field(default_factory=list)
     # Optional to match the SQLAlchemy model exactly — the SQL schema only gives these
     # columns a DEFAULT, not NOT NULL, so they're technically nullable even though a
     # value is always present in practice.

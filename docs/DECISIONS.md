@@ -690,3 +690,35 @@ drift from the database.
 a different agent's re-reading) says "Post Acne Marks" is one of the ten
 concerns, that paraphrase is wrong — this ADR and the two sources above are what
 to trust instead.
+
+## ADR-026 — Structured allergy list: additive junction table, not a column replacement
+**Status:** Accepted (M2-P7)
+**Context:** `MILESTONE_2_MASTER_PROMPT.md` P7's own guardrail: "the allergy list
+is stored as structured ingredient ids, not free text" — needed so P12's allergy
+detection can match a user's allergies against real ingredient rows directly.
+`skin_profiles.allergies` is a plain `TEXT` column (confirmed: `database_schemas/
+skinlytics_postgresql_schema_v3.sql:124`, matched exactly by the live model) — the
+frontend already treats it as a tag list in the UI (`skin-profile-form.tsx`'s
+`splitTags`/comma-join), but persists it as one joined free-text string, which
+`ingredient_id`-based matching can't parse reliably (typos, synonyms, INCI vs.
+marketing names).
+**Decision:** Add `skin_profile_allergies (skin_profile_id, ingredient_id)`, the
+same junction-table shape `skin_profile_concerns` already uses, with a real
+`UNIQUE (skin_profile_id, ingredient_id)` constraint (concerns' own schema
+deliberately has none, per its comment, but a duplicate allergy entry has no
+legitimate case). `skin_profiles.allergies` (TEXT) is **not** dropped or
+repurposed — it stays as an unrelated, still-nullable free-text fallback for
+whatever a structured ingredient id can't capture, per this repo's standing
+non-destructive-migration discipline. `SkinProfileCreate`/`SkinProfileRead` gain
+`allergy_ingredient_ids: list[int]` / `allergy_ingredients: list[AllergyIngredientRead]`
+as additive fields; the existing `allergies: str | None` field is unchanged in
+shape, so no existing consumer breaks.
+The frontend's allergy input becomes a real ingredient search (existing
+`GET /api/v1/ingredients?q=...`, already supports a query param — no new backend
+search endpoint needed) instead of a free-typed tag, so what a user picks is
+always a real `ingredient_id` from day one, not a string this ADR's whole point
+was to stop relying on.
+**Consequences:** P12's ingredient-allergy matching reads
+`skin_profile_allergies` directly — a real join, not a text-parsing heuristic.
+A future session should not "clean up" the now-secondary `allergies` TEXT column
+without checking whether real free-text notes have accumulated there first.

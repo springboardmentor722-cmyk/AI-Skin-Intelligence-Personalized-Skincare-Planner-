@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.mongo import get_mongo_db
 from app.db.postgres import external_user_table
+from app.services.ingredients.models import Ingredient
 from app.services.skin_profile.schemas import (
     LifestyleLogCreate,
     SkinProfileConcernInput,
@@ -23,6 +24,7 @@ from app.services.skin_profile.schemas import (
 from app.services.skin_profile.service import (
     create_profile,
     get_current_profile,
+    list_lifestyle_logs_since,
     list_profile_history,
     list_recent_lifestyle_logs,
     list_skin_concerns,
@@ -89,6 +91,35 @@ async def test_create_profile_round_trips_fields_and_concerns(
     assert fetched is not None
     assert fetched.skin_profile_id == created.skin_profile_id
     assert len(fetched.concerns) == 2
+
+
+async def test_create_profile_round_trips_structured_allergies(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    # docs/DECISIONS.md ADR-026 — allergy_ingredient_ids is the structured list P12's
+    # allergy detection matches against; allergy_ingredients on read must carry back
+    # the real ingredient name, not just the id.
+    ingredient = Ingredient(ingredient_name=f"Test Ingredient {uuid.uuid4().hex[:8]}")
+    db_session.add(ingredient)
+    await db_session.flush()
+
+    created = await create_profile(
+        db_session,
+        test_user_id,
+        SkinProfileCreate(
+            skin_type_id=1,
+            concerns=[],
+            allergy_ingredient_ids=[ingredient.ingredient_id, ingredient.ingredient_id],
+        ),
+    )
+
+    # De-duplicated despite the id being sent twice (UNIQUE(skin_profile_id, ingredient_id)).
+    assert [a.ingredient_id for a in created.allergy_ingredients] == [ingredient.ingredient_id]
+    assert created.allergy_ingredients[0].ingredient_name == ingredient.ingredient_name
+
+    fetched = await get_current_profile(db_session, test_user_id)
+    assert fetched is not None
+    assert [a.ingredient_id for a in fetched.allergy_ingredients] == [ingredient.ingredient_id]
 
 
 async def test_create_profile_versions_instead_of_overwriting(
@@ -202,3 +233,25 @@ async def test_upsert_lifestyle_log_different_days_creates_separate_entries(
 
     logs = await list_recent_lifestyle_logs(lifestyle_test_user)
     assert len(logs) == 2
+
+
+async def test_list_lifestyle_logs_since_excludes_entries_outside_the_window(
+    lifestyle_test_user: str,
+) -> None:
+    # Milestone 2 P7 — a real calendar-window query, not list_recent_lifestyle_logs'
+    # row-count limit: a log from 20 days ago must not count toward a 14-day window,
+    # even though list_recent_lifestyle_logs (unbounded by date) would still return it.
+    today = datetime.datetime.now(datetime.UTC).date()
+    await upsert_lifestyle_log(
+        lifestyle_test_user,
+        LifestyleLogCreate(log_date=today - datetime.timedelta(days=20), sleep_hours=5.0),
+    )
+    await upsert_lifestyle_log(
+        lifestyle_test_user,
+        LifestyleLogCreate(log_date=today - datetime.timedelta(days=2), sleep_hours=8.0),
+    )
+
+    logs = await list_lifestyle_logs_since(lifestyle_test_user, days=14)
+
+    assert len(logs) == 1
+    assert logs[0]["sleep_hours"] == 8.0

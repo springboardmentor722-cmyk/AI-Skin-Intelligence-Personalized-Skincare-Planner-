@@ -81,3 +81,18 @@ Vector DB: `user_profiles_namespace` embedding pipeline lands (worker consumer,
 `app/worker/consumers/embeddings.py`) — documented divergence from
 `skinlytics_vector_db_schema_v3.txt`'s aspirational "custom feature embedding" model
 name, noted in that file directly.
+
+## 2026-07-24 — M2-P7: `skin_profile_allergies` junction table (NEW)
+
+Milestone 2 UI-fidelity pack P7 (`docs/milestones/milestone_2/MILESTONE_2_MASTER_PROMPT.md`,
+docs/DECISIONS.md ADR-026): "the allergy list is stored as structured ingredient
+ids, not free text" (P7's own guardrail) — needed so P12's allergy detection can
+match a user's allergy list against ingredient rows directly instead of parsing
+free text. Adds `skin_profile_allergies (skin_profile_id, ingredient_id)`, same
+junction-table shape as `skin_profile_concerns`, with a `UNIQUE (skin_profile_id,
+ingredient_id)` constraint (a real allergy list shouldn't have duplicate entries,
+unlike concerns which the source schema deliberately leaves unconstrained).
+`skin_profiles.allergies` (TEXT) is unchanged and not dropped — a non-destructive
+addition, not a replacement; the column stays as a free-text fallback for
+whatever a structured ingredient id can't capture. Applied via Alembic migration
+(see that migration's own docstring for the revision id).

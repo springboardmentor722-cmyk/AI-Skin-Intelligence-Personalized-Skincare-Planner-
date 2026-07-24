@@ -29,6 +29,9 @@ const AVOID_FLAGGED_PRODUCTS = [
 test("signup -> assessment wizard -> dashboard/routine/recommendations/profile, all real", async ({
   page,
 }) => {
+  // Chained real journey (signup + 4-step wizard + 6 page loads against a real
+  // backend) legitimately exceeds Playwright's 30s default.
+  test.setTimeout(120_000);
   const password = "SuperSecret123!";
   const email = `e2e-journey-user-${Date.now()}@example.com`;
   let userId: string | null = null;
@@ -173,10 +176,38 @@ test("signup -> assessment wizard -> dashboard/routine/recommendations/profile, 
     await expect(page.getByText(/sensitive/i).first()).toBeVisible({ timeout: 10_000 });
     await page.getByRole("combobox").first().click();
     await page.getByRole("option", { name: "Dry" }).click();
+
+    // Milestone 2 P7 (docs/DECISIONS.md ADR-026) — allergies are a real ingredient
+    // search (GET /api/v1/ingredients?q=), not free text; "Retinol" is a real seeded
+    // row (backend/app/db/seed.py), proving the structured id round-trips, not a tag.
+    await page.getByPlaceholder("Search ingredients...").click();
+    await page.getByPlaceholder("Search ingredients...").fill("Retinol");
+    await page.getByRole("option", { name: "Retinol" }).click();
+
     await page.getByRole("button", { name: /save skin profile/i }).click();
     await expect(page.getByText(/^saved$/i)).toBeVisible({ timeout: 10_000 });
     await page.reload();
     await expect(page.getByText(/^dry$/i).first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText("Retinol")).toBeVisible({ timeout: 10_000 });
+
+    // --- /check-in: daily entry (sleep, water, stress, sun exposure) + 30-day
+    // history — MILESTONE_2_MASTER_PROMPT.md P7's "Lifestyle & Habits" page ---
+    await page.goto("/check-in");
+    await expect(page.getByRole("heading", { name: "Daily check-in" })).toBeVisible();
+    await expect(page.getByText(/stress level/i)).toBeVisible();
+    await expect(page.getByText(/sun exposure/i)).toBeVisible();
+    // The assessment wizard's "lifestyle" step (sleep/water/stress/sun) already
+    // upserted today's lifestyle_logs row via the P9 submit pipeline, so this button
+    // reads "Update today's check-in" rather than "Log today" — either way, saving
+    // here must round-trip.
+    await page.getByRole("button", { name: /log today|update today's check-in/i }).click();
+    await expect(page.getByText(/today's check-in saved/i)).toBeVisible({ timeout: 10_000 });
+    await page.reload();
+    await expect(page.getByRole("button", { name: /update today's check-in/i })).toBeVisible({
+      timeout: 10_000,
+    });
+    await expect(page.getByText("30-day history")).toBeVisible();
+    await expect(page.getByText(/no check-ins logged yet/i)).not.toBeVisible();
 
     await signOut(page.request);
   } finally {
