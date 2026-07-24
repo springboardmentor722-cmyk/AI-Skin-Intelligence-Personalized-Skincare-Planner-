@@ -155,7 +155,8 @@ async def test_get_product_detail_suitability_is_none_without_a_profile(
 
 async def test_compare_products_returns_aligned_attribute_matrix(db_session: AsyncSession) -> None:
     compare = await products_service.compare_products(
-        db_session, [_VITAMIN_C_SERUM_ID, 4]  # Vitamin C Serum + Salicylic Acid Treatment
+        db_session,
+        [_VITAMIN_C_SERUM_ID, 4],  # Vitamin C Serum + Salicylic Acid Treatment
     )
 
     assert len(compare.items) == 2

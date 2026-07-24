@@ -368,4 +368,3 @@ async def test_submit_endpoint_rejects_unknown_sun_exposure_with_422(client: Asy
     finally:
         app.dependency_overrides.pop(require_user, None)
     assert response.status_code == 422
-

@@ -298,9 +298,7 @@ async def get_pending_verification_counts(db: AsyncSession) -> tuple[int, int]:
 async def get_platform_counts(db: AsyncSession) -> PlatformCounts:
     """Milestone 2 P4 — the 3 Admin KPIs with a real backing table each. Platform
     Revenue/System Uptime aren't here; see PlatformCounts' own docstring."""
-    total_assessments = (
-        await db.execute(select(func.count()).select_from(SkinScore))
-    ).scalar_one()
+    total_assessments = (await db.execute(select(func.count()).select_from(SkinScore))).scalar_one()
     active_routines = (
         await db.execute(
             select(func.count()).select_from(Routine).where(Routine.is_active.is_(True))

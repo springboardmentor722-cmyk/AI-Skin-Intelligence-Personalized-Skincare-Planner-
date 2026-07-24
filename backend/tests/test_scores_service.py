@@ -442,9 +442,10 @@ async def test_count_all_assessments_increases_after_a_real_score_is_stored(
 
 
 def test_scoring_accuracy_test_optimal_parameters_yield_the_maximum_weighted_score() -> None:
-    """The mandated "Scoring Accuracy Test" — every sub-score at its ceiling (100)
-    must yield the composite's own ceiling. Weights sum to 1.00 (chk_weights_sum),
-    so this is exactly 100.0, not an approximation of it."""
+    """MANDATED — mile_2.docx §5 "Automated Testing & QA Criteria (Pytest)": the
+    "Scoring Accuracy Test". Every sub-score at its ceiling (100) must yield the
+    composite's own ceiling. Weights sum to 1.00 (chk_weights_sum), so this is
+    exactly 100.0, not an approximation of it."""
     overall = calculate_skin_health_score(
         skin_condition=100.0,
         lifestyle=100.0,

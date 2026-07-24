@@ -36,7 +36,7 @@ def _parse_box(s: str):
 def _emit(obj, args, human: str = "") -> None:
     if getattr(args, "json", None):
         core.write_json(obj, args.json)
-        print(f"→ {args.json}")
+        print(f"-> {args.json}")
     if human:
         print(human)
     elif not getattr(args, "json", None):
@@ -98,7 +98,7 @@ def cmd_grid(args):
 
 def cmd_crop(args):
     path = core.crop(args.image, _parse_box(args.box), scale=args.scale, out_path=args.out)
-    print(f"→ {path}")
+    print(f"-> {path}")
 
 
 def cmd_ocr(args):
@@ -159,7 +159,7 @@ def cmd_diff(args):
                  f"({r['pixels_mismatched']:,} / {r['pixels_considered']:,} px)")
         metric = r["mismatch_pct"]
     if args.out:
-        human += f"\n  diff image → {args.out}"
+        human += f"\n  diff image -> {args.out}"
     _emit(r, args, human)
     if metric > args.max_pct:
         print(f"FAIL: {metric}% > {args.max_pct}% budget", file=sys.stderr)

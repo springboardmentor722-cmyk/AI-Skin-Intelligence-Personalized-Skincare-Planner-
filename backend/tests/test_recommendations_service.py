@@ -134,9 +134,7 @@ async def test_an_allergy_flagged_product_can_never_appear_in_recommendations(
         ProductIngredient(product_id=product.product_id, ingredient_id=niacinamide.ingredient_id)
     )
     db_session.add(
-        ProductSkinType(
-            product_id=product.product_id, skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS
-        )
+        ProductSkinType(product_id=product.product_id, skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
     )
     await db_session.flush()
 
@@ -217,10 +215,14 @@ async def test_recommendations_persist_the_served_set_to_product_recommendations
     results = await get_recommendations(db_session, test_user_id)
 
     rows = (
-        await db_session.execute(
-            select(ProductRecommendation).where(ProductRecommendation.user_id == test_user_id)
+        (
+            await db_session.execute(
+                select(ProductRecommendation).where(ProductRecommendation.user_id == test_user_id)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     assert len(rows) == len(results)
     assert {row.product_id for row in rows} == {r.product.product_id for r in results}
     assert all(row.recommendation_reason for row in rows)

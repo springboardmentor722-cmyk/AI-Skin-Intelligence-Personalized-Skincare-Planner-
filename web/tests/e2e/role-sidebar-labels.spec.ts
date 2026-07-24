@@ -72,14 +72,6 @@ test.describe("role sidebar — every label and subtitle present (UI_SPEC §3)",
             }
           }
         }
-
-        // Master prompt §5.6 closing-the-loop screenshot — fed to
-        // tools/vision/extract.py strings/diff against the source PNG.
-        await page.setViewportSize({ width: 1440, height: 900 });
-        await page.screenshot({
-          path: `../docs/milestones/milestone_2/build/${role}-dashboard.png`,
-          fullPage: false,
-        });
       } finally {
         if (userId) await deleteTestUser(userId);
       }

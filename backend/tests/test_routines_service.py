@@ -247,7 +247,8 @@ async def test_generation_is_deterministic_for_the_same_user_and_profile(
 async def test_safety_exclusion_test_sensitive_skin_never_gets_harsh_actives(
     db_session: AsyncSession, test_user_id: str
 ) -> None:
-    """MANDATED: "Safety Exclusion Test" — sensitive skin profiles NEVER receive
+    """MANDATED — mile_2.docx §5 "Automated Testing & QA Criteria (Pytest)": the
+    "Safety Exclusion Test". Sensitive skin profiles NEVER receive
     high-concentration retinoids (Retinol 0.3% Night Treatment) or harsh chemical
     exfoliants (8% Glycolic Acid Night Exfoliant, 2% Salicylic Acid Treatment,
     all real seeded products carrying a Retinoids/AHAs-BHAs category ingredient)."""
@@ -281,8 +282,10 @@ async def test_safety_exclusion_test_sensitive_skin_never_gets_harsh_actives(
 def test_safety_exclusion_test_redness_boundary_is_exactly_above_seven(
     redness_severity: int, expected: bool
 ) -> None:
-    """MANDATED: the redness boundary tested at exactly 7 and exactly 8 —
-    "> 7/10" per the doc, so 7 itself does not trigger the override, 8 does."""
+    """MANDATED — mile_2.docx §5 "Automated Testing & QA Criteria (Pytest)": part
+    of the "Safety Exclusion Test", the redness boundary tested at exactly 7 and
+    exactly 8 — "> 7/10" per the doc, so 7 itself does not trigger the override,
+    8 does."""
     assert requires_soothing_substitution(None, redness_severity) is expected
 
 
@@ -528,7 +531,8 @@ async def test_generated_routines_never_place_two_avoid_paired_actives_together(
 async def test_routine_output_test_every_am_routine_has_a_sun_protection_step(
     db_session: AsyncSession,
 ) -> None:
-    """MANDATED: "Routine Output Test" — a Sun Protection (sunscreen) step is
+    """MANDATED — mile_2.docx §5 "Automated Testing & QA Criteria (Pytest)": the
+    "Routine Output Test". A Sun Protection (sunscreen) step is
     present in EVERY generated AM routine, swept across the whole profile space
     (every seeded skin type, with and without a severe-redness concern), not one
     happy case."""
@@ -642,7 +646,8 @@ async def test_double_cleanse_appears_only_in_pm(
 async def test_safety_exclusion_test_severe_redness_without_sensitive_skin_type(
     db_session: AsyncSession, test_user_id: str
 ) -> None:
-    """MANDATED Safety Exclusion Test, extended to the guardrail's *other*
+    """MANDATED — mile_2.docx §5 "Automated Testing & QA Criteria (Pytest)": the
+    "Safety Exclusion Test", extended to the guardrail's *other*
     trigger: severe redness (>7) on a non-Sensitive skin type must ALSO exclude
     harsh actives. The skin-type avoid-flag table alone wouldn't catch this case
     (Oily isn't Sensitive) — the redness-based guardrail is what closes it.

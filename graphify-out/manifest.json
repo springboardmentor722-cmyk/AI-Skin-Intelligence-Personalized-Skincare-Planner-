@@ -50,7 +50,7 @@
     "semantic_hash": "a9265dc2756eceae0bc47f583e613c6d"
   },
   "backend/app/ai/suitability.py": {
-    "mtime": 1784895828.1425114,
+    "mtime": 1784906472.2487948,
     "ast_hash": "3bd15af1f4c8a3b61bdb9eec13508b64",
     "semantic_hash": ""
   },
@@ -370,7 +370,7 @@
     "semantic_hash": "0a39ae61d4b4735e14e1952c4339c0ad"
   },
   "backend/app/services/ingredients/service.py": {
-    "mtime": 1784895828.1425114,
+    "mtime": 1784906472.2487948,
     "ast_hash": "16795d69d40f304fd47ea4743ca59251",
     "semantic_hash": ""
   },
@@ -415,7 +415,7 @@
     "semantic_hash": ""
   },
   "backend/app/services/recommendations/service.py": {
-    "mtime": 1784895828.1425114,
+    "mtime": 1784906472.2543366,
     "ast_hash": "a557df6f523598045534a0dacd8e3fa7",
     "semantic_hash": ""
   },
@@ -440,7 +440,7 @@
     "semantic_hash": ""
   },
   "backend/app/services/routines/service.py": {
-    "mtime": 1784895828.148988,
+    "mtime": 1784906472.2548304,
     "ast_hash": "a42ac21968d5cde4dac9316e37a0c6d6",
     "semantic_hash": ""
   },
@@ -660,7 +660,7 @@
     "semantic_hash": ""
   },
   "backend/tests/test_ingredients_service.py": {
-    "mtime": 1784895840.8305604,
+    "mtime": 1784906472.2548304,
     "ast_hash": "1216a4f01b16ffb2511a541c3a3fd07e",
     "semantic_hash": ""
   },
@@ -710,7 +710,7 @@
     "semantic_hash": ""
   },
   "backend/tests/test_routines_service.py": {
-    "mtime": 1784895828.1549187,
+    "mtime": 1784906472.2548304,
     "ast_hash": "0c0e0f4e8b98aef42e788617b466a531",
     "semantic_hash": ""
   },
@@ -1505,7 +1505,7 @@
     "semantic_hash": "5d5ae1dd1fe8f1c49c7472024dfadde1"
   },
   "web/lib/nav-config.ts": {
-    "mtime": 1784896088.3943558,
+    "mtime": 1784906472.303212,
     "ast_hash": "b9579af4cb686fcf4c322efb97d6f93c",
     "semantic_hash": ""
   },
@@ -1850,7 +1850,7 @@
     "semantic_hash": ""
   },
   "docs/DECISIONS.md": {
-    "mtime": 1784897169.5944307,
+    "mtime": 1784906472.2598546,
     "ast_hash": "f6454f6422ff650e4fe7ac322c821481",
     "semantic_hash": ""
   },
@@ -3745,7 +3745,7 @@
     "semantic_hash": ""
   },
   "docs/milestones/milestone_2/M2_TASK_LEDGER.md": {
-    "mtime": 1784897186.5287383,
+    "mtime": 1784906472.260861,
     "ast_hash": "e4c72becd82264514ffb2141f6ac15d5",
     "semantic_hash": ""
   },
@@ -3805,8 +3805,8 @@
     "semantic_hash": ""
   },
   "web/app/admin/ingredients/page.tsx": {
-    "mtime": 1784896043.6854842,
-    "ast_hash": "74203f646d76b2848eef3ee55d0b3423",
+    "mtime": 1784906472.2973442,
+    "ast_hash": "9f022f5fb4a128259c289ee2f750512a",
     "semantic_hash": ""
   },
   "web/app/admin/notifications/page.tsx": {
@@ -3850,8 +3850,8 @@
     "semantic_hash": ""
   },
   "web/app/consultant/ingredient-database/page.tsx": {
-    "mtime": 1784896037.0136101,
-    "ast_hash": "4d3592a012b96f549cbf437f7efd864b",
+    "mtime": 1784906472.2973442,
+    "ast_hash": "400689b241072fe2e24c5124c8bb98f3",
     "semantic_hash": ""
   },
   "web/app/consultant/progress/page.tsx": {
@@ -3910,8 +3910,8 @@
     "semantic_hash": ""
   },
   "web/app/dermatologist/ingredient-database/page.tsx": {
-    "mtime": 1784896040.794106,
-    "ast_hash": "42dfff1843a997559b4be108f2ce88f2",
+    "mtime": 1784906472.3022876,
+    "ast_hash": "ca851a221f47f3371cfb30881a7b8f8a",
     "semantic_hash": ""
   },
   "web/app/dermatologist/prescriptions/page.tsx": {
@@ -4270,43 +4270,43 @@
     "semantic_hash": ""
   },
   "backend/app/services/routines/guardrails.py": {
-    "mtime": 1784895828.148988,
+    "mtime": 1784906472.2548304,
     "ast_hash": "b1a155bce8c2fb4baa98838efe769951",
     "semantic_hash": ""
   },
   "backend/app/ai/ingredient_synonyms.py": {
-    "mtime": 1784890384.922212,
-    "ast_hash": "4cb18f18b08d652e100e89705f8b3e8e",
+    "mtime": 1784906472.2487948,
+    "ast_hash": "c153dbc655e6bf5c57078064e8922a20",
     "semantic_hash": ""
   },
   "web/app/admin/ingredients/[id]/page.tsx": {
-    "mtime": 1784896056.624792,
-    "ast_hash": "94875ff79a5cccc6303dcbb5e1c0e0b6",
+    "mtime": 1784906472.2973442,
+    "ast_hash": "47257c47297b6c74f88cfd21df4cfd80",
     "semantic_hash": ""
   },
   "web/app/consultant/ingredient-database/[id]/page.tsx": {
-    "mtime": 1784896048.1452806,
-    "ast_hash": "50d868572ae04b9f44e4c5a7aa7886f9",
+    "mtime": 1784906472.2973442,
+    "ast_hash": "350a56ef39f979d763e5fa0352389659",
     "semantic_hash": ""
   },
   "web/app/dermatologist/ingredient-database/[id]/page.tsx": {
-    "mtime": 1784896051.724955,
-    "ast_hash": "62b95b8322acdd433cd9b5b4438c5fa8",
+    "mtime": 1784906472.2973442,
+    "ast_hash": "b2fc2461976aa62129bea0903f1f2d8d",
     "semantic_hash": ""
   },
   "web/components/ingredients/ingredient-detail.tsx": {
-    "mtime": 1784896020.596202,
-    "ast_hash": "ab3ae188b7300e33c6cc954c190dc530",
+    "mtime": 1784906472.303212,
+    "ast_hash": "ba3ceab6e7a6d3690e695050916c07fd",
     "semantic_hash": ""
   },
   "web/components/ingredients/ingredient-list.tsx": {
-    "mtime": 1784895998.1898801,
-    "ast_hash": "1a108448c4a2816fd6b0d2de3d74119e",
+    "mtime": 1784906472.303212,
+    "ast_hash": "d8a4c668dfca6fefdd01b6776330dc5d",
     "semantic_hash": ""
   },
   "web/tests/e2e/ingredient-intelligence-p12.spec.ts": {
-    "mtime": 1784896385.9393914,
-    "ast_hash": "860b2da3d38e68e00b200e102b28358d",
+    "mtime": 1784906472.303212,
+    "ast_hash": "b8dfa0b0e12909e781d52f58ab8e9a88",
     "semantic_hash": ""
   }
 }

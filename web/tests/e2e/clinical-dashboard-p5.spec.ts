@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-import { clearRateLimits, deleteTestUser, pool, promoteRole, signOut } from "./helpers";
+import { clearRateLimits, deleteTestUser, pool, promoteRole, screenshotPath, signOut } from "./helpers";
 
 // Milestone 2 P5 — Consultant & Dermatologist dashboard (MILESTONE_2_UI_SPEC.md
 // §4.2/§4.3, docs/DECISIONS.md ADR-024). The full onboarding-review workflow is
@@ -53,7 +53,7 @@ async function signIn(
 
 test("consultant dashboard: client vocabulary, 3-cell footer, Skin Concerns Guide", async ({
   page,
-}) => {
+}, testInfo) => {
   const email = `e2e-clinical-consultant-${Date.now()}@example.com`;
   const password = "SuperSecret123!";
   let userId: string | null = null;
@@ -90,7 +90,7 @@ test("consultant dashboard: client vocabulary, 3-cell footer, Skin Concerns Guid
     // Master prompt §5.6 closing-the-loop screenshot for tools/vision/extract.py.
     await page.setViewportSize({ width: 1440, height: 960 });
     await page.screenshot({
-      path: "../docs/milestones/milestone_2/build/consultant-dashboard.png",
+      path: screenshotPath(testInfo, "../docs/milestones/milestone_2/build/consultant-dashboard"),
       fullPage: false,
     });
   } finally {
@@ -100,7 +100,7 @@ test("consultant dashboard: client vocabulary, 3-cell footer, Skin Concerns Guid
 
 test("dermatologist dashboard: patient vocabulary, 4-cell footer w/ Stable, mixed-gender roster", async ({
   page,
-}) => {
+}, testInfo) => {
   const email = `e2e-clinical-derma-${Date.now()}@example.com`;
   const password = "SuperSecret123!";
   let userId: string | null = null;
@@ -140,7 +140,7 @@ test("dermatologist dashboard: patient vocabulary, 4-cell footer w/ Stable, mixe
     // Master prompt §5.6 closing-the-loop screenshots for tools/vision/extract.py.
     await page.setViewportSize({ width: 1440, height: 960 });
     await page.screenshot({
-      path: "../docs/milestones/milestone_2/build/dermatologist-dashboard.png",
+      path: screenshotPath(testInfo, "../docs/milestones/milestone_2/build/dermatologist-dashboard"),
       fullPage: false,
     });
   } finally {

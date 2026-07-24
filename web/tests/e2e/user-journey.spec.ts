@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-import { clearRateLimits, deleteTestUser, pool, signOut } from "./helpers";
+import { clearRateLimits, deleteTestUser, pool, screenshotPath, signOut } from "./helpers";
 
 // Milestone 2 — PROGRESS.md's own Pending list named this gap: skin profile &
 // lifestyle, assessment, dashboard, recommendations, and progress (plus /routine,
@@ -39,7 +39,7 @@ const AVOID_FLAGGED_PRODUCTS = [
 
 test("signup -> real profile -> dashboard/routine/recommendations/profile/check-in, all real", async ({
   page,
-}) => {
+}, testInfo) => {
   // Chained real journey (signup + 4-step wizard + 6 page loads against a real
   // backend) legitimately exceeds Playwright's 30s default.
   test.setTimeout(120_000);
@@ -163,7 +163,7 @@ test("signup -> real profile -> dashboard/routine/recommendations/profile/check-
     // Master prompt §5.6 closing-the-loop screenshot for tools/vision/extract.py.
     await page.setViewportSize({ width: 1440, height: 960 });
     await page.screenshot({
-      path: "../docs/milestones/milestone_2/build/user-dashboard.png",
+      path: screenshotPath(testInfo, "../docs/milestones/milestone_2/build/user-dashboard"),
       fullPage: false,
     });
 

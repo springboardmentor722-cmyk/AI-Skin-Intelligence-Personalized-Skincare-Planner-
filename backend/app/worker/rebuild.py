@@ -52,8 +52,7 @@ async def rebuild_all() -> dict[str, int]:
             counts["ingredients"] += 1
 
     article_ids = [
-        doc["article_id"]
-        async for doc in mongo["knowledge_articles"].find({}, {"article_id": 1})
+        doc["article_id"] async for doc in mongo["knowledge_articles"].find({}, {"article_id": 1})
     ]
     async with async_session_factory() as db:
         for article_id in article_ids:

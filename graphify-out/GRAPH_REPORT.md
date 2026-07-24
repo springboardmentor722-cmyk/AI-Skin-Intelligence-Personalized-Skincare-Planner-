@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `01247468`
+- Built from commit: `804ef397`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -403,7 +403,7 @@ Nodes (44): Base UI only props worth knowing (checkbox), Base UI only props wort
 
 ### Community 39 - "dependencies"
 Cohesion: 0.08
-Nodes (25): @base-ui/react, better-auth, class-variance-authority, @hookform/resolvers, lucide-react, next, pg, react-dom (+17 more)
+Nodes (25): @base-ui/react, better-auth, class-variance-authority, cmdk, @hookform/resolvers, lucide-react, next, pg (+17 more)
 
 ### Community 40 - "helpers.ts"
 Cohesion: 0.14
@@ -494,8 +494,8 @@ Cohesion: 0.08
 Nodes (34): ACTIVE_VARIANT_CLASSES, AppSidebar(), Sidebar(), SidebarContent(), SidebarContext, SidebarContextProps, SidebarFooter(), SidebarGroup() (+26 more)
 
 ### Community 63 - "consultant-onboarding.ts"
-Cohesion: 0.11
-Nodes (30): GlassTopbar(), NavUser(), LandingNavbar(), NAV_LINKS, ThemeToggle(), Avatar(), AvatarBadge(), AvatarFallback() (+22 more)
+Cohesion: 0.12
+Nodes (29): GlassTopbar(), NavUser(), LandingNavbar(), NAV_LINKS, ThemeToggle(), Avatar(), AvatarBadge(), AvatarFallback() (+21 more)
 
 ### Community 64 - "backend_run.py"
 Cohesion: 0.43
@@ -526,8 +526,8 @@ Cohesion: 0.12
 Nodes (17): `add` — Add components, `apply` — Apply a preset to an existing project, `build` — Build a custom registry, Commands, Contents, `diff` — Check for updates, `docs` — Get component documentation URLs, Dry-Run Mode (+9 more)
 
 ### Community 71 - "security.py"
-Cohesion: 0.22
-Nodes (9): AppShell(), AppShellProps, AppSidebarProps, GlassTopbarProps, NavUserProps, authClient, Role, ROLE_HOME (+1 more)
+Cohesion: 0.20
+Nodes (10): AppShell(), AppShellProps, AppSidebarProps, GlassTopbarProps, NavUserProps, authClient, Role, ROLE_HOME (+2 more)
 
 ### Community 72 - ".__call__"
 Cohesion: 0.19
@@ -751,7 +751,7 @@ Nodes (6): Base UI only props worth knowing, CSS variables, Data attributes, pro
 
 ### Community 159 - "dermatologist/dashboard/page.tsx"
 Cohesion: 0.09
-Nodes (31): Curated ingredient name/INCI synonym groups (Milestone 2 P12, PDF Module 5 "alle, Case/whitespace-insensitive identity check: exact match, or both names sit     i, same_ingredient(), ContentBasedRecommender, The stage-4 rank step (milestone_3.md §2/§8) — see app/ai/schemas.py's     `Rec, IngredientSuitability, ProgressTrendAnalyzer, BaseModel (+23 more)
+Nodes (31): Curated ingredient name/INCI synonym groups (Milestone 2 P12, PDF Module 5 "all, Case/whitespace-insensitive identity check: exact match, or both names sit, same_ingredient(), ContentBasedRecommender, The stage-4 rank step (milestone_3.md §2/§8) — see app/ai/schemas.py's     `Rec, IngredientSuitability, ProgressTrendAnalyzer, BaseModel (+23 more)
 
 ### Community 160 - "dermatologist_profile/router.py"
 Cohesion: 0.04

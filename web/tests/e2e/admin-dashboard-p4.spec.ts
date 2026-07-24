@@ -1,12 +1,12 @@
 import { test, expect } from "@playwright/test";
 
-import { clearRateLimits, deleteTestUser, pool, promoteRole, signOut } from "./helpers";
+import { clearRateLimits, deleteTestUser, pool, promoteRole, screenshotPath, signOut } from "./helpers";
 
 // Milestone 2 P4 — Admin dashboard's 4-row rebuild (MILESTONE_2_UI_SPEC.md §4.4,
 // docs/DECISIONS.md ADR-023). Confirms both the real KPIs (platform_counts,
 // top_concerns — the two backend additions this phase made) and the documented
 // fixture-only cells render without error.
-test("admin dashboard renders all 4 rows with real platform counts", async ({ page }) => {
+test("admin dashboard renders all 4 rows with real platform counts", async ({ page }, testInfo) => {
   const email = `e2e-admin-dashboard-${Date.now()}@example.com`;
   const password = "SuperSecret123!";
   let userId: string | null = null;
@@ -71,7 +71,7 @@ test("admin dashboard renders all 4 rows with real platform counts", async ({ pa
     // Master prompt §5.6 closing-the-loop screenshot for tools/vision/extract.py.
     await page.setViewportSize({ width: 1440, height: 960 });
     await page.screenshot({
-      path: "../docs/milestones/milestone_2/build/admin-dashboard.png",
+      path: screenshotPath(testInfo, "../docs/milestones/milestone_2/build/admin-dashboard"),
       fullPage: false,
     });
   } finally {

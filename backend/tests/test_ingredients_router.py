@@ -58,9 +58,7 @@ async def test_interactions_rejects_more_than_five_ids(client: AsyncClient) -> N
 async def test_interactions_rejects_non_integer_ids(client: AsyncClient) -> None:
     await _as("user", client)
     try:
-        response = await client.get(
-            "/api/v1/ingredients/interactions", params={"ids": "abc,def"}
-        )
+        response = await client.get("/api/v1/ingredients/interactions", params={"ids": "abc,def"})
     finally:
         app.dependency_overrides.pop(require_user, None)
     assert response.status_code == 422
@@ -69,9 +67,7 @@ async def test_interactions_rejects_non_integer_ids(client: AsyncClient) -> None
 async def test_interactions_accepts_a_valid_id_range(client: AsyncClient) -> None:
     await _as("user", client)
     try:
-        response = await client.get(
-            "/api/v1/ingredients/interactions", params={"ids": "1,4,9"}
-        )
+        response = await client.get("/api/v1/ingredients/interactions", params={"ids": "1,4,9"})
     finally:
         app.dependency_overrides.pop(require_user, None)
     assert response.status_code == 200

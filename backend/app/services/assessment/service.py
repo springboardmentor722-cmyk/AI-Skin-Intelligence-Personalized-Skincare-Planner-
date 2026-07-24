@@ -223,9 +223,7 @@ async def submit_assessment(
         score_id=score.score_id,
     )
     db.add(submission)
-    await append_outbox(
-        db, "assessment", user_id, "submitted", {"score_id": score.score_id}
-    )
+    await append_outbox(db, "assessment", user_id, "submitted", {"score_id": score.score_id})
     await db.commit()
     await db.refresh(submission)
 

@@ -33,6 +33,15 @@ async def embed_and_upsert(
         await _embed_article(mongo, int(aggregate_id))
     elif aggregate_type == "profile":
         await _embed_profile(db, mongo, aggregate_id)
+    elif aggregate_type == "assessment":
+        # Milestone 2 P9's `submit_assessment` outbox event — a permanent no-op.
+        # skinlytics_vector_db_schema_v3.txt documents a *different*,
+        # never-implemented `skin_assessments_namespace` (an EfficientNet-B0
+        # image-scan embedding keyed by a Mongo scan_id — no CV model exists
+        # anywhere in this codebase, AGENTS.md's "no computer-vision model
+        # needed" design intent). P9's real, rule-based assessment has no
+        # embedding use case of its own.
+        return
     else:
         raise ValueError(f"unknown outbox aggregate_type: {aggregate_type!r}")
 
@@ -146,15 +155,19 @@ async def _embed_profile(db: AsyncSession, mongo: Any, user_id: str) -> None:
     skin_type = await db.get(SkinType, profile.skin_type_id)
     skin_type_name = skin_type.skin_type_name if skin_type else None
     concern_names = (
-        await db.execute(
-            select(SkinConcern.concern_name)
-            .join(
-                SkinProfileConcernModel,
-                SkinProfileConcernModel.concern_id == SkinConcern.concern_id,
+        (
+            await db.execute(
+                select(SkinConcern.concern_name)
+                .join(
+                    SkinProfileConcernModel,
+                    SkinProfileConcernModel.concern_id == SkinConcern.concern_id,
+                )
+                .where(SkinProfileConcernModel.skin_profile_id == profile.skin_profile_id)
             )
-            .where(SkinProfileConcernModel.skin_profile_id == profile.skin_profile_id)
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
 
     # user_preferences (schema #4) is a real documented collection with no writer yet
     # anywhere in the app (M3-D is only its first *reader*) — absent gracefully, not

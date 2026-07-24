@@ -77,6 +77,7 @@ INDEX_MAPPINGS = {
     "knowledge_articles_index": _KNOWLEDGE_ARTICLES_MAPPING,
 }
 
+
 async def ensure_indices() -> None:
     """Creates the 3 indices from their documented mappings if absent — idempotent,
     safe to call before every projection. Always re-checks existence rather than
@@ -100,26 +101,40 @@ async def build_product_document(db: AsyncSession, product_id: int) -> dict[str,
         return None
 
     skin_types = (
-        await db.execute(
-            select(SkinType.skin_type_name)
-            .join(ProductSkinType, ProductSkinType.skin_type_id == SkinType.skin_type_id)
-            .where(ProductSkinType.product_id == product_id)
+        (
+            await db.execute(
+                select(SkinType.skin_type_name)
+                .join(ProductSkinType, ProductSkinType.skin_type_id == SkinType.skin_type_id)
+                .where(ProductSkinType.product_id == product_id)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     concerns = (
-        await db.execute(
-            select(SkinConcern.concern_name)
-            .join(ProductConcern, ProductConcern.concern_id == SkinConcern.concern_id)
-            .where(ProductConcern.product_id == product_id)
+        (
+            await db.execute(
+                select(SkinConcern.concern_name)
+                .join(ProductConcern, ProductConcern.concern_id == SkinConcern.concern_id)
+                .where(ProductConcern.product_id == product_id)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     ingredients = (
-        await db.execute(
-            select(Ingredient.ingredient_name)
-            .join(ProductIngredient, ProductIngredient.ingredient_id == Ingredient.ingredient_id)
-            .where(ProductIngredient.product_id == product_id)
+        (
+            await db.execute(
+                select(Ingredient.ingredient_name)
+                .join(
+                    ProductIngredient, ProductIngredient.ingredient_id == Ingredient.ingredient_id
+                )
+                .where(ProductIngredient.product_id == product_id)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
 
     return {
         "product_id": product.product_id,
@@ -181,8 +196,12 @@ async def project_to_elasticsearch(
     """Deletes the ES doc if the source row is gone (a real delete event or a
     since-removed row), upserts otherwise. `profile` is permanently a no-op here —
     profiles are never searched via Elasticsearch, only via vector similarity
-    (app/worker/consumers/embeddings.py's user_profiles_namespace, M3-D)."""
-    if aggregate_type == "profile":
+    (app/worker/consumers/embeddings.py's user_profiles_namespace, M3-D).
+    `assessment` (Milestone 2 P9's `submit_assessment` outbox event) is also a
+    permanent no-op — a skin assessment is a personal, time-series score record,
+    not a searchable catalog item; no assessments index exists in
+    database_schemas/skinlytics_elasticsearch_schema_v2.txt and none is planned."""
+    if aggregate_type in ("profile", "assessment"):
         return
 
     await ensure_indices()

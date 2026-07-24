@@ -232,9 +232,7 @@ async def load_into_database(db: AsyncSession, products: list[dict[str, Any]]) -
                 ingredient = Ingredient(ingredient_name=ingredient_name)
                 db.add(ingredient)
                 await db.flush()
-                await append_outbox(
-                    db, "ingredient", str(ingredient.ingredient_id), "upsert"
-                )
+                await append_outbox(db, "ingredient", str(ingredient.ingredient_id), "upsert")
                 ingredient_ids[ingredient_name] = ingredient.ingredient_id
             db.add(
                 ProductIngredient(
