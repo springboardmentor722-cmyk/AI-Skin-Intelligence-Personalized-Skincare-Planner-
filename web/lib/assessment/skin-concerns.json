@@ -1,0 +1,72 @@
+[
+  {
+    "id": "CONCERN_ACNE",
+    "title": "Active Acne & Pimples",
+    "description": "Whiteheads, blackheads, or inflamed breakouts.",
+    "image_url": "/assets/concerns/acne.svg",
+    "backend_field": "acne_severity"
+  },
+  {
+    "id": "CONCERN_HYPERPIGMENTATION",
+    "title": "Dark Spots & Pigmentation",
+    "description": "Sun spots, uneven tone, or dark post-acne marks.",
+    "image_url": "/assets/concerns/pigmentation.svg",
+    "backend_field": "hyperpigmentation_severity"
+  },
+  {
+    "id": "CONCERN_REDNESS",
+    "title": "Redness & Rosacea",
+    "description": "Flushed patches, visible capillaries, or blotchiness.",
+    "image_url": "/assets/concerns/redness.svg",
+    "backend_field": "redness_severity"
+  },
+  {
+    "id": "CONCERN_WRINKLES",
+    "title": "Fine Lines & Wrinkles",
+    "description": "Smile lines, crow's feet, or loss of firmness.",
+    "image_url": "/assets/concerns/wrinkles.svg",
+    "backend_field": "wrinkles_severity"
+  },
+  {
+    "id": "CONCERN_DARK_SPOTS",
+    "title": "Dark Marks",
+    "description": "Small, localized dark marks left behind after a blemish heals.",
+    "image_url": "/assets/concerns/dark_spots.svg",
+    "backend_field": "dark_spots_severity"
+  },
+  {
+    "id": "CONCERN_DRY_SKIN",
+    "title": "Dryness",
+    "description": "Rough texture, tightness, or visible flaking across the face.",
+    "image_url": "/assets/concerns/dry_skin.svg",
+    "backend_field": "dry_skin_severity"
+  },
+  {
+    "id": "CONCERN_OILY_SKIN",
+    "title": "Excess Oil",
+    "description": "Persistent shine and greasiness, especially in the T-zone.",
+    "image_url": "/assets/concerns/oily_skin.svg",
+    "backend_field": "oily_skin_severity"
+  },
+  {
+    "id": "CONCERN_SENSITIVE_SKIN",
+    "title": "Sensitivity",
+    "description": "Stinging, burning, or irritation when trying new products.",
+    "image_url": "/assets/concerns/sensitive_skin.svg",
+    "backend_field": "sensitive_skin_severity"
+  },
+  {
+    "id": "CONCERN_FINE_LINES",
+    "title": "Fine Lines",
+    "description": "Early, shallow lines around the eyes and mouth.",
+    "image_url": "/assets/concerns/fine_lines.svg",
+    "backend_field": "fine_lines_severity"
+  },
+  {
+    "id": "CONCERN_UNEVEN_SKIN_TONE",
+    "title": "Uneven Skin Tone",
+    "description": "Patchy or blotchy colouring across the face, no single dominant cause.",
+    "image_url": "/assets/concerns/uneven_skin_tone.svg",
+    "backend_field": "uneven_skin_tone_severity"
+  }
+]

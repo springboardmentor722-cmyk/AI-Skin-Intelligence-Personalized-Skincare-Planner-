@@ -652,3 +652,41 @@ same as User/Admin's own fixture-only cells from ADR-023. A future session
 should not read the presence of fixtures here as an oversight; it's the
 documented, deliberate choice for this specific pair, made for the opposite
 reason ADR-023's "real wherever possible" default was chosen for User/Admin.
+
+## ADR-025 — P6 visual datasets: the 10th concern is "Sensitive Skin", not "Post Acne Marks"; no migration needed
+**Status:** Accepted (M2-P6)
+**Context:** `MILESTONE_2_MASTER_PROMPT.md` P6's own phase text says to extend
+`skin_concerns.json` to 10 by adding "Dark Spots, Dry Skin, Oily Skin, Fine Lines,
+Uneven Skin Tone, and Post Acne Marks." Re-read `MILESTONE 2.docx` directly (not
+the master prompt's paraphrase, per this project's own standing discipline —
+`docs/DECISIONS.md` ADR-021's C3 correction was exactly this same mistake made
+once already) before writing the JSON: the docx's literal "Common Skin Concerns"
+list (paragraph 21-31) is **Acne, Hyperpigmentation, Dark Spots, Dry Skin, Oily
+Skin, Sensitive Skin, Wrinkles, Fine Lines, Redness, Uneven Skin Tone** — ten
+items, and the tenth is "Sensitive Skin," not "Post Acne Marks." "Post Acne Marks"
+never appears in this list at all; it's a phrase from the *dashboard screenshots'*
+"Top Concerns" display text ("Acne & Post Acne Marks"), a different document
+context the master prompt's own author appears to have conflated with this list
+when paraphrasing it.
+Independent confirmation, found while checking whether a migration was needed:
+`backend/app/migrations/versions/a9c3d2f81b47_seed_reference_data.py` (already
+merged, 2026-07-14, unrelated to this UI pack) seeds Postgres `skin_types` with
+exactly `Normal, Dry, Oily, Combination, Sensitive` and `skin_concerns` with
+exactly `Acne, Hyperpigmentation, Dark Spots, Dry Skin, Oily Skin, Sensitive Skin,
+Wrinkles, Fine Lines, Redness, Uneven Skin Tone` — the *exact* 5 types and 10
+concerns this ADR and ADR-021 (C1/C2) call for, "Sensitive Skin" included, "Post
+Acne Marks" absent. Two independent sources (the docx's own literal text, and a
+production migration written before this UI pack existed) agree; only the master
+prompt's own paraphrase disagrees.
+**Decision:** `skin_concerns.json`'s 10th entry is `CONCERN_SENSITIVE_SKIN`
+("Sensitivity"), not a "Post Acne Marks" entry. No Alembic migration is written
+this phase — the reference data the JSON's `backend_enum`/`backend_field` values
+map onto already exists, seeded by `a9c3d2f81b47`. The schema-validation test
+(`backend/tests/test_visual_datasets.py`) queries the live `skin_types`/
+`skin_concerns` tables directly to confirm every JSON entry resolves to a real
+row, rather than asserting against a hardcoded expected list that could itself
+drift from the database.
+**Consequences:** If a future session's paraphrase of this milestone (a summary,
+a different agent's re-reading) says "Post Acne Marks" is one of the ten
+concerns, that paraphrase is wrong — this ADR and the two sources above are what
+to trust instead.
