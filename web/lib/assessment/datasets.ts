@@ -26,3 +26,22 @@ export interface SkinConcernDataset {
 
 export const SKIN_TYPES: SkinTypeDataset[] = skinTypesData;
 export const SKIN_CONCERNS: SkinConcernDataset[] = skinConcernsData;
+
+// Milestone 2 P8 — matches a real GET /api/v1/skin-types|skin-concerns row to its
+// P6 dataset entry for the wizard's card art/copy. `backend_enum` already equals
+// `skin_type_name` verbatim (P6's own seed); `backend_field` is mechanically
+// `{concern_name, lowercased, spaces->_}_severity` for all 10 seeded concerns
+// (confirmed live against the seeded skin_concerns table this session) — no
+// hand-maintained name table to drift.
+export function severityFieldForConcernName(concernName: string): string {
+  return `${concernName.toLowerCase().replace(/\s+/g, "_")}_severity`;
+}
+
+export function datasetForConcernName(concernName: string): SkinConcernDataset | undefined {
+  const field = severityFieldForConcernName(concernName);
+  return SKIN_CONCERNS.find((c) => c.backend_field === field);
+}
+
+export function datasetForSkinTypeName(skinTypeName: string): SkinTypeDataset | undefined {
+  return SKIN_TYPES.find((t) => t.backend_enum === skinTypeName);
+}

@@ -3,49 +3,28 @@
 import { useQuery } from "@tanstack/react-query";
 import { Check, RotateCw, TriangleAlert } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { AssessmentShell } from "@/components/assessment/assessment-shell";
 import { StateCard } from "@/components/state-card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { datasetForSkinTypeName } from "@/lib/assessment/datasets";
 import { useAssessment } from "@/lib/assessment/context";
+import { firstStepError, skinTypeStepSchema } from "@/lib/schemas/assessment";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
-// Same 5 skin types as the Skin Profile screen (real GET /api/v1/skin-types, not a
-// hand-typed list) — the wireframe's own per-type blurb/image kept for visual fidelity.
-const TYPE_META: Record<string, { blurb: string; body: string; image: string }> = {
-  Normal: {
-    blurb: "Balanced & even",
-    body: "Feels hydrated and elastic without excess oil.",
-    image: "/images/assessment/skin-type-normal.jpg",
-  },
-  Dry: {
-    blurb: "Tight & matte",
-    body: "May feel flaky or tight, especially after washing.",
-    image: "/images/assessment/skin-type-dry.jpg",
-  },
-  Oily: {
-    blurb: "Shiny & porous",
-    body: "Presence of shine and enlarged pores across the face.",
-    image: "/images/assessment/skin-type-oily.jpg",
-  },
-  Combination: {
-    blurb: "Mixed zones",
-    body: "Oily T-zone (forehead/nose) with dry or normal cheeks.",
-    image: "/images/assessment/skin-type-combination.jpg",
-  },
-  Sensitive: {
-    blurb: "Reactive & thin",
-    body: "Prone to redness, itching, or burning sensations.",
-    image: "/images/assessment/skin-type-sensitive.jpg",
-  },
-};
-
+// Milestone 2 P8 (MILESTONE 2.docx §"1. In-Built Visual Dataset & Wizard UI") — Step
+// 1: single-select visual cards driven by the P6 dataset (SVG + title + description),
+// matched against the real GET /api/v1/skin-types row by `backend_enum`. Radio
+// semantics with a card presentation: one roving tab stop, arrow keys move both focus
+// and selection (a11y — WAI-ARIA radiogroup pattern), selected state shown by both a
+// ring/checkmark and the "Selected" label, not colour alone.
 export default function AssessmentSkinTypePage() {
   const { state, update } = useAssessment();
   const [error, setError] = useState<string | null>(null);
+  const cardRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const query = useQuery({
     queryKey: ["skin-types"],
@@ -55,17 +34,34 @@ export default function AssessmentSkinTypePage() {
     },
   });
 
+  const types = query.data ?? [];
+
+  const select = (skinTypeId: number, skinTypeName: string) => {
+    update({ skinTypeId, skinTypeName });
+    setError(null);
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent, index: number) => {
+    if (!["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"].includes(e.key)) return;
+    e.preventDefault();
+    const dir = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : -1;
+    const next = (index + dir + types.length) % types.length;
+    const type = types[next];
+    if (type) {
+      select(type.skin_type_id, type.skin_type_name);
+      cardRefs.current[next]?.focus();
+    }
+  };
+
   return (
     <AssessmentShell
       step={2}
       backHref="/assessment/basics"
       continueHref="/assessment/concerns"
       onContinue={() => {
-        if (!state.skinTypeId) {
-          setError("Select your skin type to continue.");
-          return false;
-        }
-        setError(null);
+        const message = firstStepError(skinTypeStepSchema, { skinTypeId: state.skinTypeId });
+        setError(message);
+        return message === null;
       }}
     >
       <div className="mb-10 text-center">
@@ -98,18 +94,23 @@ export default function AssessmentSkinTypePage() {
           }
         />
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
-          {(query.data ?? []).map((type) => {
-            const meta = TYPE_META[type.skin_type_name];
+        <div role="radiogroup" aria-label="Skin type" className="grid grid-cols-1 gap-4 md:grid-cols-5">
+          {types.map((type, i) => {
+            const dataset = datasetForSkinTypeName(type.skin_type_name);
             const selected = state.skinTypeId === type.skin_type_id;
             return (
               <button
                 key={type.skin_type_id}
-                type="button"
-                onClick={() => {
-                  update({ skinTypeId: type.skin_type_id, skinTypeName: type.skin_type_name });
-                  setError(null);
+                ref={(el) => {
+                  cardRefs.current[i] = el;
                 }}
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                aria-label={type.skin_type_name}
+                tabIndex={selected || (!state.skinTypeId && i === 0) ? 0 : -1}
+                onClick={() => select(type.skin_type_id, type.skin_type_name)}
+                onKeyDown={(e) => onKeyDown(e, i)}
                 className={cn(
                   "border-border bg-card relative flex flex-col items-center rounded-xl border p-5 text-center transition-all",
                   selected && "border-secondary ring-secondary/20 ring-2"
@@ -120,21 +121,24 @@ export default function AssessmentSkinTypePage() {
                     <Check className="size-3.5" strokeWidth={2.5} />
                   </span>
                 )}
-                {meta && (
+                {dataset && (
                   <div className="relative mb-4 size-24 overflow-hidden rounded-full">
-                    <Image src={meta.image} alt={type.skin_type_name} fill sizes="96px" className="object-cover" />
+                    <Image
+                      src={dataset.image_url}
+                      alt={type.skin_type_name}
+                      fill
+                      sizes="96px"
+                      className="object-cover"
+                    />
                   </div>
                 )}
                 <h3 className="font-heading text-on-surface text-lg font-semibold">
                   {type.skin_type_name}
                 </h3>
-                {meta && (
-                  <>
-                    <p className="text-secondary font-geist mt-1 mb-3 text-xs font-semibold tracking-[0.05em] uppercase">
-                      {meta.blurb}
-                    </p>
-                    <p className="text-on-surface-variant font-sans text-xs">{meta.body}</p>
-                  </>
+                {dataset && (
+                  <p className="text-on-surface-variant mt-1 font-sans text-xs">
+                    {dataset.description}
+                  </p>
                 )}
               </button>
             );

@@ -8,9 +8,20 @@ import { clearRateLimits, deleteTestUser, pool, signOut } from "./helpers";
 // One chained real journey (same "real signup, real backend, no mocks" shape as
 // cross-role-verification-journey.spec.ts) rather than six separate files each
 // re-doing their own signup/rate-limit dance — all six screens are downstream of
-// one signed-up user completing the real assessment wizard.
+// one signed-up user with a real skin profile.
 //
-// Deliberately picks "Sensitive" skin type in the wizard so the dashboard/routine/
+// Milestone 2 P8: the assessment wizard now submits against a fixture, not the
+// real skin-profile/lifestyle-log endpoints (docs/DECISIONS.md — full-auto session
+// decision to follow MILESTONE_2_MASTER_PROMPT.md's §12 fixtures-first sequencing
+// literally; assessment-wizard.spec.ts covers the wizard's own UI/state machine).
+// This journey needs a real profile to exist for the downstream dashboard/routine/
+// recommendations assertions below, so it's seeded directly (skin_profiles +
+// skin_profile_concerns via SQL, lifestyle_logs via Mongo) instead of walking a
+// wizard that no longer writes real data — same "direct setup, not a full UI
+// walk, when only the end state matters" pattern already used below for
+// backdating skin_assessments rows.
+//
+// Deliberately seeds "Sensitive" skin type so the dashboard/routine/
 // recommendations assertions below can also prove the ingredient_skintype_avoid
 // safety filter holds end-to-end through the real UI, not just via the manual
 // curl-based checks this session's earlier branches used.
@@ -26,7 +37,7 @@ const AVOID_FLAGGED_PRODUCTS = [
   "8% Glycolic Acid Night Exfoliant",
 ];
 
-test("signup -> assessment wizard -> dashboard/routine/recommendations/profile, all real", async ({
+test("signup -> real profile -> dashboard/routine/recommendations/profile/check-in, all real", async ({
   page,
 }) => {
   // Chained real journey (signup + 4-step wizard + 6 page loads against a real
@@ -60,40 +71,54 @@ test("signup -> assessment wizard -> dashboard/routine/recommendations/profile, 
     }
     expect(userId).toBeTruthy();
 
-    // --- Assessment wizard: basics ---
-    await page.getByRole("button", { name: /begin assessment/i }).click();
-    await page.waitForURL("**/assessment/basics");
-    await page.getByRole("button", { name: "25-34" }).click();
-    await page.getByRole("button", { name: /clearer skin/i }).click();
-    await page.fill("#location", "London, United Kingdom");
-    await page.getByRole("button", { name: "Continue" }).click();
-
-    // --- skin-type: Sensitive, deliberately ---
-    await page.waitForURL("**/assessment/skin-type");
-    await page.getByRole("button", { name: "Sensitive" }).click();
-    await page.getByRole("button", { name: "Continue" }).click();
-
-    // --- concerns: pick one real seeded concern ---
-    await page.waitForURL("**/assessment/concerns");
-    await page.getByRole("button", { name: "Acne" }).click();
-    await page.getByRole("button", { name: "Continue" }).click();
-
-    // --- lifestyle: exercise a real allergy toggle, defaults are otherwise valid ---
-    await page.waitForURL("**/assessment/lifestyle");
-    await page.getByRole("button", { name: "Fragrance" }).click();
-    await page.getByRole("button", { name: "Continue" }).click();
-
-    // --- results: real save + real score computation fires on mount
-    // (useSubmitAssessment) — the ring/breakdown render the actual GET /api/v1/assessment/score
-    // result, not a client-side estimate. ---
-    await page.waitForURL("**/assessment/results");
-    await expect(page.getByRole("heading", { name: "Diagnostic overview" })).toBeVisible({
-      timeout: 10_000,
-    });
-    for (const label of ["Condition", "Lifestyle", "Routine", "Sleep", "Hydration"]) {
-      await expect(page.getByText(new RegExp(`${label} \\(\\d+%\\)`, "i"))).toBeVisible();
+    // --- Real skin profile + lifestyle log, seeded directly (see file header —
+    // the wizard submits against a fixture as of P8, so it can't create these
+    // anymore; downstream dashboard/routine/recommendations need a real profile). ---
+    const setupDb = pool();
+    let skinProfileId: number;
+    try {
+      const { rows: typeRows } = await setupDb.query(
+        "select skin_type_id from skin_types where skin_type_name = 'Sensitive'"
+      );
+      const { rows: concernRows } = await setupDb.query(
+        "select concern_id from skin_concerns where concern_name = 'Acne'"
+      );
+      const { rows: profileRows } = await setupDb.query(
+        "insert into skin_profiles (user_id, skin_type_id) values ($1, $2) returning skin_profile_id",
+        [userId, typeRows[0].skin_type_id]
+      );
+      skinProfileId = profileRows[0].skin_profile_id;
+      await setupDb.query(
+        "insert into skin_profile_concerns (skin_profile_id, concern_id, severity_rating, priority_level) values ($1, $2, $3, $4)",
+        [skinProfileId, concernRows[0].concern_id, 7, 9]
+      );
+    } finally {
+      await setupDb.end();
     }
 
+    const { MongoClient } = await import("mongodb");
+    const mongo = new MongoClient(process.env.MONGO_URI ?? "mongodb://localhost:27017/skinlytics");
+    try {
+      await mongo.connect();
+      await mongo
+        .db()
+        .collection("lifestyle_logs")
+        .insertOne({
+          user_id: userId,
+          log_date: new Date(new Date().toISOString().slice(0, 10)),
+          sleep_hours: 7.5,
+          water_intake_liters: 2.5,
+          stress_level: 4,
+          environmental_exposure: { sun_hours: 2 },
+          logged_at: new Date(),
+        });
+    } finally {
+      await mongo.close();
+    }
+
+    // The wizard's own results page (fixture-based as of P8) is exercised
+    // separately by tests/e2e/assessment-wizard.spec.ts.
+    //
     // A brand-new signup has exactly one skin_assessments row (today), so the
     // Skin Health Progress trend chart legitimately renders its empty state
     // ("Check back after a few days") — correct behaviour, but it means the P4
