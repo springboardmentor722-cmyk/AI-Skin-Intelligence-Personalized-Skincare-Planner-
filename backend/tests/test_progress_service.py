@@ -79,8 +79,7 @@ async def test_upsert_progress_log_is_idempotent_one_doc_per_user_per_week(
     await upsert_progress_log(db_session, get_mongo_db(), progress_test_user, notes="Updated note")
 
     docs = [
-        doc
-        async for doc in get_mongo_db()["progress_logs"].find({"user_id": progress_test_user})
+        doc async for doc in get_mongo_db()["progress_logs"].find({"user_id": progress_test_user})
     ]
     assert len(docs) == 1
     assert docs[0]["notes"] == "Updated note"

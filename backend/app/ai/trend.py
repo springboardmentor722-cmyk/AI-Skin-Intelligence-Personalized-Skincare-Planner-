@@ -15,9 +15,7 @@ class RealProgressTrendAnalyzer:
     data — a genuinely noisy series honestly gets low confidence, never a
     fabricated one."""
 
-    def analyze(
-        self, series: list[tuple[datetime.date, float]]
-    ) -> TrendInsight | None:
+    def analyze(self, series: list[tuple[datetime.date, float]]) -> TrendInsight | None:
         if len(series) < 2:
             return None
 

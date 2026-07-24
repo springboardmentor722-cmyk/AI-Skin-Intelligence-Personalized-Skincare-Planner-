@@ -818,7 +818,7 @@
       "norm_label": "same_ingredient()"
     },
     {
-      "label": "Curated ingredient name/INCI synonym groups (Milestone 2 P12, PDF Module 5 \"alle",
+      "label": "Curated ingredient name/INCI synonym groups (Milestone 2 P12, PDF Module 5 \"all",
       "file_type": "rationale",
       "source_file": "backend/app/ai/ingredient_synonyms.py",
       "source_location": "L1",
@@ -826,10 +826,10 @@
       "id": "backend_app_ai_ingredient_synonyms_rationale_1",
       "community": 159,
       "community_name": "dermatologist/dashboard/page.tsx",
-      "norm_label": "curated ingredient name/inci synonym groups (milestone 2 p12, pdf module 5 \"alle"
+      "norm_label": "curated ingredient name/inci synonym groups (milestone 2 p12, pdf module 5 \"all"
     },
     {
-      "label": "Case/whitespace-insensitive identity check: exact match, or both names sit     i",
+      "label": "Case/whitespace-insensitive identity check: exact match, or both names sit",
       "file_type": "rationale",
       "source_file": "backend/app/ai/ingredient_synonyms.py",
       "source_location": "L29",
@@ -837,7 +837,7 @@
       "id": "backend_app_ai_ingredient_synonyms_rationale_29",
       "community": 159,
       "community_name": "dermatologist/dashboard/page.tsx",
-      "norm_label": "case/whitespace-insensitive identity check: exact match, or both names sit     i"
+      "norm_label": "case/whitespace-insensitive identity check: exact match, or both names sit"
     },
     {
       "label": "interactions.py",
@@ -33002,8 +33002,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "web_lib_use_current_user_initialsof",
-      "community": 63,
-      "community_name": "consultant-onboarding.ts",
+      "community": 71,
+      "community_name": "security.py",
       "norm_label": "initialsof()"
     },
     {
@@ -33420,8 +33420,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "web_package_dependencies_cmdk",
-      "community": 206,
-      "community_name": "routine-plans/page.tsx",
+      "community": 39,
+      "community_name": "dependencies",
       "norm_label": "cmdk"
     },
     {
@@ -33431,8 +33431,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "cmdk",
-      "community": 206,
-      "community_name": "routine-plans/page.tsx",
+      "community": 39,
+      "community_name": "dependencies",
       "norm_label": "cmdk"
     },
     {
@@ -33728,8 +33728,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "web_package_dependencies_tw_animate_css",
-      "community": 39,
-      "community_name": "dependencies",
+      "community": 206,
+      "community_name": "routine-plans/page.tsx",
       "norm_label": "tw-animate-css"
     },
     {
@@ -33739,8 +33739,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "tw_animate_css",
-      "community": 39,
-      "community_name": "dependencies",
+      "community": 206,
+      "community_name": "routine-plans/page.tsx",
       "norm_label": "tw-animate-css"
     },
     {
@@ -153742,5 +153742,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "01247468c371df689b36a56403abc9f8166eb2ca"
+  "built_at_commit": "804ef3977e39753bac37344bd357755ebbdb0574"
 }

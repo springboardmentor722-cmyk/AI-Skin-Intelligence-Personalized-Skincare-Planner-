@@ -41,8 +41,10 @@ async def test_project_product_indexes_a_real_document(db_session: AsyncSession)
         assert doc["_source"]["category"] == "Serum"
         assert doc["_source"]["is_active"] is True
     finally:
-        await get_elasticsearch().options(ignore_status=404).delete(
-            index="products_index", id=str(product_id)
+        await (
+            get_elasticsearch()
+            .options(ignore_status=404)
+            .delete(index="products_index", id=str(product_id))
         )
 
 
@@ -66,8 +68,10 @@ async def test_project_ingredient_indexes_a_real_document(db_session: AsyncSessi
         assert doc["_source"]["ingredient_name"] == ingredient.ingredient_name
         assert doc["_source"]["inci_name"] == "Testum Ingredientum"
     finally:
-        await get_elasticsearch().options(ignore_status=404).delete(
-            index="ingredients_index", id=str(ingredient_id)
+        await (
+            get_elasticsearch()
+            .options(ignore_status=404)
+            .delete(index="ingredients_index", id=str(ingredient_id))
         )
 
 

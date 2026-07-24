@@ -35,9 +35,7 @@ def upgrade() -> None:
     op.add_column("routine_steps", sa.Column("category", sa.String(), nullable=True))
     op.add_column("routine_steps", sa.Column("rationale", sa.Text(), nullable=True))
     op.add_column("routine_steps", sa.Column("safety_flag", sa.String(), nullable=True))
-    op.add_column(
-        "skincare_routines", sa.Column("skin_profile_id", sa.Integer(), nullable=True)
-    )
+    op.add_column("skincare_routines", sa.Column("skin_profile_id", sa.Integer(), nullable=True))
     op.create_foreign_key(
         "skincare_routines_skin_profile_id_fkey",
         "skincare_routines",

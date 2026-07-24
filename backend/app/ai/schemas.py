@@ -82,9 +82,7 @@ class ProgressTrendAnalyzer(Protocol):
     arithmetic, no cost tradeoff a stub would buy. `series` is
     (date, value) pairs, already sorted ascending by date by the caller."""
 
-    def analyze(
-        self, series: list[tuple[datetime.date, float]]
-    ) -> TrendInsight | None: ...
+    def analyze(self, series: list[tuple[datetime.date, float]]) -> TrendInsight | None: ...
 
 
 class Recommender(Protocol):

@@ -18,9 +18,7 @@ from app.worker.rebuild import rebuild_all
 async def _source_counts() -> dict[str, int]:
     async with async_session_factory() as db:
         products = (await db.execute(select(func.count()).select_from(Product))).scalar_one()
-        ingredients = (
-            await db.execute(select(func.count()).select_from(Ingredient))
-        ).scalar_one()
+        ingredients = (await db.execute(select(func.count()).select_from(Ingredient))).scalar_one()
     articles = await get_mongo_db()["knowledge_articles"].count_documents({})
     return {"products": products, "ingredients": ingredients, "knowledge_articles": articles}
 

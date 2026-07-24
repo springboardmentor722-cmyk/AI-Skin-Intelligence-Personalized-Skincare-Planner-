@@ -21,13 +21,17 @@ async def process_pending_outbox(db: AsyncSession, mongo: Any, batch_size: int =
     the batch also flushes the recommendation cache (M3-D) — once per tick, not once
     per row, since a full flush is already the coarsest possible invalidation."""
     rows = (
-        await db.execute(
-            select(Outbox)
-            .where(Outbox.processed_at.is_(None))
-            .order_by(Outbox.outbox_id)
-            .limit(batch_size)
+        (
+            await db.execute(
+                select(Outbox)
+                .where(Outbox.processed_at.is_(None))
+                .order_by(Outbox.outbox_id)
+                .limit(batch_size)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
 
     catalog_changed = False
     for row in rows:

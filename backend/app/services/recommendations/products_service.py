@@ -161,10 +161,10 @@ async def _list_via_pg(
     if budget_max is not None:
         query = query.where(Product.price <= budget_max)
     if skin_type:
-        query = query.join(
-            ProductSkinType, ProductSkinType.product_id == Product.product_id
-        ).join(SkinType, SkinType.skin_type_id == ProductSkinType.skin_type_id).where(
-            SkinType.skin_type_name == skin_type
+        query = (
+            query.join(ProductSkinType, ProductSkinType.product_id == Product.product_id)
+            .join(SkinType, SkinType.skin_type_id == ProductSkinType.skin_type_id)
+            .where(SkinType.skin_type_name == skin_type)
         )
     if q:
         pattern = f"%{q}%"
@@ -172,9 +172,7 @@ async def _list_via_pg(
             or_(Product.product_name.ilike(pattern), Product.brand_name.ilike(pattern))
         )
 
-    total = (
-        await db.execute(select(func.count()).select_from(query.subquery()))
-    ).scalar_one()
+    total = (await db.execute(select(func.count()).select_from(query.subquery()))).scalar_one()
     result = await db.execute(
         query.order_by(Product.product_name).offset((page - 1) * page_size).limit(page_size)
     )
@@ -293,29 +291,41 @@ async def compare_products(db: AsyncSession, product_ids: list[int]) -> ProductC
         if product is None:
             continue
         ingredient_names = (
-            await db.execute(
-                select(Ingredient.ingredient_name)
-                .join(
-                    ProductIngredient,
-                    ProductIngredient.ingredient_id == Ingredient.ingredient_id,
+            (
+                await db.execute(
+                    select(Ingredient.ingredient_name)
+                    .join(
+                        ProductIngredient,
+                        ProductIngredient.ingredient_id == Ingredient.ingredient_id,
+                    )
+                    .where(ProductIngredient.product_id == product_id)
                 )
-                .where(ProductIngredient.product_id == product_id)
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         skin_types = (
-            await db.execute(
-                select(SkinType.skin_type_name)
-                .join(ProductSkinType, ProductSkinType.skin_type_id == SkinType.skin_type_id)
-                .where(ProductSkinType.product_id == product_id)
+            (
+                await db.execute(
+                    select(SkinType.skin_type_name)
+                    .join(ProductSkinType, ProductSkinType.skin_type_id == SkinType.skin_type_id)
+                    .where(ProductSkinType.product_id == product_id)
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         concerns = (
-            await db.execute(
-                select(SkinConcern.concern_name)
-                .join(ProductConcern, ProductConcern.concern_id == SkinConcern.concern_id)
-                .where(ProductConcern.product_id == product_id)
+            (
+                await db.execute(
+                    select(SkinConcern.concern_name)
+                    .join(ProductConcern, ProductConcern.concern_id == SkinConcern.concern_id)
+                    .where(ProductConcern.product_id == product_id)
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         items.append(
             ProductCompareItem(
                 product=ProductRead.model_validate(product),

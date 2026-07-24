@@ -1,7 +1,7 @@
 import { Pool } from "pg";
 import Redis from "ioredis";
 import { MongoClient } from "mongodb";
-import type { APIRequestContext } from "@playwright/test";
+import type { APIRequestContext, TestInfo } from "@playwright/test";
 
 // Branch 8 (feature/testing) — shared by every e2e file that signs a real account
 // up or in. This suite hits a real, shared backend (Postgres, Redis, MinIO) rather
@@ -18,6 +18,20 @@ export function pool(): Pool {
     connectionString:
       process.env.DATABASE_URL ?? "postgresql://skinlytics:skinlytics@localhost:5432/skinlytics",
   });
+}
+
+// Milestone 2 P13 finding: both `chromium-light` and `chromium-dark` projects
+// (playwright.config.ts) run every spec, including the P4/P5/P7 dashboard tests
+// that write a `docs/milestones/milestone_2/build/*.png` screenshot for
+// tools/vision's fidelity diff — both projects wrote the SAME literal path, so
+// whichever ran last (dark, by project array order) silently clobbered the
+// other. The build/*.png files were consequently all dark-mode captures being
+// diffed against the light-mode source PNGs (User.png/Admin.png/...), which
+// tools/vision/extract.py diff --structural correctly reported as a ~91%
+// mismatch — a real bug the P13 CI wiring surfaced, not a threshold to loosen.
+export function screenshotPath(testInfo: TestInfo, basePathWithoutExtension: string): string {
+  const suffix = testInfo.project.name === "chromium-dark" ? "-dark" : "";
+  return `${basePathWithoutExtension}${suffix}.png`;
 }
 
 export async function clearRateLimits(): Promise<void> {
