@@ -608,3 +608,47 @@ matching P14's intent) — not a wholesale fixture layer for content this app
 already computes for real. Both dashboard pages stay functionally live for every
 returning user during this milestone; nothing regresses to a static number a real
 user would previously have seen computed from their own data.
+
+## ADR-024 — P5 clinical dashboards: fixtures-first, reversing ADR-023's default
+**Status:** Accepted (M2-P5)
+**Context:** ADR-023 established "real data wherever it exists" for P4 because
+`app/(user)/dashboard/page.tsx` and `app/admin/dashboard/page.tsx` already existed
+as real, live-data pages before this UI pack — rebuilding them against fixtures
+would have regressed working functionality. Consultant and Dermatologist
+dashboards are a materially different starting point: today, both pages are
+**entirely** the professional verification-status gate (pending/approved/
+rejected review copy, document upload) — real and staying untouched — with the
+approved-state body being three literal "Coming soon, later milestone" cards.
+There is no existing real clinical dashboard content to preserve here; ADR-023's
+regression concern doesn't apply.
+Checked what a real backend response could actually provide
+(`ClientSummaryRead`/`ClientListPage`, `backend/app/services/clinical_review/`):
+`user_id, name, email, skin_type_name, primary_concern_name, overall_score,
+routine_adherence_score, score_trend, last_sync` — no age, gender, status pill, or
+next-follow-up date at all, materially narrower than `UI_SPEC.md §4.2`/`§4.3`'s
+roster columns. And a real professional account in this environment has zero
+assigned clients/patients by default (assignment is a real, deliberate action, not
+automatic) — even wiring the real endpoint would show an honest empty state, not
+the screenshot's "128 clients" scale. Producing that scale of realistic
+demonstration data (128+ assigned clients/patients with plausible names, ages,
+follow-up schedules) is explicitly `MILESTONE_2_MASTER_PROMPT.md` P14's seed-data
+job ("Seed data ... produces a database that renders all four dashboards with
+plausible values ... enough users, assessments, routines"), not a UI phase's.
+**Decision:** Build one shared `ClinicalDashboard` component
+(`web/components/clinical-review/clinical-dashboard.tsx`), role-configured
+(consultant vs dermatologist vocabulary, footer cell count, banner copy, guide
+label), consuming **typed, contract-shaped fixtures**
+(`web/lib/fixtures/clinical-dashboard-fixtures.ts`) matching the master prompt's
+own explicit P5 instruction ("Fixtures use the exact screenshot values ... 128
+clients / 156 patients ... the follow-up dates and days-left pills") — the
+opposite of P4's default, for the reasons above, not an inconsistency. The
+existing verification-status gate is untouched; the fixture-driven dashboard
+replaces only the three "Coming soon" placeholder cards, for approved
+professionals only.
+**Consequences:** P14 ("Live integration") is where this pair's fixtures get
+swapped for the real `clients`/`patients` endpoints once real assignment/seed
+data exists to back them meaningfully — tracked as a real, not-yet-closed item,
+same as User/Admin's own fixture-only cells from ADR-023. A future session
+should not read the presence of fixtures here as an oversight; it's the
+documented, deliberate choice for this specific pair, made for the opposite
+reason ADR-023's "real wherever possible" default was chosen for User/Admin.

@@ -154,11 +154,12 @@ test("consultant onboarding -> admin reject -> resubmit -> admin approve -> unlo
     await clearRateLimits();
     await signIn(page, consultantEmail, password);
     await page.goto("/consultant/dashboard");
-    await expect(page.getByText(/you're verified/i)).toBeVisible();
-    // The isApproved-only "coming soon" cards (not the sidebar nav, which always
-    // shows "Clients" regardless of verification status) — confirms the dashboard
-    // itself switched out of the locked/pending view.
-    await expect(page.getByText("Client management is coming in a later milestone.")).toBeVisible();
+    // Milestone 2 P5 (MILESTONE_2_UI_SPEC.md §4.2, docs/DECISIONS.md ADR-024): an
+    // approved consultant now sees the real ClinicalDashboard, not a "you're
+    // verified" banner + coming-soon cards — confirms the dashboard itself
+    // switched out of the locked/pending view.
+    await expect(page.getByText("Total Clients").first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText("Client Overview")).toBeVisible();
 
     const finalDb = pool();
     try {

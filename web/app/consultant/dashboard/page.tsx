@@ -14,12 +14,10 @@ import {
   ShieldAlert,
   TriangleAlert,
   Upload,
-  Users,
-  ClipboardCheck,
-  Sparkles,
   X,
 } from "lucide-react";
 
+import { ClinicalDashboard } from "@/components/clinical-review/clinical-dashboard";
 import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -94,20 +92,6 @@ const TONE_CLASSES: Record<string, string> = {
   destructive: "bg-destructive/10 text-destructive",
   success: "bg-success/10 text-success",
 };
-
-const COMING_SOON = [
-  { icon: Users, title: "Clients", body: "Client management is coming in a later milestone." },
-  {
-    icon: ClipboardCheck,
-    title: "Assessments",
-    body: "Reviewing client assessments is coming in a later milestone.",
-  },
-  {
-    icon: Sparkles,
-    title: "Recommendations",
-    body: "Building client recommendations is coming in a later milestone.",
-  },
-];
 
 function ProfileSummaryCard({ profile }: { profile: ConsultantProfile }) {
   const router = useRouter();
@@ -339,6 +323,14 @@ export default function ConsultantDashboardPage() {
   const status = STATUS_COPY[profile.verification_status];
   const isApproved = profile.verification_status === "approved";
 
+  // Milestone 2 P5 (MILESTONE_2_UI_SPEC.md §4.2, docs/DECISIONS.md ADR-024): an
+  // approved consultant gets the real clinical dashboard, not the verification
+  // gate — the pending/rejected/etc. status banner + profile summary + document
+  // upload stay exactly as they were for every other status.
+  if (isApproved) {
+    return <ClinicalDashboard role="consultant" />;
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <div className="border-border bg-card flex items-start gap-4 rounded-2xl border p-6">
@@ -359,27 +351,7 @@ export default function ConsultantDashboardPage() {
 
       <ProfileSummaryCard profile={profile} />
 
-      {!isApproved && <DocumentsCard />}
-
-      {isApproved && (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          {COMING_SOON.map((item) => (
-            <div
-              key={item.title}
-              className="border-border bg-card rounded-2xl border border-dashed p-6 text-center"
-            >
-              <item.icon
-                className="text-on-surface-variant/40 mx-auto mb-3 size-7"
-                strokeWidth={1.5}
-              />
-              <h3 className="font-heading text-on-surface text-sm font-semibold">
-                {item.title}
-              </h3>
-              <p className="text-on-surface-variant mt-1 font-sans text-xs">{item.body}</p>
-            </div>
-          ))}
-        </div>
-      )}
+      <DocumentsCard />
 
       <div className="border-border bg-card flex items-center justify-between rounded-2xl border p-4">
         <div className="flex items-center gap-2">
