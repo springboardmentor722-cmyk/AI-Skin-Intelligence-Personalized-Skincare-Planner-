@@ -1010,9 +1010,9 @@
     "semantic_hash": "c1bb6521056c7e95169031a9e12b5312"
   },
   "web/app/consultant/dashboard/page.tsx": {
-    "mtime": 1784630988.7161374,
-    "ast_hash": "e2776b0c8dc5e514a23ca7e70915e735",
-    "semantic_hash": "e2776b0c8dc5e514a23ca7e70915e735"
+    "mtime": 1784872074.782374,
+    "ast_hash": "8e5294e77c3b5adf8b2746bc949f3449",
+    "semantic_hash": ""
   },
   "web/app/consultant/layout.tsx": {
     "mtime": 1784630988.7161374,
@@ -1055,9 +1055,9 @@
     "semantic_hash": "55a88242ffface623917c2e1a8eedbe3"
   },
   "web/app/dermatologist/dashboard/page.tsx": {
-    "mtime": 1784630988.7177587,
-    "ast_hash": "649bbe2a4155c0bd373edfd40020fd1b",
-    "semantic_hash": "649bbe2a4155c0bd373edfd40020fd1b"
+    "mtime": 1784872074.7905364,
+    "ast_hash": "7ff2629fa3ce847e5dd3d4d61fe64a3d",
+    "semantic_hash": ""
   },
   "web/app/dermatologist/layout.tsx": {
     "mtime": 1784630988.7177587,
@@ -1635,9 +1635,9 @@
     "semantic_hash": "41cca0d5e9305ec106b5d558bc451874"
   },
   "web/tests/e2e/cross-role-verification-journey.spec.ts": {
-    "mtime": 1784630988.9480424,
-    "ast_hash": "8027715e105592e17c091b0ab2139523",
-    "semantic_hash": "8027715e105592e17c091b0ab2139523"
+    "mtime": 1784872074.7985885,
+    "ast_hash": "e1acb49ae2202f45b285e5eb00128b39",
+    "semantic_hash": ""
   },
   "web/tests/e2e/dermatologist-onboarding.spec.ts": {
     "mtime": 1784630988.9480424,
@@ -1855,8 +1855,8 @@
     "semantic_hash": ""
   },
   "docs/DECISIONS.md": {
-    "mtime": 1784845258.2244096,
-    "ast_hash": "2466aea253a402dbe243f3dd67bb20ef",
+    "mtime": 1784872074.714466,
+    "ast_hash": "6018c657a0d8cc28f4c5fb1020bc0cbc",
     "semantic_hash": ""
   },
   "docs/DESIGN.md": {
@@ -4062,6 +4062,26 @@
   "docs/milestones/milestone_2/M2_P4_FIDELITY.md": {
     "mtime": 1784845258.2244096,
     "ast_hash": "2b0fa2c30f566910639e1632efe8f7a7",
+    "semantic_hash": ""
+  },
+  "web/components/clinical-review/clinical-dashboard.tsx": {
+    "mtime": 1784872074.7905364,
+    "ast_hash": "6a7328d89a4703191ed93daadeef336d",
+    "semantic_hash": ""
+  },
+  "web/lib/fixtures/clinical-dashboard-fixtures.ts": {
+    "mtime": 1784872074.7905364,
+    "ast_hash": "1bdcffd45c72b7b68b2f1e49edd331ba",
+    "semantic_hash": ""
+  },
+  "web/tests/e2e/clinical-dashboard-p5.spec.ts": {
+    "mtime": 1784872074.7905364,
+    "ast_hash": "a60cb533ed95dd927661e36929104c47",
+    "semantic_hash": ""
+  },
+  "docs/milestones/milestone_2/M2_P5_FIDELITY.md": {
+    "mtime": 1784872074.714466,
+    "ast_hash": "e3749ffc6cabf7107ffcd69d6156af2e",
     "semantic_hash": ""
   }
 }
