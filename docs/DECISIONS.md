@@ -841,3 +841,69 @@ the next real computation for each user will use the corrected math). A future
 session should not re-introduce a local module-level constant in
 `scoring_engine.py`/`service.py` for a weight, benchmark, or threshold — add it to
 `constants.py` instead.
+
+## ADR-029 — P11 routine generator: fixed canonical pipeline replaces skin-type step matrix; safety guardrail is a real post-generation layer
+**Status:** Accepted (M2-P11)
+**Context:** `M2_GAP_ANALYSIS.md` (P0) concluded the routine generator "literally
+matches the docx already... no gap." That was true for the two endpoints
+(`POST /routine/generate`, `GET /routine`) but not for their internals once
+checked against `MILESTONE_2_MASTER_PROMPT.md` P11's specifics: the doc names
+**six canonical categories** (Cleansing, Exfoliation, Treatment, Moisturizing,
+Sun Protection, Night Care) and **exact AM/PM pipelines**, but the live code
+used the real product catalog's own 4 category names (Cleanser/Treatment/
+Moisturizer/Sunscreen) as both the candidate-selection key *and* the step's
+display name, with no separate `category` field, `rationale`, or `safety_flag`
+at all — `RoutineStepRead` didn't carry them. The live safety mechanism was also
+architecturally different from what P11 asks for: sensitive-skin exclusions
+happened by removing avoid-flagged products from the *candidate pool before
+selection* (real, but folded into generation, not a distinct layer), and had no
+redness-severity trigger at all — only skin type.
+**Decision:**
+- New `backend/app/services/routines/constants.py` — the 6 canonical
+  categories, mapped to the real 4 product categories candidates are actually
+  drawn from (Exfoliation → Treatment, Night Care → Moisturizer — the seed
+  catalog has no dedicated product category for either, so they share the
+  nearest real one, extending this file's own pre-P11 "Night Care → Moisturizer"
+  precedent), and the doc's literal AM/PM/Weekly pipelines as ordered
+  `(category, step_name, rationale)` tuples.
+- Removed the skin-type-conditional step *matrix* (`_am_pm_categories_for_skin_type`,
+  which previously dropped the Treatment step entirely for Sensitive, or the
+  Moisturizing step for Oily) — P11's own AM/PM pipeline text has no per-skin-type
+  branching; every profile gets the same four AM / three PM steps now, with the
+  safety guardrail substituting a step's *product*, never removing the step
+  itself.
+- New `backend/app/services/routines/guardrails.py` — a distinct, pure
+  (no I/O, no clock reads) module applied to the in-memory generated steps
+  *after* candidate selection, independent of it: `requires_soothing_substitution`
+  (Sensitive skin type OR redness severity strictly > 7 — tested at exactly 7
+  and 8) triggers `apply_safety_guardrails`, which replaces (never appends) a
+  harsh-active step's product (Retinoids/Salicylic Acid/AHAs-BHAs ingredient
+  category) with the catalog's one real seeded soothing product ("Centella
+  Calming Serum," the doc's own named example) and sets `safety_flag`.
+  `assert_sunscreen_present` raises `MissingSunscreenError` — not silently
+  skips — if an AM routine would ship with no Sun Protection step; there is no
+  parameter on this function that disables the check.
+- Additive schema: `routine_steps.category`/`rationale`/`safety_flag` (nullable
+  — existing rows have `NULL` until regenerated) and
+  `skincare_routines.skin_profile_id` (nullable FK) — the latter lets
+  `get_or_generate_routines` detect a real re-assessment (a new profile
+  *version*) and regenerate AM/PM/Weekly, the "adaptive routine updates" mile_2
+  §4 asks for, the same mechanism a season change already used for Seasonal
+  Care alone.
+- New `recommendations/service.py` interface functions:
+  `list_ingredient_categories_for_products` (product_id → ingredient
+  categories, for the harsh-active check) and `get_product_by_name` (looks up
+  the soothing product independent of skin-type association — the seed data
+  only links "Centella Calming Serum" to Sensitive skin in
+  `product_skin_types`, but the redness-severity trigger must substitute it in
+  for a *non*-Sensitive profile too).
+**Consequences:** `mile_2.docx`'s "harsh physical exfoliants" has no literal
+physical-scrub product in this seed catalog to test against — the harsh set is
+chemical exfoliants (Salicylic Acid, AHAs/BHAs) plus Retinoids, the real
+avoid-flagged actives this catalog actually seeds. "Respond to progress logs"
+(mile_2 §4) has no concrete trigger implemented — Progress Tracking has no
+documented hook into routine regeneration, and this ADR doesn't invent one;
+flagged in PROGRESS.md rather than guessed at. A future session should not
+re-introduce skin-type-conditional step *removal* in the generator — safety-
+driven differences belong in `guardrails.py`'s post-generation substitution,
+not the pipeline itself.

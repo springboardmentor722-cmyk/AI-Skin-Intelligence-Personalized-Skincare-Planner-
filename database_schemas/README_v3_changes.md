@@ -108,3 +108,21 @@ profile the same submission also writes via the existing Skin Profile service)
 and `skin_assessments` (the computed score row `score_id` points at). Not a
 replacement for either — a third, narrower table recording the submission event
 itself.
+
+## 2026-07-24 — M2-P11: `routine_steps.category`/`rationale`/`safety_flag`, `skincare_routines.skin_profile_id` (NEW COLUMNS)
+
+MILESTONE 2.docx §"Dynamic Routine Generator": "each step carrying its category,
+product/ingredient recommendation, rationale, and any safety flag that fired."
+`routine_steps.category` is one of the 6 canonical categories (Cleansing,
+Exfoliation, Treatment, Moisturizing, Sun Protection, Night Care) — a distinct,
+step-level label from `products.category` (the real, smaller 4-value product
+taxonomy candidates are actually drawn from); `routines/constants.py` maps
+between the two, since the seed catalog has no dedicated Exfoliation/Night Care
+product category. `rationale`/`safety_flag` are additive, nullable TEXT/VARCHAR —
+existing rows simply have NULL until regenerated, no backfill needed.
+`skincare_routines.skin_profile_id` (nullable FK) records which profile *version*
+a routine was generated against, so `get_or_generate_routines` can detect a real
+re-assessment (a new profile version) and regenerate the core AM/PM/Weekly
+routines — the same mechanism Seasonal Care already uses for a season change,
+extended to profile changes (mile_2.docx §4's "adaptive routine updates that
+respond to... re-assessments").

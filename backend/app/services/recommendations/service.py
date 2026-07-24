@@ -102,6 +102,17 @@ async def list_all_products(
     return list(result.scalars().all()), total
 
 
+async def get_product_by_name(db: AsyncSession, product_name: str) -> Product | None:
+    """Interface function (ADR-005) — Milestone 2 P11's routine safety guardrail
+    looks up the catalog's one seeded soothing product ("Centella Calming
+    Serum") by name, independent of skin-type association (`product_skin_types`
+    only links it to Sensitive skin — the guardrail must still substitute it in
+    for a non-Sensitive profile with severe redness, so this can't go through
+    `list_products_for_skin_type`)."""
+    result = await db.execute(select(Product).where(Product.product_name == product_name))
+    return result.scalars().first()
+
+
 async def get_products_by_ids(db: AsyncSession, product_ids: list[int]) -> dict[int, Product]:
     """Interface function (ADR-005) — other services resolve product_id -> Product
     through this, never by importing this service's `Product` model directly."""
@@ -124,6 +135,29 @@ async def list_concern_ids_for_products(
     mapping: dict[int, list[int]] = {}
     for product_id, concern_id in result.all():
         mapping.setdefault(product_id, []).append(concern_id)
+    return mapping
+
+
+async def list_ingredient_categories_for_products(
+    db: AsyncSession, product_ids: list[int]
+) -> dict[int, list[str]]:
+    """Interface function (ADR-005) — product_id -> the `ingredients.category`
+    values it contains (Retinoids, AHAs/BHAs, ...). Milestone 2 P11's routine
+    safety guardrail (`routines/guardrails.py`) reads this to detect a
+    harsh-actives product (Retinoids/AHAs-BHAs category) needing a soothing
+    substitution — never queries `product_ingredients`/`ingredients` directly."""
+    if not product_ids:
+        return {}
+    stmt = (
+        select(ProductIngredient.product_id, Ingredient.category)
+        .join(Ingredient, Ingredient.ingredient_id == ProductIngredient.ingredient_id)
+        .where(ProductIngredient.product_id.in_(product_ids))
+    )
+    result = await db.execute(stmt)
+    mapping: dict[int, list[str]] = {}
+    for product_id, category in result.all():
+        if category is not None:
+            mapping.setdefault(product_id, []).append(category)
     return mapping
 
 

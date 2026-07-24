@@ -72,9 +72,22 @@ new architecture.
 
 ## 3. `POST /api/v1/routine/generate` and `GET /api/v1/routine`
 
-**No change.** Both already match the docx literally
-(`backend/app/services/routines/router.py`) — confirmed against `openapi.json`.
-`RoutineRead` shape is unchanged.
+**Endpoints unchanged; response shape extended (P11, ADR-029).** Route paths
+still match the docx literally (`backend/app/services/routines/router.py`).
+`RoutineStepRead` gained three fields the doc's own "each step carrying its
+category, product/ingredient recommendation, rationale, and any safety flag
+that fired" names explicitly:
+- `category` — one of 6 canonical values (`Cleansing`, `Exfoliation`,
+  `Treatment`, `Moisturizing`, `Sun Protection`, `Night Care`,
+  `routines/constants.py`), distinct from the underlying `products.category`
+  (the real, smaller 4-value product taxonomy candidates are drawn from).
+- `rationale` — why this product was chosen.
+- `safety_flag` — which guardrail fired for this step, if any (e.g.
+  `"soothing_substitution"`), `null` otherwise.
+
+AM/PM/Weekly generation now uses a fixed canonical pipeline (no more skin-type-
+conditional step removal) plus a distinct post-generation safety-guardrail
+layer (`routines/guardrails.py`) — see ADR-029 for the full account.
 
 ## 4. Dashboard read models (fixture-shaped until P14)
 

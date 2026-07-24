@@ -2408,8 +2408,14 @@ export interface components {
             step_order: number | null;
             /** Step Name */
             step_name: string | null;
+            /** Category */
+            category?: string | null;
             /** Instruction */
             instruction: string | null;
+            /** Rationale */
+            rationale?: string | null;
+            /** Safety Flag */
+            safety_flag?: string | null;
             /** Duration Minutes */
             duration_minutes: number | null;
             /** Products */

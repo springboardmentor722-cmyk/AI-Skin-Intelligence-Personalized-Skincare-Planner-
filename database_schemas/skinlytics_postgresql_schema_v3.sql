@@ -204,6 +204,11 @@ CREATE TABLE skincare_routines (
     score_id INTEGER REFERENCES skin_assessments(score_id),  -- nullable, best-effort: the
         -- most recently computed score at generation time (Milestone 2 Step 1.1's
         -- "assessment_id" traceability; migration f2a6c1d09b3e)
+    skin_profile_id INTEGER REFERENCES skin_profiles(skin_profile_id),  -- M2-P11: which
+        -- profile *version* this routine was generated against — lets
+        -- get_or_generate_routines detect a re-assessment (a new profile version) and
+        -- regenerate, the same way a season change already regenerates Seasonal Care.
+        -- Nullable: routines generated before this column existed have no value here.
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -213,7 +218,14 @@ CREATE TABLE routine_steps (
     routine_id INTEGER NOT NULL REFERENCES skincare_routines(routine_id) ON DELETE CASCADE,
     step_order INTEGER,
     step_name VARCHAR(100),
+    category VARCHAR(50),  -- M2-P11: one of the 6 canonical categories (Cleansing,
+        -- Exfoliation, Treatment, Moisturizing, Sun Protection, Night Care) — distinct
+        -- from products.category (the real, smaller product taxonomy candidates are
+        -- drawn from; routines/constants.py maps between the two).
     instruction TEXT,
+    rationale TEXT,  -- M2-P11: why this product was chosen (concern match, category fit)
+    safety_flag VARCHAR(100),  -- M2-P11: which guardrail fired for this step, if any
+        -- (e.g. "soothing_substitution") — NULL when no guardrail intervened.
     duration_minutes INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
