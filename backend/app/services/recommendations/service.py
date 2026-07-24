@@ -161,6 +161,28 @@ async def list_ingredient_categories_for_products(
     return mapping
 
 
+async def list_ingredient_names_for_products(
+    db: AsyncSession, product_ids: list[int]
+) -> dict[int, list[str]]:
+    """Interface function (ADR-005) — product_id -> the `ingredients.ingredient_name`
+    values it contains. Milestone 2 P12's routine interaction guardrail
+    (`routines/guardrails.py`) reads this to check every generated step's product
+    against the curated interaction matrix (`app/ai/interactions.py`) by real
+    ingredient name — never queries `product_ingredients`/`ingredients` directly."""
+    if not product_ids:
+        return {}
+    stmt = (
+        select(ProductIngredient.product_id, Ingredient.ingredient_name)
+        .join(Ingredient, Ingredient.ingredient_id == ProductIngredient.ingredient_id)
+        .where(ProductIngredient.product_id.in_(product_ids))
+    )
+    result = await db.execute(stmt)
+    mapping: dict[int, list[str]] = {}
+    for product_id, ingredient_name in result.all():
+        mapping.setdefault(product_id, []).append(ingredient_name)
+    return mapping
+
+
 async def evaluate_products_suitability(
     db: AsyncSession,
     product_ids: list[int],
@@ -204,6 +226,9 @@ async def evaluate_products_suitability(
         any_allergy = False
         any_unsuitable = False
         goodness_scores: list[float] = []
+        structured_allergy_ingredients = [
+            (a.ingredient_id, a.ingredient_name) for a in profile.allergy_ingredients
+        ]
         for ingredient in ingredients:
             result = _suitability.evaluate(
                 ingredient_name=ingredient.ingredient_name,
@@ -212,6 +237,8 @@ async def evaluate_products_suitability(
                 allergies=profile.allergies,
                 sensitivities=profile.sensitivities,
                 avoid_reason=avoid_reason_by_ingredient.get(ingredient.ingredient_id),
+                structured_allergy_ingredients=structured_allergy_ingredients,
+                candidate_ingredient_id=ingredient.ingredient_id,
             )
             any_allergy = any_allergy or result.allergy_flag
             any_unsuitable = any_unsuitable or not result.suitable

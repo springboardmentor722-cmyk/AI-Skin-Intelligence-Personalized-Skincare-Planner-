@@ -15,6 +15,7 @@ Two rules:
 
 from dataclasses import dataclass, replace
 
+from app.ai.interactions import get_interaction
 from app.services.routines.constants import SUN_PROTECTION
 
 # ">7/10" per the doc — redness severity of exactly 7 is NOT yet an override;
@@ -104,6 +105,55 @@ def apply_safety_guardrails(
             )
         else:
             result.append(step)
+    return result
+
+
+SAFETY_FLAG_INTERACTION_SUBSTITUTION = "interaction_substitution"
+
+
+def apply_interaction_guardrail(
+    steps: list[GeneratedStep],
+    *,
+    product_ingredient_names: dict[int, list[str]],
+    soothing_product_id: int | None,
+) -> list[GeneratedStep]:
+    """Milestone 2 P12 (mile_2.docx §5 "interaction analysis") — prevents two
+    steps in the SAME generated routine from carrying actives the curated
+    interaction matrix (app/ai/interactions.py) marks "avoid" (e.g. a Retinol
+    treatment step and a separate step whose product also carries an AHA/BHA).
+    A distinct, independently-testable layer, same discipline as
+    `apply_safety_guardrails` above — runs on its output, so a sensitivity-driven
+    substitution is itself checked for new conflicts, not exempted from them.
+
+    Substitutes the LATER of any conflicting pair (deterministic, order-stable)
+    with the same real soothing product `apply_safety_guardrails` uses — a pure
+    function has no DB access to search for a per-category alternative, and this
+    catalog seeds exactly one dedicated soothing product. Never appends a step;
+    only ever replaces one in place."""
+    if soothing_product_id is None:
+        return list(steps)
+
+    result = list(steps)
+    for i in range(len(result)):
+        for j in range(i + 1, len(result)):
+            if result[j].product_id == soothing_product_id:
+                continue
+            names_a = product_ingredient_names.get(result[i].product_id, [])
+            names_b = product_ingredient_names.get(result[j].product_id, [])
+            conflict = any(
+                interaction is not None and interaction["verdict"] == "avoid"
+                for a in names_a
+                for b in names_b
+                for interaction in [get_interaction(a, b)]
+            )
+            if conflict:
+                result[j] = replace(
+                    result[j],
+                    product_id=soothing_product_id,
+                    rationale="Substituted for a soothing active — this product's active"
+                    " would conflict with another step already in this routine.",
+                    safety_flag=SAFETY_FLAG_INTERACTION_SUBSTITUTION,
+                )
     return result
 
 

@@ -907,3 +907,82 @@ flagged in PROGRESS.md rather than guessed at. A future session should not
 re-introduce skin-type-conditional step *removal* in the generator — safety-
 driven differences belong in `guardrails.py`'s post-generation substitution,
 not the pipeline itself.
+
+## ADR-030 — P12 ingredient intelligence: structured-allergy + synonym matching wired into suitability, interaction matrix hooked into routine generation
+
+**Status:** Accepted (M2-P12)
+**Context:** `M2_GAP_ANALYSIS.md` (P0) and the live code already had a
+substantial real Ingredient Intelligence surface — `app/ai/suitability.py`
+(rule-based, not ML), `app/ai/interactions.py` (curated pairwise matrix),
+`ingredients/service.py` (list/detail/suitability/interactions endpoints), and
+working `/ingredients` + `/ingredients/{id}` frontend pages for the `user`
+role — built under an earlier "M3-B" label before this M2 phase-by-phase
+rebuild reached P12. Checked against `MILESTONE_2_MASTER_PROMPT.md` P12's
+literal text, three real gaps remained: (1) `RealIngredientSuitability.evaluate`
+only ever consulted `skin_profiles.allergies`/`sensitivities` (free text) — it
+never read the structured `skin_profile_allergies` table P7 built specifically
+for this phase to consume (`docs/DECISIONS.md` ADR-026 says so explicitly);
+(2) allergy matching had no synonym/INCI-alternate-name awareness at all (a
+"Vitamin C" allergy tag would never flag "Ascorbic Acid" — the only seeded
+ingredient with that identity); (3) the curated interaction matrix was never
+consulted during routine generation, so P11's guardrail layer had no way to
+stop two conflicting actives from landing in the same generated routine; and
+(4) the "Ingredient Database" page P12 names for consultant/dermatologist/admin
+was still a P2-era `ComingSoon` stub in all three role folders (the `user`-role
+"Ingredient Analyzer" was already real).
+**Decision:**
+- New `app/ai/ingredient_synonyms.py` — a small, hand-curated set of real
+  name/INCI alternate-name groups (same "quality over quantity, never scraped"
+  discipline as `interactions.py`), e.g. `{"ascorbic acid", "l-ascorbic acid",
+  "vitamin c"}`. Deliberately scoped to true 1:1 identity facts, not
+  drug-class/cross-reactivity groupings (no umbrella "AHA" entry, since that
+  would conflate glycolic and lactic acid as if allergic-to-one-implies-
+  allergic-to-both, a different and murkier claim than a same-substance
+  alternate name).
+- `RealIngredientSuitability.evaluate` gains two new optional parameters —
+  `structured_allergy_ingredients: list[tuple[int, str | None]] | None` and
+  `candidate_ingredient_id: int | None` — checked *first*, before the existing
+  free-text allergy/sensitivity checks, since a structured entry is user-
+  confirmed against a real ingredient row, not typed free text. An exact
+  `ingredient_id` match is the highest-confidence case (0.98); a name/INCI
+  synonym match against a *different* ingredient is flagged too, at lower
+  confidence (0.75) — "flag on uncertainty rather than suppress," per P12's own
+  guardrail wording. `_tag_match` (the free-text path) also gained synonym-
+  group awareness alongside its existing substring check. Both call sites
+  (`ingredients/service.get_suitability_for_user`,
+  `recommendations/service.evaluate_products_suitability`) now pass the
+  profile's real `allergy_ingredients` (already returned by
+  `skin_profile_service.get_current_profile` since P7) through — no new query.
+- New `recommendations/service.list_ingredient_names_for_products` (product_id
+  → real ingredient names), mirroring P11's existing
+  `list_ingredient_categories_for_products`.
+- New `routines/guardrails.apply_interaction_guardrail` — a distinct, pure
+  function (same discipline as `apply_safety_guardrails`) applied *after* the
+  sensitivity guardrail in `_generate_steps`: for every pair of steps in one
+  generated routine, if their products' real ingredients form an "avoid"-
+  verdict pair in `app/ai/interactions.py`'s curated matrix, the *later* step
+  is substituted with the same real soothing product the sensitivity guardrail
+  uses (a pure function has no DB access to search for a per-category
+  alternative, and this catalog seeds exactly one dedicated soothing product).
+  Never appends a step, only ever replaces one in place, and a step already
+  carrying the soothing product is never itself treated as a conflict target.
+- New shared `web/components/ingredients/{ingredient-list,ingredient-detail}.tsx`
+  — the same real `/ingredients`, `/ingredients/{id}`, `/ingredients/interactions`
+  endpoints the `user`-role page already uses (all three already role-open to
+  `user`/`consultant`/`dermatologist`/`admin`), minus the per-user suitability
+  card (`/ingredients/{id}/suitability/me` is `user`-role only — these three
+  roles have no skin profile of their own). Three thin pages
+  (`web/app/{consultant/ingredient-database,dermatologist/ingredient-database,
+  admin/ingredients}/[page,[id]/page].tsx`) compose them, and `nav-config.ts`'s
+  three matching items flip `built: false` → `true`.
+**Consequences:** With the real 10-ingredient seed catalog, no two categories
+in any single AM/PM/Weekly pipeline currently both carry an "avoid"-paired
+active (each pipeline has exactly one Treatment-category step), so
+`apply_interaction_guardrail`'s real-generation regression test
+(`test_generated_routines_never_place_two_avoid_paired_actives_together`)
+passes today without ever substituting anything — the guardrail is proven at
+the pure-function level with synthetic conflicting steps instead, and the
+integration test stands as a real regression guard against a future catalog
+change reintroducing the conflict it exists to prevent. No API contract or
+schema change was needed — the whole phase is additive Python plus three new
+frontend routes reusing an already-frozen, already-open endpoint surface.

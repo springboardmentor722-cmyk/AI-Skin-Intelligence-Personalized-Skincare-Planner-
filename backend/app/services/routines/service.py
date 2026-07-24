@@ -157,12 +157,25 @@ async def _generate_steps(
     soothing_product = await recommendations_service.get_product_by_name(
         db, guardrails.SOOTHING_PRODUCT_NAME
     )
+    soothing_product_id = soothing_product.product_id if soothing_product else None
     generated = guardrails.apply_safety_guardrails(
         generated,
         skin_type_name=skin_type_name,
         redness_severity=redness_severity,
         product_ingredient_categories=ingredient_categories,
-        soothing_product_id=soothing_product.product_id if soothing_product else None,
+        soothing_product_id=soothing_product_id,
+    )
+
+    # Milestone 2 P12 — interaction-matrix guardrail, applied after the
+    # sensitivity guardrail so a soothing substitution is itself checked for new
+    # conflicts (docs/DECISIONS.md ADR-030).
+    ingredient_names = await recommendations_service.list_ingredient_names_for_products(
+        db, [step.product_id for step in generated]
+    )
+    generated = guardrails.apply_interaction_guardrail(
+        generated,
+        product_ingredient_names=ingredient_names,
+        soothing_product_id=soothing_product_id,
     )
     return generated
 

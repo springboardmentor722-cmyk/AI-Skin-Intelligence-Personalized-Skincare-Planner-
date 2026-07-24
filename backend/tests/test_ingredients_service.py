@@ -181,3 +181,74 @@ async def test_get_interactions_reports_unknown_for_an_uncurated_pair(
 
     assert result.pairs[0].verdict == "unknown"
     assert result.pairs[0].reason is None
+
+
+# --- Milestone 2 P12: structured allergy list + synonym matching (ADR-030) -----------
+# _NIACINAMIDE_ID's real ingredient_name is "Niacinamide"; _GLYCOLIC_ACID_ID's is
+# "Glycolic Acid" (backend/app/db/seed.py). Ascorbic Acid (Vitamin C) is id 3.
+_ASCORBIC_ACID_ID = 3
+
+
+async def test_get_suitability_flags_a_real_structured_allergy_by_exact_id(
+    db_session: AsyncSession,
+) -> None:
+    user_id = f"test-{uuid.uuid4().hex[:16]}"
+    await _create_test_user(db_session, user_id)
+    await create_profile(
+        db_session,
+        user_id,
+        SkinProfileCreate(skin_type_id=1, allergy_ingredient_ids=[_NIACINAMIDE_ID], concerns=[]),
+    )
+
+    result = await service.get_suitability_for_user(db_session, _NIACINAMIDE_ID, user_id)
+
+    assert result is not None
+    assert result.allergy_flag is True
+    assert result.suitable is False
+
+
+async def test_get_suitability_does_not_flag_an_unrelated_structured_allergy(
+    db_session: AsyncSession,
+) -> None:
+    user_id = f"test-{uuid.uuid4().hex[:16]}"
+    await _create_test_user(db_session, user_id)
+    await create_profile(
+        db_session,
+        user_id,
+        SkinProfileCreate(skin_type_id=1, allergy_ingredient_ids=[_NIACINAMIDE_ID], concerns=[]),
+    )
+
+    result = await service.get_suitability_for_user(db_session, _GLYCOLIC_ACID_ID, user_id)
+
+    assert result is not None
+    assert result.allergy_flag is False
+
+
+async def test_get_suitability_flags_a_free_text_allergy_via_a_known_synonym(
+    db_session: AsyncSession,
+) -> None:
+    """ "Vitamin C" is not a substring of "Ascorbic Acid" in either direction —
+    this only flags through the curated synonym group, proving an ambiguous
+    synonym still raises a flag rather than being silently missed."""
+    user_id = f"test-{uuid.uuid4().hex[:16]}"
+    await _create_test_user(db_session, user_id)
+    await _create_profile(db_session, user_id, allergies="Vitamin C")
+
+    result = await service.get_suitability_for_user(db_session, _ASCORBIC_ACID_ID, user_id)
+
+    assert result is not None
+    assert result.allergy_flag is True
+    assert result.suitable is False
+
+
+async def test_get_suitability_allergy_match_is_case_insensitive(
+    db_session: AsyncSession,
+) -> None:
+    user_id = f"test-{uuid.uuid4().hex[:16]}"
+    await _create_test_user(db_session, user_id)
+    await _create_profile(db_session, user_id, allergies="RETINOL")
+
+    result = await service.get_suitability_for_user(db_session, _RETINOL_ID, user_id)
+
+    assert result is not None
+    assert result.allergy_flag is True

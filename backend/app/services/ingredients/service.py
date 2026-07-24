@@ -169,9 +169,11 @@ async def get_ingredient_detail(
 
     education: list[EducationSnippet] = []
     if mongo is not None:
-        cursor = mongo["knowledge_articles"].find(
-            {"related_ingredients": ingredient.ingredient_name}
-        ).limit(5)
+        cursor = (
+            mongo["knowledge_articles"]
+            .find({"related_ingredients": ingredient.ingredient_name})
+            .limit(5)
+        )
         async for article in cursor:
             education.append(
                 EducationSnippet(
@@ -213,10 +215,14 @@ async def get_suitability_for_user(
     avoid_reason: str | None = None
     allergies: str | None = None
     sensitivities: str | None = None
+    structured_allergy_ingredients: list[tuple[int, str | None]] = []
 
     if profile is not None:
         allergies = profile.allergies
         sensitivities = profile.sensitivities
+        structured_allergy_ingredients = [
+            (a.ingredient_id, a.ingredient_name) for a in profile.allergy_ingredients
+        ]
         if profile.skin_type_id is not None:
             skin_type = await db.get(SkinType, profile.skin_type_id)
             skin_type_name = skin_type.skin_type_name if skin_type else None
@@ -236,6 +242,8 @@ async def get_suitability_for_user(
         allergies=allergies,
         sensitivities=sensitivities,
         avoid_reason=avoid_reason,
+        structured_allergy_ingredients=structured_allergy_ingredients,
+        candidate_ingredient_id=ingredient_id,
     )
     return SuitabilityRead(ingredient_id=ingredient_id, **result.model_dump())
 
