@@ -36,6 +36,12 @@ class Routine(Base):
     score_id: Mapped[int | None] = mapped_column(
         ForeignKey("skin_assessments.score_id"), default=None
     )
+    # M2-P11: which profile *version* this routine was generated against — lets
+    # get_or_generate_routines detect a re-assessment (a new profile version) and
+    # regenerate, the same way a season change already regenerates Seasonal Care.
+    skin_profile_id: Mapped[int | None] = mapped_column(
+        ForeignKey("skin_profiles.skin_profile_id"), default=None
+    )
     created_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
 
@@ -50,7 +56,14 @@ class RoutineStep(Base):
     )
     step_order: Mapped[int | None] = mapped_column(default=None)
     step_name: Mapped[str | None] = mapped_column(default=None)
+    # M2-P11 — one of routines/constants.py's 6 canonical categories, distinct from
+    # products.category (the real, smaller product taxonomy).
+    category: Mapped[str | None] = mapped_column(default=None)
     instruction: Mapped[str | None] = mapped_column(Text, default=None)
+    rationale: Mapped[str | None] = mapped_column(Text, default=None)
+    # Which guardrail fired for this step, if any (e.g. "soothing_substitution") —
+    # None when no guardrail intervened.
+    safety_flag: Mapped[str | None] = mapped_column(default=None)
     duration_minutes: Mapped[int | None] = mapped_column(default=None)
     created_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())

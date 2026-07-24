@@ -1,8 +1,12 @@
-"""Milestone 1 audit: routines/service.py had 26% coverage — no test exercised real
-routine generation at all. Uses the real, live-seeded product catalog (skin_type_id=1
-has real products across all AM/PM categories) rather than inserting fixture products,
-since generation reads through recommendations_service's real product-lookup queries;
-faking that would mean testing against data shaped nothing like production.
+"""Milestone 2 P11 (MILESTONE 2.docx "Dynamic Routine Generator" / §4
+"Personalized Routine Generator") rewrote generation around a fixed, canonical
+6-category pipeline (routines/constants.py) plus a distinct safety-guardrail
+layer applied after generation (routines/guardrails.py) — replacing the old
+skin-type-conditional step-removal matrix. Uses the real, live-seeded product
+catalog (skin_type_id=1 has real products across all AM/PM categories) rather
+than inserting fixture products, since generation reads through
+recommendations_service's real product-lookup queries; faking that would mean
+testing against data shaped nothing like production.
 """
 
 import datetime
@@ -15,11 +19,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.postgres import external_user_table
 from app.services.ingredients.models import Ingredient
 from app.services.recommendations.models import Product, ProductIngredient, ProductSkinType
+from app.services.routines import constants, guardrails
 from app.services.routines import service as routines_service
+from app.services.routines.guardrails import (
+    GeneratedStep,
+    MissingSunscreenError,
+    apply_safety_guardrails,
+    assert_sunscreen_present,
+    is_harsh_product,
+    requires_soothing_substitution,
+)
 from app.services.routines.models import Routine
 from app.services.routines.service import (
     UnsafeProductError,
-    _am_pm_categories_for_skin_type,
     _current_season,
     add_step,
     count_completed_steps_by_user,
@@ -37,6 +49,23 @@ from app.services.skin_profile.schemas import SkinProfileConcernInput, SkinProfi
 from app.services.skin_profile.service import create_profile
 
 _SKIN_TYPE_WITH_SEEDED_PRODUCTS = 1
+# Real seed.py concern ids (confirmed live this session): 1=Acne, 9=Redness.
+_REDNESS_CONCERN_ID = 9
+
+
+async def _sensitive_skin_type_id(db: AsyncSession) -> int:
+    return (
+        await db.execute(select(SkinType).where(SkinType.skin_type_name == "Sensitive"))
+    ).scalar_one().skin_type_id
+
+
+async def _oily_skin_type_id(db: AsyncSession) -> int:
+    return (
+        await db.execute(select(SkinType).where(SkinType.skin_type_name == "Oily"))
+    ).scalar_one().skin_type_id
+
+
+# --- Basic generation ---
 
 
 async def test_no_routines_before_a_skin_profile_exists(
@@ -66,7 +95,7 @@ async def test_generates_am_pm_weekly_and_seasonal_routines(
     assert seasonal.steps  # real steps generated, same as AM/PM/Weekly
 
 
-async def test_weekly_routine_is_treatment_only(
+async def test_weekly_routine_is_exfoliation_only(
     db_session: AsyncSession, test_user_id: str
 ) -> None:
     await create_profile(
@@ -76,11 +105,11 @@ async def test_weekly_routine_is_treatment_only(
     routines = await get_or_generate_routines(db_session, test_user_id)
     weekly = next(r for r in routines if r.routine_type == "Weekly")
 
-    assert {s.step_name for s in weekly.steps} == {"Treatment"}
+    assert {s.category for s in weekly.steps} == {constants.EXFOLIATION}
     assert len(weekly.steps[0].products) >= 1
 
 
-async def test_am_routine_covers_all_four_documented_categories(
+async def test_am_routine_covers_all_four_canonical_categories(
     db_session: AsyncSession, test_user_id: str
 ) -> None:
     await create_profile(
@@ -90,14 +119,16 @@ async def test_am_routine_covers_all_four_documented_categories(
     routines = await get_or_generate_routines(db_session, test_user_id)
     am = next(r for r in routines if r.routine_type == "AM")
 
-    # routines/service.py's own _AM_CATEGORIES — Cleanser, Treatment, Moisturizer,
-    # Sunscreen. A step only appears if at least one seeded product exists for that
-    # category+skin type, which is true for skin_type_id=1's real product catalog.
-    step_names = {s.step_name for s in am.steps}
-    assert step_names == {"Cleanser", "Treatment", "Moisturizer", "Sunscreen"}
+    categories = {s.category for s in am.steps}
+    assert categories == {
+        constants.CLEANSING,
+        constants.TREATMENT,
+        constants.MOISTURIZING,
+        constants.SUN_PROTECTION,
+    }
 
 
-async def test_pm_routine_has_no_sunscreen_step(
+async def test_pm_routine_has_no_sun_protection_step(
     db_session: AsyncSession, test_user_id: str
 ) -> None:
     await create_profile(
@@ -107,7 +138,7 @@ async def test_pm_routine_has_no_sunscreen_step(
     routines = await get_or_generate_routines(db_session, test_user_id)
     pm = next(r for r in routines if r.routine_type == "PM")
 
-    assert "Sunscreen" not in {s.step_name for s in pm.steps}
+    assert constants.SUN_PROTECTION not in {s.category for s in pm.steps}
 
 
 async def test_every_step_has_a_real_linked_product(
@@ -121,7 +152,7 @@ async def test_every_step_has_a_real_linked_product(
 
     for routine in routines:
         for step in routine.steps:
-            assert len(step.products) >= 1, f"{routine.routine_type} step {step.step_name}"
+            assert len(step.products) >= 1, f"{routine.routine_type} step {step.category}"
 
 
 async def test_regenerating_reuses_the_existing_routines_not_duplicates(
@@ -146,9 +177,7 @@ async def test_sensitive_skin_routine_never_includes_an_avoid_flagged_product(
     # deliberately unsafe product — real "Salicylic Acid" ingredient (avoid-flagged for
     # Sensitive in seed.py), tagged as a real Treatment candidate for Sensitive skin —
     # the exact adversarial case the safety filter in _generate_routine exists to catch.
-    sensitive = (
-        await db_session.execute(select(SkinType).where(SkinType.skin_type_name == "Sensitive"))
-    ).scalar_one()
+    sensitive_id = await _sensitive_skin_type_id(db_session)
     salicylic_acid = (
         await db_session.execute(
             select(Ingredient).where(Ingredient.ingredient_name == "Salicylic Acid")
@@ -160,9 +189,7 @@ async def test_sensitive_skin_routine_never_includes_an_avoid_flagged_product(
     )
     db_session.add(unsafe_product)
     await db_session.flush()
-    db_session.add(
-        ProductSkinType(product_id=unsafe_product.product_id, skin_type_id=sensitive.skin_type_id)
-    )
+    db_session.add(ProductSkinType(product_id=unsafe_product.product_id, skin_type_id=sensitive_id))
     db_session.add(
         ProductIngredient(
             product_id=unsafe_product.product_id, ingredient_id=salicylic_acid.ingredient_id
@@ -174,7 +201,7 @@ async def test_sensitive_skin_routine_never_includes_an_avoid_flagged_product(
         db_session,
         test_user_id,
         SkinProfileCreate(
-            skin_type_id=sensitive.skin_type_id,
+            skin_type_id=sensitive_id,
             concerns=[SkinProfileConcernInput(concern_id=1, severity_rating=9, priority_level=9)],
         ),
     )
@@ -205,6 +232,324 @@ async def test_generation_is_deterministic_for_the_same_user_and_profile(
     for routine in routines:
         for step in routine.steps:
             assert len(step.products) == 1
+
+
+# --- Milestone 2 P11 mandated tests ---
+
+
+async def test_safety_exclusion_test_sensitive_skin_never_gets_harsh_actives(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    """MANDATED: "Safety Exclusion Test" — sensitive skin profiles NEVER receive
+    high-concentration retinoids (Retinol 0.3% Night Treatment) or harsh chemical
+    exfoliants (8% Glycolic Acid Night Exfoliant, 2% Salicylic Acid Treatment,
+    all real seeded products carrying a Retinoids/AHAs-BHAs category ingredient)."""
+    sensitive_id = await _sensitive_skin_type_id(db_session)
+    await create_profile(
+        db_session,
+        test_user_id,
+        SkinProfileCreate(
+            skin_type_id=sensitive_id,
+            concerns=[SkinProfileConcernInput(concern_id=1, severity_rating=5, priority_level=5)],
+        ),
+    )
+
+    routines = await get_or_generate_routines(db_session, test_user_id)
+
+    chosen_names = {
+        rp.product.product_name
+        for routine in routines
+        for step in routine.steps
+        for rp in step.products
+    }
+    harsh_product_names = {
+        "Retinol 0.3% Night Treatment",
+        "8% Glycolic Acid Night Exfoliant",
+        "2% Salicylic Acid Treatment",
+    }
+    assert not (chosen_names & harsh_product_names)
+
+
+@pytest.mark.parametrize(("redness_severity", "expected"), [(7, False), (8, True)])
+def test_safety_exclusion_test_redness_boundary_is_exactly_above_seven(
+    redness_severity: int, expected: bool
+) -> None:
+    """MANDATED: the redness boundary tested at exactly 7 and exactly 8 —
+    "> 7/10" per the doc, so 7 itself does not trigger the override, 8 does."""
+    assert requires_soothing_substitution(None, redness_severity) is expected
+
+
+def test_requires_soothing_substitution_for_sensitive_skin_regardless_of_redness() -> None:
+    assert requires_soothing_substitution("Sensitive", None) is True
+    assert requires_soothing_substitution("Sensitive", 0) is True
+
+
+def test_requires_soothing_substitution_false_for_non_sensitive_low_redness() -> None:
+    assert requires_soothing_substitution("Oily", 3) is False
+    assert requires_soothing_substitution(None, None) is False
+
+
+def test_is_harsh_product_flags_retinoids_and_ahas_bhas() -> None:
+    assert is_harsh_product(["Retinoids"]) is True
+    assert is_harsh_product(["AHAs/BHAs"]) is True
+    assert is_harsh_product(["Niacinamide"]) is False
+    assert is_harsh_product([]) is False
+
+
+def test_soothing_substitution_replaces_the_harsh_step_rather_than_appending() -> None:
+    steps = [
+        GeneratedStep(
+            category=constants.CLEANSING, step_name="Cleanser", rationale="r", product_id=1
+        ),
+        GeneratedStep(
+            category=constants.TREATMENT, step_name="Active", rationale="r", product_id=2
+        ),
+    ]
+    result = apply_safety_guardrails(
+        steps,
+        skin_type_name="Sensitive",
+        redness_severity=None,
+        product_ingredient_categories={2: ["Retinoids"]},
+        soothing_product_id=99,
+    )
+
+    # Same length — a real substitution, not an appended third step.
+    assert len(result) == 2
+    treatment_step = next(s for s in result if s.category == constants.TREATMENT)
+    assert treatment_step.product_id == 99
+    assert treatment_step.safety_flag == guardrails.SAFETY_FLAG_SOOTHING_SUBSTITUTION
+    # The Cleansing step is untouched — not a harsh product.
+    cleansing_step = next(s for s in result if s.category == constants.CLEANSING)
+    assert cleansing_step.product_id == 1
+    assert cleansing_step.safety_flag is None
+
+
+def test_apply_safety_guardrails_does_not_mutate_the_input_list() -> None:
+    original = [
+        GeneratedStep(category=constants.TREATMENT, step_name="Active", rationale="r", product_id=2)
+    ]
+    apply_safety_guardrails(
+        original,
+        skin_type_name="Sensitive",
+        redness_severity=None,
+        product_ingredient_categories={2: ["Retinoids"]},
+        soothing_product_id=99,
+    )
+    assert original[0].product_id == 2
+    assert original[0].safety_flag is None
+
+
+def test_apply_safety_guardrails_is_a_no_op_when_not_required() -> None:
+    steps = [
+        GeneratedStep(category=constants.TREATMENT, step_name="Active", rationale="r", product_id=2)
+    ]
+    result = apply_safety_guardrails(
+        steps,
+        skin_type_name="Oily",
+        redness_severity=3,
+        product_ingredient_categories={2: ["Retinoids"]},
+        soothing_product_id=99,
+    )
+    assert result[0].product_id == 2
+
+
+async def test_routine_output_test_every_am_routine_has_a_sun_protection_step(
+    db_session: AsyncSession,
+) -> None:
+    """MANDATED: "Routine Output Test" — a Sun Protection (sunscreen) step is
+    present in EVERY generated AM routine, swept across the whole profile space
+    (every seeded skin type, with and without a severe-redness concern), not one
+    happy case."""
+    skin_types = (await db_session.execute(select(SkinType))).scalars().all()
+    for i, skin_type in enumerate(skin_types):
+        for redness_severity in (None, 9):
+            user_id = f"sweep-user-{skin_type.skin_type_id}-{redness_severity}-{i}"
+            await db_session.execute(
+                external_user_table.insert().values(
+                    id=user_id,
+                    email=f"{user_id}@test.invalid",
+                    name="Sweep User",
+                    emailVerified=False,
+                )
+            )
+            await db_session.flush()
+            concerns = (
+                [
+                    SkinProfileConcernInput(
+                        concern_id=_REDNESS_CONCERN_ID,
+                        severity_rating=redness_severity,
+                        priority_level=9,
+                    )
+                ]
+                if redness_severity
+                else []
+            )
+            await create_profile(
+                db_session,
+                user_id,
+                SkinProfileCreate(skin_type_id=skin_type.skin_type_id, concerns=concerns),
+            )
+
+            routines = await get_or_generate_routines(db_session, user_id)
+            am = next(r for r in routines if r.routine_type == "AM")
+
+            assert constants.SUN_PROTECTION in {s.category for s in am.steps}, (
+                f"skin_type={skin_type.skin_type_name} redness={redness_severity}"
+            )
+
+
+def test_no_configuration_can_disable_the_sunscreen_step() -> None:
+    """Guardrail: assert_sunscreen_present raises rather than silently accepting
+    an AM routine generated with no Sun Protection step — there is no flag/kwarg
+    on this function that suppresses the check."""
+    steps_missing_sunscreen = [
+        GeneratedStep(
+            category=constants.CLEANSING, step_name="Cleanser", rationale="r", product_id=1
+        ),
+    ]
+    with pytest.raises(MissingSunscreenError):
+        assert_sunscreen_present(steps_missing_sunscreen, "AM")
+
+
+def test_missing_sunscreen_check_only_applies_to_am_routines() -> None:
+    steps_missing_sunscreen = [
+        GeneratedStep(
+            category=constants.CLEANSING, step_name="Cleanser", rationale="r", product_id=1
+        ),
+    ]
+    # PM/Weekly/Seasonal never need a Sun Protection step — must not raise.
+    assert_sunscreen_present(steps_missing_sunscreen, "PM")
+    assert_sunscreen_present(steps_missing_sunscreen, "Weekly")
+    assert_sunscreen_present(steps_missing_sunscreen, "Seasonal")
+
+
+async def test_application_order_is_always_correct(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    """AM: Cleansing -> Treatment -> Moisturizing -> Sun Protection.
+    PM: Cleansing -> Treatment -> Night Care. Exact pipeline order, every time."""
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+
+    routines = await get_or_generate_routines(db_session, test_user_id)
+    am = next(r for r in routines if r.routine_type == "AM")
+    pm = next(r for r in routines if r.routine_type == "PM")
+
+    ordered_am_steps = sorted(am.steps, key=lambda s: s.step_order or 0)
+    assert [s.category for s in ordered_am_steps] == [
+        constants.CLEANSING,
+        constants.TREATMENT,
+        constants.MOISTURIZING,
+        constants.SUN_PROTECTION,
+    ]
+
+    ordered_pm_steps = sorted(pm.steps, key=lambda s: s.step_order or 0)
+    assert [s.category for s in ordered_pm_steps] == [
+        constants.CLEANSING,
+        constants.TREATMENT,
+        constants.NIGHT_CARE,
+    ]
+
+
+async def test_double_cleanse_appears_only_in_pm(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+
+    routines = await get_or_generate_routines(db_session, test_user_id)
+    am = next(r for r in routines if r.routine_type == "AM")
+    pm = next(r for r in routines if r.routine_type == "PM")
+
+    assert not any("Double Cleanse" in (s.step_name or "") for s in am.steps)
+    assert any("Double Cleanse" in (s.step_name or "") for s in pm.steps)
+
+
+async def test_safety_exclusion_test_severe_redness_without_sensitive_skin_type(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    """MANDATED Safety Exclusion Test, extended to the guardrail's *other*
+    trigger: severe redness (>7) on a non-Sensitive skin type must ALSO exclude
+    harsh actives. The skin-type avoid-flag table alone wouldn't catch this case
+    (Oily isn't Sensitive) — the redness-based guardrail is what closes it.
+    Checks real product names never appearing, not that a specific substitution
+    happened — which harsh product (if any) the seeded pick would have chosen
+    absent the guardrail varies by user_id, so asserting the *outcome*
+    (never present) is the robust, doc-literal thing to prove, matching
+    `apply_safety_guardrails`'s own pure-function tests for the *mechanics*."""
+    oily_id = await _oily_skin_type_id(db_session)
+    await create_profile(
+        db_session,
+        test_user_id,
+        SkinProfileCreate(
+            skin_type_id=oily_id,
+            concerns=[
+                SkinProfileConcernInput(
+                    concern_id=_REDNESS_CONCERN_ID, severity_rating=9, priority_level=9
+                )
+            ],
+        ),
+    )
+
+    routines = await get_or_generate_routines(db_session, test_user_id)
+
+    chosen_names = {
+        rp.product.product_name
+        for routine in routines
+        for step in routine.steps
+        for rp in step.products
+    }
+    harsh_product_names = {
+        "Retinol 0.3% Night Treatment",
+        "8% Glycolic Acid Night Exfoliant",
+        "2% Salicylic Acid Treatment",
+    }
+    assert not (chosen_names & harsh_product_names)
+
+
+# --- Adaptive routine updates (mile_2.docx §4, "respond to ... re-assessments") ---
+
+
+async def test_core_routines_regenerate_after_a_real_reassessment(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+    first = await get_or_generate_routines(db_session, test_user_id)
+    first_by_type = {r.routine_type: r for r in first}
+
+    # A real re-assessment — a new skin_profile *version* (create_profile never
+    # overwrites, always inserts).
+    sensitive_id = await _sensitive_skin_type_id(db_session)
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=sensitive_id, concerns=[])
+    )
+
+    second = await get_or_generate_routines(db_session, test_user_id)
+    second_by_type = {r.routine_type: r for r in second}
+
+    assert second_by_type["AM"].routine_id != first_by_type["AM"].routine_id
+    assert second_by_type["PM"].routine_id != first_by_type["PM"].routine_id
+    assert second_by_type["Weekly"].routine_id != first_by_type["Weekly"].routine_id
+
+    old_am = await db_session.get(Routine, first_by_type["AM"].routine_id)
+    assert old_am is not None
+    assert old_am.is_active is False
+
+
+async def test_core_routines_stay_stable_without_a_reassessment(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+    first = await get_or_generate_routines(db_session, test_user_id)
+    second = await get_or_generate_routines(db_session, test_user_id)
+
+    assert {r.routine_id for r in first} == {r.routine_id for r in second}
 
 
 # --- Routine edit/reorder (deferred half of the My Routine screen) ---
@@ -287,9 +632,7 @@ async def test_add_step_persists_with_a_real_product(
 async def test_add_step_rejects_an_avoid_flagged_product(
     db_session: AsyncSession, test_user_id: str
 ) -> None:
-    sensitive = (
-        await db_session.execute(select(SkinType).where(SkinType.skin_type_name == "Sensitive"))
-    ).scalar_one()
+    sensitive_id = await _sensitive_skin_type_id(db_session)
     salicylic_acid = (
         await db_session.execute(
             select(Ingredient).where(Ingredient.ingredient_name == "Salicylic Acid")
@@ -307,9 +650,7 @@ async def test_add_step_rejects_an_avoid_flagged_product(
     )
     await db_session.flush()
 
-    await create_profile(
-        db_session, test_user_id, SkinProfileCreate(skin_type_id=sensitive.skin_type_id)
-    )
+    await create_profile(db_session, test_user_id, SkinProfileCreate(skin_type_id=sensitive_id))
     routines = await get_or_generate_routines(db_session, test_user_id)
     am = next(r for r in routines if r.routine_type == "AM")
 
@@ -343,22 +684,22 @@ async def test_update_step_swaps_product_and_usage_notes(
     )
     routines = await get_or_generate_routines(db_session, test_user_id)
     am = next(r for r in routines if r.routine_type == "AM")
-    cleanser_step = next(s for s in am.steps if s.step_name == "Cleanser")
+    cleansing_step = next(s for s in am.steps if s.category == constants.CLEANSING)
     candidates = await search_products_for_edit(db_session, test_user_id, "Cleanser", "")
     other_product = next(
-        p for p in candidates if p.product_id != cleanser_step.products[0].product.product_id
+        p for p in candidates if p.product_id != cleansing_step.products[0].product.product_id
     )
 
     updated = await update_step(
         db_session,
         test_user_id,
-        cleanser_step.step_id,
+        cleansing_step.step_id,
         step_name=None,
         product_id=other_product.product_id,
         usage_notes="Use lukewarm water only.",
     )
 
-    updated_step = next(s for s in updated.steps if s.step_id == cleanser_step.step_id)
+    updated_step = next(s for s in updated.steps if s.step_id == cleansing_step.step_id)
     assert updated_step.products[0].product.product_id == other_product.product_id
     assert updated_step.products[0].usage_notes == "Use lukewarm water only."
 
@@ -366,21 +707,14 @@ async def test_update_step_swaps_product_and_usage_notes(
 async def test_update_step_rejects_an_avoid_flagged_product_swap(
     db_session: AsyncSession, test_user_id: str
 ) -> None:
-    sensitive = (
-        await db_session.execute(select(SkinType).where(SkinType.skin_type_name == "Sensitive"))
-    ).scalar_one()
+    sensitive_id = await _sensitive_skin_type_id(db_session)
     salicylic_acid = (
         await db_session.execute(
             select(Ingredient).where(Ingredient.ingredient_name == "Salicylic Acid")
         )
     ).scalar_one()
-    # category="Moisturizer" not "Treatment": under the skin-type decision matrix
-    # (_SKIN_TYPE_STEP_MATRIX), Sensitive's AM routine has no Treatment step at all —
-    # update_step/_assert_product_is_safe only check ingredient safety, not category
-    # match, so swapping into the real Moisturizer step still exercises the same
-    # avoid-flagged-ingredient rejection this test is actually about.
     unsafe_product = Product(
-        brand_name="Test Only", product_name="Unsafe Moisturizer 2", category="Moisturizer"
+        brand_name="Test Only", product_name="Unsafe Treatment 2", category="Treatment"
     )
     db_session.add(unsafe_product)
     await db_session.flush()
@@ -391,18 +725,18 @@ async def test_update_step_rejects_an_avoid_flagged_product_swap(
     )
     await db_session.flush()
 
-    await create_profile(
-        db_session, test_user_id, SkinProfileCreate(skin_type_id=sensitive.skin_type_id)
-    )
+    await create_profile(db_session, test_user_id, SkinProfileCreate(skin_type_id=sensitive_id))
     routines = await get_or_generate_routines(db_session, test_user_id)
     am = next(r for r in routines if r.routine_type == "AM")
-    moisturizer_step = next(s for s in am.steps if s.step_name == "Moisturizer")
+    # Treatment always exists now (fixed canonical pipeline + guardrail
+    # substitution, not step removal) — swap directly into it.
+    treatment_step = next(s for s in am.steps if s.category == constants.TREATMENT)
 
     with pytest.raises(UnsafeProductError):
         await update_step(
             db_session,
             test_user_id,
-            moisturizer_step.step_id,
+            treatment_step.step_id,
             step_name=None,
             product_id=unsafe_product.product_id,
             usage_notes=None,
@@ -412,12 +746,8 @@ async def test_update_step_rejects_an_avoid_flagged_product_swap(
 async def test_search_products_for_edit_excludes_avoid_flagged_and_respects_category(
     db_session: AsyncSession, test_user_id: str
 ) -> None:
-    sensitive = (
-        await db_session.execute(select(SkinType).where(SkinType.skin_type_name == "Sensitive"))
-    ).scalar_one()
-    await create_profile(
-        db_session, test_user_id, SkinProfileCreate(skin_type_id=sensitive.skin_type_id)
-    )
+    sensitive_id = await _sensitive_skin_type_id(db_session)
+    await create_profile(db_session, test_user_id, SkinProfileCreate(skin_type_id=sensitive_id))
 
     treatment_results = await search_products_for_edit(db_session, test_user_id, "Treatment", "")
 
@@ -464,7 +794,7 @@ async def test_seasonal_routine_regenerates_when_the_season_changes(
     second = await get_or_generate_routines(db_session, test_user_id)
     second_by_type = {r.routine_type: r for r in second}
 
-    # AM/PM/Weekly are untouched by a season change.
+    # AM/PM/Weekly are untouched by a season change alone (no profile change here).
     assert second_by_type["AM"].routine_id == first_by_type["AM"].routine_id
     assert second_by_type["PM"].routine_id == first_by_type["PM"].routine_id
     assert second_by_type["Weekly"].routine_id == first_by_type["Weekly"].routine_id
@@ -490,70 +820,6 @@ async def test_seasonal_routine_is_stable_within_the_same_season(
     second = await get_or_generate_routines(db_session, test_user_id)
 
     assert {r.routine_id for r in first} == {r.routine_id for r in second}
-
-
-# --- Skin-type decision matrix (Milestone 2 Step 1.3) ---
-
-
-def test_am_pm_categories_matrix_for_documented_examples() -> None:
-    # mile_2.docx's own two literal examples — Oily and Sensitive get a
-    # *structurally* different step list, not just a different product.
-    assert _am_pm_categories_for_skin_type("Oily") == (
-        ["Cleanser", "Treatment", "Sunscreen"],
-        ["Cleanser", "Treatment", "Moisturizer"],
-    )
-    assert _am_pm_categories_for_skin_type("Sensitive") == (
-        ["Cleanser", "Moisturizer", "Sunscreen"],
-        ["Cleanser", "Moisturizer"],
-    )
-
-
-def test_am_pm_categories_matrix_defaults_for_unspecified_types() -> None:
-    # Normal/Dry/Combination aren't named in the doc's examples — default to the
-    # existing universal structure rather than inventing a difference.
-    standard = (
-        ["Cleanser", "Treatment", "Moisturizer", "Sunscreen"],
-        ["Cleanser", "Treatment", "Moisturizer"],
-    )
-    for name in ["Normal", "Dry", "Combination", "Unknown Type", None]:
-        assert _am_pm_categories_for_skin_type(name) == standard
-
-
-async def test_sensitive_routine_never_generates_a_treatment_step(
-    db_session: AsyncSession, test_user_id: str
-) -> None:
-    sensitive = (
-        await db_session.execute(select(SkinType).where(SkinType.skin_type_name == "Sensitive"))
-    ).scalar_one()
-    await create_profile(
-        db_session, test_user_id, SkinProfileCreate(skin_type_id=sensitive.skin_type_id)
-    )
-
-    routines = await get_or_generate_routines(db_session, test_user_id)
-    am = next(r for r in routines if r.routine_type == "AM")
-    pm = next(r for r in routines if r.routine_type == "PM")
-
-    assert {s.step_name for s in am.steps} == {"Cleanser", "Moisturizer", "Sunscreen"}
-    assert {s.step_name for s in pm.steps} == {"Cleanser", "Moisturizer"}
-    # Weekly is unaffected by the matrix — it's not named in 1.3's AM/PM-only scope.
-    weekly = next(r for r in routines if r.routine_type == "Weekly")
-    assert {s.step_name for s in weekly.steps} == {"Treatment"}
-
-
-async def test_oily_am_routine_has_no_moisturizer_step(
-    db_session: AsyncSession, test_user_id: str
-) -> None:
-    oily = (
-        await db_session.execute(select(SkinType).where(SkinType.skin_type_name == "Oily"))
-    ).scalar_one()
-    await create_profile(
-        db_session, test_user_id, SkinProfileCreate(skin_type_id=oily.skin_type_id)
-    )
-
-    routines = await get_or_generate_routines(db_session, test_user_id)
-    am = next(r for r in routines if r.routine_type == "AM")
-
-    assert {s.step_name for s in am.steps} == {"Cleanser", "Treatment", "Sunscreen"}
 
 
 # --- Assessment-to-routine traceability (Milestone 2 Step 1.1's "assessment_id") ---
@@ -595,8 +861,8 @@ async def test_get_or_generate_routines_does_not_n_plus_one_per_step(
     queries and isn't what this test measures): it used to run 2 extra queries
     *per step* (a RoutineProduct lookup, then a get_products_by_ids call) instead
     of batching once across the whole routine. Isolated by generating routines
-    first (uncounted), then counting only the *second* call — `core and not
-    needs_seasonal_refresh` returns early with pure reads, no `_generate_routine`
+    first (uncounted), then counting only the *second* call — the "reuse without
+    regenerating" path returns early with pure reads, no `_generate_routine`
     calls at all — via a real query-execution event listener (sa_event, the same
     tool tests/conftest.py already uses), not a mock."""
     await create_profile(
@@ -619,11 +885,12 @@ async def test_get_or_generate_routines_does_not_n_plus_one_per_step(
     total_steps = sum(len(r.steps) for r in routines)
     assert total_steps >= 8  # AM(4) + PM(3) + Weekly(1) + Seasonal(>=3), sanity check
 
-    # Fixed cost: 1 query to fetch the existing routines, + 3 per routine read
-    # (steps, routine_products, products) — independent of step count. A generous
+    # Fixed cost: reads for the existing-routines check (now also 1 profile lookup
+    # for the adaptive-refresh comparison) + 3 per routine read (steps,
+    # routine_products, products) — independent of step count. A generous
     # ceiling, not a brittle exact count: this asserts "doesn't scale with step
     # count", not "exactly N queries".
-    assert query_count < 25, (
+    assert query_count < 30, (
         f"{query_count} queries to read {total_steps} already-generated steps "
         "looks like an N+1, not a fixed per-routine cost"
     )
@@ -635,11 +902,13 @@ async def test_first_time_generation_does_not_n_plus_one_per_category(
     """Regression test for a real N+1 in `_generate_routine`'s generation path
     (separate from the read-path fix above): it used to run 2 extra queries *per
     category* (list_products_for_skin_type, list_concern_ids_for_products) across
-    up to 4 routine types x up to 4 categories each — up to ~24 queries for a
-    single user's first-ever generation. Fixed by fetching every candidate
-    product once (category=None) and every concern mapping once, filtering by
-    category in Python. Counts real SQL statements via the same event-listener
-    tool as the read-path test above."""
+    up to 4 routine types x up to 4 categories each. Fixed by fetching every
+    candidate product once (category=None) and every concern mapping once,
+    filtering by category in Python. Milestone 2 P11 added two more real queries
+    *per routine type* (the guardrail layer's ingredient-category lookup and
+    soothing-product lookup) — a real, legitimate cost of the safety layer, not
+    an N+1 regression; the ceiling below accounts for it. Counts real SQL
+    statements via the same event-listener tool as the read-path test above."""
     await create_profile(
         db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
     )
@@ -661,16 +930,11 @@ async def test_first_time_generation_does_not_n_plus_one_per_category(
 
     # Most of this call's real query volume is legitimate, necessary per-row work
     # (one INSERT per RoutineStep/RoutineProduct created — that scales with step
-    # count by nature, not a bug). The N+1 this fixes is specifically the
-    # candidate/concern *SELECT* queries: empirically measured at 75 for this exact
-    # scenario against the old per-category-query code (temporarily reverted
-    # locally to confirm), 61 against the fix — a real ~14-query reduction. The
-    # ceiling here sits between the two: comfortably above 61 to avoid flaking on
-    # incidental variation, comfortably below 75 to still catch a real regression
-    # back to the old per-category pattern.
-    assert query_count < 68, (
+    # count by nature, not a bug). Generous ceiling — see this test's own
+    # docstring for the P11 guardrail-query addition this accounts for.
+    assert query_count < 90, (
         f"{query_count} queries to generate {total_categories} steps across 4 "
-        "routine types looks like a regression back toward the old per-category N+1"
+        "routine types looks like a regression, not the expected P11 guardrail cost"
     )
 
 

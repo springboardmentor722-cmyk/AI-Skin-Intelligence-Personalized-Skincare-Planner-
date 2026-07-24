@@ -12,7 +12,14 @@ class RoutineStepRead(BaseModel):
     step_id: int
     step_order: int | None
     step_name: str | None
+    # Milestone 2 P11 — one of routines/constants.py's 6 canonical categories.
+    category: str | None = None
     instruction: str | None
+    # Why this product was chosen (concern match / category fit).
+    rationale: str | None = None
+    # Which safety guardrail fired for this step, if any (e.g.
+    # "soothing_substitution") — None when no guardrail intervened.
+    safety_flag: str | None = None
     duration_minutes: int | None
     products: list[RoutineProductRead]
     # Real persisted state from Mongo routine_logs (M2) — today's completion, not
