@@ -10,14 +10,20 @@ lookup) that a pure-function test can't exercise.
 """
 
 import datetime
+import random
 from collections.abc import AsyncGenerator
 
 import pytest
+from httpx import AsyncClient
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.security import require_user
 from app.db.mongo import get_mongo_db
+from app.db.postgres import external_user_table
+from app.main import app
 from app.services.routines.service import get_or_generate_routines, toggle_step_completion
+from app.services.scores import constants
 from app.services.scores.models import SkinScore
 from app.services.scores.scoring_engine import (
     _hydration_score,
@@ -25,11 +31,16 @@ from app.services.scores.scoring_engine import (
     _routine_adherence_score,
     _skin_condition_score,
     _sleep_quality_score,
+    calculate_skin_health_score,
+    derive_skin_age,
+    representative_age_for_group,
+    score_band,
 )
 from app.services.scores.service import (
     compute_and_store_score,
     count_all_assessments,
     get_active_weights,
+    get_score_by_id,
 )
 from app.services.skin_profile.schemas import (
     EnvironmentalExposure,
@@ -40,6 +51,13 @@ from app.services.skin_profile.schemas import (
 from app.services.skin_profile.service import create_profile, upsert_lifestyle_log
 
 _SKIN_TYPE_WITH_SEEDED_PRODUCTS = 1
+_DOC_WEIGHTS = {
+    "skin_condition_weight": constants.SKIN_CONDITION_WEIGHT,
+    "lifestyle_weight": constants.LIFESTYLE_WEIGHT,
+    "sleep_quality_weight": constants.SLEEP_QUALITY_WEIGHT,
+    "routine_adherence_weight": constants.ROUTINE_ADHERENCE_WEIGHT,
+    "hydration_weight": constants.HYDRATION_WEIGHT,
+}
 
 
 class _FakeConcern:
@@ -191,9 +209,16 @@ def test_hydration_score_no_logs_is_neutral() -> None:
     assert _hydration_score([]) == 50.0
 
 
-def test_hydration_score_two_liters_is_full_credit() -> None:
-    # docs/AI_ML.md: min(100, glasses/8*100); 2L == 8 glasses (250ml/glass)
-    assert _hydration_score([{"water_intake_liters": 2.0}]) == 100.0
+def test_hydration_score_three_liters_is_full_credit() -> None:
+    # MILESTONE 2.docx §2's "3.0 L daily fluid benchmark" (ADR-028 — this was a
+    # hardcoded 2.0L bug before P10).
+    assert _hydration_score([{"water_intake_liters": 3.0}]) == 100.0
+
+
+def test_hydration_score_two_liters_is_not_quite_full_credit() -> None:
+    # 2L / 3L benchmark = 66.67, not 100 — the pre-P10 bug would have wrongly
+    # given this full credit.
+    assert _hydration_score([{"water_intake_liters": 2.0}]) == pytest.approx(66.67, abs=0.01)
 
 
 def test_hydration_score_caps_at_one_hundred() -> None:
@@ -201,83 +226,45 @@ def test_hydration_score_caps_at_one_hundred() -> None:
 
 
 def test_hydration_score_only_averages_last_seven_days() -> None:
-    good_week = [{"water_intake_liters": 2.0}] * 7
+    good_week = [{"water_intake_liters": 3.0}] * 7
     bad_extra_day = [{"water_intake_liters": 0.0}]
     assert _hydration_score(good_week + bad_extra_day) == 100.0
 
 
-# --- _routine_adherence_score — real completed/scheduled from Mongo routine_logs ---
+# --- _routine_adherence_score — pure function (Milestone 2 P10's own purity
+# guardrail: no I/O, no clock read; scores/service.py fetches step_ids/logs and
+# owns the 14-day window). ADR-028: no active routine, or no logged days in the
+# window, defaults to 100 (MILESTONE 2.docx's literal "defaults to 100% for a
+# new assessment with no history") — the pre-P10 code defaulted to a neutral 50,
+# matching the *other*, non-canonical mile_2.docx instead. The real end-to-end
+# round trip (routine generation + Mongo completion logs feeding a real score)
+# stays covered by test_compute_and_store_score_is_perfect_for_an_ideal_profile
+# below, which already exercises the full path.
 
 
-async def test_routine_adherence_score_neutral_with_no_routine(
-    db_session: AsyncSession, scored_test_user_id: str
-) -> None:
-    assert await _routine_adherence_score(db_session, scored_test_user_id) == 50.0
+def test_routine_adherence_score_defaults_to_100_with_no_active_routine() -> None:
+    assert _routine_adherence_score([], []) == 100.0
 
 
-async def test_routine_adherence_score_neutral_with_routine_but_no_logs(
-    db_session: AsyncSession, scored_test_user_id: str
-) -> None:
-    await create_profile(
-        db_session,
-        scored_test_user_id,
-        SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS),
-    )
-    await get_or_generate_routines(db_session, scored_test_user_id)
-
-    assert await _routine_adherence_score(db_session, scored_test_user_id) == 50.0
+def test_routine_adherence_score_defaults_to_100_with_a_routine_but_no_logs() -> None:
+    assert _routine_adherence_score([1, 2, 3], []) == 100.0
 
 
-async def test_routine_adherence_score_is_full_when_every_step_checked_today(
-    db_session: AsyncSession, scored_test_user_id: str
-) -> None:
-    await create_profile(
-        db_session,
-        scored_test_user_id,
-        SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS),
-    )
-    routines = await get_or_generate_routines(db_session, scored_test_user_id)
-
-    for routine in routines:
-        for step in routine.steps:
-            await toggle_step_completion(scored_test_user_id, step.step_id, True)
-
-    assert await _routine_adherence_score(db_session, scored_test_user_id) == 100.0
+def test_routine_adherence_score_is_full_when_every_step_checked_every_day() -> None:
+    logs = [{"completed_steps": [{"routine_step_id": 1}, {"routine_step_id": 2}]}] * 14
+    assert _routine_adherence_score([1, 2], logs) == 100.0
 
 
-async def test_routine_adherence_score_is_partial_when_half_checked(
-    db_session: AsyncSession, scored_test_user_id: str
-) -> None:
-    await create_profile(
-        db_session,
-        scored_test_user_id,
-        SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS),
-    )
-    routines = await get_or_generate_routines(db_session, scored_test_user_id)
-    all_steps = [step for routine in routines for step in routine.steps]
-
-    for step in all_steps[: len(all_steps) // 2]:
-        await toggle_step_completion(scored_test_user_id, step.step_id, True)
-
-    score = await _routine_adherence_score(db_session, scored_test_user_id)
-    assert score == pytest.approx(50.0, abs=100.0 / len(all_steps))
+def test_routine_adherence_score_is_partial_when_half_checked() -> None:
+    logs = [{"completed_steps": [{"routine_step_id": 1}]}] * 14  # only step 1 of 2, every day
+    assert _routine_adherence_score([1, 2], logs) == 50.0
 
 
-async def test_routine_adherence_score_unchecking_a_step_removes_credit(
-    db_session: AsyncSession, scored_test_user_id: str
-) -> None:
-    await create_profile(
-        db_session,
-        scored_test_user_id,
-        SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS),
-    )
-    routines = await get_or_generate_routines(db_session, scored_test_user_id)
-    first_step = routines[0].steps[0]
-
-    await toggle_step_completion(scored_test_user_id, first_step.step_id, True)
-    await toggle_step_completion(scored_test_user_id, first_step.step_id, False)
-
-    assert await _routine_adherence_score(db_session, scored_test_user_id) == 0.0
+def test_routine_adherence_score_ignores_a_completed_step_no_longer_active() -> None:
+    # A step logged as completed that isn't in the *current* active step set
+    # (e.g. the routine was regenerated) shouldn't count toward adherence.
+    logs = [{"completed_steps": [{"routine_step_id": 999}]}] * 14
+    assert _routine_adherence_score([1, 2], logs) == 0.0
 
 
 # --- get_active_weights / compute_and_store_score — real DB round trip ---
@@ -348,7 +335,7 @@ async def test_compute_and_store_score_is_perfect_for_an_ideal_profile(
             log_date=datetime.datetime.now(datetime.UTC).date(),
             sleep_hours=8,
             sleep_quality=10,
-            water_intake_liters=2.0,
+            water_intake_liters=3.0,
             stress_level=1,
             diet_quality=10,
             exercise_frequency=5,
@@ -449,3 +436,247 @@ async def test_count_all_assessments_increases_after_a_real_score_is_stored(
 
     after = await count_all_assessments(db_session)
     assert after == before + 1
+
+
+# --- Milestone 2 P10 mandated tests (MILESTONE_2_MASTER_PROMPT.md P10) ---
+
+
+def test_scoring_accuracy_test_optimal_parameters_yield_the_maximum_weighted_score() -> None:
+    """The mandated "Scoring Accuracy Test" — every sub-score at its ceiling (100)
+    must yield the composite's own ceiling. Weights sum to 1.00 (chk_weights_sum),
+    so this is exactly 100.0, not an approximation of it."""
+    overall = calculate_skin_health_score(
+        skin_condition=100.0,
+        lifestyle=100.0,
+        sleep_quality=100.0,
+        routine_adherence=100.0,
+        hydration=100.0,
+        **_DOC_WEIGHTS,
+    )
+    assert overall == pytest.approx(100.0)
+
+
+def test_worst_case_inputs_floor_the_composite_at_zero() -> None:
+    overall = calculate_skin_health_score(
+        skin_condition=0.0,
+        lifestyle=0.0,
+        sleep_quality=0.0,
+        routine_adherence=0.0,
+        hydration=0.0,
+        **_DOC_WEIGHTS,
+    )
+    assert overall == pytest.approx(0.0)
+
+
+@pytest.mark.parametrize(
+    "key",
+    [
+        "skin_condition_weight",
+        "lifestyle_weight",
+        "sleep_quality_weight",
+        "routine_adherence_weight",
+        "hydration_weight",
+    ],
+)
+def test_each_weight_contributes_exactly_its_documented_share(key: str) -> None:
+    """Isolate one sub-score at 100 with every other at 0 — the composite must
+    equal exactly that one weight's documented share (0.35/0.20/0.15/0.20/0.10 *
+    100), proving no weight silently contributes more or less than the doc says."""
+    sub_scores = {
+        "skin_condition": 0.0,
+        "lifestyle": 0.0,
+        "sleep_quality": 0.0,
+        "routine_adherence": 0.0,
+        "hydration": 0.0,
+    }
+    sub_score_key = key.removesuffix("_weight")
+    sub_scores[sub_score_key] = 100.0
+
+    overall = calculate_skin_health_score(**sub_scores, **_DOC_WEIGHTS)
+
+    assert overall == pytest.approx(_DOC_WEIGHTS[key] * 100.0)
+
+
+def test_composite_stays_within_bounds_across_a_wide_randomised_sweep() -> None:
+    """500+ random profiles, deterministically seeded (reproducible, not flaky) —
+    the composite of any combination of five 0-100 sub-scores must stay in [0,100]."""
+    rng = random.Random(20260724)
+    for _ in range(500):
+        overall = calculate_skin_health_score(
+            skin_condition=rng.uniform(0.0, 100.0),
+            lifestyle=rng.uniform(0.0, 100.0),
+            sleep_quality=rng.uniform(0.0, 100.0),
+            routine_adherence=rng.uniform(0.0, 100.0),
+            hydration=rng.uniform(0.0, 100.0),
+            **_DOC_WEIGHTS,
+        )
+        assert 0.0 <= overall <= 100.0
+
+
+def test_calculate_skin_health_score_is_deterministic() -> None:
+    """Guardrail: the sub-score functions (and the composite) are pure — same
+    input, same output, always, across repeated calls."""
+    kwargs = {
+        "skin_condition": 62.5,
+        "lifestyle": 71.0,
+        "sleep_quality": 88.0,
+        "routine_adherence": 40.0,
+        "hydration": 66.67,
+        **_DOC_WEIGHTS,
+    }
+    results = {calculate_skin_health_score(**kwargs) for _ in range(50)}
+    assert len(results) == 1
+
+
+def test_sub_score_functions_are_deterministic() -> None:
+    concerns = [_FakeConcern(8), _FakeConcern(4)]
+    log = {
+        "exercise_frequency": 3,
+        "stress_level": 6,
+        "diet_quality": 7,
+        "sleep_hours": 6.5,
+        "sleep_quality": 6,
+        "water_intake_liters": 1.5,
+        "environmental_exposure": {"sun_hours": 2},
+    }
+    assert len({_skin_condition_score(concerns) for _ in range(20)}) == 1
+    assert len({_lifestyle_score([log], uv_index=7.0) for _ in range(20)}) == 1
+    assert len({_sleep_quality_score([log]) for _ in range(20)}) == 1
+    assert len({_hydration_score([log]) for _ in range(20)}) == 1
+    assert len({_routine_adherence_score([1, 2], [log]) for _ in range(20)}) == 1
+
+
+async def test_a_new_user_with_no_completion_logs_receives_adherence_100(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    """MILESTONE 2.docx §2: "defaults to 100% for a new assessment with no
+    history" — a brand-new profile, no routine ever generated, through the real
+    compute_and_store_score path (not just the pure function in isolation)."""
+    await create_profile(db_session, test_user_id, SkinProfileCreate(skin_type_id=1, concerns=[]))
+
+    result = await compute_and_store_score(db_session, test_user_id)
+
+    assert result.routine_adherence_score == pytest.approx(100.0)
+
+
+# --- score_band — the P1 Good/Fair/Poor ramp ---
+
+
+def test_score_band_boundaries() -> None:
+    assert score_band(100) == "Good"
+    assert score_band(75) == "Good"
+    assert score_band(74) == "Fair"
+    assert score_band(60) == "Fair"
+    assert score_band(59) == "Poor"
+    assert score_band(0) == "Poor"
+
+
+# --- Skin Age (decision C6, ADR-028) ---
+
+
+def test_representative_age_for_group_matches_every_band() -> None:
+    assert representative_age_for_group("Under 18") == 16.0
+    assert representative_age_for_group("18-24") == 21.0
+    assert representative_age_for_group("25-34") == 29.5
+    assert representative_age_for_group("65+") == 70.0
+
+
+def test_representative_age_for_group_is_none_for_unset_or_unknown() -> None:
+    assert representative_age_for_group(None) is None
+    assert representative_age_for_group("not-a-real-band") is None
+
+
+def test_derive_skin_age_matches_actual_age_for_a_perfect_condition_score() -> None:
+    assert derive_skin_age(skin_condition_score=100.0, actual_age=30.0) == pytest.approx(30.0)
+
+
+def test_derive_skin_age_ages_up_by_the_max_penalty_for_a_zero_condition_score() -> None:
+    assert derive_skin_age(skin_condition_score=0.0, actual_age=30.0) == pytest.approx(
+        30.0 + constants.SKIN_AGE_MAX_PENALTY_YEARS
+    )
+
+
+def test_derive_skin_age_is_monotonic_with_condition_score() -> None:
+    better = derive_skin_age(skin_condition_score=80.0, actual_age=30.0)
+    worse = derive_skin_age(skin_condition_score=40.0, actual_age=30.0)
+    assert better < worse
+
+
+async def test_compute_and_store_score_includes_skin_age_when_age_group_is_set(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    await create_profile(
+        db_session,
+        test_user_id,
+        SkinProfileCreate(skin_type_id=1, age_group="25-34", concerns=[]),
+    )
+
+    result = await compute_and_store_score(db_session, test_user_id)
+
+    assert result.skin_age is not None
+    assert result.band in ("Good", "Fair", "Poor")
+
+
+async def test_compute_and_store_score_skin_age_is_none_without_an_age_group(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    await create_profile(db_session, test_user_id, SkinProfileCreate(skin_type_id=1, concerns=[]))
+
+    result = await compute_and_store_score(db_session, test_user_id)
+
+    assert result.skin_age is None
+
+
+# --- GET /api/v1/assessment/score/{id} (P10) ---
+
+
+async def test_get_score_by_id_returns_none_for_an_unknown_id(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    assert await get_score_by_id(db_session, test_user_id, 999_999) is None
+
+
+async def test_get_score_by_id_returns_none_for_another_users_score(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    other_user_id = f"{test_user_id}-other"
+
+    await db_session.execute(
+        external_user_table.insert().values(
+            id=other_user_id,
+            email=f"{other_user_id}@test.invalid",
+            name="Other User",
+            emailVerified=False,
+        )
+    )
+    await db_session.flush()
+    await create_profile(db_session, other_user_id, SkinProfileCreate(skin_type_id=1, concerns=[]))
+    other_score = await compute_and_store_score(db_session, other_user_id)
+
+    assert await get_score_by_id(db_session, test_user_id, other_score.score_id) is None
+
+
+async def test_get_score_by_id_returns_the_real_score_for_its_owner(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    await create_profile(db_session, test_user_id, SkinProfileCreate(skin_type_id=1, concerns=[]))
+    stored = await compute_and_store_score(db_session, test_user_id)
+
+    fetched = await get_score_by_id(db_session, test_user_id, stored.score_id)
+
+    assert fetched is not None
+    assert fetched.score_id == stored.score_id
+    assert fetched.overall_score == pytest.approx(stored.overall_score)
+
+
+async def test_score_by_id_endpoint_404s_for_an_unknown_id(client: AsyncClient) -> None:
+    app.dependency_overrides[require_user] = lambda: {
+        "id": "test-score-endpoint-404",
+        "role": "user",
+        "claims": {},
+    }
+    try:
+        response = await client.get("/api/v1/assessment/score/999999999")
+    finally:
+        app.dependency_overrides.pop(require_user, None)
+    assert response.status_code == 404

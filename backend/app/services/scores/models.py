@@ -4,6 +4,7 @@ from sqlalchemy import CheckConstraint, ForeignKey, Index, Numeric, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.postgres import Base
+from app.services.scores import constants
 
 # Nullability/types match database_schemas/skinlytics_postgresql_schema_v3.sql's literal
 # DDL exactly, same discipline as skin_profile/models.py. Owned by the Skin Health
@@ -30,11 +31,21 @@ class ScoringWeights(Base):
     )
 
     weight_id: Mapped[int] = mapped_column(primary_key=True)
-    skin_condition_weight: Mapped[float] = mapped_column(Numeric(4, 2), default=0.35)
-    lifestyle_weight: Mapped[float] = mapped_column(Numeric(4, 2), default=0.20)
-    sleep_quality_weight: Mapped[float] = mapped_column(Numeric(4, 2), default=0.15)
-    routine_adherence_weight: Mapped[float] = mapped_column(Numeric(4, 2), default=0.20)
-    hydration_weight: Mapped[float] = mapped_column(Numeric(4, 2), default=0.10)
+    skin_condition_weight: Mapped[float] = mapped_column(
+        Numeric(4, 2), default=constants.SKIN_CONDITION_WEIGHT
+    )
+    lifestyle_weight: Mapped[float] = mapped_column(
+        Numeric(4, 2), default=constants.LIFESTYLE_WEIGHT
+    )
+    sleep_quality_weight: Mapped[float] = mapped_column(
+        Numeric(4, 2), default=constants.SLEEP_QUALITY_WEIGHT
+    )
+    routine_adherence_weight: Mapped[float] = mapped_column(
+        Numeric(4, 2), default=constants.ROUTINE_ADHERENCE_WEIGHT
+    )
+    hydration_weight: Mapped[float] = mapped_column(
+        Numeric(4, 2), default=constants.HYDRATION_WEIGHT
+    )
     is_active: Mapped[bool | None] = mapped_column(default=True)
     created_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
 

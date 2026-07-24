@@ -249,6 +249,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/assessment/score/{score_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Score By Id */
+        get: operations["get_score_by_id_api_v1_assessment_score__score_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/assessment/submit": {
         parameters: {
             query?: never;
@@ -2428,6 +2445,10 @@ export interface components {
             routine_adherence_score: number | null;
             /** Overall Score */
             overall_score: number | null;
+            /** Skin Age */
+            skin_age?: number | null;
+            /** Band */
+            band?: string | null;
             weights: components["schemas"]["ScoreWeightsRead"];
             /** Calculated At */
             calculated_at: string | null;
@@ -3150,6 +3171,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ScoreRead"];
+                };
+            };
+        };
+    };
+    get_score_by_id_api_v1_assessment_score__score_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                score_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScoreRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

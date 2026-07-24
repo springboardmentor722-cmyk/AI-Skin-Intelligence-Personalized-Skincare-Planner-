@@ -28,3 +28,19 @@ async def get_my_score(
         return await service.compute_and_store_score(db, user["id"])
     except ValueError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+
+
+# Milestone 2 P10 — MILESTONE 2.docx §2's by-id read: "Returns overall health
+# score (0-100) and individual sub-scores". Ownership-checked (service.py's
+# get_score_by_id filters by user_id in the query itself) — a score_id belonging
+# to another user 404s exactly like an unknown one, never leaking existence.
+@router.get("/assessment/score/{score_id}")
+async def get_score_by_id(
+    score_id: int,
+    user: Annotated[dict[str, Any], Depends(require_role("user"))],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> ScoreRead:
+    result = await service.get_score_by_id(db, user["id"], score_id)
+    if result is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Score not found")
+    return result
