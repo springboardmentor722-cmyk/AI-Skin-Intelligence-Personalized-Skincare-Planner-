@@ -96,3 +96,15 @@ unlike concerns which the source schema deliberately leaves unconstrained).
 addition, not a replacement; the column stays as a free-text fallback for
 whatever a structured ingredient id can't capture. Applied via Alembic migration
 (see that migration's own docstring for the revision id).
+
+## 2026-07-24 — M2-P9: `assessment_submissions` table (NEW)
+
+`POST /api/v1/assessment/submit`'s immutable raw snapshot (MILESTONE 2.docx "4.
+Core Backend API Endpoints": "Validates survey inputs and saves raw assessment
+snapshot to PostgreSQL"). Append-only — a re-assessment always inserts a new row,
+never updates one — so `raw_payload` (JSONB) is a genuine audit trail of what the
+wizard actually sent, independent of `skin_profiles` (the current, versioned
+profile the same submission also writes via the existing Skin Profile service)
+and `skin_assessments` (the computed score row `score_id` points at). Not a
+replacement for either — a third, narrower table recording the submission event
+itself.

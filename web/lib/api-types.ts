@@ -249,6 +249,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/assessment/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit Assessment */
+        post: operations["submit_assessment_api_v1_assessment_submit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/routine": {
         parameters: {
             query?: never;
@@ -1169,6 +1186,111 @@ export interface components {
             motion_preference?: string | null;
         };
         /**
+         * AssessmentConcernInput
+         * @description Canonical concern entry (ADR-021 C4) — `id` matches a real
+         *     `skin_concerns.concern_id`, validated against the seeded table in the service
+         *     layer (a Pydantic-level enum can't express a lookup-table membership check).
+         */
+        AssessmentConcernInput: {
+            /** Id */
+            id: number;
+            /** Severity */
+            severity: number;
+        };
+        /** AssessmentLifestyleInput */
+        AssessmentLifestyleInput: {
+            /** Sleep Hours */
+            sleep_hours: number;
+            /** Water Intake Liters */
+            water_intake_liters: number;
+            /** Stress Level */
+            stress_level: number;
+            /**
+             * Sun Exposure
+             * @enum {string}
+             */
+            sun_exposure: "None" | "Low" | "Moderate" | "High";
+        };
+        /**
+         * AssessmentSubmitRequest
+         * @description Matches the P0-frozen contract exactly (docs/milestones/milestone_2/
+         *     M2_TASK_LEDGER.md M2-P08-T02, unit-tested in web/lib/__tests__/
+         *     assessment-payload.test.ts against the same worked example this backend's own
+         *     pytest suite uses). `skin_type` is validated against the real seeded
+         *     `skin_types.skin_type_name` values in the service layer, not a hardcoded
+         *     Literal — skin types are a lookup table, not a true enum (ADR-021 C1 added
+         *     "Normal" to the doc's original 4).
+         */
+        AssessmentSubmitRequest: {
+            /** Skin Type */
+            skin_type: string;
+            lifestyle: components["schemas"]["AssessmentLifestyleInput"];
+            /** Concerns */
+            concerns?: components["schemas"]["AssessmentConcernInput"][];
+            /**
+             * Acne Severity
+             * @deprecated
+             */
+            acne_severity?: number | null;
+            /**
+             * Hyperpigmentation Severity
+             * @deprecated
+             */
+            hyperpigmentation_severity?: number | null;
+            /**
+             * Dark Spots Severity
+             * @deprecated
+             */
+            dark_spots_severity?: number | null;
+            /**
+             * Dry Skin Severity
+             * @deprecated
+             */
+            dry_skin_severity?: number | null;
+            /**
+             * Oily Skin Severity
+             * @deprecated
+             */
+            oily_skin_severity?: number | null;
+            /**
+             * Sensitive Skin Severity
+             * @deprecated
+             */
+            sensitive_skin_severity?: number | null;
+            /**
+             * Wrinkles Severity
+             * @deprecated
+             */
+            wrinkles_severity?: number | null;
+            /**
+             * Fine Lines Severity
+             * @deprecated
+             */
+            fine_lines_severity?: number | null;
+            /**
+             * Redness Severity
+             * @deprecated
+             */
+            redness_severity?: number | null;
+            /**
+             * Uneven Skin Tone Severity
+             * @deprecated
+             */
+            uneven_skin_tone_severity?: number | null;
+        };
+        /** AssessmentSubmitResponse */
+        AssessmentSubmitResponse: {
+            /** Assessment Id */
+            assessment_id: number;
+            /** Submission Id */
+            submission_id: number;
+            /** Prioritized Concerns */
+            prioritized_concerns: components["schemas"]["PrioritizedConcernRead"][];
+            /** Risk Factors */
+            risk_factors: components["schemas"]["RiskFactorRead"][];
+            score: components["schemas"]["ScoreRead"];
+        };
+        /**
          * AuditLogCreate
          * @description Body for POST /admin/audit-logs — the one write path `audit_logs` has (this
          *     service, docs/CONVENTIONS.md's single-writer rule), used both by this service's own
@@ -1997,6 +2119,15 @@ export interface components {
             /** Total Products */
             total_products: number;
         };
+        /** PrioritizedConcernRead */
+        PrioritizedConcernRead: {
+            /** Concern Id */
+            concern_id: number;
+            /** Severity */
+            severity: number;
+            /** Rank */
+            rank: number;
+        };
         /** ProductAlternativesRead */
         ProductAlternativesRead: {
             /** Alternatives */
@@ -2221,6 +2352,15 @@ export interface components {
             match_score: number;
             /** Reasons */
             reasons: string[];
+        };
+        /** RiskFactorRead */
+        RiskFactorRead: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Description */
+            description: string;
         };
         /** RoutineProductRead */
         RoutineProductRead: {
@@ -3010,6 +3150,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ScoreRead"];
+                };
+            };
+        };
+    };
+    submit_assessment_api_v1_assessment_submit_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssessmentSubmitRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssessmentSubmitResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

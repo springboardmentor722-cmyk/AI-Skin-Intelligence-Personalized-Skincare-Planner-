@@ -722,3 +722,59 @@ was to stop relying on.
 `skin_profile_allergies` directly — a real join, not a text-parsing heuristic.
 A future session should not "clean up" the now-secondary `allergies` TEXT column
 without checking whether real free-text notes have accumulated there first.
+
+## ADR-027 — P9 builds a real payload-accepting POST /assessment/submit, superseding ADR-020 point 2's "rename only" plan
+**Status:** Accepted (M2-P9)
+**Context:** `M2_GAP_ANALYSIS.md` (written at P0, before P8 executed) concluded the
+three FastAPI endpoints needed only a rename — `POST /api/v1/assessment/evaluate`
+→ `POST /api/v1/assessment/submit`, same handler, still "recompute the score for
+the current user's already-saved profile," no request body. That was correct
+*at the time*: nothing yet depended on the endpoint accepting the P0-frozen
+payload shape. P8 changed that — by explicit product-owner decision (AskUserQuestion,
+that session), the assessment wizard now builds `buildAssessmentSubmitPayload`'s
+exact contract shape (flat `{concern}_severity` fields alongside the canonical
+`concerns[]` array, plus a `lifestyle` sub-object) and submits it against a fixture,
+specifically so a later phase could wire it to a real endpoint accepting that shape.
+A bare rename with no body would leave that payload with nowhere real to go.
+**Decision:** P9 builds the real thing the master prompt's own P9 phase text
+describes, superseding ADR-020 point 2 on this one item: a new
+`backend/app/services/assessment/` module (`schemas.py`/`service.py`/`router.py`/
+`models.py`) with `POST /api/v1/assessment/submit` accepting the full frozen
+payload, hard-validating `skin_type` and every `concerns[].id` against the real
+`skin_types`/`skin_concerns` lookup tables (service-layer, not a hardcoded Pydantic
+enum — both are lookup tables, not true enums), and the flat severity fields via
+Pydantic `Field(ge=0, le=10, deprecated=True)` (automatic 422s for out-of-range
+values, no service code needed). On success it: syncs a new versioned
+`skin_profiles` row and today's `lifestyle_logs` document (through the Skin
+Profile service's existing interface functions, single-writer rule, AGENTS.md §2
+rule 4 — this module never touches those tables directly), computes a real score
+via the existing `scores_service.compute_and_store_score` (P10 improves that
+engine's own math in place; P9 only calls it), and persists an immutable
+`assessment_submissions` row (new table, `raw_payload` JSONB, append-only — a
+re-assessment always inserts, never updates). Returns `assessment_id` = the
+computed `SkinScore.score_id`, which is what P10's `GET /assessment/score/{id}`
+takes — not the raw-submission row's own id.
+`user_id` is never accepted from the request body (the docx's own worked example
+includes one, `"user_id": "usr_99"`, purely as illustrative JSON) — it always
+comes from `Depends(require_role("user"))`, matching every other endpoint in this
+codebase; trusting a client-supplied id for whose data to write would be a real
+authorization hole.
+Concern prioritisation (`prioritize_concerns`) and risk-factor analysis
+(`derive_risk_factors`) are pure, unit-tested functions per the master prompt's
+own ask — ranked by severity descending, ties broken by original submission order
+(Python's stable sort), thresholds for risk factors documented in the function's
+own docstring rather than invented per call site.
+**Consequences:** `POST /api/v1/assessment/evaluate` (aliased to the old
+`compute_and_store_score`-only handler) is untouched and still mounted — this is
+an addition, not a replacement of the existing scores router. A future session
+should not read `M2_GAP_ANALYSIS.md`'s "rename only" conclusion as still
+authoritative for this endpoint; this ADR is the corrected record. Also fixed
+`app/core/errors.py`'s `StarletteHTTPException` handler in the same branch: it
+previously stringified any `HTTPException(...).detail` into one flattened
+`message` string regardless of shape, so a list-valued `detail` (this module's own
+field-level 422 errors) never reached the envelope's `details` array the way
+`RequestValidationError`'s handler already does for Pydantic-level failures — now
+a list `detail` populates `details` structured, matching that existing convention.
+Zero other endpoint in the codebase passed a list-valued `detail` before this
+branch, confirmed by a full-repo grep, so this is a strict widening with no
+existing-behavior change elsewhere.

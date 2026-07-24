@@ -16,6 +16,7 @@ from app.db.postgres import engine
 from app.db.redis import get_redis
 from app.services.admin.router import router as admin_router
 from app.services.analytics.router import router as analytics_router
+from app.services.assessment.router import router as assessment_router
 from app.services.clinical_review.router import router as clinical_review_router
 from app.services.consultant_profile.router import router as consultant_profile_router
 from app.services.dermatologist_profile.router import router as dermatologist_profile_router
@@ -127,6 +128,7 @@ def create_app() -> FastAPI:
     api_v1.include_router(skin_profile_router, tags=["skin-profiles"])
     api_v1.include_router(lifestyle_router, tags=["lifestyle-logs"])
     api_v1.include_router(scores_router, tags=["scores"])
+    api_v1.include_router(assessment_router, tags=["assessment"])
     api_v1.include_router(routines_router, tags=["routines"])
     api_v1.include_router(recommendations_router, tags=["recommendations"])
     # products_router (M3-C) already declares full paths (/products, /products/{id},
