@@ -47,7 +47,7 @@ export default function AssessmentIntroPage() {
                 Assessment plan
               </h2>
               <p className="text-on-surface-variant font-sans text-sm">
-                A 4-step protocol taking about 3 minutes, followed by your results.
+                A 5-step protocol taking about 3 minutes, followed by your results.
               </p>
             </div>
             <div className="flex flex-col gap-4">

@@ -9,19 +9,18 @@ import { createContext, useContext, useSyncExternalStore, type ReactNode } from 
 // wizard. Results are a deterministic client-side summary of these answers, not a real
 // AI call (matches the same ADR-007 "deterministic, seeded placeholder" pattern the
 // real backend stubs use, just computed in the browser since no endpoint exists).
-export interface AssessmentSensitivities {
-  reactsToActives: boolean;
-  sunSensitive: boolean;
-  rednessProne: boolean;
-}
-
+// Milestone 2 P8 (MILESTONE 2.docx §"Severity Sliders") — severity is a 0-10 slider
+// value per selected concern, not a mild/moderate/severe category; it's carried
+// straight into the payload builder's concerns[] array unchanged.
 export interface AssessmentConcernPriority {
   concernId: number;
   concernName: string;
-  severity: "mild" | "moderate" | "severe";
+  severity: number;
 }
 
-export type SunExposure = "indoor" | "occasional" | "outdoor" | "intense";
+// Doc-literal casing (MILESTONE 2.docx §"3. How the Payload Sends to the Backend":
+// "sun_exposure": "Moderate") — the payload builder emits this string verbatim.
+export type SunExposure = "None" | "Low" | "Moderate" | "High";
 
 export interface AssessmentState {
   ageGroup: string | null;
@@ -30,11 +29,8 @@ export interface AssessmentState {
   skinTypeId: number | null;
   skinTypeName: string | null;
   priorities: AssessmentConcernPriority[];
-  allergies: string[];
-  sensitivities: AssessmentSensitivities;
   sleepHours: number;
-  sleepQuality: string;
-  waterGlasses: number;
+  waterLiters: number;
   stressLevel: number;
   sunExposure: SunExposure;
 }
@@ -46,13 +42,10 @@ const DEFAULT_STATE: AssessmentState = {
   skinTypeId: null,
   skinTypeName: null,
   priorities: [],
-  allergies: [],
-  sensitivities: { reactsToActives: false, sunSensitive: false, rednessProne: false },
   sleepHours: 7.5,
-  sleepQuality: "Occasional waking",
-  waterGlasses: 6,
+  waterLiters: 2,
   stressLevel: 5,
-  sunExposure: "occasional",
+  sunExposure: "Moderate",
 };
 
 const STORAGE_KEY = "skinlytics.assessment";
