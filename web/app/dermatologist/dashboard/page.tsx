@@ -6,21 +6,18 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   BadgeCheck,
-  BarChart3,
   Clock,
   FileText,
-  FileWarning,
   Loader2,
   Mail,
   RotateCw,
   ShieldAlert,
-  Stethoscope,
   TriangleAlert,
   Upload,
-  UserRound,
   X,
 } from "lucide-react";
 
+import { ClinicalDashboard } from "@/components/clinical-review/clinical-dashboard";
 import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -95,25 +92,6 @@ const TONE_CLASSES: Record<string, string> = {
   destructive: "bg-destructive/10 text-destructive",
   success: "bg-success/10 text-success",
 };
-
-const COMING_SOON = [
-  { icon: UserRound, title: "Patients", body: "Patient management is coming in a later milestone." },
-  {
-    icon: FileWarning,
-    title: "Condition reports",
-    body: "Reviewing condition reports is coming in a later milestone.",
-  },
-  {
-    icon: Stethoscope,
-    title: "Treatment plans",
-    body: "Building treatment plans is coming in a later milestone.",
-  },
-  {
-    icon: BarChart3,
-    title: "Analytics",
-    body: "Patient analytics is coming in a later milestone.",
-  },
-];
 
 function ProfileSummaryCard({ profile }: { profile: DermatologistProfile }) {
   const router = useRouter();
@@ -341,6 +319,14 @@ export default function DermatologistDashboardPage() {
   const status = STATUS_COPY[profile.verification_status];
   const isApproved = profile.verification_status === "approved";
 
+  // Milestone 2 P5 (MILESTONE_2_UI_SPEC.md §4.3, docs/DECISIONS.md ADR-024): an
+  // approved dermatologist gets the real clinical dashboard, not the verification
+  // gate — the pending/rejected/etc. status banner + profile summary + document
+  // upload stay exactly as they were for every other status.
+  if (isApproved) {
+    return <ClinicalDashboard role="dermatologist" />;
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <div className="border-border bg-card flex items-start gap-4 rounded-2xl border p-6">
@@ -361,27 +347,7 @@ export default function DermatologistDashboardPage() {
 
       <ProfileSummaryCard profile={profile} />
 
-      {!isApproved && <DocumentsCard />}
-
-      {isApproved && (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {COMING_SOON.map((item) => (
-            <div
-              key={item.title}
-              className="border-border bg-card rounded-2xl border border-dashed p-6 text-center"
-            >
-              <item.icon
-                className="text-on-surface-variant/40 mx-auto mb-3 size-7"
-                strokeWidth={1.5}
-              />
-              <h3 className="font-heading text-on-surface text-sm font-semibold">
-                {item.title}
-              </h3>
-              <p className="text-on-surface-variant mt-1 font-sans text-xs">{item.body}</p>
-            </div>
-          ))}
-        </div>
-      )}
+      <DocumentsCard />
 
       <div className="border-border bg-card flex items-center justify-between rounded-2xl border p-4">
         <div className="flex items-center gap-2">
