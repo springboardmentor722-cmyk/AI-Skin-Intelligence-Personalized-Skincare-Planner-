@@ -8,39 +8,49 @@ invent a parallel one. Live paths not touched by this milestone
 
 ## 1. `POST /api/v1/assessment/submit`
 
-Renamed from the live `POST /api/v1/assessment/evaluate` (ADR-020 point 2). Same
-handler, same behavior — "recompute the score for the current user's already-saved
-profile," per `backend/app/services/scores/router.py`'s own documented rationale.
-No separate submit-a-whole-profile-inline payload exists or should be invented; the
-Skin Profile service (`/skin-profiles`) already owns profile writes.
+**Superseded by ADR-027 (M2-P9)** — this is now a real, new endpoint
+(`backend/app/services/assessment/`), not a rename of `/assessment/evaluate`. P8's
+wizard already builds and submits the full P0-frozen payload shape (against a
+fixture, until this phase); a bare rename with no body would have had nowhere real
+for that payload to go. `POST /api/v1/assessment/evaluate` is untouched, still
+mounted, still means "recompute the score for the current user's already-saved
+profile" — this is an addition alongside it, not a replacement.
 
 - **Auth:** `require_role("user")`.
-- **Request body:** none.
-- **Response:** `ScoreRead` (unchanged shape — `backend/app/services/scores/
-  schemas.py`):
+- **Request body:** `AssessmentSubmitRequest`
+  (`backend/app/services/assessment/schemas.py`):
   ```json
   {
-    "score_id": 42,
-    "skin_condition_score": 88.0,
-    "lifestyle_score": 91.5,
-    "sleep_quality_score": 76.0,
-    "hydration_score": 100.0,
-    "routine_adherence_score": 60.0,
-    "overall_score": 84.2,
-    "weights": {
-      "skin_condition_weight": 0.35,
-      "lifestyle_weight": 0.20,
-      "sleep_quality_weight": 0.20,
-      "routine_adherence_weight": 0.15,
-      "hydration_weight": 0.10
+    "skin_type": "Oily",
+    "concerns": [{ "id": 1, "severity": 7 }, { "id": 2, "severity": 4 }],
+    "lifestyle": {
+      "sleep_hours": 7.5,
+      "water_intake_liters": 2.5,
+      "stress_level": 4,
+      "sun_exposure": "Moderate"
     },
-    "calculated_at": "2026-07-21T10:15:00Z"
+    "acne_severity": 7,
+    "hyperpigmentation_severity": 4,
+    "redness_severity": 0,
+    "wrinkles_severity": 0
   }
   ```
-- **Errors:** `404` if no skin profile exists yet (unchanged).
-- **Deprecation:** old path `POST /api/v1/assessment/evaluate` stays mounted as an
-  alias to the same handler until a `web/` consumer sweep confirms nothing calls it
-  (same pattern as the 2026-07-15 rename), then removed.
+  `concerns[]` is canonical; the 10 flat `{concern}_severity` fields (one per
+  seeded `skin_concerns` row) are deprecated but accepted — if `concerns` is
+  omitted, the service derives it from whichever flat fields are nonzero
+  (ADR-021 C4's adapter). `skin_type` is validated against the real seeded
+  `skin_types.skin_type_name` values, not a hardcoded enum.
+- **Response:** `AssessmentSubmitResponse` — `assessment_id` (= the computed
+  `SkinScore.score_id`, what `GET /assessment/score/{id}` below takes),
+  `submission_id` (the raw-snapshot row's own id), `prioritized_concerns`,
+  `risk_factors`, and the full `score` (`ScoreRead`, unchanged shape).
+- **Errors:** `422` with field-level `details` for unknown `skin_type`, unknown
+  `concerns[].id`, severity outside 0-10, implausible `sleep_hours`/
+  `water_intake_liters`, or an unknown `sun_exposure`.
+- **Side effects:** syncs a new versioned `skin_profiles` row + today's
+  `lifestyle_logs` document (through the Skin Profile service, never written
+  directly), computes and stores a real score, and appends an immutable
+  `assessment_submissions` row (new table — raw payload, append-only).
 
 ## 2. `GET /api/v1/assessment/score/{id}`
 

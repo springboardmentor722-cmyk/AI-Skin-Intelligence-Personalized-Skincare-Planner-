@@ -301,6 +301,21 @@ CREATE TABLE skin_assessments (
     calculated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Milestone 2 P9 (MILESTONE 2.docx "4. Core Backend API Endpoints") — the
+-- immutable raw snapshot POST /api/v1/assessment/submit persists. Append-only:
+-- a re-assessment writes a new row, never an update. Separate from
+-- skin_assessments (the computed score row) and skin_profiles (the current
+-- profile) — this is the audit trail of what was actually submitted, verbatim.
+CREATE TABLE assessment_submissions (
+    submission_id SERIAL PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+    schema_version INTEGER NOT NULL DEFAULT 1,
+    raw_payload JSONB NOT NULL,
+    score_id INTEGER REFERENCES skin_assessments(score_id),
+    submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_assessment_submissions_user ON assessment_submissions(user_id);
+
 CREATE TABLE progress_reports (
     report_id SERIAL PRIMARY KEY,
     user_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,

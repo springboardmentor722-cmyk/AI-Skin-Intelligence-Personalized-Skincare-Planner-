@@ -41,9 +41,19 @@ def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(StarletteHTTPException)
     async def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
         code = _STATUS_CODE_NAMES.get(exc.status_code, "error")
+        # A caller that raises HTTPException(422, detail=[{"loc": ..., "msg": ...}])
+        # (M2-P9's field-level validation errors) wants those in `details`, the same
+        # shape RequestValidationError's handler below already gives Pydantic-level
+        # failures — not flattened into one stringified `message`. Every other
+        # HTTPException in this codebase still passes a plain string, so this only
+        # changes behavior for list-valued detail.
+        if isinstance(exc.detail, list):
+            message, details = "Request validation failed", jsonable_encoder(exc.detail)
+        else:
+            message, details = str(exc.detail), None
         return JSONResponse(
             status_code=exc.status_code,
-            content=error_envelope(request, code, str(exc.detail)),
+            content=error_envelope(request, code, message, details),
             headers=exc.headers,
         )
 
