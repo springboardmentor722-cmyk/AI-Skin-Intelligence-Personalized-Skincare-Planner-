@@ -7,13 +7,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.mongo import get_mongo_db
 from app.db.outbox import append_outbox
 from app.db.redis import get_redis
+
+# Cross-service reference-table import, same established pattern
+# ingredients/service.py already uses in the other direction (imports
+# skin_profile.models.SkinType/SkinConcern directly) — Ingredient is a catalog/
+# reference table, not domain data this service would ever write.
+from app.services.ingredients.models import Ingredient
 from app.services.skin_profile.models import (
     SkinConcern,
     SkinProfile,
+    SkinProfileAllergy,
     SkinProfileConcern,
     SkinType,
 )
 from app.services.skin_profile.schemas import (
+    AllergyIngredientRead,
     LifestyleLogCreate,
     LifestyleLogRead,
     SkinProfileConcernRead,
@@ -39,6 +47,19 @@ async def _read_with_concerns(db: AsyncSession, profile: SkinProfile) -> SkinPro
         )
     )
     concerns = list(result.scalars().all())
+
+    # Milestone 2 P7 (docs/DECISIONS.md ADR-026) — structured allergy list, joined
+    # for the real ingredient name (id alone isn't useful to render).
+    allergy_result = await db.execute(
+        select(SkinProfileAllergy.ingredient_id, Ingredient.ingredient_name)
+        .join(Ingredient, Ingredient.ingredient_id == SkinProfileAllergy.ingredient_id)
+        .where(SkinProfileAllergy.skin_profile_id == profile.skin_profile_id)
+    )
+    allergy_ingredients = [
+        AllergyIngredientRead(ingredient_id=row.ingredient_id, ingredient_name=row.ingredient_name)
+        for row in allergy_result.all()
+    ]
+
     return SkinProfileRead(
         skin_profile_id=profile.skin_profile_id,
         skin_type_id=profile.skin_type_id,
@@ -53,6 +74,7 @@ async def _read_with_concerns(db: AsyncSession, profile: SkinProfile) -> SkinPro
             )
             for c in concerns
         ],
+        allergy_ingredients=allergy_ingredients,
         created_at=profile.created_at,
         updated_at=profile.updated_at,
     )
@@ -118,6 +140,17 @@ async def create_profile(
             )
         )
 
+    # Milestone 2 P7 (docs/DECISIONS.md ADR-026) — structured allergy list.
+    # De-duplicated: the model's UNIQUE(skin_profile_id, ingredient_id) would
+    # otherwise reject a caller that accidentally sent the same id twice.
+    for ingredient_id in dict.fromkeys(data.allergy_ingredient_ids):
+        db.add(
+            SkinProfileAllergy(
+                skin_profile_id=profile.skin_profile_id,
+                ingredient_id=ingredient_id,
+            )
+        )
+
     # M3-A: outbox row now, even though the worker's user_profiles_namespace consumer
     # doesn't land until M3-D's recommender — appending here means no re-derivation of
     # "what changed since" once that consumer exists (ADR-010).
@@ -158,4 +191,21 @@ async def upsert_lifestyle_log(user_id: str, data: LifestyleLogCreate) -> Lifest
 async def list_recent_lifestyle_logs(user_id: str, limit: int = 30) -> list[dict[str, Any]]:
     collection = get_mongo_db()[_LIFESTYLE_COLLECTION]
     cursor = collection.find({"user_id": user_id}).sort("log_date", -1).limit(limit)
+    return [doc async for doc in cursor]
+
+
+async def list_lifestyle_logs_since(user_id: str, days: int) -> list[dict[str, Any]]:
+    """Milestone 2 P7 — a real calendar-window query (`log_date >= cutoff`), not a
+    row-count `limit` (list_recent_lifestyle_logs above): the two aren't
+    equivalent once a user has missed days, and the Adherence sub-score
+    (scores/scoring_engine.py, wired in P10) needs an actual 14-day window, not
+    "however many of the last N documents happen to exist"."""
+    collection = get_mongo_db()[_LIFESTYLE_COLLECTION]
+    # Naive UTC, matching upsert_lifestyle_log's own log_date construction exactly
+    # (datetime.combine(date, time.min)) — comparing a naive cutoff against naive
+    # stored values, not mixing aware/naive.
+    cutoff = datetime.datetime.utcnow() - datetime.timedelta(days=days)  # noqa: DTZ003
+    cursor = collection.find({"user_id": user_id, "log_date": {"$gte": cutoff}}).sort(
+        "log_date", -1
+    )
     return [doc async for doc in cursor]

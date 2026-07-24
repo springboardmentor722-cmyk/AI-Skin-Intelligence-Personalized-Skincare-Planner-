@@ -43,10 +43,10 @@ phase's IDs, branch, and spec reference. Status vocabulary: `TODO` · `IN_PROGRE
 | M2-P06-T03 | P6 | Seed `skin_types` lookup table row for Normal | feat/m2-visual-datasets | TODO | ADR-021 C1 | Plain INSERT — not an enum migration, table is a lookup table |
 | M2-P06-T04 | P6 | SVG assets under web/public/assets/{skin_types,concerns}/ | feat/m2-visual-datasets | TODO | ADR-021 C5 | Confirmed absent |
 | M2-P06-T05 | P6 | Schema-validation pytest | feat/m2-visual-datasets | TODO | Master prompt P6 | |
-| M2-P07-T01 | P7 | Extend skin_profile CRUD for docx-named fields | feat/m2-skin-profile | TODO | MILESTONE 2.docx §2 | Mostly exists — verify field coverage, don't rebuild |
-| M2-P07-T02 | P7 | 4-tracker time-series models (14-day window) | feat/m2-skin-profile | TODO | MILESTONE 2.docx §2 | `lifestyle_logs` exists — confirm 14-day query support |
-| M2-P07-T03 | P7 | Structured allergy list (ingredient ids, not free text) | feat/m2-skin-profile | TODO | MILESTONE 2.docx §2 | Guardrail — needed for P12 |
-| M2-P07-T04 | P7 | /check-in daily entry page | feat/m2-skin-profile | TODO | UI_SPEC §3.1 | Nav item exists, page needs confirmation |
+| M2-P07-T01 | P7 | Extend skin_profile CRUD for docx-named fields | feat/m2-skin-profile | DONE | MILESTONE 2.docx §2 | Confirmed already covered (skin type, age, concerns, allergies, sensitivities); no rebuild needed |
+| M2-P07-T02 | P7 | 4-tracker time-series models (14-day window) | feat/m2-skin-profile | DONE | MILESTONE 2.docx §2 | `lifestyle_logs` already covered all 4 trackers; added `list_lifestyle_logs_since(user_id, days)` for the real 14-day window (old `list_recent_lifestyle_logs` was row-count only) |
+| M2-P07-T03 | P7 | Structured allergy list (ingredient ids, not free text) | feat/m2-skin-profile | DONE | MILESTONE 2.docx §2 | New `skin_profile_allergies` junction table (migration `e8c1b4020614`), ADR-026; frontend allergy field is now a real ingredient search (shadcn `combobox`) instead of a free-text tag input |
+| M2-P07-T04 | P7 | /check-in daily entry page | feat/m2-skin-profile | DONE | UI_SPEC §3.1 | Added missing stress-level + sun-exposure sliders and a real 30-day sleep/hydration history (`TrendChart`) fed by `GET /lifestyle-logs/me` |
 | M2-P08-T01 | P8 | Wizard steps 1-4 consuming P6 datasets | feat/m2-assessment-wizard | TODO | MILESTONE 2.docx §2 (Interactive Selection Flow) | `web/app/assessment/*` exists — rewire to JSON datasets |
 | M2-P08-T02 | P8 | Payload builder: concerns[] + flat-field compat (ADR-021 C4) | feat/m2-assessment-wizard | TODO | MILESTONE 2.docx §3 | Unit-test against docx's worked example |
 | M2-P08-T03 | P8 | Submit to POST /api/v1/assessment/submit (fixtures until P14) | feat/m2-assessment-wizard | TODO | M2_API_CONTRACT §1 | |

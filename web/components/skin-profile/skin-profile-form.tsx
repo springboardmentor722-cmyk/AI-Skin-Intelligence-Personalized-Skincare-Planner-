@@ -18,6 +18,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Slider } from "@/components/ui/slider";
 import { TagInput } from "@/components/ui/tag-input";
+import { AllergyIngredientSelect } from "@/components/skin-profile/allergy-ingredient-select";
 import { api } from "@/lib/api";
 import type { components } from "@/lib/api-types";
 import { AGE_GROUPS, GENDER_OPTIONS, type SkinProfileFormValues } from "@/lib/schemas/skin-profile";
@@ -51,7 +52,12 @@ function formFromProfile(profile: SkinProfileRead | null): SkinProfileFormValues
       severity_rating: c.severity_rating ?? 5,
       priority_level: c.priority_level ?? 5,
     })),
-    allergies: splitTags(profile.allergies),
+    // docs/DECISIONS.md ADR-026 — structured ingredient ids, not the legacy
+    // free-text `allergies` column (that stays an unrelated, unedited fallback).
+    allergies: (profile.allergy_ingredients ?? []).map((a) => ({
+      ingredient_id: a.ingredient_id,
+      ingredient_name: a.ingredient_name ?? "",
+    })),
     sensitivities: splitTags(profile.sensitivities),
   };
 }
@@ -128,9 +134,9 @@ function SkinProfileFormInner({
         body: {
           skin_type_id: values.skin_type_id,
           age_group: values.age_group ?? null,
-          allergies: values.allergies.join(", ") || null,
           sensitivities: values.sensitivities.join(", ") || null,
           concerns: values.concerns,
+          allergy_ingredient_ids: values.allergies.map((a) => a.ingredient_id),
         },
       });
       if (error) throw new Error("Failed to save skin profile");
@@ -149,9 +155,10 @@ function SkinProfileFormInner({
         skin_profile_id: previous?.skin_profile_id ?? 0,
         skin_type_id: values.skin_type_id,
         age_group: values.age_group ?? null,
-        allergies: values.allergies.join(", ") || null,
+        allergies: previous?.allergies ?? null,
         sensitivities: values.sensitivities.join(", ") || null,
         concerns: values.concerns,
+        allergy_ingredients: values.allergies,
         created_at: previous?.created_at ?? now,
         updated_at: now,
       });
@@ -368,11 +375,9 @@ function SkinProfileFormInner({
       <div className="mt-6 grid gap-5 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
           <Label>Allergies</Label>
-          <TagInput
+          <AllergyIngredientSelect
             value={form.allergies}
             onChange={(allergies) => setForm((f) => ({ ...f, allergies }))}
-            placeholder="Type an allergy and press Enter"
-            aria-label="Allergies"
           />
         </div>
         <div className="flex flex-col gap-1.5">

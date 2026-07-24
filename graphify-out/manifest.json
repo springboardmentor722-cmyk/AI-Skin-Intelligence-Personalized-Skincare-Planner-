@@ -5,8 +5,8 @@
     "semantic_hash": "023109dbd695abeb21303f830aa0bb5f"
   },
   ".claude/settings.local.json": {
-    "mtime": 1784842623.763862,
-    "ast_hash": "9447e2088cabcab5eb4ee7f09757ffbd",
+    "mtime": 1784875534.7971156,
+    "ast_hash": "d305631eef9b8c53db791f51b25904d4",
     "semantic_hash": ""
   },
   ".claude/skills/shadcn/evals/evals.json": {
@@ -480,9 +480,9 @@
     "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
   },
   "backend/app/services/skin_profile/models.py": {
-    "mtime": 1784630988.6515892,
-    "ast_hash": "eb25ffa60aea22c2fc25499904461601",
-    "semantic_hash": "eb25ffa60aea22c2fc25499904461601"
+    "mtime": 1784874045.5946453,
+    "ast_hash": "e4516509c8aebd9c2b5b3989bd04426e",
+    "semantic_hash": ""
   },
   "backend/app/services/skin_profile/router.py": {
     "mtime": 1784630988.6515892,
@@ -490,13 +490,13 @@
     "semantic_hash": "b1365ef942e7086f0af1fe077cd55270"
   },
   "backend/app/services/skin_profile/schemas.py": {
-    "mtime": 1784630988.6515892,
-    "ast_hash": "118faa3c65eff4c6394df54862ebd4a6",
-    "semantic_hash": "118faa3c65eff4c6394df54862ebd4a6"
+    "mtime": 1784874138.3263154,
+    "ast_hash": "cf7fabdae1409b5405479b93f6526d7d",
+    "semantic_hash": ""
   },
   "backend/app/services/skin_profile/service.py": {
-    "mtime": 1784752316.99359,
-    "ast_hash": "fe452248b1e61cdddac60bf8489bc6a0",
+    "mtime": 1784874292.6584516,
+    "ast_hash": "b68ee01d8049877fcce9ddbbba6bf1e7",
     "semantic_hash": ""
   },
   "backend/app/services/user/__init__.py": {
@@ -720,8 +720,8 @@
     "semantic_hash": ""
   },
   "backend/tests/test_skin_profile_service.py": {
-    "mtime": 1784752317.0179324,
-    "ast_hash": "0e6cb2d312bb446251606a9a218cecd5",
+    "mtime": 1784874531.8654501,
+    "ast_hash": "5949d01802ef2ba4b6eb0980010c2d91",
     "semantic_hash": ""
   },
   "backend/tests/test_storage.py": {
@@ -760,8 +760,8 @@
     "semantic_hash": "cca28c310325600028855ea7873d3402"
   },
   "database_schemas/skinlytics_postgresql_schema_v3.sql": {
-    "mtime": 1784752317.025564,
-    "ast_hash": "f8405577abd4e8b262f5be89e0c7427b",
+    "mtime": 1784873961.116436,
+    "ast_hash": "bb4df9ed46769c1c1eecb0f54a897326",
     "semantic_hash": ""
   },
   "docker_run.py": {
@@ -1260,9 +1260,9 @@
     "semantic_hash": "c7853c14b9aef6ac6bfd4299509531e1"
   },
   "web/components/skin-profile/skin-profile-form.tsx": {
-    "mtime": 1784630988.7361903,
-    "ast_hash": "56cb5c16a7008e998595cc7ebe1d9bcc",
-    "semantic_hash": "56cb5c16a7008e998595cc7ebe1d9bcc"
+    "mtime": 1784875043.2811997,
+    "ast_hash": "077af574b7386bc115c3d22463f13816",
+    "semantic_hash": ""
   },
   "web/components/skin-score-ring.tsx": {
     "mtime": 1784630988.7361903,
@@ -1300,7 +1300,7 @@
     "semantic_hash": "261e67ca7178cf92508dcd3040952128"
   },
   "web/components/ui/button.tsx": {
-    "mtime": 1784630988.7419827,
+    "mtime": 1784874743.8532016,
     "ast_hash": "28adccfddb089085bcd0674247a941dd",
     "semantic_hash": "28adccfddb089085bcd0674247a941dd"
   },
@@ -1350,12 +1350,12 @@
     "semantic_hash": "6d7633061a29f74846a73115b7e1e9cf"
   },
   "web/components/ui/input-group.tsx": {
-    "mtime": 1784630988.7461233,
+    "mtime": 1784874743.8532016,
     "ast_hash": "62e8ed06a95cb25d19951c257baa39bc",
     "semantic_hash": "62e8ed06a95cb25d19951c257baa39bc"
   },
   "web/components/ui/input.tsx": {
-    "mtime": 1784630988.7480578,
+    "mtime": 1784874743.8532016,
     "ast_hash": "6d8109790629e35db632d90d830f9667",
     "semantic_hash": "6d8109790629e35db632d90d830f9667"
   },
@@ -1420,7 +1420,7 @@
     "semantic_hash": "3cd4a216937a2c489a9300023867b360"
   },
   "web/components/ui/textarea.tsx": {
-    "mtime": 1784630988.7480578,
+    "mtime": 1784874743.8532016,
     "ast_hash": "dcdf85bdad66fb31158b6542ec51aa18",
     "semantic_hash": "dcdf85bdad66fb31158b6542ec51aa18"
   },
@@ -1455,8 +1455,8 @@
     "semantic_hash": "715768688e537cf9bfe9165682b4e82a"
   },
   "web/lib/api-types.ts": {
-    "mtime": 1784845258.256913,
-    "ast_hash": "8ff3b4ae46d6ceb04d6a8550224561fa",
+    "mtime": 1784874675.030768,
+    "ast_hash": "24c1611957ce7209393d929380a9422c",
     "semantic_hash": ""
   },
   "web/lib/api.ts": {
@@ -1540,9 +1540,9 @@
     "semantic_hash": "7df29c3677780633597c90f36dea6661"
   },
   "web/lib/schemas/skin-profile.ts": {
-    "mtime": 1784630988.9299097,
-    "ast_hash": "9a032f449f28c73496481712891f6585",
-    "semantic_hash": "9a032f449f28c73496481712891f6585"
+    "mtime": 1784874969.1754324,
+    "ast_hash": "5894cbaafc0ec87c1ef6c685b2b962b3",
+    "semantic_hash": ""
   },
   "web/lib/score-components.ts": {
     "mtime": 1784839295.7120469,
@@ -1655,8 +1655,8 @@
     "semantic_hash": "ecb15338ffdc9dc03849ce85593ab675"
   },
   "web/tests/e2e/user-journey.spec.ts": {
-    "mtime": 1784845258.257659,
-    "ast_hash": "b972efc0708f16fc2efcefa0f2598df0",
+    "mtime": 1784875763.8821826,
+    "ast_hash": "a4fa2b69ac220f0bcaf496a38401caa2",
     "semantic_hash": ""
   },
   "web/tsconfig.json": {
@@ -1800,8 +1800,8 @@
     "semantic_hash": ""
   },
   "database_schemas/README_v3_changes.md": {
-    "mtime": 1784752458.735451,
-    "ast_hash": "dcfc0a0a92f56dc8027439109dbc46d2",
+    "mtime": 1784873992.1806476,
+    "ast_hash": "d6da958cc796ece4212aba6e04a6e37e",
     "semantic_hash": ""
   },
   "database_schemas/skinlytics_elasticsearch_schema_v2.txt": {
@@ -1855,8 +1855,8 @@
     "semantic_hash": ""
   },
   "docs/DECISIONS.md": {
-    "mtime": 1784873393.8923235,
-    "ast_hash": "8f3b870cbdb92eb7331b7cb9007a9c7c",
+    "mtime": 1784874126.092303,
+    "ast_hash": "86e8a8f9cfd6a1b36b7232d2b25cefaa",
     "semantic_hash": ""
   },
   "docs/DESIGN.md": {
@@ -3530,8 +3530,8 @@
     "semantic_hash": ""
   },
   "web/app/(user)/check-in/page.tsx": {
-    "mtime": 1784752317.074471,
-    "ast_hash": "b1c48e7e2758ce72bf7c1f529c3801fc",
+    "mtime": 1784875313.4273763,
+    "ast_hash": "2b6a72b9fedcdbfb1f818f6633c41793",
     "semantic_hash": ""
   },
   "backend/app/services/analytics/__init__.py": {
@@ -3750,8 +3750,8 @@
     "semantic_hash": ""
   },
   "docs/milestones/milestone_2/M2_TASK_LEDGER.md": {
-    "mtime": 1784838333.726113,
-    "ast_hash": "217b20e165012ac438d3c279acd3518b",
+    "mtime": 1784876271.5184565,
+    "ast_hash": "24fa0e5590748d7a10c20f39c988cb65",
     "semantic_hash": ""
   },
   "web/components/ui/scroll-area.tsx": {
@@ -4082,6 +4082,116 @@
   "docs/milestones/milestone_2/M2_P5_FIDELITY.md": {
     "mtime": 1784872074.714466,
     "ast_hash": "e3749ffc6cabf7107ffcd69d6156af2e",
+    "semantic_hash": ""
+  },
+  "backend/tests/test_visual_datasets.py": {
+    "mtime": 1784873393.8923235,
+    "ast_hash": "db6ac53531cfebc345596420e1f9485e",
+    "semantic_hash": ""
+  },
+  "web/lib/assessment/datasets.ts": {
+    "mtime": 1784873393.9277723,
+    "ast_hash": "651cadd25b35eaeba96941e61db4d359",
+    "semantic_hash": ""
+  },
+  "web/lib/assessment/skin-concerns.json": {
+    "mtime": 1784873393.9277723,
+    "ast_hash": "ba99e7d58c9f7e817f1ca5363b8601af",
+    "semantic_hash": ""
+  },
+  "web/lib/assessment/skin-types.json": {
+    "mtime": 1784873393.9315417,
+    "ast_hash": "942c3cd556a224923fdc2364783213d2",
+    "semantic_hash": ""
+  },
+  "web/public/assets/concerns/acne.svg": {
+    "mtime": 1784873393.9315417,
+    "ast_hash": "d1f8022c1b7bb3604b1ae163e4e4cdf7",
+    "semantic_hash": ""
+  },
+  "web/public/assets/concerns/dark_spots.svg": {
+    "mtime": 1784873393.9315417,
+    "ast_hash": "fa5005b3c5e0a54fcdcdb6d76667ef78",
+    "semantic_hash": ""
+  },
+  "web/public/assets/concerns/dry_skin.svg": {
+    "mtime": 1784873393.9315417,
+    "ast_hash": "bd0d3c3000adce71055c8066c74a3dee",
+    "semantic_hash": ""
+  },
+  "web/public/assets/concerns/fine_lines.svg": {
+    "mtime": 1784873393.9315417,
+    "ast_hash": "8a56f3a0b9b143fc931789107a289c48",
+    "semantic_hash": ""
+  },
+  "web/public/assets/concerns/oily_skin.svg": {
+    "mtime": 1784873393.9315417,
+    "ast_hash": "bbc2b29c4f9621a5b61f9297408acc0a",
+    "semantic_hash": ""
+  },
+  "web/public/assets/concerns/pigmentation.svg": {
+    "mtime": 1784873393.9315417,
+    "ast_hash": "01a60629cf51c05844f5bb6340ed6082",
+    "semantic_hash": ""
+  },
+  "web/public/assets/concerns/redness.svg": {
+    "mtime": 1784873393.9315417,
+    "ast_hash": "956f6fa354f7b74479f3276029276e6b",
+    "semantic_hash": ""
+  },
+  "web/public/assets/concerns/sensitive_skin.svg": {
+    "mtime": 1784873393.9315417,
+    "ast_hash": "8057afa1f22ec7794ecf3fd1c8676e56",
+    "semantic_hash": ""
+  },
+  "web/public/assets/concerns/uneven_skin_tone.svg": {
+    "mtime": 1784873393.9315417,
+    "ast_hash": "f54110a6069f08115cdf19c1e3e852da",
+    "semantic_hash": ""
+  },
+  "web/public/assets/concerns/wrinkles.svg": {
+    "mtime": 1784873393.9372358,
+    "ast_hash": "13b785a0263bd78b3ea260d78cd65f26",
+    "semantic_hash": ""
+  },
+  "web/public/assets/skin_types/combination.svg": {
+    "mtime": 1784873393.9378128,
+    "ast_hash": "3bc396f6bc4c4d68d3fef23db4d012e6",
+    "semantic_hash": ""
+  },
+  "web/public/assets/skin_types/dry.svg": {
+    "mtime": 1784873393.9378128,
+    "ast_hash": "cf33629829f93078158104e354b7691c",
+    "semantic_hash": ""
+  },
+  "web/public/assets/skin_types/normal.svg": {
+    "mtime": 1784873393.9378128,
+    "ast_hash": "8d15b3a663d479545e8a6059c673cc92",
+    "semantic_hash": ""
+  },
+  "web/public/assets/skin_types/oily.svg": {
+    "mtime": 1784873393.9378128,
+    "ast_hash": "2275487f5efda99d87f6dd49500325d2",
+    "semantic_hash": ""
+  },
+  "web/public/assets/skin_types/sensitive.svg": {
+    "mtime": 1784873393.9378128,
+    "ast_hash": "5888bb733509116741869c4367e47b1f",
+    "semantic_hash": ""
+  },
+  "backend/app/migrations/versions/e8c1b4020614_add_skin_profile_allergies_structured_.py": {
+    "mtime": 1784874088.4119525,
+    "ast_hash": "42f1aa1d83d8b975f1f7112c6b95cfe9",
+    "semantic_hash": ""
+  },
+  "web/components/skin-profile/allergy-ingredient-select.tsx": {
+    "mtime": 1784874963.7551486,
+    "ast_hash": "da02b7fa596b303d85ec92f84249bd84",
+    "semantic_hash": ""
+  },
+  "web/components/ui/combobox.tsx": {
+    "mtime": 1784874728.016434,
+    "ast_hash": "6f6ec99ce897cbb682d0e959b14fefa5",
     "semantic_hash": ""
   }
 }

@@ -176,6 +176,19 @@ CREATE TABLE ingredient_skintype_avoid (
     UNIQUE (ingredient_id, skin_type_id)
 );
 
+-- Milestone 2 P7 (MILESTONE 2.docx §2, docs/DECISIONS.md ADR-026): the allergy list
+-- is structured ingredient ids, not free text, so P12's allergy detection can match
+-- against it directly. skin_profiles.allergies (TEXT) stays as-is, unchanged and
+-- deprecated (a pre-existing column, not dropped — no destructive migration), for
+-- any free-text note a structured ingredient id can't capture.
+CREATE TABLE skin_profile_allergies (
+    profile_allergy_id SERIAL PRIMARY KEY,
+    skin_profile_id INTEGER NOT NULL REFERENCES skin_profiles(skin_profile_id) ON DELETE CASCADE,
+    ingredient_id INTEGER NOT NULL REFERENCES ingredients(ingredient_id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (skin_profile_id, ingredient_id)
+);
+
 -- ============================================================
 -- ROUTINES & PRODUCTS
 -- ============================================================
