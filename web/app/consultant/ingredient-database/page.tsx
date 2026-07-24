@@ -1,7 +1,5 @@
-import { FlaskConical } from "lucide-react";
-
-import { ComingSoon } from "@/components/app-shell/coming-soon";
+import { IngredientList } from "@/components/ingredients/ingredient-list";
 
 export default function Page() {
-  return <ComingSoon icon={FlaskConical} title="Ingredient Database" description="Search & analyze ingredients" />;
+  return <IngredientList basePath="/consultant/ingredient-database" />;
 }

@@ -308,7 +308,7 @@ const RAW_NAV: Record<Role, RawNavSection[]> = {
           subtitle: "Search & analyze ingredients",
           path: "/ingredient-database",
           icon: FlaskConical,
-          built: false,
+          built: true,
         },
         {
           id: "concerns-guide",
@@ -431,7 +431,7 @@ const RAW_NAV: Record<Role, RawNavSection[]> = {
           subtitle: "Search & analyze ingredients",
           path: "/ingredient-database",
           icon: FlaskConical,
-          built: false,
+          built: true,
         },
         {
           id: "treatment-protocols",
@@ -516,7 +516,7 @@ const RAW_NAV: Record<Role, RawNavSection[]> = {
           subtitle: "Manage ingredients",
           path: "/ingredients",
           icon: FlaskConical,
-          built: false,
+          built: true,
         },
         {
           id: "content",

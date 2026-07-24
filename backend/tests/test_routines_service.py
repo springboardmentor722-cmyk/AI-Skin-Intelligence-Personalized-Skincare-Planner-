@@ -16,14 +16,17 @@ from sqlalchemy import event as sa_event
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.ai.interactions import _INTERACTIONS, get_interaction
 from app.db.postgres import external_user_table
 from app.services.ingredients.models import Ingredient
+from app.services.recommendations import service as recommendations_service
 from app.services.recommendations.models import Product, ProductIngredient, ProductSkinType
 from app.services.routines import constants, guardrails
 from app.services.routines import service as routines_service
 from app.services.routines.guardrails import (
     GeneratedStep,
     MissingSunscreenError,
+    apply_interaction_guardrail,
     apply_safety_guardrails,
     assert_sunscreen_present,
     is_harsh_product,
@@ -55,14 +58,18 @@ _REDNESS_CONCERN_ID = 9
 
 async def _sensitive_skin_type_id(db: AsyncSession) -> int:
     return (
-        await db.execute(select(SkinType).where(SkinType.skin_type_name == "Sensitive"))
-    ).scalar_one().skin_type_id
+        (await db.execute(select(SkinType).where(SkinType.skin_type_name == "Sensitive")))
+        .scalar_one()
+        .skin_type_id
+    )
 
 
 async def _oily_skin_type_id(db: AsyncSession) -> int:
     return (
-        await db.execute(select(SkinType).where(SkinType.skin_type_name == "Oily"))
-    ).scalar_one().skin_type_id
+        (await db.execute(select(SkinType).where(SkinType.skin_type_name == "Oily")))
+        .scalar_one()
+        .skin_type_id
+    )
 
 
 # --- Basic generation ---
@@ -351,6 +358,171 @@ def test_apply_safety_guardrails_is_a_no_op_when_not_required() -> None:
         soothing_product_id=99,
     )
     assert result[0].product_id == 2
+
+
+# --- Milestone 2 P12: interaction-matrix guardrail (docs/DECISIONS.md ADR-030) -------
+# Real seeded ingredient names (backend/app/db/seed.py): Retinol + Glycolic Acid is a
+# curated "avoid" pair (app/ai/interactions.py); Retinol + Hyaluronic Acid is "synergy".
+
+
+def test_interaction_guardrail_substitutes_the_later_conflicting_step() -> None:
+    steps = [
+        GeneratedStep(
+            category=constants.TREATMENT, step_name="Retinol step", rationale="r", product_id=1
+        ),
+        GeneratedStep(
+            category=constants.EXFOLIATION, step_name="Exfoliant step", rationale="r", product_id=2
+        ),
+    ]
+    result = apply_interaction_guardrail(
+        steps,
+        product_ingredient_names={1: ["Retinol"], 2: ["Glycolic Acid"]},
+        soothing_product_id=99,
+    )
+
+    assert len(result) == 2
+    retinol_step = next(s for s in result if s.step_name == "Retinol step")
+    exfoliant_step = next(s for s in result if s.step_name == "Exfoliant step")
+    assert retinol_step.product_id == 1
+    assert retinol_step.safety_flag is None
+    assert exfoliant_step.product_id == 99
+    assert exfoliant_step.safety_flag == guardrails.SAFETY_FLAG_INTERACTION_SUBSTITUTION
+
+
+def test_interaction_guardrail_is_a_no_op_for_a_synergy_pair() -> None:
+    steps = [
+        GeneratedStep(
+            category=constants.TREATMENT, step_name="Retinol step", rationale="r", product_id=1
+        ),
+        GeneratedStep(
+            category=constants.MOISTURIZING, step_name="HA step", rationale="r", product_id=2
+        ),
+    ]
+    result = apply_interaction_guardrail(
+        steps,
+        product_ingredient_names={1: ["Retinol"], 2: ["Hyaluronic Acid"]},
+        soothing_product_id=99,
+    )
+
+    assert result[0].product_id == 1
+    assert result[1].product_id == 2
+    assert result[0].safety_flag is None
+    assert result[1].safety_flag is None
+
+
+def test_interaction_guardrail_is_a_no_op_without_a_soothing_product() -> None:
+    steps = [
+        GeneratedStep(
+            category=constants.TREATMENT, step_name="Retinol step", rationale="r", product_id=1
+        ),
+        GeneratedStep(
+            category=constants.EXFOLIATION, step_name="Exfoliant step", rationale="r", product_id=2
+        ),
+    ]
+    result = apply_interaction_guardrail(
+        steps,
+        product_ingredient_names={1: ["Retinol"], 2: ["Glycolic Acid"]},
+        soothing_product_id=None,
+    )
+
+    assert result[0].product_id == 1
+    assert result[1].product_id == 2
+
+
+def test_interaction_guardrail_does_not_mutate_the_input_list() -> None:
+    original = [
+        GeneratedStep(
+            category=constants.TREATMENT, step_name="Retinol step", rationale="r", product_id=1
+        ),
+        GeneratedStep(
+            category=constants.EXFOLIATION, step_name="Exfoliant step", rationale="r", product_id=2
+        ),
+    ]
+    apply_interaction_guardrail(
+        original,
+        product_ingredient_names={1: ["Retinol"], 2: ["Glycolic Acid"]},
+        soothing_product_id=99,
+    )
+    assert original[1].product_id == 2
+    assert original[1].safety_flag is None
+
+
+def test_interaction_guardrail_never_substitutes_a_step_already_using_the_soothing_product() -> (
+    None
+):
+    """A step already carrying the soothing product is skipped as a conflict
+    target — it's never itself replaced, and re-checking it against another
+    conflicting step would be pointless (it has no active ingredients at all)."""
+    steps = [
+        GeneratedStep(
+            category=constants.TREATMENT, step_name="Retinol step", rationale="r", product_id=1
+        ),
+        GeneratedStep(
+            category=constants.EXFOLIATION, step_name="Soothing step", rationale="r", product_id=99
+        ),
+    ]
+    result = apply_interaction_guardrail(
+        steps,
+        product_ingredient_names={1: ["Retinol"]},
+        soothing_product_id=99,
+    )
+
+    soothing_step = next(s for s in result if s.step_name == "Soothing step")
+    assert soothing_step.product_id == 99
+    assert soothing_step.safety_flag is None
+
+
+@pytest.mark.parametrize("key, expected", list(_INTERACTIONS.items()))
+def test_get_interaction_matches_every_curated_pair_in_both_orderings(
+    key: frozenset[str], expected: object
+) -> None:
+    """Regression coverage over the WHOLE curated interaction matrix — every
+    single pair, not just a couple of samples — proving `get_interaction` returns
+    exactly the stored verdict/reason regardless of argument order."""
+    name_a, name_b = tuple(key)
+    assert get_interaction(name_a, name_b) == expected
+    assert get_interaction(name_b, name_a) == expected
+
+
+async def test_generated_routines_never_place_two_avoid_paired_actives_together(
+    db_session: AsyncSession,
+) -> None:
+    """Routine-conflict regression (mile_2.docx §5 "interaction analysis" hooked
+    into P11, docs/DECISIONS.md ADR-030): swept across every seeded skin type, no
+    real generated AM/PM/Weekly/Seasonal routine may contain two steps whose
+    products' real ingredients form an "avoid"-verdict pair in the curated
+    interaction matrix. Passes today because this catalog's Treatment category
+    has exactly one active per candidate and each pipeline has one Treatment
+    step (see routines/guardrails.py), but the assertion is real and would catch
+    a future catalog change that reintroduces the conflict the guardrail exists
+    to prevent."""
+    skin_types = (await db_session.execute(select(SkinType))).scalars().all()
+    for i, skin_type in enumerate(skin_types):
+        user_id = f"conflict-sweep-user-{skin_type.skin_type_id}-{i}"
+        await db_session.execute(
+            external_user_table.insert().values(
+                id=user_id, email=f"{user_id}@test.invalid", name="Sweep User", emailVerified=False
+            )
+        )
+        await db_session.flush()
+        await create_profile(
+            db_session, user_id, SkinProfileCreate(skin_type_id=skin_type.skin_type_id)
+        )
+
+        routines = await get_or_generate_routines(db_session, user_id)
+        for routine in routines:
+            product_ids = [p.product.product_id for step in routine.steps for p in step.products]
+            ingredient_names = await recommendations_service.list_ingredient_names_for_products(
+                db_session, product_ids
+            )
+            all_names = [name for names in ingredient_names.values() for name in names]
+            for x in range(len(all_names)):
+                for y in range(x + 1, len(all_names)):
+                    interaction = get_interaction(all_names[x], all_names[y])
+                    assert interaction is None or interaction["verdict"] != "avoid", (
+                        f"skin_type={skin_type.skin_type_name} routine={routine.routine_type} "
+                        f"{all_names[x]!r} + {all_names[y]!r}"
+                    )
 
 
 async def test_routine_output_test_every_am_routine_has_a_sun_protection_step(
