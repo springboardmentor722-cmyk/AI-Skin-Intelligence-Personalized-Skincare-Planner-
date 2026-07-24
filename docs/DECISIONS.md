@@ -778,3 +778,66 @@ a list `detail` populates `details` structured, matching that existing conventio
 Zero other endpoint in the codebase passed a list-valued `detail` before this
 branch, confirmed by a full-repo grep, so this is a strict widening with no
 existing-behavior change elsewhere.
+
+## ADR-028 — P10 scoring engine: two real benchmark/window bugs fixed, purity refactor, Skin Age formula
+**Status:** Accepted (M2-P10)
+**Context:** `MILESTONE_2_MASTER_PROMPT.md` P10 required every weight/benchmark/
+threshold in one documented constants module, the five sub-score functions to be
+pure (no I/O, no clock reads, deterministic), and Skin Age (decision C6) to be a
+real derivation. Auditing the existing `scoring_engine.py` against these rules
+surfaced two genuine, docx-confirmed bugs, not just a refactor:
+1. **Hydration benchmark was 2.0L, the canonical `MILESTONE 2.docx` says 3.0L**
+   (ADR-021 C3 had already flagged this exact gap at P0; P10 is where it's
+   actually fixed in code, not just documented).
+2. **Adherence window was 7 days defaulting to a neutral 50.0.** That matched
+   `mile_2.docx` (the *other*, non-canonical doc, ADR-020 point 3) — the
+   canonical `MILESTONE 2.docx` says "computed from the active **14-day**
+   completion logs; defaults to **100%** for a new assessment with no history."
+   Both the window and the default were wrong for this pack's actual spec.
+3. **`_routine_adherence_score` was `async` and did its own Mongo/Postgres I/O**
+   (`routines_service.list_active_step_ids`/`list_recent_routine_logs`) — the
+   only one of the five sub-score functions that wasn't pure, in direct
+   violation of P10's own guardrail ("no clock reads, no request objects,
+   deterministic across repeated runs").
+**Decision:**
+- New `backend/app/services/scores/constants.py` — every weight (documented
+  default; the live tunable value stays the `scoring_weights` Postgres row,
+  AGENTS.md §5 rule 7) and every sub-score threshold/benchmark, named and mapped
+  line-by-line to the doc. `scoring_engine.py`/`service.py`/`models.py` (the
+  `ScoringWeights` column defaults) all import from here; confirmed by grep that
+  no other numeric literal for one of these values remains in those files.
+- Fixed hydration to `HYDRATION_BENCHMARK_LITERS = 3.0`.
+- Fixed adherence to `ADHERENCE_WINDOW_DAYS = 14`, `ADHERENCE_DEFAULT_WHEN_NO_DATA
+  = 100.0`.
+- Refactored `_routine_adherence_score(step_ids, logs)` to a pure function
+  (previously `_routine_adherence_score(db, user_id)`, async) — `scores/
+  service.py`'s `compute_and_store_score` now fetches `list_active_step_ids` and
+  `list_recent_routine_logs(user_id, days=ADHERENCE_WINDOW_DAYS)` itself and
+  passes the plain data in, matching how the other four sub-scores already
+  receive pre-fetched `logs`. Existing direct tests of this function
+  (`tests/test_scores_service.py`) were rewritten as fast pure-function tests
+  with synthetic step_ids/logs instead of a real routine-generation round trip —
+  that real end-to-end path stays covered by
+  `test_compute_and_store_score_is_perfect_for_an_ideal_profile`.
+- Skin Age (`derive_skin_age(skin_condition_score, actual_age)`): perfect
+  condition (100) → skin_age == actual_age; condition 0 → actual_age +
+  `SKIN_AGE_MAX_PENALTY_YEARS` (10), linear in between. `actual_age` itself comes
+  from `representative_age_for_group(age_group)` — `skin_profiles.age_group` is a
+  band ("25-34"), never an exact age, so the band's midpoint is the documented
+  approximation (open-ended "Under 18"/"65+" get a single reasonable
+  representative value, in `scoring_engine.py`'s own table). Returns `None` when
+  no age_group is set — an honest "can't compute," not a guessed default band.
+  `ScoreRead` gained `skin_age: float | None` and `band: str | None` (the same
+  Good/Fair/Poor ramp `web/lib/score-components.ts`'s `SCORE_BANDS` already uses
+  on the frontend — one ramp, not a second one that could drift).
+- New `GET /api/v1/assessment/score/{id}` (`scores/service.py`'s
+  `get_score_by_id`) — ownership-checked in the query itself (`score_id` +
+  `user_id` both filtered), 404 for an unknown id or one belonging to another
+  user, never leaking existence or inventing a score for a missing assessment.
+**Consequences:** any score computed before this branch used the wrong hydration
+benchmark and adherence window/default — no backfill of historical
+`skin_assessments` rows is done here (they remain what they were when computed;
+the next real computation for each user will use the corrected math). A future
+session should not re-introduce a local module-level constant in
+`scoring_engine.py`/`service.py` for a weight, benchmark, or threshold — add it to
+`constants.py` instead.

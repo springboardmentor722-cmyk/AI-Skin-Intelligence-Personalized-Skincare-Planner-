@@ -55,10 +55,10 @@ phase's IDs, branch, and spec reference. Status vocabulary: `TODO` · `IN_PROGRE
 | M2-P09-T03 | P9 | 422 validation for every field rule | feat/m2-assessment-api | DONE | MILESTONE 2.docx §"Core Backend API Endpoints" | Pydantic (severity/sleep/water/sun_exposure) + service-layer DB lookups (skin_type, concern id); fixed `app/core/errors.py` so list-valued `HTTPException.detail` reaches `details` structured |
 | M2-P09-T04 | P9 | Concern prioritisation + risk-factor service functions | feat/m2-assessment-api | DONE | MILESTONE 2.docx §3 | `prioritize_concerns` (severity desc, stable-sort tie-break), `derive_risk_factors` — both pure, unit-tested |
 | M2-P09-T05 | P9 | Regenerate openapi.json + api-types.ts | feat/m2-assessment-api | DONE | Master prompt §6 | `web/lib/api-types.ts`: +173/-0 lines |
-| M2-P10-T01 | P10 | Add GET /api/v1/assessment/score/{id}, ownership-checked | feat/m2-scoring-engine | TODO | M2_API_CONTRACT §2 | `score_id` PK + index already exist |
-| M2-P10-T02 | P10 | **Change hydration benchmark 2.0L → 3.0L** | feat/m2-scoring-engine | TODO | ADR-021 C3 (reversed) | Real code change, docx-verified — not a doc fix |
-| M2-P10-T03 | P10 | Skin Age derivation (ADR-021 C6) | feat/m2-scoring-engine | TODO | UI_SPEC §7 C6 | Confirmed absent from codebase |
-| M2-P10-T04 | P10 | Mandated Scoring Accuracy Test | feat/m2-scoring-engine | TODO | MILESTONE 2.docx §5 (QA) | |
+| M2-P10-T01 | P10 | Add GET /api/v1/assessment/score/{id}, ownership-checked | feat/m2-scoring-engine | DONE | M2_API_CONTRACT §2 | `get_score_by_id` filters by `score_id`+`user_id` in one query; 404 for unknown/foreign id |
+| M2-P10-T02 | P10 | **Change hydration benchmark 2.0L → 3.0L** | feat/m2-scoring-engine | DONE | ADR-021 C3 (reversed) | `constants.HYDRATION_BENCHMARK_LITERS`; ADR-028 |
+| M2-P10-T03 | P10 | Skin Age derivation (ADR-021 C6) | feat/m2-scoring-engine | DONE | UI_SPEC §7 C6 | `derive_skin_age` + `representative_age_for_group` (ADR-028); `ScoreRead.skin_age` |
+| M2-P10-T04 | P10 | Mandated Scoring Accuracy Test | feat/m2-scoring-engine | DONE | MILESTONE 2.docx §5 (QA) | Plus worst-case floor, per-weight share, 500-profile sweep, new-user A=100, determinism, constants module + grep |
 | M2-P11-T01 | P11 | Verify AM/PM pipelines match docx canonical steps | feat/m2-routine-generator | TODO | MILESTONE 2.docx §3 | `/routine`, `/routine/generate` already docx-literal — confirm pipeline content |
 | M2-P11-T02 | P11 | Safety guardrail layer (sensitive/redness>7 override) | feat/m2-routine-generator | TODO | MILESTONE 2.docx §3 | Verify existing implementation has independent guardrail layer |
 | M2-P11-T03 | P11 | Mandated Safety Exclusion Test + Routine Output Test | feat/m2-routine-generator | TODO | MILESTONE 2.docx §5 (QA) | |

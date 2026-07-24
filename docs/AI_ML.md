@@ -65,33 +65,64 @@ request path — and every frontend screen — works end-to-end before any model
 
 ## Weighted skin-health score (config-driven, not ML)
 A transparent weighted sum, tunable without redeploy via PG `scoring_weights`
-(CHECK: weights sum = 1.00):
+(CHECK: weights sum = 1.00). Every weight/benchmark/threshold below is defined
+exactly once, in `backend/app/services/scores/constants.py` — no numeric literal
+for one appears anywhere else in `scoring_engine.py`/`service.py` (Milestone 2 P10,
+docs/DECISIONS.md ADR-028); the constants module names are given alongside each
+value here so this doc and the code can't silently drift.
 
 ```
 overall = 0.35·skin_condition + 0.20·lifestyle + 0.15·sleep_quality
         + 0.20·routine_adherence + 0.10·hydration
 ```
 
-Component normalization (each 0–100):
-- **skin_condition** = 100 − tiered deduction over active concerns: −15 pts per High
-  severity (severity_rating 8–10), −7 pts per Medium (4–7), 0 for Low (1–3), from the
-  latest assessment.
-- **lifestyle** = weighted sub-index of exercise frequency, stress (inverted), diet
-  quality, sun-exposure hygiene from `lifestyle_logs` (30-day window), plus a real
-  unprotected-high-UV-exposure penalty (Milestone 2 Step 3.1) when OpenUV data exists
-  for the user (`weather_service.get_latest_uv_index`, WHO UV Index ≥6 "High" +
-  reported sun exposure in the most recent log) — best-effort, never fetched live as
-  a side effect of scoring, so it's a no-op when no OpenUV reading was ever captured.
-- **sleep_quality** = 60% duration score (7–9 h band = 100, linear falloff) + 40%
-  self-rated quality.
-- **routine_adherence** = completed checklist steps ÷ scheduled steps, trailing 7 days
-  (mile_2.docx Step 3.1's literal "last 7 days of routine logs" — corrected 2026-07-14
-  from this doc's prior 30-day paraphrase, a real mismatch against the docx's literal
-  text, not a documentation-only fix; see PROGRESS.md and
-  docs/milestones/milestone_2/MASTER_PROMPT.md Phase 2).
-- **hydration** = min(100, glasses/day ÷ 8 × 100), 7-day average.
+Component normalization (each 0–100, all pure functions in `scoring_engine.py` —
+no I/O, no clock reads, deterministic; `scores/service.py` fetches every input
+and passes it in):
+- **skin_condition** = 100 − tiered deduction over active concerns:
+  −`CONDITION_HIGH_SEVERITY_DEDUCTION` (15) pts per High severity
+  (severity_rating ≥ `CONDITION_HIGH_SEVERITY_MIN`, 8), −`CONDITION_MEDIUM_SEVERITY_DEDUCTION`
+  (7) pts per Medium (≥ `CONDITION_MEDIUM_SEVERITY_MIN`, 4), 0 for Low (1–3), from
+  the current profile's concerns.
+- **lifestyle** = equal-weighted sub-index of exercise frequency, stress
+  (inverted), diet quality, sun-exposure hygiene from `lifestyle_logs` (30-day
+  window), plus a real unprotected-high-UV-exposure penalty
+  (`LIFESTYLE_UNPROTECTED_HIGH_UV_DEDUCTION`, 20 pts) when OpenUV data exists for
+  the user (`weather_service.get_latest_uv_index`, WHO UV Index ≥
+  `LIFESTYLE_HIGH_UV_INDEX_THRESHOLD` (6) "High" + reported sun exposure in the
+  most recent log) — best-effort, never fetched live as a side effect of scoring,
+  so it's a no-op when no OpenUV reading was ever captured.
+- **sleep_quality** = `SLEEP_DURATION_WEIGHT` (60%) duration score
+  (`SLEEP_OPTIMAL_MIN_HOURS`-`SLEEP_OPTIMAL_MAX_HOURS`, 7–9 h band = 100, linear
+  falloff) + `SLEEP_SELF_RATED_WEIGHT` (40%) self-rated quality.
+- **routine_adherence** = completed checklist steps ÷ scheduled steps, trailing
+  `ADHERENCE_WINDOW_DAYS` (14) days — MILESTONE 2.docx's literal "active 14-day
+  completion logs". **Defaults to `ADHERENCE_DEFAULT_WHEN_NO_DATA` (100) for a new
+  assessment with no history** (no active routine yet, or none logged in the
+  window) — corrected at P10/ADR-028 from a 7-day window defaulting to a neutral
+  50, which had matched the *other*, non-canonical `mile_2.docx`'s text rather
+  than this pack's canonical `MILESTONE 2.docx`.
+- **hydration** = `min(100, litres/day ÷ HYDRATION_BENCHMARK_LITERS (3.0) × 100)`,
+  `HYDRATION_WINDOW_DAYS` (7-day) average — corrected at P10/ADR-028 from a
+  hardcoded 2.0L benchmark (ADR-021 C3 flagged this as a real code bug, not a
+  documentation-only fix).
 
 `SkinHealthScoringService` reads the active weight row; experiments are a DB update.
+
+### Skin Age (decision C6, ADR-028)
+`scoring_engine.derive_skin_age(skin_condition_score, actual_age)` — a perfect
+condition score (100) means skin_age == actual_age; a condition score of 0 ages
+the reported skin_age up by `SKIN_AGE_MAX_PENALTY_YEARS` (10 years), linearly in
+between. `actual_age` itself is a representative-age approximation
+(`representative_age_for_group`) since `skin_profiles.age_group` is a band
+("25-34"), never an exact age — the band's midpoint stands in for it (documented
+per-band table in `scoring_engine.py`); `skin_age` is `None` when no age_group is
+set yet, an honest "can't compute" rather than a guessed default band.
+
+### Score band
+`scoring_engine.score_band(overall_score)` — the same Good (≥75) / Fair (≥60) /
+Poor ramp `web/lib/score-components.ts`'s `SCORE_BANDS` uses on the frontend; one
+ramp, not two that could drift apart.
 
 ## Model cards (targets set with the first eval set, M2)
 

@@ -61,7 +61,9 @@ new architecture.
 
 - **Auth:** `require_role("user")`; ownership-checked — a `score_id` belonging to
   another user returns `404`, not `403` (don't leak existence).
-- **Response:** `ScoreRead`, same shape as above.
+- **Response:** `ScoreRead` — as of P10 (ADR-028), also carries `skin_age`
+  (`float | None`, decision C6 — `None` when the profile has no `age_group` set)
+  and `band` (`"Good" | "Fair" | "Poor" | None`, the P1 ramp).
 - **Errors:** `404` if the id doesn't exist or doesn't belong to the caller.
 - **Deprecation:** bare `GET /api/v1/assessment/score` (no id) stays mounted as a
   "latest for me" convenience alias — it's genuinely useful (the dashboard's hero
