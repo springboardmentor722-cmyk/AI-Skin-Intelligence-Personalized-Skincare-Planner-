@@ -1260,3 +1260,113 @@ Platform Revenue/System Uptime/Assessments Overview/User Growth/Platform
 Analytics to real data needs a real billing system, uptime monitor, or
 analytics instrumentation first — that's new system scope, not a fixture swap,
 and shouldn't be attempted as one.
+
+## ADR-033 — Media storage audit: what's real today, and three scope decisions deliberately left open
+
+**Status:** Accepted (investigation-only; no feature code changed)
+
+**Context:** Owner asked how profile images and skin-capture images are
+currently stored, floated a "premium users get daily skin-photo comparison"
+feature, an "upload a face image in Skin Assessment for AI analysis" feature,
+and "train the models on users' skin images and details" — plus confirmed
+AWS S3 was the originally-intended storage backend. This ADR records what was
+found already built, what already covers the ask, and what was deliberately
+*not* built this pass because it's new product/legal scope, not a docs gap
+(AGENTS.md §0/§0.2: flag ambiguous, consequential asks rather than guess).
+
+**Finding — storage is already S3-compatible, real, and production-ready as-is.**
+`backend/app/core/storage.py` is a single shared adapter (MinIO in dev via
+docker-compose, real AWS S3 in prod) — switching to real S3 is an env-var
+change only (`S3_ENDPOINT_URL` + credentials in prod `.env`), **no code
+change**. It already does everything a media-upload feature needs: server-side
+magic-byte content-type sniffing (never trusts a client `Content-Type`
+header — closes a stored-content-spoofing hole), EXIF stripping via a Pillow
+re-encode (strips phone GPS/location metadata before anything reaches
+storage), private-bucket-only access via presigned URLs (default 3600 s
+expiry, never a public bucket URL), and the `{prefix}/user_{id}/{uuid}_
+{filename}` key convention `database_schemas/skinlytics_infrastructure_layer_v2.txt`
+already documents. `consultant_profile`/`dermatologist_profile`'s verification-
+document uploads already reuse it unchanged.
+
+**Finding — "premium users upload a skin photo daily to compare past vs.
+today" already exists, unconditionally, for every `user`-role account.**
+`backend/app/services/progress/service.py`'s `upload_progress_photo` /
+`list_progress_photos` / `get_progress_photos` is real, tested, shipped
+functionality: any signed-in user can upload a progress photo at any time
+(sniffed + EXIF-stripped + stored via the adapter above under `progress-
+photos/user_{id}/...`), and `get_progress_photos` returns the oldest photo as
+"before" and the most recent as "after" with presigned URLs for direct
+comparison — the exact feature described, just not gated behind any tier.
+
+**Finding — a `profile_image_url` column exists but has no upload path.**
+`user/models.py` and `user/schemas.py` both carry `profile_image_url: str |
+None`, but neither `user/service.py` nor `user/router.py` has an endpoint that
+writes to it via `core/storage.py` — today it's a bare URL string with nothing
+wired to populate it. A real profile-photo-upload endpoint (mirroring
+`upload_progress_photo`'s shape, `profile-photos/user_{id}/...` as the key
+prefix) is a small, low-risk, non-ambiguous gap and is reasonable to build
+next whenever picked up — unlike the three items below, it needs no product
+or legal decision first.
+
+**Finding — a `subscriptions`/`payments` billing schema exists but is inert.**
+`database_schemas/skinlytics_postgresql_schema_v3.sql` has real
+`subscriptions` (`plan_name`, `price`, `billing_cycle`, `status`) and
+`payments` (`gateway` constrained to `stripe`/`razorpay`) tables from an
+earlier migration, but grep for `subscriptions` anywhere under `backend/app/`
+only hits that migration file itself — no service, no router, no `is_premium`
+concept anywhere. **Decision: don't invent a premium gate on top of this.**
+Gating the already-working daily-photo feature behind "premium" requires
+deciding what premium actually costs, what it unlocks beyond this one
+feature, and wiring real Stripe/Razorpay checkout + webhook handling first
+(AGENTS.md §5's Payments note: "verify webhook signatures, idempotency keys
+... check docs for the actual contract before wiring anything") — a real
+monetization decision for the project owner, not something to default into
+existence via a boolean column.
+
+**Finding — face-image upload inside Skin Assessment for AI analysis is
+confirmed still-unbuilt, correctly so.** `docs/ARCHITECTURE.md` §4 already
+scopes an image-based/CV Skin Assessment service as separate, still-future
+work (M3–M4), distinct from the real survey-based `assessment` service (P9)
+this app ships today. `docs/AI_ML.md`'s own model interface table already
+documents `SkinTypeClassifier`/`ConcernDetector` as scan-image models — but
+both are still ADR-007 stubs; no real implementation exists for either.
+Grepping `web/app/assessment/**` for any image-upload UI returns nothing.
+**Decision: don't scaffold an upload step ahead of a real model to feed it** —
+an upload button with nothing real behind it would either silently do nothing
+useful or require standing up `ConcernDetector` for real in the same pass,
+which is its own multi-week ML effort (per `docs/AI_ML.md`'s model cards:
+needs a tone-balanced eval set, a real training dataset in the app's own
+`skin_concerns` label space, and a fairness gate before it's release-ready).
+
+**Finding — a real CV training pipeline exists, but it deliberately does not
+train on Skinlytics users' own photos, and that's a design decision already on
+record, not an oversight.** `ml/training/train_lesion_classifier.py` is real:
+a ResNet18 transfer-learning classifier trained on the public **ISIC 2019**
+dataset (`training_dataset/raw/isic-2019/`, Kaggle-sourced), producing
+`ml/registry/skin-lesion-screener-0.1.0/`. Its own README is explicit that
+this is a *dermatological lesion* classifier (melanoma, BCC, ...) — a
+different label space than the app's cosmetic `skin_concerns` taxonomy (acne,
+oiliness, hyperpigmentation, ...) that `SkinTypeClassifier`/`ConcernDetector`
+are actually supposed to predict over, and that mismatch was "found and
+confirmed with the project owner before training" (per that README and
+`PROGRESS.md` 2026-07-23) — i.e., training on real Skinlytics user images was
+never silently substituted for the documented plan of training on curated
+public datasets (Kaggle facial skin-type sets, ISIC — `docs/AI_ML.md`'s model
+cards table, already on record). **Decision: continue not training on real
+users' skin photos** until a real consent/data-usage flow exists — this app
+currently has no opt-in mechanism, no documented data-retention/deletion
+policy for biometric imagery, and no legal review on record for using real
+users' photos as training data. Building that pipeline without that consent
+layer first would be a governance problem this ADR is not the place to
+resolve unilaterally; it needs an explicit product/legal decision from the
+project owner, same as the premium-billing gap above.
+
+**Consequences:** no feature code changed by this ADR — it's a map of what's
+real (storage adapter, progress photos, S3-swap readiness) vs. what's
+correctly still-unbuilt (profile-photo upload endpoint: safe to pick up
+anytime; premium gating, assessment-image upload, and training on real user
+photos: each blocked on a product/legal decision, not an engineering one).
+Any future session picking up "premium daily photos," "upload a face for AI
+analysis," or "train on user images" should read this ADR first rather than
+re-deriving the same investigation, and should get an explicit go-ahead on
+the specific blocked decision before writing code for that piece.
