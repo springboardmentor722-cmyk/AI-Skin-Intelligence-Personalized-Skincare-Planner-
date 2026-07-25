@@ -48,9 +48,10 @@ export function TrendChart({
   emptyActionLabel,
   emptyActionHref,
   errorMessage,
+  onRetry,
 }: TrendChartProps) {
   if (state === "loading") return <Skeleton className="h-48 w-full" />;
-  if (state === "error") return <WidgetError message={errorMessage} />;
+  if (state === "error") return <WidgetError message={errorMessage} onRetry={onRetry} />;
   if (state === "empty" || !series || series.length === 0) {
     return <WidgetEmpty icon={emptyIcon} message={emptyMessage} actionLabel={emptyActionLabel} actionHref={emptyActionHref} />;
   }

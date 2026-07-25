@@ -26,9 +26,10 @@ export function ScoreRing({
   emptyActionLabel,
   emptyActionHref,
   errorMessage,
+  onRetry,
 }: ScoreRingProps) {
   if (state === "loading") return <Skeleton className="rounded-full" style={{ width: size, height: size }} />;
-  if (state === "error") return <WidgetError message={errorMessage} />;
+  if (state === "error") return <WidgetError message={errorMessage} onRetry={onRetry} />;
   if (state === "empty" || value == null) {
     return <WidgetEmpty icon={emptyIcon} message={emptyMessage} actionLabel={emptyActionLabel} actionHref={emptyActionHref} />;
   }

@@ -27,6 +27,7 @@ export function RoutineChain({
   emptyActionLabel,
   emptyActionHref,
   errorMessage,
+  onRetry,
 }: RoutineChainProps) {
   if (state === "loading") {
     return (
@@ -37,7 +38,7 @@ export function RoutineChain({
       </div>
     );
   }
-  if (state === "error") return <WidgetError message={errorMessage} />;
+  if (state === "error") return <WidgetError message={errorMessage} onRetry={onRetry} />;
   if (state === "empty" || !steps || steps.length === 0) {
     return <WidgetEmpty icon={emptyIcon} message={emptyMessage} actionLabel={emptyActionLabel} actionHref={emptyActionHref} />;
   }

@@ -65,6 +65,28 @@ async def _get_user_row(db: AsyncSession, user_id: str) -> tuple[str | None, str
     return row.name, row.email
 
 
+async def _get_user_rows(db: AsyncSession, user_ids: list[str]) -> dict[str, tuple[str | None, str]]:
+    """Bulk sibling of `_get_user_row` — one `IN` query for a whole cohort.
+
+    Deliberately tolerant where the single-row version is strict: `_get_user_row`
+    calls `.one()`, which raises if the identity row is gone, and that is correct
+    for `get_client_detail` (a request for one named client that no longer exists
+    should fail). A portfolio-wide aggregate must not 500 the entire clinical
+    dashboard because one assigned client's Better Auth row was deleted while the
+    `consultant_clients` assignment survived — missing ids are simply absent from
+    the result and the caller falls back."""
+    if not user_ids:
+        return {}
+    result = await db.execute(
+        select(
+            external_user_table.c.id,
+            external_user_table.c.name,
+            external_user_table.c.email,
+        ).where(external_user_table.c.id.in_(user_ids))
+    )
+    return {row.id: (row.name, row.email) for row in result.all()}
+
+
 async def _verify_assignment(
     db: AsyncSession, professional_id: str, user_id: str
 ) -> ConsultantClient:
@@ -162,7 +184,14 @@ async def get_portfolio_stats(db: AsyncSession, professional_id: str) -> Clinica
     """Milestone 2 P14 (ADR-024's deferred consequence) — the real, aggregated
     replacement for the clinical dashboard's fixture KPIs/donut/bars/trend/stat-
     footer/recent-assessments, computed once across the professional's WHOLE
-    active roster (unpaginated — a portfolio-wide stat, not a page of it)."""
+    active roster (unpaginated — a portfolio-wide stat, not a page of it).
+
+    Because the roster here is unpaginated, this function must stay free of
+    per-client queries: `list_my_clients` can afford its documented N+1 (LIMIT/
+    OFFSET bounds it to one page), but the same pattern here would scale with a
+    professional's entire client count on the clinical dashboard's main
+    endpoint. Every read below is therefore a single cohort-wide query keyed by
+    `user_ids`, and the loop is pure in-memory aggregation over their results."""
     assignments_result = await db.execute(
         select(ConsultantClient.user_id).where(
             ConsultantClient.consultant_id == professional_id, ConsultantClient.status == "active"
@@ -193,7 +222,9 @@ async def get_portfolio_stats(db: AsyncSession, professional_id: str) -> Clinica
     all_concerns = {
         c.concern_id: c.concern_name for c in await skin_profile_service.list_skin_concerns(db)
     }
-    active_step_counts = await routines_service.list_active_step_counts_by_user(db)
+    active_step_counts = await routines_service.list_active_step_counts_by_user(db, user_ids)
+    user_rows = await _get_user_rows(db, user_ids)
+    scores_by_user = await scores_service.get_recent_scores_for_users(db, user_ids, days=90)
 
     skin_type_counts: dict[int, int] = {}
     for skin_type_id in skin_type_by_user.values():
@@ -209,8 +240,8 @@ async def get_portfolio_stats(db: AsyncSession, professional_id: str) -> Clinica
     recent_assessments: list[PortfolioRecentAssessment] = []
 
     for user_id in user_ids:
-        name, _email = await _get_user_row(db, user_id)
-        scores = await scores_service.get_recent_scores(db, user_id, days=90)
+        name = user_rows.get(user_id, (None, ""))[0]
+        scores = scores_by_user.get(user_id, [])
         assessments_done += len(scores)
         if user_id in active_step_counts:
             active_routines += 1
@@ -245,6 +276,22 @@ async def get_portfolio_stats(db: AsyncSession, professional_id: str) -> Clinica
 
     recent_assessments.sort(key=lambda a: a.calculated_at or datetime.datetime.min, reverse=True)
 
+    # The trend is a cohort curve — "average score at the Nth assessment" — so it
+    # is keyed by position, not by date, and the frontend labels it that way
+    # ("Assessment 1", "Assessment 2", ...). The catch is that the sample size
+    # shrinks as N grows: if one client has 30 assessments and everyone else has
+    # 3, index 29 is a single client's score rendered identically to index 0's
+    # full-cohort average, and a rising tail reads as "my clients improve" when
+    # it is one outlier. Truncate at the first index where fewer than half the
+    # scoring clients contributed, so every plotted point is representative.
+    scoring_clients = len(trend_points_by_index.get(0, []))
+    min_sample = max(2, (scoring_clients + 1) // 2)
+    portfolio_score_trend: list[float] = []
+    for _, values in sorted(trend_points_by_index.items()):
+        if len(values) < min_sample:
+            break
+        portfolio_score_trend.append(round(sum(values) / len(values), 1))
+
     return ClinicalPortfolioStatsRead(
         total_assigned=total_assigned,
         assessments_done=assessments_done,
@@ -269,10 +316,7 @@ async def get_portfolio_stats(db: AsyncSession, professional_id: str) -> Clinica
             )
             for concern_id, count in sorted(concern_counts.items(), key=lambda kv: -kv[1])[:6]
         ],
-        portfolio_score_trend=[
-            round(sum(values) / len(values), 1)
-            for _, values in sorted(trend_points_by_index.items())
-        ],
+        portfolio_score_trend=portfolio_score_trend,
         recent_assessments=recent_assessments[:5],
     )
 

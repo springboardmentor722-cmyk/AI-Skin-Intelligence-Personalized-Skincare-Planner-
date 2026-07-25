@@ -40,6 +40,8 @@ from app.services.scores.service import (
     compute_and_store_score,
     count_all_assessments,
     get_active_weights,
+    get_recent_scores,
+    get_recent_scores_for_users,
     get_score_by_id,
 )
 from app.services.skin_profile.schemas import (
@@ -315,6 +317,43 @@ async def test_compute_and_store_score_persists_a_real_row(
     # Pydantic schema's float — cast both sides so pytest.approx compares numerically
     # instead of raising on the mixed type.
     assert float(row_overall_score) == pytest.approx(float(overall_score))
+
+
+async def test_get_recent_scores_for_users_matches_the_per_user_call(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    """The bulk helper exists to remove an unbounded N+1 from
+    `clinical_review.get_portfolio_stats`, so it has to be a drop-in for the
+    per-user `get_recent_scores` it replaced — same rows, same ascending
+    `calculated_at` order."""
+    await create_profile(
+        db_session,
+        test_user_id,
+        SkinProfileCreate(
+            skin_type_id=1,
+            concerns=[SkinProfileConcernInput(concern_id=1, severity_rating=5, priority_level=5)],
+        ),
+    )
+    await compute_and_store_score(db_session, test_user_id)
+
+    single = await get_recent_scores(db_session, test_user_id, days=90)
+    bulk = await get_recent_scores_for_users(db_session, [test_user_id], days=90)
+
+    assert [s.score_id for s in bulk[test_user_id]] == [s.score_id for s in single]
+    assert single  # the fixture above really did store a row, so this isn't vacuous
+
+
+async def test_get_recent_scores_for_users_returns_an_entry_for_every_requested_user(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    """Callers index the result directly, so a user with no scores in the window
+    must map to `[]` rather than be missing — and an empty request short-circuits
+    instead of issuing an `IN ()`."""
+    result = await get_recent_scores_for_users(db_session, [test_user_id, "no-such-user"], days=90)
+
+    assert set(result) == {test_user_id, "no-such-user"}
+    assert result["no-such-user"] == []
+    assert await get_recent_scores_for_users(db_session, [], days=90) == {}
 
 
 async def test_compute_and_store_score_is_perfect_for_an_ideal_profile(

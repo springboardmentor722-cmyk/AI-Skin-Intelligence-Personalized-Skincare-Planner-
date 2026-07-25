@@ -18,6 +18,7 @@ import { RosterTable, type RosterColumn } from "@/components/dashboard/roster-ta
 import { StatCard } from "@/components/dashboard/stat-card";
 import { TimelineList } from "@/components/dashboard/timeline-list";
 import { api } from "@/lib/api";
+import { retryFor } from "@/lib/widget-state";
 import type { components } from "@/lib/api-types";
 
 type ClientSummary = components["schemas"]["ClientSummaryRead"];
@@ -193,6 +194,8 @@ export function ClinicalDashboard({ role }: ClinicalDashboardProps) {
         ? "empty"
         : "ready";
   const statsState = statsQuery.isLoading ? "loading" : statsQuery.isError ? "error" : "ready";
+  const retryStats = retryFor(statsQuery);
+  const retryRoster = retryFor(rosterQuery);
 
   return (
     <div className="flex flex-col gap-6">
@@ -200,6 +203,7 @@ export function ClinicalDashboard({ role }: ClinicalDashboardProps) {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <StatCard
           state={statsState}
+            onRetry={retryStats}
           label={isDerma ? "Total Patients" : "Total Clients"}
           value={stats?.total_assigned.toLocaleString("en-IN")}
           icon={TrendingUp}
@@ -209,6 +213,7 @@ export function ClinicalDashboard({ role }: ClinicalDashboardProps) {
         />
         <StatCard
           state={statsState}
+            onRetry={retryStats}
           label="Assessments Done"
           value={stats?.assessments_done.toLocaleString("en-IN")}
           icon={ClipboardCheck}
@@ -217,6 +222,7 @@ export function ClinicalDashboard({ role }: ClinicalDashboardProps) {
         />
         <StatCard
           state={statsState}
+            onRetry={retryStats}
           label="Active Routines"
           value={stats?.active_routines.toLocaleString("en-IN")}
           icon={ClipboardList}
@@ -225,6 +231,7 @@ export function ClinicalDashboard({ role }: ClinicalDashboardProps) {
         />
         <StatCard
           state={statsState}
+            onRetry={retryStats}
           label={isDerma ? "Patients Improving" : "Avg. Improvement"}
           value={isDerma ? (improvingPct != null ? `${improvingPct}%` : undefined) : stats?.avg_improvement_points ?? undefined}
           icon={Sparkles}
@@ -257,6 +264,7 @@ export function ClinicalDashboard({ role }: ClinicalDashboardProps) {
           </div>
           <RosterTable
             state={rosterState}
+            onRetry={retryRoster}
             columns={rosterColumns}
             rows={roster}
             rowKey={(r) => r.user_id}
@@ -270,6 +278,7 @@ export function ClinicalDashboard({ role }: ClinicalDashboardProps) {
             </h3>
             <DonutBreakdown
               state={statsState}
+            onRetry={retryStats}
               data={isDerma ? concernDonut : skinTypeDonut}
               centerValue={stats?.total_assigned.toLocaleString("en-IN")}
               centerLabel={isDerma ? "Total Patients" : "Total Clients"}
@@ -280,7 +289,8 @@ export function ClinicalDashboard({ role }: ClinicalDashboardProps) {
             <h3 className="font-heading mb-3 text-base font-semibold">
               {isDerma ? "Skin Type Breakdown" : "Top Skin Concerns"}
             </h3>
-            <RankedBarList state={statsState} items={isDerma ? skinTypeBars : concernBars} showCount />
+            <RankedBarList state={statsState}
+            onRetry={retryStats} items={isDerma ? skinTypeBars : concernBars} showCount />
           </div>
         </div>
       </div>
@@ -294,6 +304,7 @@ export function ClinicalDashboard({ role }: ClinicalDashboardProps) {
           </h3>
           <TrendChart
             state={statsState}
+            onRetry={retryStats}
             series={trendSeries}
             seriesLabel="Avg. score"
             rangeOptions={["This Month"]}
@@ -314,6 +325,7 @@ export function ClinicalDashboard({ role }: ClinicalDashboardProps) {
           <h3 className="font-heading mb-3 text-base font-semibold">Recent Assessments</h3>
           <TimelineList
             state={statsState === "ready" && (stats?.recent_assessments.length ?? 0) === 0 ? "empty" : statsState}
+            onRetry={retryStats}
             leading="avatar"
             trailing="chip"
             items={(stats?.recent_assessments ?? []).map((a) => ({

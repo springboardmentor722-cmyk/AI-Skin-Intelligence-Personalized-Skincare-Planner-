@@ -37,6 +37,7 @@ export function DonutBreakdown({
   emptyActionLabel,
   emptyActionHref,
   errorMessage,
+  onRetry,
 }: DonutBreakdownProps) {
   if (state === "loading") {
     return (
@@ -50,7 +51,7 @@ export function DonutBreakdown({
       </div>
     );
   }
-  if (state === "error") return <WidgetError message={errorMessage} />;
+  if (state === "error") return <WidgetError message={errorMessage} onRetry={onRetry} />;
   if (state === "empty" || !data || data.length === 0) {
     return <WidgetEmpty icon={emptyIcon} message={emptyMessage} actionLabel={emptyActionLabel} actionHref={emptyActionHref} />;
   }

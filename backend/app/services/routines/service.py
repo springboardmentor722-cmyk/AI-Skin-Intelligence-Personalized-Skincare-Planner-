@@ -465,17 +465,28 @@ async def list_active_step_ids(db: AsyncSession, user_id: str) -> list[int]:
     return list(result.scalars().all())
 
 
-async def list_active_step_counts_by_user(db: AsyncSession) -> dict[str, int]:
+async def list_active_step_counts_by_user(
+    db: AsyncSession, user_ids: list[str] | None = None
+) -> dict[str, int]:
     """Interface function (ADR-005) — Analytics' admin-wide adherence distribution
     (M3-F) reads active step counts across every user through this, never
     `skincare_routines`/`routine_steps` directly. One aggregate query, not a
-    per-user loop — "where cheap" (milestone_3.md §M3-F's own phrasing)."""
-    result = await db.execute(
+    per-user loop — "where cheap" (milestone_3.md §M3-F's own phrasing).
+
+    `user_ids` restricts the aggregate to a cohort. Analytics genuinely wants
+    every user and omits it; Milestone 2 P14's clinical portfolio-stats only
+    needs one professional's roster, and without the filter it would pull a row
+    per user on the entire platform into memory just to test membership."""
+    query = (
         select(Routine.user_id, func.count(RoutineStep.step_id))
         .join(RoutineStep, RoutineStep.routine_id == Routine.routine_id)
         .where(Routine.is_active.is_(True))
-        .group_by(Routine.user_id)
     )
+    if user_ids is not None:
+        if not user_ids:
+            return {}
+        query = query.where(Routine.user_id.in_(user_ids))
+    result = await db.execute(query.group_by(Routine.user_id))
     return {user_id: count for user_id, count in result.all()}
 
 

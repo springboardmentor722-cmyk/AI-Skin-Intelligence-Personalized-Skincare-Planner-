@@ -28,12 +28,13 @@ export function InsightBanner({
   emptyActionLabel,
   emptyActionHref,
   errorMessage,
+  onRetry,
 }: InsightBannerProps) {
   if (state === "loading") return <Skeleton className="h-24 w-full rounded-2xl" />;
   if (state === "error") {
     return (
       <div className="bg-primary-container rounded-2xl p-5">
-        <WidgetError message={errorMessage} />
+        <WidgetError message={errorMessage} onRetry={onRetry} />
       </div>
     );
   }
