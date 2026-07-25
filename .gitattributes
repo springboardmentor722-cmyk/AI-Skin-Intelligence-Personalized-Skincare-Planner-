@@ -1,1 +1,39 @@
+# Line endings — normalise every text file to LF in the object database.
+# Without this, a Windows checkout rewrites files as CRLF and `git status`
+# reports the entire tree as modified (~590 files, ~283k lines of churn),
+# which buries real changes in every diff and review.
+# Binary files are detected automatically by `text=auto`; the explicit rules
+# below cover cases where detection is ambiguous or the platform demands CRLF.
+* text=auto eol=lf
+
+# Windows-only scripts must keep CRLF to remain executable there.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Never touch these — declaring them binary stops git from guessing.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg text eol=lf
+*.pdf binary
+*.docx binary
+*.xlsx binary
+*.pptx binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.pt binary
+*.pth binary
+*.onnx binary
+*.npy binary
+*.npz binary
+
+# Lockfiles: LF, and collapse them in diffs — they are generated, not authored.
+package-lock.json text eol=lf linguist-generated=true
+uv.lock text eol=lf linguist-generated=true
+
 graphify-out/graph.json merge=graphify
