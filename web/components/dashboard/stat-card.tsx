@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { ArrowDown, ArrowRight, ArrowUp, Minus, type LucideIcon } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
@@ -36,6 +37,10 @@ interface StatCardProps extends WidgetStateProps {
    * derma/admin's label-above-value cards) — UI_SPEC.md §4.2 note, both real. */
   layout?: "icon-right" | "icon-left-circular";
   footerLink?: { label: string; href: string };
+  /** ADR-023 fixture cards (admin Platform Revenue/System Uptime) pass a "Sample
+   * data" badge here so they're never visually indistinguishable from the real
+   * KPI cards beside them. */
+  badge?: ReactNode;
 }
 
 export function StatCard({
@@ -47,6 +52,7 @@ export function StatCard({
   tint = "primary",
   layout = "icon-right",
   footerLink,
+  badge,
   emptyIcon,
   emptyMessage = "No data yet.",
   emptyActionLabel,
@@ -86,7 +92,10 @@ export function StatCard({
         <div className={cn("flex size-10 items-center justify-center rounded-full", TINT_CLASSES[tint])}>
           <Icon className="size-5" strokeWidth={1.75} />
         </div>
-        <p className="text-muted-foreground text-xs font-medium">{label}</p>
+        <div className="flex items-center gap-2">
+          <p className="text-muted-foreground text-xs font-medium">{label}</p>
+          {badge}
+        </div>
         <p className="font-mono text-2xl font-bold tabular-nums">{value}</p>
         <StatCardFooter delta={delta} DeltaIcon={DeltaIcon} footerLink={footerLink} />
       </div>

@@ -152,8 +152,10 @@ jobs:
           uv pip install --system pillow pytesseract opencv-python-headless numpy scikit-learn
 
       # Report-only — never fails the job. See file header for why a hard
-      # threshold against these specific source PNGs isn't a meaningful gate.
-      - name: Visual regression report (tools/vision) — informational only
+      # threshold against these specific source PNGs isn't a meaningful gate:
+      # they're a fixed AI-mockup, permanently ~87% different from a real,
+      # live-data page by design, not a regression.
+      - name: Visual regression report vs. source mockup — informational only
         if: always()
         run: |
           set +e
@@ -164,6 +166,26 @@ jobs:
             python3 tools/vision/extract.py strings "docs/milestones/milestone_2/${src}.png" "docs/milestones/milestone_2/build/${build}.png"
           done
           exit 0
+
+      # M2_RECOVERY_AND_REVIEW.md §5 item 4 — the mockup comparison above can never
+      # gate a merge (permanent by-design mismatch), so it was the only visual check
+      # and couldn't actually catch a real UI regression. This one diffs the fresh
+      # build against docs/milestones/milestone_2/baseline/ — a same-shape
+      # live-data screenshot committed after a deliberately-reviewed UI change — so
+      # a normal PR should render identically (~0% structural diff) and a real
+      # unintended regression trips the default 2% budget. No `set +e`/`exit 0`: a
+      # failure here fails the job.
+      #
+      # To intentionally accept a UI change: run the three specs below locally
+      # against `npm run build && npm run start`, then copy the resulting
+      # docs/milestones/milestone_2/build/*-dashboard.png over the matching file in
+      # baseline/ and commit them alongside the change.
+      - name: Visual regression gate vs. baseline (build-to-build)
+        run: |
+          for build in user-dashboard admin-dashboard consultant-dashboard dermatologist-dashboard; do
+            echo "=== $build ==="
+            python3 tools/vision/extract.py diff "docs/milestones/milestone_2/baseline/${build}.png" "docs/milestones/milestone_2/build/${build}.png" --structural --max-pct 2
+          done
 
       - name: Upload e2e artifacts
         if: always()

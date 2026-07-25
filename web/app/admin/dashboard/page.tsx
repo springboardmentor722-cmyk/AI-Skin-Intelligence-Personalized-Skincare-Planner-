@@ -18,6 +18,7 @@ import {
 
 import { QuickActionGrid, type QuickAction } from "@/components/dashboard/quick-action-grid";
 import { RankedBarList, type RankedBarItem } from "@/components/charts/ranked-bar-list";
+import { Badge } from "@/components/ui/badge";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { StatusTileGrid } from "@/components/dashboard/status-tile-grid";
 import { TimelineList, type TimelineItem } from "@/components/dashboard/timeline-list";
@@ -77,6 +78,15 @@ interface DashboardStatsResponse {
   platform_counts: PlatformCounts;
   top_concerns: TopConcernStat[];
 }
+
+// ADR-023: these 5 fixtures are the only numbers on this page not backed by a
+// real query — every card that renders one carries this badge so it never reads
+// as indistinguishable from the live-queried cards beside it.
+const SAMPLE_DATA_BADGE = (
+  <Badge variant="outline" className="text-[10px] text-muted-foreground">
+    Sample data
+  </Badge>
+);
 
 function formatAction(action: string): string {
   return action
@@ -201,8 +211,8 @@ export default function AdminDashboardPage() {
         <StatCard label="Assessments Completed" value={stats.platform_counts.total_assessments.toLocaleString("en-IN")} icon={ClipboardCheck} tint="success" layout="icon-left-circular" footerLink={{ label: "View All Assessments", href: "/admin/assessments" }} />
         <StatCard label="Active Routines" value={stats.platform_counts.active_routines.toLocaleString("en-IN")} icon={ClipboardList} tint="info" layout="icon-left-circular" />
         <StatCard label="Total Products" value={stats.platform_counts.total_products.toLocaleString("en-IN")} icon={ShoppingBag} tint="tertiary" layout="icon-left-circular" />
-        <StatCard label="Platform Revenue" value={formatPrice(PLATFORM_REVENUE_FIXTURE.amountInr, "INR")} icon={Wallet} tint="warning" layout="icon-left-circular" delta={{ label: PLATFORM_REVENUE_FIXTURE.deltaLabel, direction: PLATFORM_REVENUE_FIXTURE.deltaDirection }} />
-        <StatCard label="System Uptime" value={`${SYSTEM_UPTIME_FIXTURE.percent}%`} icon={Server} tint="success" layout="icon-left-circular" delta={{ label: SYSTEM_UPTIME_FIXTURE.statusLabel, direction: "neutral" }} />
+        <StatCard label="Platform Revenue" value={formatPrice(PLATFORM_REVENUE_FIXTURE.amountInr, "INR")} icon={Wallet} tint="warning" layout="icon-left-circular" delta={{ label: PLATFORM_REVENUE_FIXTURE.deltaLabel, direction: PLATFORM_REVENUE_FIXTURE.deltaDirection }} badge={SAMPLE_DATA_BADGE} />
+        <StatCard label="System Uptime" value={`${SYSTEM_UPTIME_FIXTURE.percent}%`} icon={Server} tint="success" layout="icon-left-circular" delta={{ label: SYSTEM_UPTIME_FIXTURE.statusLabel, direction: "neutral" }} badge={SAMPLE_DATA_BADGE} />
       </div>
 
       {totalPendingVerification > 0 && (
@@ -222,11 +232,17 @@ export default function AdminDashboardPage() {
           <DonutBreakdown data={userOverviewData} centerValue={totalUsers.toLocaleString("en-IN")} centerLabel="Total Users" legend="count-percent" />
         </div>
         <div className="border-border bg-card rounded-2xl border p-5">
-          <h3 className="font-heading mb-3 text-base font-semibold">User Growth</h3>
+          <div className="mb-3 flex items-center gap-2">
+            <h3 className="font-heading text-base font-semibold">User Growth</h3>
+            {SAMPLE_DATA_BADGE}
+          </div>
           <TrendChart series={[...USER_GROWTH_FIXTURE]} seriesLabel="Users" yDomain={[0, 14000]} footerNote="↑ 18% growth compared to last month" />
         </div>
         <div className="border-border bg-card rounded-2xl border p-5">
-          <h3 className="font-heading mb-3 text-base font-semibold">Assessments Overview</h3>
+          <div className="mb-3 flex items-center gap-2">
+            <h3 className="font-heading text-base font-semibold">Assessments Overview</h3>
+            {SAMPLE_DATA_BADGE}
+          </div>
           <DonutBreakdown data={assessmentsOverviewData} centerValue={stats.platform_counts.total_assessments.toLocaleString("en-IN")} centerLabel="Total Assessments" legend="count-percent" />
         </div>
       </div>
@@ -238,7 +254,10 @@ export default function AdminDashboardPage() {
           <RankedBarList state={topConcernsData.length === 0 ? "empty" : "ready"} items={topConcernsData} showCount emptyMessage="No concerns logged platform-wide yet." />
         </div>
         <div className="border-border bg-card rounded-2xl border p-5">
-          <h3 className="font-heading mb-3 text-base font-semibold">Revenue Overview</h3>
+          <div className="mb-3 flex items-center gap-2">
+            <h3 className="font-heading text-base font-semibold">Revenue Overview</h3>
+            {SAMPLE_DATA_BADGE}
+          </div>
           <p className="font-mono text-2xl font-bold tabular-nums">{formatPrice(PLATFORM_REVENUE_FIXTURE.amountInr, "INR")}</p>
           <p className="text-success mt-1 text-xs font-medium">↑ {PLATFORM_REVENUE_FIXTURE.deltaLabel}</p>
         </div>
@@ -292,7 +311,10 @@ export default function AdminDashboardPage() {
           <QuickActionGrid actions={quickActions} />
         </div>
         <div className="border-border bg-card rounded-2xl border p-5">
-          <h3 className="font-heading mb-3 text-base font-semibold">Platform Analytics</h3>
+          <div className="mb-3 flex items-center gap-2">
+            <h3 className="font-heading text-base font-semibold">Platform Analytics</h3>
+            {SAMPLE_DATA_BADGE}
+          </div>
           <div className="grid grid-cols-2 gap-3">
             {PLATFORM_ANALYTICS_FIXTURE.map((m) => (
               <div key={m.key} className="flex items-center gap-2">

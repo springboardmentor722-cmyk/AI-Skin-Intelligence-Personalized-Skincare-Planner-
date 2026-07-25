@@ -1096,6 +1096,17 @@ is a genuinely different situation from moving a threshold to hide a
 regression: the number is stable, understood, and reproducible, not a stuck
 metric being argued away.
 
+**Addendum (2026-07-26, recovery-pass follow-up):** this decision was read by
+`M2_RECOVERY_AND_REVIEW.md` §5 item 4 as "there is no blocking visual check at
+all," which understated it — the gap was that the *only* visual check compared
+against a permanently-mismatched mockup, so it structurally couldn't block
+anything. `.github/workflows/e2e-ci.yml` now also runs a second, additive step,
+"Visual regression gate vs. baseline (build-to-build)," that diffs the fresh
+build against a same-shape, live-data screenshot committed at
+`docs/milestones/milestone_2/baseline/` — no `set +e`, default `--max-pct 2`,
+fails the job on a real structural regression. The mockup-comparison step above
+is unchanged and stays report-only for exactly the reason this ADR gives.
+
 **Decision — CI wiring:** new `.github/workflows/e2e-ci.yml` (kept separate
 from `backend-ci.yml`/`frontend-ci.yml` rather than folding in — it's the only
 job that needs both stacks live simultaneously plus Better Auth's own schema).
@@ -1370,3 +1381,45 @@ Any future session picking up "premium daily photos," "upload a face for AI
 analysis," or "train on user images" should read this ADR first rather than
 re-deriving the same investigation, and should get an explicit go-ahead on
 the specific blocked decision before writing code for that piece.
+
+## ADR-034 — Condition sub-score: saturating tail past the docx's specified range
+
+**Status:** Accepted (recovery-pass follow-up, 2026-07-26)
+**Context:** `MILESTONE 2.docx` §2 is exact and literal for the Condition
+sub-score ($S_{cond}$, 35% weight): "Start at 100. Subtract 15 points for
+every High Severity concern... and 7 points for Medium Severity concerns."
+`scoring_engine.py`'s `_skin_condition_score` implements this precisely — but
+the docx says nothing about what happens once total deductions exceed 100.
+The prior code (`max(0.0, 100.0 - deduction)`) clamped every deduction past
+100 to a flat 0, so a user with 7 simultaneous High-severity concerns
+(105 deduction) scored identically to one with 8, 9, or 10 — the metric
+stopped discriminating exactly where a user's skin condition is worst
+(`M2_RECOVERY_AND_REVIEW.md` §5 item 2). This is a real product gap even
+though it exactly matches the doc: 7+ simultaneous High-severity concerns is
+a real, reachable input (10 concerns are seeded; nothing stops a user
+reporting most of them as High), not a hypothetical edge case.
+**Decision:** the docx's formula is authoritative and unchanged for
+`deduction <= 100` — `_skin_condition_score` returns bit-for-bit
+`100.0 - deduction` there, so every value any existing or future test derives
+from the doc's worked examples stays exact. Only for `deduction > 100` (a
+range the doc is silent on) does the score now decay smoothly from
+`constants.CONDITION_SATURATION_TAIL_SCALE` (5.0) toward, but never reaching,
+0: `tail_scale * exp(-(deduction - 100) / tail_scale)`. This keeps every
+profile distinguishable — more severity always means a lower score, all the
+way down — without ever contradicting the literal deduction the doc mandates
+for the range it actually specifies. Considered and rejected: reshaping the
+*entire* curve into something smooth end-to-end (e.g. `100 * exp(-deduction /
+k)`) — mathematically cleaner, but it would silently change the doc's
+literal per-point deduction for ordinary inputs (one High concern would stop
+costing exactly 15 points), which is exactly the kind of quiet deviation from
+a graded rubric AGENTS.md §0's precedence rule exists to prevent. Also
+rejected: capping to only the worst N concerns — changes which realistic,
+non-edge-case profiles are affected, a materially bigger behavioral shift
+than fixing an unreachable-in-the-doc tail.
+**Consequences:** `test_skin_condition_score_clamps_at_zero` no longer holds
+(deduction > 100 is no longer literally 0) and was replaced with
+`test_skin_condition_score_exactly_100_deduction_is_exactly_zero` (proves the
+boundary is untouched) and `test_skin_condition_score_past_the_floor_keeps_discriminating`
+(proves strictly-decreasing, always-positive behavior past it). No other
+test asserted behavior past 100 deduction. `docs/AI_ML.md`'s Condition
+sub-score description now notes the tail explicitly.

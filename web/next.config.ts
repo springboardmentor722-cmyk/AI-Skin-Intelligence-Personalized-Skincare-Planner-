@@ -57,12 +57,11 @@ function loadRepoRootEnv(): void {
       }
     }
 
-    // Say so out loud. A silent fallback would just hide the next drift.
+    // Say so out loud, but quietly — one count, not a key dump. Naming every key
+    // was useful while diagnosing the drift; as steady-state startup noise it is
+    // just a list of this app's secret names printed on every boot.
     if (filled.length > 0 && process.env.NODE_ENV !== "production") {
-      console.info(
-        `[env] filled ${filled.length} key(s) from the repo-root .env that were ` +
-          `missing or empty in web/.env: ${filled.join(", ")}`
-      );
+      console.info(`[env] loaded ${filled.length} variable(s) from the repo-root .env`);
     }
   } catch (error) {
     // Never let env loading break the build — worst case we fall back to
@@ -72,6 +71,34 @@ function loadRepoRootEnv(): void {
 }
 
 loadRepoRootEnv();
+
+// Now that web/.env is gone and the repo-root .env is the single source of truth,
+// the loader above is the ONLY thing putting env vars into this process — which
+// makes NEXT_PUBLIC_* a genuine hazard rather than a detail.
+//
+// Next inlines NEXT_PUBLIC_* into the *client* bundle at compile time, and it
+// collects them during its own env pass, which runs before this config module is
+// evaluated. Server code (app/api/**/route.ts) reads process.env at request time
+// and is fine either way, but browser code is not: web/lib/api.ts reads
+// NEXT_PUBLIC_API_URL and web/lib/auth-client.ts reads NEXT_PUBLIC_APP_URL, and
+// if those inline as `undefined` every client fetch silently targets
+// "undefined/api/v1/..." and sign-in breaks — with no build error to warn you.
+//
+// Passing them through `env` closes that gap: this object is read off the
+// exported config, i.e. strictly after the module body (and therefore after
+// loadRepoRootEnv) has run, so whatever the loader put in process.env is what
+// gets inlined. Collected dynamically rather than hardcoded so a NEXT_PUBLIC_*
+// added to the root .env later is exposed automatically instead of silently
+// missing from the browser bundle.
+function publicRuntimeEnv(): Record<string, string> {
+  const exposed: Record<string, string> = {};
+  for (const [key, value] of Object.entries(process.env)) {
+    if (key.startsWith("NEXT_PUBLIC_") && typeof value === "string" && value !== "") {
+      exposed[key] = value;
+    }
+  }
+  return exposed;
+}
 
 // Milestone 1 audit finding: docs/ARCHITECTURE.md §9 requires "security headers/CSP
 // on the web app" — nothing was ever set, confirmed via curl (no
@@ -103,6 +130,7 @@ const nextConfig: NextConfig = {
   // this is pinned explicitly rather than left to inference that varies per
   // developer machine.
   turbopack: { root: path.resolve(__dirname) },
+  env: publicRuntimeEnv(),
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

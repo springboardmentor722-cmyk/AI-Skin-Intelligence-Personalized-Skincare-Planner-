@@ -2583,6 +2583,8 @@ export interface components {
         SkinProfileConcernRead: {
             /** Concern Id */
             concern_id: number;
+            /** Concern Name */
+            concern_name: string | null;
             /** Severity Rating */
             severity_rating: number | null;
             /** Priority Level */

@@ -29,6 +29,13 @@ CONDITION_HIGH_SEVERITY_DEDUCTION = 15.0
 CONDITION_MEDIUM_SEVERITY_DEDUCTION = 7.0
 CONDITION_DEFAULT_SEVERITY_WHEN_MISSING = 5  # treated as Medium
 
+# ADR-034 — MILESTONE 2.docx §2's own formula ("start at 100, subtract 15/7 per
+# concern") is exact and unconditional for total deduction <= 100; it says nothing
+# about what happens past that, which is why 7+ simultaneous High-severity
+# concerns all silently floored at the same 0. Past 100, the score instead decays
+# from this scale toward (never reaching) 0, so worse profiles stay distinguishable.
+CONDITION_SATURATION_TAIL_SCALE = 5.0
+
 # --- L: Lifestyle (20%) — "evaluated against daily stress level and sun
 # exposure risk" (docs/AI_ML.md's documented 4-component expansion: exercise,
 # stress inverted, diet quality, sun-exposure hygiene, equal-weighted) ---

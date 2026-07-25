@@ -83,7 +83,15 @@ and passes it in):
   −`CONDITION_HIGH_SEVERITY_DEDUCTION` (15) pts per High severity
   (severity_rating ≥ `CONDITION_HIGH_SEVERITY_MIN`, 8), −`CONDITION_MEDIUM_SEVERITY_DEDUCTION`
   (7) pts per Medium (≥ `CONDITION_MEDIUM_SEVERITY_MIN`, 4), 0 for Low (1–3), from
-  the current profile's concerns.
+  the current profile's concerns — exact per the docx for total deduction ≤ 100.
+  Concerns sharing a seeded synonym pair (Hyperpigmentation/Dark Spots,
+  Wrinkles/Fine Lines — two cards for the same underlying condition) collapse to
+  one deduction at their higher severity, not two. Past 100 total deduction (the
+  docx doesn't specify this range; reachable since 10 concerns are seeded and
+  nothing stops most being reported High) the score decays from
+  `CONDITION_SATURATION_TAIL_SCALE` (5.0) toward, never reaching, 0 instead of
+  flooring flat — ADR-034, so severity keeps discriminating instead of every
+  profile past ~7 simultaneous High concerns reading identically.
 - **lifestyle** = equal-weighted sub-index of exercise frequency, stress
   (inverted), diet quality, sun-exposure hygiene from `lifestyle_logs` (30-day
   window), plus a real unprotected-high-UV-exposure penalty

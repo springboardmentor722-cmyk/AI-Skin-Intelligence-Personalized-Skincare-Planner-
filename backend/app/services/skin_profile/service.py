@@ -81,12 +81,15 @@ async def list_skin_concerns(db: AsyncSession) -> list[SkinConcern]:
 
 
 async def _read_with_concerns(db: AsyncSession, profile: SkinProfile) -> SkinProfileRead:
+    # Joined for concern_name — _skin_condition_score needs it to collapse the
+    # seeded synonym pairs (Hyperpigmentation/Dark Spots, Wrinkles/Fine Lines) to a
+    # single deduction instead of double-counting the same underlying concern.
     result = await db.execute(
-        select(SkinProfileConcern).where(
-            SkinProfileConcern.skin_profile_id == profile.skin_profile_id
-        )
+        select(SkinProfileConcern, SkinConcern.concern_name)
+        .join(SkinConcern, SkinConcern.concern_id == SkinProfileConcern.concern_id)
+        .where(SkinProfileConcern.skin_profile_id == profile.skin_profile_id)
     )
-    concerns = list(result.scalars().all())
+    concerns = list(result.all())
 
     # Milestone 2 P7 (docs/DECISIONS.md ADR-026) — structured allergy list, joined
     # for the real ingredient name (id alone isn't useful to render).
@@ -109,10 +112,11 @@ async def _read_with_concerns(db: AsyncSession, profile: SkinProfile) -> SkinPro
         concerns=[
             SkinProfileConcernRead(
                 concern_id=c.concern_id,
+                concern_name=concern_name,
                 severity_rating=c.severity_rating,
                 priority_level=c.priority_level,
             )
-            for c in concerns
+            for c, concern_name in concerns
         ],
         allergy_ingredients=allergy_ingredients,
         created_at=profile.created_at,

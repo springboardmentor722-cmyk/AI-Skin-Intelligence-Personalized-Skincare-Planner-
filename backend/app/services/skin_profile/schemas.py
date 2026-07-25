@@ -29,6 +29,10 @@ class SkinProfileConcernRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     concern_id: int
+    # Joined from skin_concerns.concern_name in _read_with_concerns — scoring_engine's
+    # _skin_condition_score needs the name to collapse synonym pairs (Hyperpigmentation/
+    # Dark Spots, Wrinkles/Fine Lines) to one deduction instead of double-counting.
+    concern_name: str | None
     severity_rating: int | None
     priority_level: int | None
 

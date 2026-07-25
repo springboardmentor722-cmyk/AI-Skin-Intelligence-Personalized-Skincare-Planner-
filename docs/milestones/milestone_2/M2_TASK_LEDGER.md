@@ -15,34 +15,34 @@ phase's IDs, branch, and spec reference. Status vocabulary: `TODO` · `IN_PROGRE
 | M2-P00-T05 | P0 | M2_API_CONTRACT.md | chore/m2-recon | DONE | Master prompt §1 step 4 | Reconciled with live `openapi.json` |
 | M2-P00-T06 | P0 | Resolve C1-C7, write ADR-020/021 | chore/m2-recon | DONE | UI_SPEC.md §7 | C3 required a reversal after docx re-verification — see ADR-021 |
 | M2-P00-T07 | P0 | This ledger | chore/m2-recon | DONE | Master prompt §1 step 5 | — |
-| M2-P01-T01 | P1 | Measure design tokens (palette/sample/regions) on all 4 PNGs | feat/m2-design-system | TODO | UI_SPEC §1 | |
-| M2-P01-T02 | P1 | UI_EXTRACTION.md with source-channel + confidence per value | feat/m2-design-system | TODO | UI_SPEC §0 | |
-| M2-P01-T03 | P1 | Token layer in globals.css + themes.ts | feat/m2-design-system | TODO | UI_SPEC §1 | Extend existing Frosted Lab Glass tokens, don't fork |
-| M2-P01-T04 | P1 | Score colour ramp helper | feat/m2-design-system | TODO | UI_SPEC §1.1 | |
-| M2-P01-T05 | P1 | shadcn primitive audit + install missing | feat/m2-design-system | TODO | Master prompt §4 | |
-| M2-P01-T06 | P1 | Token showcase route `(dev)/design-system` | feat/m2-design-system | TODO | Master prompt §5.2 | |
-| M2-P02-T01 | P2 | Extend nav-config.ts to typed 4-role tree w/ subtitles+sections | feat/m2-role-sidebar | TODO | UI_SPEC §3 | Real gap — current config has no subtitles/sections (M2_GAP_ANALYSIS §8) |
-| M2-P02-T02 | P2 | Extend existing RoleSidebar (not a new one) | feat/m2-role-sidebar | TODO | UI_SPEC §2 | `web/components/app-shell/app-sidebar.tsx` already exists — restructure |
-| M2-P02-T03 | P2 | Topbar per role | feat/m2-role-sidebar | TODO | UI_SPEC §2.3 | |
-| M2-P02-T04 | P2 | Server-side permission gating | feat/m2-role-sidebar | TODO | UI_SPEC §3 | `web/lib/permissions.ts` exists — extend |
-| M2-P02-T05 | P2 | Stub pages for every nav route, zero href="#" | feat/m2-role-sidebar | TODO | UI_SPEC §3 | |
-| M2-P02-T06 | P2 | Responsive + a11y pass | feat/m2-role-sidebar | TODO | UI_SPEC §6 | |
-| M2-P03-T01 | P3 | Build 14-widget kit (12 net-new, 2 exist) | feat/m2-widget-kit | TODO | UI_SPEC §5 | Real gap — only routine-checklist-card.tsx, skin-score-trend-chart.tsx exist |
-| M2-P03-T02 | P3 | Loading/empty/error states per widget | feat/m2-widget-kit | TODO | UI_SPEC §5 | |
-| M2-P03-T03 | P3 | Showcase route + unit tests (ramp, %, en-IN) | feat/m2-widget-kit | TODO | Master prompt P3 | |
-| M2-P04-T01 | P4 | web/lib/fixtures/ contract-shaped mocks | feat/m2-dashboards-user-admin | TODO | UI_SPEC §7 C7 | Directory doesn't exist yet |
-| M2-P04-T02 | P4 | User dashboard 4-row layout | feat/m2-dashboards-user-admin | TODO | UI_SPEC §4.1 | Route exists, rebuild from P3 kit |
-| M2-P04-T03 | P4 | Admin dashboard 4-row layout | feat/m2-dashboards-user-admin | TODO | UI_SPEC §4.4 | Wire KPI row through existing `web/app/api/admin/dashboard-stats` (M2_API_CONTRACT §4) |
-| M2-P04-T04 | P4 | Fidelity checklist + tools/vision diff <2% | feat/m2-dashboards-user-admin | TODO | UI_SPEC §8 | |
-| M2-P05-T01 | P5 | Consultant dashboard (5 KPI, 3-cell footer) | feat/m2-dashboards-clinical | TODO | UI_SPEC §4.2 | |
-| M2-P05-T02 | P5 | Dermatologist dashboard (5 KPI, 4-cell footer, mixed-gender roster) | feat/m2-dashboards-clinical | TODO | UI_SPEC §4.3 | |
-| M2-P05-T03 | P5 | Shared layout, role config (not copied pages) | feat/m2-dashboards-clinical | TODO | UI_SPEC §4.2/4.3 | |
-| M2-P05-T04 | P5 | Fidelity checklist + tools/vision diff <2% | feat/m2-dashboards-clinical | TODO | UI_SPEC §8 | |
-| M2-P06-T01 | P6 | skin_types.json (5 types incl. Normal, ADR-021 C1) | feat/m2-visual-datasets | TODO | MILESTONE 2.docx §A | Confirmed absent from repo |
-| M2-P06-T02 | P6 | skin_concerns.json (10 concerns, ADR-021 C2) | feat/m2-visual-datasets | TODO | MILESTONE 2.docx §B | Confirmed absent from repo |
-| M2-P06-T03 | P6 | Seed `skin_types` lookup table row for Normal | feat/m2-visual-datasets | TODO | ADR-021 C1 | Plain INSERT — not an enum migration, table is a lookup table |
-| M2-P06-T04 | P6 | SVG assets under web/public/assets/{skin_types,concerns}/ | feat/m2-visual-datasets | TODO | ADR-021 C5 | Confirmed absent |
-| M2-P06-T05 | P6 | Schema-validation pytest | feat/m2-visual-datasets | TODO | Master prompt P6 | |
+| M2-P01-T01 | P1 | Measure design tokens (palette/sample/regions) on all 4 PNGs | feat/m2-design-system | DONE | UI_SPEC §1 | Merged 4011130 (`7932d29` — role-mapped design tokens, score ramp, showcase route) |
+| M2-P01-T02 | P1 | UI_EXTRACTION.md with source-channel + confidence per value | feat/m2-design-system | DONE | UI_SPEC §0 | Merged 4011130 |
+| M2-P01-T03 | P1 | Token layer in globals.css + themes.ts | feat/m2-design-system | DONE | UI_SPEC §1 | Extend existing Frosted Lab Glass tokens, don't fork — merged 4011130 |
+| M2-P01-T04 | P1 | Score colour ramp helper | feat/m2-design-system | DONE | UI_SPEC §1.1 | Merged 4011130 |
+| M2-P01-T05 | P1 | shadcn primitive audit + install missing | feat/m2-design-system | DONE | Master prompt §4 | Merged 4011130 |
+| M2-P01-T06 | P1 | Token showcase route `(dev)/design-system` | feat/m2-design-system | DONE | Master prompt §5.2 | Merged 4011130 |
+| M2-P02-T01 | P2 | Extend nav-config.ts to typed 4-role tree w/ subtitles+sections | feat/m2-role-sidebar | DONE | UI_SPEC §3 | Real gap — current config has no subtitles/sections (M2_GAP_ANALYSIS §8). Merged 8cf0fe1 (`acaa5cc` — role-aware sidebar with sections, subtitles, stub routes; ADR-022) |
+| M2-P02-T02 | P2 | Extend existing RoleSidebar (not a new one) | feat/m2-role-sidebar | DONE | UI_SPEC §2 | `web/components/app-shell/app-sidebar.tsx` already exists — restructured, not replaced. Merged 8cf0fe1 |
+| M2-P02-T03 | P2 | Topbar per role | feat/m2-role-sidebar | DONE | UI_SPEC §2.3 | Merged 8cf0fe1 |
+| M2-P02-T04 | P2 | Server-side permission gating | feat/m2-role-sidebar | DONE | UI_SPEC §3 | `web/lib/permissions.ts` extended, not replaced. Merged 8cf0fe1 |
+| M2-P02-T05 | P2 | Stub pages for every nav route, zero href="#" | feat/m2-role-sidebar | DONE | UI_SPEC §3 | 36 stub routes per the merge commit subject. Merged 8cf0fe1 |
+| M2-P02-T06 | P2 | Responsive + a11y pass | feat/m2-role-sidebar | DONE | UI_SPEC §6 | Merged 8cf0fe1 |
+| M2-P03-T01 | P3 | Build 14-widget kit (12 net-new, 2 exist) | feat/m2-widget-kit | DONE | UI_SPEC §5 | Real gap — only routine-checklist-card.tsx, skin-score-trend-chart.tsx existed. Merged c678d87 (`fdc966b` — 14-widget dashboard kit, props-only, 3 states each) |
+| M2-P03-T02 | P3 | Loading/empty/error states per widget | feat/m2-widget-kit | DONE | UI_SPEC §5 | 3 states each per the merge commit subject. Merged c678d87 |
+| M2-P03-T03 | P3 | Showcase route + unit tests (ramp, %, en-IN) | feat/m2-widget-kit | DONE | Master prompt P3 | Merged c678d87 |
+| M2-P04-T01 | P4 | web/lib/fixtures/ contract-shaped mocks | feat/m2-dashboards-user-admin | DONE | UI_SPEC §7 C7 | Merged cbc0a72 (`f754172` — User & Admin dashboards rebuilt from the P3 widget kit). Superseded for the 2 real-system-gap fixtures by ADR-023 at this same phase |
+| M2-P04-T02 | P4 | User dashboard 4-row layout | feat/m2-dashboards-user-admin | DONE | UI_SPEC §4.1 | Route rebuilt from P3 kit, real data sources kept per ADR-023. Merged cbc0a72 |
+| M2-P04-T03 | P4 | Admin dashboard 4-row layout | feat/m2-dashboards-user-admin | DONE | UI_SPEC §4.4 | Wired through `web/app/api/admin/dashboard-stats` (M2_API_CONTRACT §4); 5 fixture-only cells labeled per ADR-023 (see M2_RECOVERY_AND_REVIEW.md §5 item 3 for the "Sample data" badge added later). Merged cbc0a72 |
+| M2-P04-T04 | P4 | Fidelity checklist + tools/vision diff <2% | feat/m2-dashboards-user-admin | DONE | UI_SPEC §8 | The <2% diff is against the source mockup, later found to be a permanent ~87% by-design gap (ADR-031) — see item 4 of M2_RECOVERY_AND_REVIEW.md §5 for the build-vs-baseline gate added to actually enforce this. Merged cbc0a72 |
+| M2-P05-T01 | P5 | Consultant dashboard (5 KPI, 3-cell footer) | feat/m2-dashboards-clinical | DONE | UI_SPEC §4.2 | Merged cfa0c20 (`ea2c0c8` — Consultant & Dermatologist dashboards, one shared component) |
+| M2-P05-T02 | P5 | Dermatologist dashboard (5 KPI, 4-cell footer, mixed-gender roster) | feat/m2-dashboards-clinical | DONE | UI_SPEC §4.3 | Merged cfa0c20 |
+| M2-P05-T03 | P5 | Shared layout, role config (not copied pages) | feat/m2-dashboards-clinical | DONE | UI_SPEC §4.2/4.3 | One shared component per the merge commit subject, not copy-pasted pages. Merged cfa0c20 |
+| M2-P05-T04 | P5 | Fidelity checklist + tools/vision diff <2% | feat/m2-dashboards-clinical | DONE | UI_SPEC §8 | Same source-mockup caveat as M2-P04-T04. Merged cfa0c20 |
+| M2-P06-T01 | P6 | skin_types.json (5 types incl. Normal, ADR-021 C1) | feat/m2-visual-datasets | DONE | MILESTONE 2.docx §A | Merged c4f3901 (`b88d864` — in-built visual datasets for the assessment wizard) |
+| M2-P06-T02 | P6 | skin_concerns.json (10 concerns, ADR-021 C2) | feat/m2-visual-datasets | DONE | MILESTONE 2.docx §B | See M2_RECOVERY_AND_REVIEW.md §5 item 1 — two of the 10 concerns turned out to be near-synonym pairs, fixed at the scoring layer, not here. Merged c4f3901 |
+| M2-P06-T03 | P6 | Seed `skin_types` lookup table row for Normal | feat/m2-visual-datasets | DONE | ADR-021 C1 | Plain INSERT — not an enum migration, table is a lookup table. Merged c4f3901 |
+| M2-P06-T04 | P6 | SVG assets under web/public/assets/{skin_types,concerns}/ | feat/m2-visual-datasets | DONE | ADR-021 C5 | Merged c4f3901 |
+| M2-P06-T05 | P6 | Schema-validation pytest | feat/m2-visual-datasets | DONE | Master prompt P6 | Merged c4f3901 |
 | M2-P07-T01 | P7 | Extend skin_profile CRUD for docx-named fields | feat/m2-skin-profile | DONE | MILESTONE 2.docx §2 | Confirmed already covered (skin type, age, concerns, allergies, sensitivities); no rebuild needed |
 | M2-P07-T02 | P7 | 4-tracker time-series models (14-day window) | feat/m2-skin-profile | DONE | MILESTONE 2.docx §2 | `lifestyle_logs` already covered all 4 trackers; added `list_lifestyle_logs_since(user_id, days)` for the real 14-day window (old `list_recent_lifestyle_logs` was row-count only) |
 | M2-P07-T03 | P7 | Structured allergy list (ingredient ids, not free text) | feat/m2-skin-profile | DONE | MILESTONE 2.docx §2 | New `skin_profile_allergies` junction table (migration `e8c1b4020614`), ADR-026; frontend allergy field is now a real ingredient search (shadcn `combobox`) instead of a free-text tag input |

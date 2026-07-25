@@ -20,6 +20,19 @@ import numpy as np
 
 from app.services.scores import constants
 
+# web/lib/assessment/skin-concerns.json ships two pairs of concern cards that are
+# the same underlying skin_concerns row split into a broad and a narrow card
+# (Hyperpigmentation "Dark Spots & Pigmentation" / Dark Spots "Dark Marks", Wrinkles
+# "Fine Lines & Wrinkles" / Fine Lines "Fine Lines") — a user ticking both at high
+# severity was double-deducted for one condition. Collapsed to a single group here
+# so only the highest severity in the pair counts.
+_CONCERN_SYNONYM_GROUPS: dict[str, str] = {
+    "Hyperpigmentation": "tone_dark_marks",
+    "Dark Spots": "tone_dark_marks",
+    "Wrinkles": "aging_lines",
+    "Fine Lines": "aging_lines",
+}
+
 
 def _skin_condition_score(concerns: list[Any]) -> float:
     """C — Condition (35%): "penalised by the total severity of the user's skin
@@ -31,17 +44,43 @@ def _skin_condition_score(concerns: list[Any]) -> float:
     defaults to `CONDITION_DEFAULT_SEVERITY_WHEN_MISSING` (Medium). Concern
     *identification* itself stays the ADR-007 stub (ConcernDetector echoes the
     profile's declared concerns) — this only converts declared severities into a
-    condition score."""
+    condition score.
+
+    Concerns in the same `_CONCERN_SYNONYM_GROUPS` group collapse to their single
+    highest severity before deduction. A concern with no `concern_name` (or one not
+    in the map — every other seeded concern is its own group) is keyed by its list
+    position, not object identity — the same concern row can legitimately appear
+    more than once (e.g. re-submitted across assessments) and must still be
+    deducted once per occurrence, not merged just because it's the same object.
+
+    ADR-034: for total deduction <= 100 this is exactly the docx's formula, no
+    exceptions — every deduction <= 100 returns bit-for-bit `100.0 - deduction`.
+    Past 100 (unspecified by the docx; previously a flat clamp to 0, so 7+
+    simultaneous High-severity concerns were all indistinguishable) the score
+    instead decays from `CONDITION_SATURATION_TAIL_SCALE` toward, but never
+    reaching, 0 — worse keeps meaning worse, all the way down."""
     if not concerns:
         return 100.0
-    deduction = 0.0
-    for c in concerns:
+    highest_severity_per_group: dict[object, int] = {}
+    for index, c in enumerate(concerns):
         severity = c.severity_rating or constants.CONDITION_DEFAULT_SEVERITY_WHEN_MISSING
+        name = getattr(c, "concern_name", None)
+        group_key = _CONCERN_SYNONYM_GROUPS.get(name, index) if name else index
+        if severity > highest_severity_per_group.get(group_key, -1):
+            highest_severity_per_group[group_key] = severity
+
+    deduction = 0.0
+    for severity in highest_severity_per_group.values():
         if severity >= constants.CONDITION_HIGH_SEVERITY_MIN:
             deduction += constants.CONDITION_HIGH_SEVERITY_DEDUCTION
         elif severity >= constants.CONDITION_MEDIUM_SEVERITY_MIN:
             deduction += constants.CONDITION_MEDIUM_SEVERITY_DEDUCTION
-    return max(0.0, 100.0 - deduction)
+
+    if deduction <= 100.0:
+        return 100.0 - deduction
+    overflow = deduction - 100.0
+    tail_scale = constants.CONDITION_SATURATION_TAIL_SCALE
+    return float(tail_scale * np.exp(-overflow / tail_scale))
 
 
 def _lifestyle_score(logs: list[dict[str, Any]], uv_index: float | None = None) -> float:

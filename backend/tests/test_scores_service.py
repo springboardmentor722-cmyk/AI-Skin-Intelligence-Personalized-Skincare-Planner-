@@ -10,6 +10,7 @@ lookup) that a pure-function test can't exercise.
 """
 
 import datetime
+import math
 import random
 from collections.abc import AsyncGenerator
 
@@ -63,8 +64,9 @@ _DOC_WEIGHTS = {
 
 
 class _FakeConcern:
-    def __init__(self, severity_rating: int | None) -> None:
+    def __init__(self, severity_rating: int | None, concern_name: str | None = None) -> None:
         self.severity_rating = severity_rating
+        self.concern_name = concern_name
 
 
 @pytest.fixture
@@ -106,14 +108,57 @@ def test_skin_condition_score_mixes_tiers() -> None:
     assert _skin_condition_score([_FakeConcern(9), _FakeConcern(5)]) == 78.0
 
 
-def test_skin_condition_score_clamps_at_zero() -> None:
-    # 7 High-severity concerns would be 100 - 105 = -5, never negative
-    assert _skin_condition_score([_FakeConcern(10)] * 7) == 0.0
+def test_skin_condition_score_exactly_100_deduction_is_exactly_zero() -> None:
+    # ADR-034: deduction <= 100 is still bit-for-bit the docx's literal formula, no
+    # saturation involved, right up to and including the boundary. 2 High (-30) +
+    # 10 Medium (-70) = exactly 100 deduction.
+    concerns = [_FakeConcern(10)] * 2 + [_FakeConcern(5)] * 10
+    assert _skin_condition_score(concerns) == 0.0
+
+
+def test_skin_condition_score_past_the_floor_keeps_discriminating() -> None:
+    # ADR-034 (M2_RECOVERY_AND_REVIEW.md §5 item 2): 7 High-severity concerns is
+    # 105 deduction — past the docx's specified range entirely. Previously this
+    # clamped to a flat 0, indistinguishable from 8, 9, or 10 High concerns. Now it
+    # decays from CONDITION_SATURATION_TAIL_SCALE (5.0) toward, never reaching, 0.
+    seven_high = _skin_condition_score([_FakeConcern(10)] * 7)
+    eight_high = _skin_condition_score([_FakeConcern(10)] * 8)
+    ten_high = _skin_condition_score([_FakeConcern(10)] * 10)
+    assert seven_high == pytest.approx(5.0 * math.exp(-1), abs=1e-9)
+    assert 0.0 < ten_high < eight_high < seven_high < 5.0
 
 
 def test_skin_condition_score_defaults_missing_severity_to_medium() -> None:
     # missing severity defaults to 5 (Medium) -> -7
     assert _skin_condition_score([_FakeConcern(None)]) == 93.0
+
+
+def test_skin_condition_score_collapses_synonym_pair_to_higher_severity() -> None:
+    # Hyperpigmentation (High) + Dark Spots (Medium) is one condition split across
+    # two cards (web/lib/assessment/skin-concerns.json) -> counted once, at High.
+    concerns = [
+        _FakeConcern(9, concern_name="Hyperpigmentation"),
+        _FakeConcern(5, concern_name="Dark Spots"),
+    ]
+    assert _skin_condition_score(concerns) == 85.0
+
+
+def test_skin_condition_score_synonym_pair_does_not_double_count_at_max_severity() -> None:
+    # Both Wrinkles and Fine Lines at severity 8 must cost -15 once, not -30.
+    concerns = [
+        _FakeConcern(8, concern_name="Wrinkles"),
+        _FakeConcern(8, concern_name="Fine Lines"),
+    ]
+    assert _skin_condition_score(concerns) == 85.0
+
+
+def test_skin_condition_score_unrelated_concerns_still_count_separately() -> None:
+    # Acne and Redness share no synonym group -> both deducted independently.
+    concerns = [
+        _FakeConcern(9, concern_name="Acne"),
+        _FakeConcern(9, concern_name="Redness"),
+    ]
+    assert _skin_condition_score(concerns) == 70.0
 
 
 # --- _lifestyle_score — equal-weighted exercise/stress/diet/sun-hygiene ---
