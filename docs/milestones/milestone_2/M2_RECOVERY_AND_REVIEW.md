@@ -116,22 +116,74 @@ Single frontend constant now, in `score-components.ts`, documented as needing to
 
 ## 4. Verification
 
-| Gate | Result |
-|---|---|
-| TypeScript, changed app/lib files | **0 errors** — real `tsconfig.json` options, `strict: true` |
-| TypeScript, all 13 patched widgets | **0 errors** |
-| Python `py_compile`, all changed modules + test files | **OK** |
-| `git status` | **clean** |
-| `main` / `satya-sai-tharun-skinlytics` vs origin | **identical** |
+Every CI gate that could be reproduced in this environment was run against the
+committed state.
 
-**Not run here, needs a local pass:** `pytest`, `pnpm lint`, `pnpm build`, and Playwright. This sandbox blocks the `uv python install` download, and its shell gives each command a fresh PID namespace, so a full `tsc`/`next build` can't outlive a single call. The type checking above was done through the TypeScript compiler API against the project's own config, which covers the changed files but is not a substitute for `npm run typecheck` on the whole project.
+| Gate | Tool actually run | Result |
+|---|---|---|
+| `ruff check` (changed backend files) | ruff 0.16.0 | **All checks passed** |
+| `ruff format --check` (changed backend files) | ruff 0.16.0 | **5 files already formatted** |
+| `mypy --strict` (changed app modules) | mypy 2.3.0 | **0 errors in new code** — see note below |
+| `eslint` (changed frontend files) | project eslint | **exit 0, no findings** |
+| TypeScript — full blast radius (29 files: every consumer of every changed module) | TS compiler API, real `tsconfig.json`, `strict: true` | **0 errors** |
+| TypeScript — all 13 patched widgets | same | **0 errors** |
+| TypeScript — ~80 further project files in batches | same | **0 errors** |
+| SQL generation for all 4 new/changed queries | SQLAlchemy 2.0.51, PostgreSQL dialect | **all compile to correct SQL** |
+| `get_portfolio_stats` aggregation, 7 edge cases | replayed logic | **no exceptions** |
+| `git status` | — | **clean** |
+| `main` / `satya-sai-tharun-skinlytics` vs `origin` | — | **identical** |
 
-Please run, in order:
+**On the two mypy findings.** Running mypy here requires `--follow-imports=skip`
+(the project's own dependencies can't be installed in this sandbox), which
+degrades imported types to `Any` and produces two `no-any-return` errors:
+`routines/service.py:36` and `scores/service.py:215`. `git blame` puts both on
+`59717ac` (M2-P11) and `12f25f9` (M3-F) — **pre-existing code, not this branch**,
+and both resolve normally once imports are followed with the real dependencies
+present. No new code produced a mypy error.
+
+**Two defects were caught by this verification and fixed**, which is the main
+argument for it having been worth doing:
+
+- A **101-character line** in `_get_user_rows`' signature. `pyproject.toml` sets
+  `line-length = 100` and `backend-ci.yml` runs `ruff format --check` as a hard
+  gate, so this would have failed the build. Fixed in `e493fa5`.
+- The **portfolio trend blanked for a single-client roster** (`cb4aae6`). The
+  sample-size floor introduced by the fix in §3.3 was `max(2, ceil(n/2))`, so a
+  professional with exactly one scoring client broke on the first iteration and
+  got an empty chart — worse than the problem being fixed, and aimed squarely at
+  the newest professional. Floor is now 1.
+
+### Still not run here
+
+`pytest`, `next build`, and Playwright. This sandbox blocks the
+`uv python install` download needed for the backend virtualenv, and its shell
+gives every command a fresh PID namespace with a 45-second ceiling, so neither a
+full `next build` nor a full-project `tsc` can outlive a single call. The
+TypeScript results above come from the compiler API driven with the project's
+own `tsconfig.json` — the same checker `npm run typecheck` uses, over a subset.
+
+Please run these locally before relying on the merge:
 
 ```bash
-cd backend && uv run ruff check . && uv run ruff format --check . && uv run pytest -q
-cd web && npm run lint && npm run typecheck && npm run build
+cd backend && uv run pytest -q
+cd web && npm run typecheck && npm run build && npx playwright test
 ```
+
+The four new backend tests are the ones to watch, since they are the only added
+code whose runtime behaviour has not been executed anywhere:
+`test_get_recent_scores_for_users_matches_the_per_user_call`,
+`test_get_recent_scores_for_users_returns_an_entry_for_every_requested_user`,
+`test_list_active_step_counts_by_user_restricts_to_the_given_cohort`, and
+`test_list_active_step_counts_by_user_distinguishes_empty_cohort_from_no_filter`.
+
+### One thing to be aware of
+
+`npm run format:check` (prettier) fails across the repo — but it fails on
+untouched files too (`components/ui/button.tsx`, `lib/api.ts`, and others), so
+it is pre-existing, caused by the worktree's CRLF line endings rather than by
+anything in this branch. It is **not** a CI gate (`frontend-ci.yml` runs `tsc`,
+`eslint`, and `build`, not prettier). Running `npm run format` once on a machine
+where the tree has been re-checked out post-normalisation would clear it.
 
 ---
 
