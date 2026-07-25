@@ -1,17 +1,36 @@
+import datetime
+
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.ai.trend import RealProgressTrendAnalyzer
 from app.db.postgres import external_user_table
 from app.services.clinical_review.models import ConsultantClient, ConsultantNote
 from app.services.clinical_review.schemas import (
     ClientDetailRead,
     ClientScoreRead,
     ClientSummaryRead,
+    ClinicalPortfolioStatsRead,
     ConsultantNoteRead,
+    PortfolioDistributionSlice,
+    PortfolioRecentAssessment,
 )
 from app.services.routines import service as routines_service
 from app.services.scores import service as scores_service
 from app.services.skin_profile import service as skin_profile_service
+from app.services.user import service as user_service
+
+_trend_analyzer = RealProgressTrendAnalyzer()
+
+
+def _age_from_date_of_birth(date_of_birth: datetime.date | None) -> int | None:
+    if date_of_birth is None:
+        return None
+    today = datetime.date.today()
+    years = today.year - date_of_birth.year
+    if (today.month, today.day) < (date_of_birth.month, date_of_birth.day):
+        years -= 1
+    return years
 
 
 async def create_assignment(db: AsyncSession, professional_id: str, user_id: str) -> None:
@@ -111,6 +130,10 @@ async def list_my_clients(
         profile = await skin_profile_service.get_current_profile(db, assignment.user_id)
         scores = await scores_service.get_recent_scores(db, assignment.user_id, days=30)
         latest = scores[-1] if scores else None
+        # Milestone 2 P14 (ADR-024) — real age/gender from user_profiles, the same
+        # per-assignment-loop N+1 shape this function's own docstring already
+        # accepted for get_current_profile/get_recent_scores above.
+        user_profile = await user_service.get_or_create_profile(db, assignment.user_id)
 
         primary_concern_name = None
         if profile and profile.concerns:
@@ -122,6 +145,8 @@ async def list_my_clients(
                 user_id=assignment.user_id,
                 name=name,
                 email=email,
+                age=_age_from_date_of_birth(user_profile.date_of_birth),
+                gender=user_profile.gender,
                 skin_type_name=skin_types.get(profile.skin_type_id) if profile else None,
                 primary_concern_name=primary_concern_name,
                 overall_score=latest.overall_score if latest else None,
@@ -131,6 +156,125 @@ async def list_my_clients(
             )
         )
     return summaries, total
+
+
+async def get_portfolio_stats(db: AsyncSession, professional_id: str) -> ClinicalPortfolioStatsRead:
+    """Milestone 2 P14 (ADR-024's deferred consequence) — the real, aggregated
+    replacement for the clinical dashboard's fixture KPIs/donut/bars/trend/stat-
+    footer/recent-assessments, computed once across the professional's WHOLE
+    active roster (unpaginated — a portfolio-wide stat, not a page of it)."""
+    assignments_result = await db.execute(
+        select(ConsultantClient.user_id).where(
+            ConsultantClient.consultant_id == professional_id, ConsultantClient.status == "active"
+        )
+    )
+    user_ids = list(assignments_result.scalars().all())
+    total_assigned = len(user_ids)
+    if not user_ids:
+        return ClinicalPortfolioStatsRead(
+            total_assigned=0,
+            assessments_done=0,
+            active_routines=0,
+            avg_improvement_points=None,
+            clients_improving=0,
+            clients_stable=0,
+            clients_need_attention=0,
+            skin_type_distribution=[],
+            top_concerns=[],
+            portfolio_score_trend=[],
+            recent_assessments=[],
+        )
+
+    skin_type_by_user = await skin_profile_service.list_current_skin_types_for_users(db, user_ids)
+    concern_counts = await skin_profile_service.count_concern_occurrences_for_users(db, user_ids)
+    all_skin_types = {
+        t.skin_type_id: t.skin_type_name for t in await skin_profile_service.list_skin_types(db)
+    }
+    all_concerns = {
+        c.concern_id: c.concern_name for c in await skin_profile_service.list_skin_concerns(db)
+    }
+    active_step_counts = await routines_service.list_active_step_counts_by_user(db)
+
+    skin_type_counts: dict[int, int] = {}
+    for skin_type_id in skin_type_by_user.values():
+        skin_type_counts[skin_type_id] = skin_type_counts.get(skin_type_id, 0) + 1
+
+    assessments_done = 0
+    active_routines = 0
+    improvements: list[float] = []
+    clients_improving = 0
+    clients_stable = 0
+    clients_need_attention = 0
+    trend_points_by_index: dict[int, list[float]] = {}
+    recent_assessments: list[PortfolioRecentAssessment] = []
+
+    for user_id in user_ids:
+        name, _email = await _get_user_row(db, user_id)
+        scores = await scores_service.get_recent_scores(db, user_id, days=90)
+        assessments_done += len(scores)
+        if user_id in active_step_counts:
+            active_routines += 1
+        for index, s in enumerate(scores):
+            if s.overall_score is not None:
+                trend_points_by_index.setdefault(index, []).append(float(s.overall_score))
+        if scores:
+            latest = scores[-1]
+            recent_assessments.append(
+                PortfolioRecentAssessment(
+                    user_id=user_id,
+                    name=name,
+                    overall_score=latest.overall_score,
+                    calculated_at=latest.calculated_at,
+                )
+            )
+
+        series = [
+            (s.calculated_at.date(), float(s.overall_score))
+            for s in scores
+            if s.calculated_at is not None and s.overall_score is not None
+        ]
+        insight = _trend_analyzer.analyze(series)
+        if insight is not None:
+            improvements.append(insight.magnitude)
+            if insight.direction == "improving":
+                clients_improving += 1
+            elif insight.direction == "declining":
+                clients_need_attention += 1
+            else:
+                clients_stable += 1
+
+    recent_assessments.sort(key=lambda a: a.calculated_at or datetime.datetime.min, reverse=True)
+
+    return ClinicalPortfolioStatsRead(
+        total_assigned=total_assigned,
+        assessments_done=assessments_done,
+        active_routines=active_routines,
+        avg_improvement_points=(
+            round(sum(improvements) / len(improvements), 1) if improvements else None
+        ),
+        clients_improving=clients_improving,
+        clients_stable=clients_stable,
+        clients_need_attention=clients_need_attention,
+        skin_type_distribution=[
+            PortfolioDistributionSlice(
+                key=str(skin_type_id),
+                label=all_skin_types.get(skin_type_id) or "Unknown",
+                count=count,
+            )
+            for skin_type_id, count in sorted(skin_type_counts.items(), key=lambda kv: -kv[1])
+        ],
+        top_concerns=[
+            PortfolioDistributionSlice(
+                key=str(concern_id), label=all_concerns.get(concern_id) or "Unknown", count=count
+            )
+            for concern_id, count in sorted(concern_counts.items(), key=lambda kv: -kv[1])[:6]
+        ],
+        portfolio_score_trend=[
+            round(sum(values) / len(values), 1)
+            for _, values in sorted(trend_points_by_index.items())
+        ],
+        recent_assessments=recent_assessments[:5],
+    )
 
 
 async def get_client_detail(

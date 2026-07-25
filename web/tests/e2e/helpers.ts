@@ -78,6 +78,13 @@ export async function deleteTestUser(userId: string): Promise<void> {
       [userId]
     );
     await db.query("delete from skin_profiles where user_id = $1", [userId]);
+    // Milestone 2 P14 — assessment_submissions.score_id references skin_assessments
+    // with no ON DELETE CASCADE (a deliberate, real FK: it's an immutable audit
+    // trail of what was actually submitted, database_schemas/..._v3.sql's own
+    // comment) — must delete before skin_assessments or the delete below violates
+    // assessment_submissions_score_id_fkey. First real e2e submit through the wizard
+    // that creates one of these rows for real (P8-P13 always went through a fixture).
+    await db.query("delete from assessment_submissions where user_id = $1", [userId]);
     await db.query("delete from skin_assessments where user_id = $1", [userId]);
     // No Postgres "session" table to clean up — Better Auth stores sessions in Redis
     // via `secondaryStorage` (web/lib/auth.ts), not the database (confirmed against

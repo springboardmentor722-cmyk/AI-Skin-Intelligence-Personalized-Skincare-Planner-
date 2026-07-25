@@ -67,6 +67,17 @@ test("consultant dashboard: client vocabulary, 3-cell footer, Skin Concerns Guid
         `insert into consultant_profiles (user_id, verification_status) values ($1, 'approved')`,
         [userId]
       );
+      // Milestone 2 P14 — the dashboard is real now (clinical_review's roster +
+      // portfolio-stats endpoints, ADR-024's deferred consequence), so it needs a
+      // real assigned client to render non-empty. backend/app/db/seed.py's own
+      // demo cast, direct assignment (same "direct DB write for test setup"
+      // pattern this file already uses for the profile approval above).
+      await db.query(
+        `insert into consultant_clients (consultant_id, user_id, status)
+         values ($1, 'demo-client-ananya.verma', 'active')
+         on conflict (consultant_id, user_id) do update set status = 'active'`,
+        [userId]
+      );
     } finally {
       await db.end();
     }
@@ -77,6 +88,7 @@ test("consultant dashboard: client vocabulary, 3-cell footer, Skin Concerns Guid
     for (const label of ["Total Clients", "Client Overview", "Clients by Skin Type"]) {
       await expect(page.getByText(label).first()).toBeVisible({ timeout: 10_000 });
     }
+    await expect(page.getByText("Ananya Verma").first()).toBeVisible();
     // 3-cell stat footer (not 4) — UI_SPEC.md §4.2.
     await expect(page.getByText("Avg. Improvement").first()).toBeVisible();
     await expect(page.getByText("Clients Improved").first()).toBeVisible();
@@ -94,7 +106,21 @@ test("consultant dashboard: client vocabulary, 3-cell footer, Skin Concerns Guid
       fullPage: false,
     });
   } finally {
-    if (userId) await deleteTestUser(userId);
+    if (userId) {
+      const cleanupDb = pool();
+      try {
+        // consultant_clients.consultant_id has no ON DELETE CASCADE (a real,
+        // deliberate FK — an assignment audit trail shouldn't vanish silently) —
+        // must clear it before deleteTestUser removes the "user" row, same class
+        // of fix as the assessment_submissions ordering bug this session found.
+        await cleanupDb.query("delete from consultant_clients where consultant_id = $1", [
+          userId,
+        ]);
+      } finally {
+        await cleanupDb.end();
+      }
+      await deleteTestUser(userId);
+    }
   }
 });
 
@@ -114,6 +140,17 @@ test("dermatologist dashboard: patient vocabulary, 4-cell footer w/ Stable, mixe
         `insert into dermatologist_profiles (user_id, verification_status) values ($1, 'approved')`,
         [userId]
       );
+      // Milestone 2 P14 — real assigned patients (backend/app/db/seed.py's demo
+      // cast) so the mixed-gender roster assertion below is proving something
+      // real, not a fixture. Rohit Sharma is the seed's one male demo client;
+      // Kavya Nair is female, for a genuine mix.
+      await db.query(
+        `insert into consultant_clients (consultant_id, user_id, status)
+         values ($1, 'demo-client-rohit.sharma', 'active'),
+                ($1, 'demo-client-kavya.nair', 'active')
+         on conflict (consultant_id, user_id) do update set status = 'active'`,
+        [userId]
+      );
     } finally {
       await db.end();
     }
@@ -129,9 +166,10 @@ test("dermatologist dashboard: patient vocabulary, 4-cell footer w/ Stable, mixe
     await expect(page.getByText("Patients Improved").first()).toBeVisible();
     await expect(page.getByText("Stable")).toBeVisible();
     await expect(page.getByText("Need Attention").first()).toBeVisible();
-    // Mixed-gender roster (not all-female like Consultant's).
-    await expect(page.getByText("Rohit Sharma")).toBeVisible();
-    await expect(page.getByText("Hair Fall & Dandruff")).toBeVisible();
+    // Mixed-gender roster (not all-female like Consultant's) — real seeded data,
+    // not the fixture's "Hair Fall & Dandruff" (never a real seeded concern).
+    await expect(page.getByText("Rohit Sharma").first()).toBeVisible();
+    await expect(page.getByText("Oily Skin").first()).toBeVisible();
     // Deliberate copy divergence from Consultant.
     await expect(page.getByText("AI Clinical Insights")).toBeVisible();
     await expect(page.getByText("Skin Conditions Guide")).toBeVisible();
@@ -144,6 +182,16 @@ test("dermatologist dashboard: patient vocabulary, 4-cell footer w/ Stable, mixe
       fullPage: false,
     });
   } finally {
-    if (userId) await deleteTestUser(userId);
+    if (userId) {
+      const cleanupDb = pool();
+      try {
+        await cleanupDb.query("delete from consultant_clients where consultant_id = $1", [
+          userId,
+        ]);
+      } finally {
+        await cleanupDb.end();
+      }
+      await deleteTestUser(userId);
+    }
   }
 });

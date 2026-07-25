@@ -67,10 +67,10 @@ phase's IDs, branch, and spec reference. Status vocabulary: `TODO` · `IN_PROGRE
 | M2-P13-T01 | P13 | Consolidate 3 mandated tests, named + docstring-cited | test/m2-qa-suite | DONE | MILESTONE 2.docx §5 | Already literally named (P10/P11) — added the missing mile_2.docx §5 citation to all 5 mandated-test docstrings; new test_openapi_contract.py (4 tests) for the "contract tests" line item |
 | M2-P13-T02 | P13 | Playwright journeys (wizard, 4 dashboards, permission negatives) | test/m2-qa-suite | DONE | Master prompt P13 | Wizard/dashboards/sidebars/profile-check-in already existed; new role-permission-negatives.spec.ts (4 tests, ADR-031) for the missing negative case |
 | M2-P13-T03 | P13 | Wire tools/vision diff+strings into CI | test/m2-qa-suite | DONE | Master prompt §5.6 | New .github/workflows/e2e-ci.yml — full stack + curated Playwright subset + diff/strings as report-only artifacts (ADR-031 explains why not a hard gate) |
-| M2-P14-T01 | P14 | Swap fixtures for live API calls, all 4 dashboards | feat/m2-integration | TODO | Master prompt P14 | |
-| M2-P14-T02 | P14 | Seed data (screenshot cast names) | feat/m2-integration | TODO | Master prompt P14 | |
-| M2-P14-T03 | P14 | M2_COMPLETION_REPORT.md | feat/m2-integration | TODO | Master prompt P14 | |
-| M2-P14-T04 | P14 | Docs close-out (ARCHITECTURE, AI_ML, PROGRESS, openapi.json) | feat/m2-integration | TODO | Master prompt P14 | |
+| M2-P14-T01 | P14 | Swap fixtures for live API calls, all 4 dashboards | feat/m2-integration | DONE | Master prompt P14 | Wizard submit, User Skin Age, Admin System Health, whole clinical dashboard (new portfolio-stats endpoint) all real now (ADR-032); Admin's other 5 fixture cells stay fixture per ADR-023 (no backing system), documented in M2_COMPLETION_REPORT.md |
+| M2-P14-T02 | P14 | Seed data (screenshot cast names) | feat/m2-integration | DONE | Master prompt P14 | seed.py's seed_demo_clients/seed_professional_assignments (ADR-032) — real profiles/scores/routines for the 7 named cast members, assigned to every existing consultant/dermatologist account |
+| M2-P14-T03 | P14 | M2_COMPLETION_REPORT.md | feat/m2-integration | DONE | Master prompt P14 | New file, per-deliverable table |
+| M2-P14-T04 | P14 | Docs close-out (ARCHITECTURE, AI_ML, PROGRESS, openapi.json) | feat/m2-integration | DONE | Master prompt P14 | ARCHITECTURE.md's stale "ingredients router lands M3" corrected + assessment module added; AI_ML.md gained routine-generator + ingredient-intelligence sections; openapi.json confirmed in sync |
 
 ## Skill/plugin discovery result (M2-P00-T01)
 

@@ -83,9 +83,12 @@ test("signup -> real profile -> dashboard/routine/recommendations/profile/check-
       const { rows: concernRows } = await setupDb.query(
         "select concern_id from skin_concerns where concern_name = 'Acne'"
       );
+      // age_group set so the dashboard's real Skin Age derivation (P10/ADR-028,
+      // wired live as of P14) has something to compute — a real profile without
+      // one is a legitimate empty state, but this journey represents a complete one.
       const { rows: profileRows } = await setupDb.query(
-        "insert into skin_profiles (user_id, skin_type_id) values ($1, $2) returning skin_profile_id",
-        [userId, typeRows[0].skin_type_id]
+        "insert into skin_profiles (user_id, skin_type_id, age_group) values ($1, $2, $3) returning skin_profile_id",
+        [userId, typeRows[0].skin_type_id, "25-34"]
       );
       skinProfileId = profileRows[0].skin_profile_id;
       await setupDb.query(

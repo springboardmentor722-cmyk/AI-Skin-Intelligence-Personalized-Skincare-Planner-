@@ -29,6 +29,13 @@ class ClientSummaryRead(BaseModel):
     user_id: str
     name: str | None
     email: str
+    # Milestone 2 P14 (ADR-024's "materially narrower than UI_SPEC's roster
+    # columns" gap) — both real, both backed by user_profiles' own columns
+    # (date_of_birth/gender, user_service.get_or_create_profile), not invented.
+    # `age` is None when date_of_birth was never set, same "honest can't-compute"
+    # spirit as ScoreRead.skin_age.
+    age: int | None
+    gender: str | None
     skin_type_name: str | None
     primary_concern_name: str | None
     overall_score: float | None
@@ -84,6 +91,49 @@ class ConsultantNoteListPage(BaseModel):
 
     items: list[ConsultantNoteRead]
     meta: ConsultantNoteListPageMeta
+
+
+class PortfolioDistributionSlice(BaseModel):
+    key: str
+    label: str
+    count: int
+
+
+class PortfolioRecentAssessment(BaseModel):
+    user_id: str
+    name: str | None
+    overall_score: float | None
+    calculated_at: datetime.datetime | None
+
+
+class ClinicalPortfolioStatsRead(BaseModel):
+    """Milestone 2 P14 (ADR-024's deferred consequence, ADR-031's naming
+    precedent) — the real, computed replacement for
+    web/lib/fixtures/clinical-dashboard-fixtures.ts's KPI/donut/bars/trend/
+    stat-footer/recent-assessments blocks, aggregated once across a
+    professional's whole active roster (not paginated — a portfolio-wide stat,
+    unlike ClientListPage). `total_assigned` doubles as ClientListPage.meta.total
+    would, so a caller with only this response still knows the roster size.
+    No `upcoming_follow_ups` field: no scheduling/appointment concept exists
+    anywhere in database_schemas/ — fabricating one was explicitly out of scope
+    (AGENTS.md §0.2), the fixture's "Upcoming Follow-ups" card and 5th KPI have
+    no real replacement and are dropped by the frontend, not silently renamed."""
+
+    total_assigned: int
+    assessments_done: int
+    active_routines: int
+    # None when no assigned client has 2+ score points yet to average a delta from.
+    avg_improvement_points: float | None
+    clients_improving: int
+    clients_stable: int
+    clients_need_attention: int
+    skin_type_distribution: list[PortfolioDistributionSlice]
+    top_concerns: list[PortfolioDistributionSlice]
+    # Point-indexed (1st assessment, 2nd, ...), not calendar-week-bucketed — a
+    # deliberate simplification (real assigned clients rarely share assessment
+    # dates), documented in docs/DECISIONS.md's P14 ADR.
+    portfolio_score_trend: list[float]
+    recent_assessments: list[PortfolioRecentAssessment]
 
 
 class ClientDetailRead(BaseModel):

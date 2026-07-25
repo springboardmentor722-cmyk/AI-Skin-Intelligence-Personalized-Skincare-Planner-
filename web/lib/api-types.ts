@@ -1056,6 +1056,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/clients/me/portfolio-stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Portfolio Stats */
+        get: operations["get_my_portfolio_stats_api_v1_clients_me_portfolio_stats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/clients/{user_id}": {
         parameters: {
             query?: never;
@@ -1457,6 +1474,10 @@ export interface components {
             name: string | null;
             /** Email */
             email: string;
+            /** Age */
+            age: number | null;
+            /** Gender */
+            gender: string | null;
             /** Skin Type Name */
             skin_type_name: string | null;
             /** Primary Concern Name */
@@ -1469,6 +1490,44 @@ export interface components {
             score_trend: number[];
             /** Last Sync */
             last_sync: string | null;
+        };
+        /**
+         * ClinicalPortfolioStatsRead
+         * @description Milestone 2 P14 (ADR-024's deferred consequence, ADR-031's naming
+         *     precedent) — the real, computed replacement for
+         *     web/lib/fixtures/clinical-dashboard-fixtures.ts's KPI/donut/bars/trend/
+         *     stat-footer/recent-assessments blocks, aggregated once across a
+         *     professional's whole active roster (not paginated — a portfolio-wide stat,
+         *     unlike ClientListPage). `total_assigned` doubles as ClientListPage.meta.total
+         *     would, so a caller with only this response still knows the roster size.
+         *     No `upcoming_follow_ups` field: no scheduling/appointment concept exists
+         *     anywhere in database_schemas/ — fabricating one was explicitly out of scope
+         *     (AGENTS.md §0.2), the fixture's "Upcoming Follow-ups" card and 5th KPI have
+         *     no real replacement and are dropped by the frontend, not silently renamed.
+         */
+        ClinicalPortfolioStatsRead: {
+            /** Total Assigned */
+            total_assigned: number;
+            /** Assessments Done */
+            assessments_done: number;
+            /** Active Routines */
+            active_routines: number;
+            /** Avg Improvement Points */
+            avg_improvement_points: number | null;
+            /** Clients Improving */
+            clients_improving: number;
+            /** Clients Stable */
+            clients_stable: number;
+            /** Clients Need Attention */
+            clients_need_attention: number;
+            /** Skin Type Distribution */
+            skin_type_distribution: components["schemas"]["PortfolioDistributionSlice"][];
+            /** Top Concerns */
+            top_concerns: components["schemas"]["PortfolioDistributionSlice"][];
+            /** Portfolio Score Trend */
+            portfolio_score_trend: number[];
+            /** Recent Assessments */
+            recent_assessments: components["schemas"]["PortfolioRecentAssessment"][];
         };
         /** ConcernChangeRead */
         ConcernChangeRead: {
@@ -2135,6 +2194,26 @@ export interface components {
             active_routines: number;
             /** Total Products */
             total_products: number;
+        };
+        /** PortfolioDistributionSlice */
+        PortfolioDistributionSlice: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Count */
+            count: number;
+        };
+        /** PortfolioRecentAssessment */
+        PortfolioRecentAssessment: {
+            /** User Id */
+            user_id: string;
+            /** Name */
+            name: string | null;
+            /** Overall Score */
+            overall_score: number | null;
+            /** Calculated At */
+            calculated_at: string | null;
         };
         /** PrioritizedConcernRead */
         PrioritizedConcernRead: {
@@ -4838,6 +4917,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_my_portfolio_stats_api_v1_clients_me_portfolio_stats_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClinicalPortfolioStatsRead"];
                 };
             };
         };

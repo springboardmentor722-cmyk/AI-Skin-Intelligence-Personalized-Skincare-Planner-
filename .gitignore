@@ -96,7 +96,12 @@ graphify-out/.graphify_labels.json.sig
 .DS_Store
 Thumbs.db
 .idea/
+.vscode/
 *.swp
+
+# --- Claude Code local tool state (settings, cached skill bundles) — personal/
+# machine-local, not project source ---
+.claude/
 
 # --- Logs ---
 *.log

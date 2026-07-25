@@ -4,11 +4,12 @@ import { clearRateLimits, deleteTestUser, pool } from "./helpers";
 
 // Milestone 2 P8 — the assessment wizard's own dedicated coverage
 // (MILESTONE_2_MASTER_PROMPT.md P8: "full happy path ... validation blocks ...
-// state surviving back-navigation and a page refresh"). Submits against a fixture
-// (web/lib/fixtures/assessment-fixtures.ts), not the real backend — P9/P14 wire
-// real persistence; this only proves the wizard UI/state machine/payload builder,
-// not downstream dashboard/routine integration (user-journey.spec.ts covers that
-// with a directly API-seeded profile instead of walking this wizard).
+// state surviving back-navigation and a page refresh"). Submits against the real
+// POST /api/v1/assessment/submit as of P14 (P9's real persistence, P10's real
+// weighted engine) — this proves the wizard UI/state machine/payload builder AND
+// a real end-to-end submit, though not downstream dashboard/routine integration
+// (user-journey.spec.ts covers that with a directly API-seeded profile instead of
+// walking this wizard).
 test.describe.configure({ mode: "serial" });
 
 async function signUpToAssessment(page: import("@playwright/test").Page, email: string) {

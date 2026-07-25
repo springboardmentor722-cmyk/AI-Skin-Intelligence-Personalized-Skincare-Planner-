@@ -10,6 +10,7 @@ from app.services.clinical_review.schemas import (
     ClientDetailRead,
     ClientListPage,
     ClientListPageMeta,
+    ClinicalPortfolioStatsRead,
     ConsultantNoteCreate,
     ConsultantNoteListPage,
     ConsultantNoteListPageMeta,
@@ -38,6 +39,14 @@ async def get_my_clients(
     return ClientListPage(
         items=items, meta=ClientListPageMeta(page=page, page_size=page_size, total=total)
     )
+
+
+@router.get("/clients/me/portfolio-stats")
+async def get_my_portfolio_stats(
+    professional: Annotated[dict[str, Any], Depends(_professional)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> ClinicalPortfolioStatsRead:
+    return await service.get_portfolio_stats(db, professional["id"])
 
 
 @router.get("/clients/{user_id}")

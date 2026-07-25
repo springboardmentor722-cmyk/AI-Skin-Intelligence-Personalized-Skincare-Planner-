@@ -26,17 +26,18 @@ import { StateCard } from "@/components/state-card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
-import { SKIN_AGE_FIXTURE } from "@/lib/fixtures/dashboard-fixtures";
 import { useToggleRoutineStep } from "@/lib/hooks/use-toggle-routine-step";
 import { computePercent } from "@/lib/utils";
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
 
 // docs/DECISIONS.md ADR-023: this page rebuilds MILESTONE_2_UI_SPEC.md §4.1's 4-row
-// layout from the P3 widget kit, but keeps every real data source the pre-M2-UI-pack
+// layout from the P3 widget kit, keeping every real data source the pre-M2-UI-pack
 // dashboard already had wired in (score, routines, recommendations, progress,
-// lifestyle logs, analytics, skin profile) — only "Skin Age" is a fixture (no real
-// derivation exists yet, ADR-021 C6).
+// lifestyle logs, analytics, skin profile). "Skin Age" was the one remaining
+// fixture (ADR-021 C6) until P10 built the real derivation — wired to the real
+// ScoreRead.skin_age as of P14, honest empty state when the profile has no
+// age_group set (ADR-028).
 
 function useReportDashboardTti(ready: boolean) {
   const reported = useRef(false);
@@ -342,10 +343,10 @@ export default function UserDashboardPage() {
         <div className="lg:col-span-2">
           <StatCard
             label="Skin Age"
-            value={SKIN_AGE_FIXTURE.skinAge}
+            value={score.skin_age != null ? Math.round(score.skin_age) : undefined}
             icon={Sparkles}
             tint="tertiary"
-            delta={{ label: `Actual age ${SKIN_AGE_FIXTURE.actualAge}`, direction: "neutral" }}
+            emptyMessage="Set an age group on your profile to see this."
             footerLink={{ label: "View Details", href: "/progress" }}
           />
         </div>
