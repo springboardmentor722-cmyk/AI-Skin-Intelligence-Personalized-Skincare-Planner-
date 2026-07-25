@@ -27,7 +27,9 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
 import { useToggleRoutineStep } from "@/lib/hooks/use-toggle-routine-step";
+import { HYDRATION_BENCHMARK_LITERS } from "@/lib/score-components";
 import { computePercent } from "@/lib/utils";
+import { retryFor, widgetStateFor } from "@/lib/widget-state";
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
 
@@ -229,7 +231,7 @@ export default function UserDashboardPage() {
     null;
   const hydrationPercent =
     latestLifestyleLog?.water_intake_liters != null
-      ? computePercent(latestLifestyleLog.water_intake_liters, 2.5)
+      ? computePercent(latestLifestyleLog.water_intake_liters, HYDRATION_BENCHMARK_LITERS)
       : null;
   const hydrationLabel =
     hydrationPercent == null ? undefined : hydrationPercent >= 80 ? "Good" : hydrationPercent >= 50 ? "Fair" : "Low";
@@ -311,10 +313,16 @@ export default function UserDashboardPage() {
             state={
               skinProfileQuery.isLoading || skinTypesQuery.isLoading
                 ? "loading"
-                : !skinTypeName
-                  ? "empty"
-                  : "ready"
+                : skinProfileQuery.isError || skinTypesQuery.isError
+                  ? "error"
+                  : !skinTypeName
+                    ? "empty"
+                    : "ready"
             }
+            onRetry={() => {
+              void skinProfileQuery.refetch();
+              void skinTypesQuery.refetch();
+            }}
             icon={UserRound}
             tint="primary"
             footerLink={{ label: "View Details", href: "/profile" }}
@@ -330,10 +338,16 @@ export default function UserDashboardPage() {
             state={
               skinProfileQuery.isLoading || skinConcernsQuery.isLoading
                 ? "loading"
-                : !topConcernName
-                  ? "empty"
-                  : "ready"
+                : skinProfileQuery.isError || skinConcernsQuery.isError
+                  ? "error"
+                  : !topConcernName
+                    ? "empty"
+                    : "ready"
             }
+            onRetry={() => {
+              void skinProfileQuery.refetch();
+              void skinConcernsQuery.refetch();
+            }}
             icon={TriangleAlert}
             tint="danger"
             footerLink={{ label: "View Analysis", href: "/assessment/results" }}
@@ -354,12 +368,16 @@ export default function UserDashboardPage() {
           <StatCard
             label="Hydration Level"
             value={hydrationLabel}
-            state={lifestyleQuery.isLoading ? "loading" : hydrationPercent == null ? "empty" : "ready"}
+            state={widgetStateFor(lifestyleQuery, hydrationPercent == null)}
+            onRetry={retryFor(lifestyleQuery)}
             icon={Droplet}
             tint="info"
             delta={
               hydrationPercent != null
-                ? { label: `${hydrationPercent}% of 2.5L goal`, direction: "neutral" }
+                ? {
+                    label: `${hydrationPercent}% of ${HYDRATION_BENCHMARK_LITERS}L goal`,
+                    direction: "neutral",
+                  }
                 : undefined
             }
             emptyMessage="Log your water intake."
@@ -409,7 +427,8 @@ export default function UserDashboardPage() {
         <div className="border-border bg-card flex flex-col gap-2 rounded-2xl border p-5 lg:col-span-4">
           <h3 className="font-heading text-base font-semibold">Skin Health Progress</h3>
           <TrendChart
-            state={progressQuery.isLoading ? "loading" : chartData.length < 2 ? "empty" : "ready"}
+            state={widgetStateFor(progressQuery, chartData.length < 2)}
+            onRetry={retryFor(progressQuery)}
             series={chartData}
             seriesLabel="Skin score"
             rangeOptions={[...TREND_RANGES]}
@@ -426,7 +445,8 @@ export default function UserDashboardPage() {
           <InsightBanner
             variant="tip"
             title="AI Skin Insights"
-            state={analyticsQuery.isLoading ? "loading" : !latestInsight ? "empty" : "ready"}
+            state={widgetStateFor(analyticsQuery, !latestInsight)}
+            onRetry={retryFor(analyticsQuery)}
             lines={latestInsight ? [latestInsight.summary] : undefined}
             emptyMessage="Log a few more check-ins to unlock your first insight."
             actionLabel="View All Insights"
@@ -445,7 +465,8 @@ export default function UserDashboardPage() {
             </Link>
           </div>
           <ProductCarousel
-            state={recommendationsQuery.isLoading ? "loading" : carouselProducts.length === 0 ? "empty" : "ready"}
+            state={widgetStateFor(recommendationsQuery, carouselProducts.length === 0)}
+            onRetry={retryFor(recommendationsQuery)}
             products={carouselProducts}
             emptyMessage="Add concerns to your skin profile to get matched products."
             emptyActionLabel="Update profile"
@@ -455,7 +476,8 @@ export default function UserDashboardPage() {
         <div className="border-border bg-card rounded-2xl border p-5 lg:col-span-5">
           <h3 className="font-heading mb-3 text-base font-semibold">Skin Concerns Overview</h3>
           <DonutBreakdown
-            state={skinProfileQuery.isLoading ? "loading" : concernDonutData.length === 0 ? "empty" : "ready"}
+            state={widgetStateFor(skinProfileQuery, concernDonutData.length === 0)}
+            onRetry={retryFor(skinProfileQuery)}
             data={concernDonutData}
             centerValue={concernDonutData.length}
             centerLabel="Primary Concerns"
@@ -469,7 +491,8 @@ export default function UserDashboardPage() {
       <div className="border-border bg-card rounded-2xl border p-5">
         <h3 className="font-heading mb-3 text-base font-semibold">Daily Checklist</h3>
         <ChecklistStrip
-          state={routinesQuery.isLoading ? "loading" : checklistTasks.length === 0 ? "empty" : "ready"}
+          state={widgetStateFor(routinesQuery, checklistTasks.length === 0)}
+          onRetry={retryFor(routinesQuery)}
           tasks={checklistTasks}
           onToggle={(key) => {
             const step = allSteps.find((s) => s.step_id === key);

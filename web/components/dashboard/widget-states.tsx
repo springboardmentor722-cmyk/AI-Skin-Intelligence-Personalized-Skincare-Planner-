@@ -26,6 +26,11 @@ export interface WidgetStateProps {
   emptyActionLabel?: string;
   emptyActionHref?: string;
   errorMessage?: string;
+  /** Retry handler for `state="error"`. Pass a query's `refetch` — without it the
+   * error state is a dead end and the user's only recourse is a page reload
+   * (MILESTONE_2_MASTER_PROMPT.md P14: "loading, empty, and error states wired
+   * with a retry path"). */
+  onRetry?: () => void;
 }
 
 export function WidgetEmpty({
@@ -58,7 +63,13 @@ export function WidgetEmpty({
   );
 }
 
-export function WidgetError({ message = "Couldn't load this." }: { message?: string }) {
+export function WidgetError({
+  message = "Couldn't load this.",
+  onRetry,
+}: {
+  message?: string;
+  onRetry?: () => void;
+}) {
   return (
     <Empty className="min-h-40 p-4">
       <EmptyHeader>
@@ -68,6 +79,13 @@ export function WidgetError({ message = "Couldn't load this." }: { message?: str
         <EmptyTitle className="text-destructive">Something went wrong</EmptyTitle>
         <EmptyDescription>{message}</EmptyDescription>
       </EmptyHeader>
+      {onRetry && (
+        <EmptyContent>
+          <Button size="sm" variant="outline" onClick={onRetry}>
+            Retry
+          </Button>
+        </EmptyContent>
+      )}
     </Empty>
   );
 }

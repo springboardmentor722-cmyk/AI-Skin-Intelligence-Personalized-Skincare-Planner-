@@ -25,6 +25,7 @@ export function QuickActionGrid({
   emptyActionLabel,
   emptyActionHref,
   errorMessage,
+  onRetry,
 }: QuickActionGridProps) {
   if (state === "loading") {
     return (
@@ -35,7 +36,7 @@ export function QuickActionGrid({
       </div>
     );
   }
-  if (state === "error") return <WidgetError message={errorMessage} />;
+  if (state === "error") return <WidgetError message={errorMessage} onRetry={onRetry} />;
   if (state === "empty" || !actions || actions.length === 0) {
     return <WidgetEmpty icon={emptyIcon} message={emptyMessage} actionLabel={emptyActionLabel} actionHref={emptyActionHref} />;
   }

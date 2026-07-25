@@ -52,6 +52,7 @@ export function StatCard({
   emptyActionLabel,
   emptyActionHref,
   errorMessage,
+  onRetry,
 }: StatCardProps) {
   if (state === "loading") {
     return (
@@ -65,7 +66,7 @@ export function StatCard({
   if (state === "error") {
     return (
       <div className="border-border bg-card rounded-2xl border p-5">
-        <WidgetError message={errorMessage} />
+        <WidgetError message={errorMessage} onRetry={onRetry} />
       </div>
     );
   }

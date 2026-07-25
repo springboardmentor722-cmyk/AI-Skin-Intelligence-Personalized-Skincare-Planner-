@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StateCard } from "@/components/state-card";
 import { computePercent, formatPrice } from "@/lib/utils";
+import { retryFor, widgetStateFor } from "@/lib/widget-state";
 import {
   ASSESSMENTS_OVERVIEW_FIXTURE,
   PLATFORM_ANALYTICS_FIXTURE,
@@ -255,7 +256,8 @@ export default function AdminDashboardPage() {
         <div className="border-border bg-card rounded-2xl border p-5">
           <h3 className="font-heading mb-3 text-base font-semibold">System Health</h3>
           <StatusTileGrid
-            state={healthQuery.isLoading ? "loading" : healthQuery.isError ? "error" : "ready"}
+            state={widgetStateFor(healthQuery, false)}
+            onRetry={retryFor(healthQuery)}
             errorMessage="Couldn't reach the health check."
             tiles={
               healthQuery.data && [

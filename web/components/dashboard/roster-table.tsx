@@ -56,6 +56,7 @@ export function RosterTable<T>({
   emptyActionLabel,
   emptyActionHref,
   errorMessage,
+  onRetry,
 }: RosterTableProps<T>) {
   const [sort, setSort] = useState<{ key: string; dir: 1 | -1 } | null>(null);
 
@@ -68,7 +69,7 @@ export function RosterTable<T>({
       </div>
     );
   }
-  if (state === "error") return <WidgetError message={errorMessage} />;
+  if (state === "error") return <WidgetError message={errorMessage} onRetry={onRetry} />;
   if (state === "empty" || !columns || !rows || rows.length === 0) {
     return <WidgetEmpty icon={emptyIcon} message={emptyMessage} actionLabel={emptyActionLabel} actionHref={emptyActionHref} />;
   }

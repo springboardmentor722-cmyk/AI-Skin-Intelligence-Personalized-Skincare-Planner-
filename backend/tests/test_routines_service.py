@@ -1133,6 +1133,38 @@ async def test_list_active_step_counts_by_user_includes_a_real_user_with_an_acti
     assert counts.get(test_user_id) == expected_steps
 
 
+async def test_list_active_step_counts_by_user_restricts_to_the_given_cohort(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    """The `user_ids` filter exists so Milestone 2 P14's clinical portfolio-stats
+    stops pulling a row per user on the entire platform just to test membership.
+    A cohort that excludes this user must not include them in the result, while
+    the unfiltered call (Analytics' M3-F usage) still does."""
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+    await get_or_generate_routines(db_session, test_user_id)
+
+    assert test_user_id in await list_active_step_counts_by_user(db_session)
+    assert test_user_id in await list_active_step_counts_by_user(db_session, [test_user_id])
+    assert test_user_id not in await list_active_step_counts_by_user(db_session, ["someone-else"])
+
+
+async def test_list_active_step_counts_by_user_distinguishes_empty_cohort_from_no_filter(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    """`None` means "every user" (Analytics); `[]` means "this cohort is empty"
+    and must short-circuit to {} rather than silently degrading into a
+    platform-wide query — the exact bug an `if user_ids:` guard would introduce."""
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+    await get_or_generate_routines(db_session, test_user_id)
+
+    assert await list_active_step_counts_by_user(db_session, []) == {}
+    assert await list_active_step_counts_by_user(db_session, None) != {}
+
+
 async def test_count_completed_steps_by_user_reflects_real_toggles(
     db_session: AsyncSession, test_user_id: str
 ) -> None:

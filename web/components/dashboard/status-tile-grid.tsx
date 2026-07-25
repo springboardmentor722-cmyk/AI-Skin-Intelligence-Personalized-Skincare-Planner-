@@ -25,6 +25,7 @@ export function StatusTileGrid({
   emptyActionLabel,
   emptyActionHref,
   errorMessage,
+  onRetry,
 }: StatusTileGridProps) {
   if (state === "loading") {
     return (
@@ -35,7 +36,7 @@ export function StatusTileGrid({
       </div>
     );
   }
-  if (state === "error") return <WidgetError message={errorMessage} />;
+  if (state === "error") return <WidgetError message={errorMessage} onRetry={onRetry} />;
   if (state === "empty" || !tiles || tiles.length === 0) {
     return <WidgetEmpty icon={emptyIcon} message={emptyMessage} actionLabel={emptyActionLabel} actionHref={emptyActionHref} />;
   }

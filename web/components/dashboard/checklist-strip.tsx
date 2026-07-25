@@ -30,6 +30,7 @@ export function ChecklistStrip({
   emptyActionLabel,
   emptyActionHref,
   errorMessage,
+  onRetry,
 }: ChecklistStripProps) {
   if (state === "loading") {
     return (
@@ -43,7 +44,7 @@ export function ChecklistStrip({
       </div>
     );
   }
-  if (state === "error") return <WidgetError message={errorMessage} />;
+  if (state === "error") return <WidgetError message={errorMessage} onRetry={onRetry} />;
   if (state === "empty" || !tasks || tasks.length === 0) {
     return <WidgetEmpty icon={emptyIcon} message={emptyMessage} actionLabel={emptyActionLabel} actionHref={emptyActionHref} />;
   }

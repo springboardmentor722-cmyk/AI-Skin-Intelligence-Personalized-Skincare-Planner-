@@ -181,6 +181,33 @@ async def get_recent_scores(db: AsyncSession, user_id: str, days: int = 30) -> l
     return list(result.scalars().all())
 
 
+async def get_recent_scores_for_users(
+    db: AsyncSession, user_ids: list[str], days: int = 30
+) -> dict[str, list[SkinScore]]:
+    """Interface function (ADR-005) — bulk sibling of `get_recent_scores`, for
+    callers that need a whole cohort's score history at once (Milestone 2 P14's
+    clinical portfolio-stats aggregate). One query with `IN`, never a per-user
+    loop: `get_portfolio_stats` runs over a professional's *entire* unpaginated
+    roster, so a per-user call there is an unbounded N+1 on the clinical
+    dashboard's main endpoint.
+
+    Every requested user_id is present in the result, mapping to `[]` when that
+    user has no scores in the window — callers can index without `.get`.
+    Per-user lists keep `get_recent_scores`'s ascending `calculated_at` order."""
+    if not user_ids:
+        return {}
+    since = datetime.datetime.now(datetime.UTC).replace(tzinfo=None) - datetime.timedelta(days=days)
+    result = await db.execute(
+        select(SkinScore)
+        .where(SkinScore.user_id.in_(user_ids), SkinScore.calculated_at >= since)
+        .order_by(SkinScore.user_id.asc(), SkinScore.calculated_at.asc())
+    )
+    scores_by_user: dict[str, list[SkinScore]] = {user_id: [] for user_id in user_ids}
+    for score in result.scalars().all():
+        scores_by_user[score.user_id].append(score)
+    return scores_by_user
+
+
 async def count_all_assessments(db: AsyncSession) -> int:
     """Interface function (ADR-005) — Analytics' admin platform-wide metric
     (M3-F, PDF §8 "assessment counts") reads this real count through here, never

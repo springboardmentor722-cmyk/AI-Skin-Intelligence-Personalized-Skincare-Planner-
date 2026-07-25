@@ -34,6 +34,7 @@ export function ProductCarousel({
   emptyActionLabel,
   emptyActionHref,
   errorMessage,
+  onRetry,
 }: ProductCarouselProps) {
   const scrollerRef = useRef<HTMLDivElement>(null);
 
@@ -46,7 +47,7 @@ export function ProductCarousel({
       </div>
     );
   }
-  if (state === "error") return <WidgetError message={errorMessage} />;
+  if (state === "error") return <WidgetError message={errorMessage} onRetry={onRetry} />;
   if (state === "empty" || !products || products.length === 0) {
     return <WidgetEmpty icon={emptyIcon} message={emptyMessage} actionLabel={emptyActionLabel} actionHref={emptyActionHref} />;
   }

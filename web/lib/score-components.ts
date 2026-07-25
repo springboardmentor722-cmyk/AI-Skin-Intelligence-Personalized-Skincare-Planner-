@@ -11,6 +11,22 @@ type ScoreRead = components["schemas"]["ScoreRead"];
 // tokens" — reuses --success/--warning/--error already in app/globals.css rather
 // than the separate theme-invariant --score-teal/blue/amber/red 4-band system
 // docs/DESIGN.md §2 defines for the Skin Score Ring gradient, a different element).
+/**
+ * Daily fluid benchmark the H (Hydration) sub-score is graded against.
+ *
+ * MUST equal `HYDRATION_BENCHMARK_LITERS` in
+ * backend/app/services/scores/constants.py. ADR-021 C3 / ADR-028 corrected that
+ * benchmark from 2.0L to 3.0L at P10, but the dashboard kept its own hardcoded
+ * 2.5L, so the "Hydration Level" card graded the user against a third number
+ * that matched neither the old value nor the new one — a user drinking 2.5L saw
+ * "100% of 2.5L goal" while their actual H sub-score was 83.
+ *
+ * The durable fix is for the API to publish the benchmark alongside the score
+ * so there is exactly one source; until then this constant is the single
+ * frontend copy and the docstring is the link.
+ */
+export const HYDRATION_BENCHMARK_LITERS = 3.0;
+
 export const SCORE_BANDS = [
   { min: 75, label: "Good", colorVar: "var(--success)" },
   { min: 60, label: "Fair", colorVar: "var(--warning)" },
