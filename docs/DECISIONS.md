@@ -1132,3 +1132,131 @@ directly in this session (uv sync, alembic upgrade head, seed, uvicorn start,
 npm ci, playwright install, the exact curated spec subset, and the diff/
 strings commands) — every constituent command succeeded individually, just
 not yet chained end-to-end inside an actual Actions runner.
+
+## ADR-032 — P14 live integration: wizard/dashboard fixture swaps, real clinical portfolio stats, and the seed-data chicken-and-egg problem
+
+**Status:** Accepted (M2-P14)
+**Context:** `MILESTONE_2_MASTER_PROMPT.md` P14: "Swap every dashboard, wizard, and
+profile screen from `web/lib/fixtures/` to real API calls." A grep found four
+remaining non-test fixture consumers: `web/app/(user)/dashboard/page.tsx` (Skin
+Age only — every other cell was already real per ADR-023), `web/app/admin/
+dashboard/page.tsx` (6 cells, ADR-023), `web/app/assessment/results/page.tsx`
+(the whole wizard submit, P8's explicit deferred decision), and
+`web/components/clinical-review/clinical-dashboard.tsx` (the whole clinical
+dashboard, ADR-024's explicit deferred decision).
+
+**Decision — assessment wizard:** `web/app/assessment/results/page.tsx` now
+calls the real `POST /api/v1/assessment/submit` (P9) via `buildAssessmentSubmitPayload`,
+unchanged, reading `.score` off the real `AssessmentSubmitResponse` instead of
+`assessmentSubmitFixture`. `web/lib/fixtures/assessment-fixtures.ts` deleted
+(confirmed zero remaining references, including in Playwright specs — the
+wizard's own e2e coverage now exercises the real endpoint end to end, matching
+this whole suite's "real backend, not mocks" philosophy rather than keeping a
+now-pointless mock).
+
+**Decision — User dashboard Skin Age:** wired to the real `ScoreRead.skin_age`
+(P10/ADR-028), with an honest empty state ("Set an age group on your profile to
+see this") when null — no fabricated "actual age" comparison, since a real
+profile only carries a bucketed `age_group` ("25-34"), not a precise
+chronological age; showing a false-precision "Actual age 21" next to a bucketed
+real value would misrepresent the data. `SKIN_AGE_FIXTURE` deleted.
+
+**Decision — Admin System Health:** wired to the real `GET /health/ready`
+(postgres/redis/mongo checks + the fetch's own success as an "API reachable"
+signal) — NOT a relabeled version of the fixture's "Database/API Services/
+Storage/Email Service" tiles, since no S3 healthcheck or email service exists
+anywhere in this app to honestly back two of those four. `SYSTEM_HEALTH_FIXTURE`
+deleted; Platform Revenue/System Uptime/Assessments Overview donut/User Growth
+chart/Platform Analytics remain fixture — ADR-023 already established none of
+those correspond to a system this app has, and P14 didn't invent one.
+
+**Decision — clinical dashboard, the largest swap:** new `clinical_review`
+additions (schemas.py/service.py/router.py): `ClientSummaryRead` gained real
+`age`/`gender` (backed by `user_profiles.date_of_birth`/`gender`, closing
+ADR-024's "materially narrower than UI_SPEC's roster columns" gap — computed via
+a new `_age_from_date_of_birth` helper, honestly `None` without a real
+`date_of_birth`); new `GET /clients/me/portfolio-stats`
+(`ClinicalPortfolioStatsRead`) aggregates real KPIs (total assigned, assessments
+done, active routines, avg improvement), real skin-type/concern distributions
+(two new batch interface functions on `skin_profile_service`:
+`list_current_skin_types_for_users`, `count_concern_occurrences_for_users` — one
+query each across the whole assigned cohort, not per-client), a real
+improving/stable/need-attention classification per client (reusing
+`app/ai/trend.py`'s existing `RealProgressTrendAnalyzer`, not a new invented
+classifier), and real recent assessments. `web/components/clinical-review/
+clinical-dashboard.tsx` rewritten to consume both endpoints;
+`clinical-dashboard-fixtures.ts` deleted.
+- **Point-indexed trend, not calendar-week-bucketed** (`portfolio_score_trend`):
+  a deliberate simplification — real assigned clients rarely share assessment
+  dates, so a calendar-week average would mostly be sparse/misleading with a
+  small real roster. Averaging by "1st assessment, 2nd, ..." across clients is
+  real and honest, just coarser than a mockup's clean calendar axis.
+- **No "Upcoming Follow-ups" replacement:** no scheduling/appointment concept
+  exists anywhere in `database_schemas/` (confirmed: no `appointment`/`schedule`/
+  `follow_up` table anywhere). Inventing one was explicitly out of scope
+  (AGENTS.md §0.2) — the fixture's 5th KPI and "Upcoming Follow-ups" card are
+  replaced with an honest "no scheduling system yet" state, not silently dropped
+  or fabricated.
+- **The Tip/Insight banner stays static inline copy** (not an API call, not a
+  fixture import) — it was never a per-client computed insight even in the
+  mockup, just generic educational text; no misrepresentation either way.
+
+**Decision — the seed-data chicken-and-egg problem:** P14's own text asks for
+"enough users, assessments, routines... using the screenshot's cast (Ananya,
+Priya, Meera, Rohit, Kavya, Riya, Neha)" so all four dashboards render
+plausibly. But a *professional's* roster is keyed to their own real, Better-
+Auth-issued `user_id` — unknowable at seed time (seed data can't create a real,
+login-capable account; only a genuine signup + role promotion can). `backend/
+app/db/seed.py` gained `seed_demo_clients()` (idempotent by email, one real
+`skin_profiles`/`skin_assessments` history — one live-computed score plus 3
+backdated real rows for a trend, one real `get_or_generate_routines` call — per
+named cast member, using only real seeded skin types/concerns; no
+"Hair Fall & Dandruff"-style invented concern) and `seed_professional_assignments()`
+(idempotent, assigns every demo client to *every currently-existing*
+consultant/dermatologist account — re-running `make seed` after promoting a new
+professional picks them up). This is the documented, intended workflow: sign up
+→ promote to consultant/dermatologist (admin action or, for local dev, the same
+direct-SQL role update the e2e suite's own `promoteRole` helper uses) → re-run
+`make seed`.
+
+**Decision — four real bugs found while wiring this, not invented:**
+1. `web/tests/e2e/helpers.ts`'s `deleteTestUser` deleted `skin_assessments`
+   before `assessment_submissions` — fine when nothing created a real
+   `assessment_submissions` row (every P8-P13 wizard run went through the P8
+   fixture), but the wizard's now-real submit is the first e2e path to create
+   one, and `assessment_submissions.score_id` has no `ON DELETE CASCADE` (a
+   deliberate, real FK — an audit trail shouldn't vanish silently). Fixed:
+   delete `assessment_submissions` first.
+2. `external_user_table` (`app/db/postgres.py`) only declares id/email/name/
+   emailVerified — not `role`, which `seed_professional_assignments` needs to
+   find real consultant/dermatologist accounts. Used a scoped raw-SQL query for
+   that one read rather than widening a shared Core `Table` definition every
+   other FK-holding insert in the codebase also uses.
+3. `web/tests/e2e/clinical-dashboard-p5.spec.ts`'s dermatologist test asserted
+   the fixture's fictional "Hair Fall & Dandruff" concern and never assigned any
+   real client to its test account — passed accidentally before (nothing
+   rendered *needed* real data), failed honestly once the dashboard became real.
+   Fixed: both dashboard tests now assign real seeded demo clients directly
+   (`consultant_clients` insert, same "direct DB write for test setup" pattern
+   the file already uses for profile approval) and clean them up before
+   `deleteTestUser` (same FK-ordering fix as #1) — proving the swap with real
+   assigned-client data, not just label presence.
+4. `backend/tests/test_openapi_contract.py` (P13, ADR-031) compared a
+   "committed `openapi.json`" against the live-generated spec — but
+   `.gitignore` deliberately excludes `/openapi.json` (its own comment: only
+   `web/lib/api-types.ts` is a committed artifact). That test only ever passed
+   locally by accident (the file happened to exist on disk from manual
+   regeneration during P9-P13) and would `FileNotFoundError` on any fresh
+   checkout or CI run — never caught because `backend-ci.yml` was never
+   actually re-run against a truly fresh clone this session. Fixed: removed
+   the file-comparison test, kept the three real HTTP-round-trip contract
+   tests (`test_openapi_contract.py`'s own docstring now explains why).
+
+**Consequences:** `web/lib/fixtures/dashboard-fixtures.ts` keeps exactly the six
+ADR-023-justified entries minus `SKIN_AGE_FIXTURE`/`SYSTEM_HEALTH_FIXTURE`;
+`web/lib/fixtures/` no longer has an `assessment-fixtures.ts` or
+`clinical-dashboard-fixtures.ts` at all. A future session extending Admin's
+Platform Revenue/System Uptime/Assessments Overview/User Growth/Platform
+Analytics to real data needs a real billing system, uptime monitor, or
+analytics instrumentation first — that's new system scope, not a fixture swap,
+and shouldn't be attempted as one.

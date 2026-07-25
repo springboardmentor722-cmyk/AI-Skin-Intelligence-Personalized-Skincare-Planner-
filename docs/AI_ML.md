@@ -124,6 +124,66 @@ set yet, an honest "can't compute" rather than a guessed default band.
 Poor ramp `web/lib/score-components.ts`'s `SCORE_BANDS` uses on the frontend; one
 ramp, not two that could drift apart.
 
+## Dynamic routine generator (config-driven, not ML — M2-P11, ADR-029)
+`backend/app/services/routines/constants.py` fixes six canonical categories
+(Cleansing, Exfoliation, Treatment, Moisturizing, Sun Protection, Night Care)
+and the exact AM (Cleanser → Treatment → Moisturizer → SPF) / PM (Double
+Cleanse → Treatment → Ceramide Barrier) / Weekly (Exfoliation only) pipelines —
+every profile gets the identical fixed pipeline; there is no skin-type-
+conditional step *removal*. Candidate selection per step is a seeded-random
+pick (`app.ai.seeding.seeded_random(user_id, "routine", routine_type)`) among
+real product candidates matching the step's category and, preferentially, the
+user's own concerns — deterministic per user, not reproducible across users.
+
+Two safety guardrails run as a **distinct, independently-testable layer AFTER
+generation** (`routines/guardrails.py`), never folded into candidate selection,
+so a future generator change can't quietly bypass them:
+- **Sensitivity guardrail** (`requires_soothing_substitution`): a Sensitive
+  skin type, OR redness severity strictly greater than 7/10, substitutes any
+  harsh-active step (Retinoids/Salicylic Acid/AHAs-BHAs ingredient category)
+  with the catalog's one real soothing product — replaces the step, never
+  appends a second one.
+- **Sunscreen guardrail** (`assert_sunscreen_present`): raises
+  `MissingSunscreenError` — never silently passes — if a generated AM routine
+  has no Sun Protection step. No parameter disables this check.
+- **Interaction guardrail** (M2-P12/P14, `apply_interaction_guardrail`):
+  substitutes the *later* of any two steps whose real ingredients form an
+  "avoid"-verdict pair in the curated interaction matrix (below) with the same
+  soothing product — runs after the sensitivity guardrail, so a
+  sensitivity-driven substitution is itself checked for new conflicts.
+
+Adaptive regeneration (`get_or_generate_routines`): AM/PM/Weekly regenerate
+when the user's current `skin_profile_id` differs from the version the
+existing routines were generated against (a real re-assessment); Seasonal
+additionally regenerates on a calendar-quarter change. "Respond to progress
+logs" has no concrete trigger implemented — Progress Tracking has no
+documented hook into routine regeneration to wire into (flagged in
+`PROGRESS.md`, not invented).
+
+## Ingredient intelligence (rule-based, not ML — M2-P12, ADR-030/031)
+`app.ai.suitability.RealIngredientSuitability` — fixed, documented confidence
+per rule (never learned), so the zero-missed-allergy requirement stays
+auditable. Checked in order, first match wins:
+1. **Structured allergy** (`skin_profile_allergies`, P7/ADR-026) — an exact
+   `ingredient_id` match is the highest-confidence case (0.98); a name/INCI
+   synonym match (`app.ai.ingredient_synonyms`, a small curated set of true
+   1:1 alternate-name facts — e.g. "Vitamin C" / "Ascorbic Acid" — never a
+   drug-class or cross-reactivity inference) against a *different* ingredient
+   is flagged too, at lower confidence (0.75): "flag on uncertainty rather
+   than suppress."
+2. **Free-text allergy/sensitivity** (`skin_profiles.allergies`/
+   `sensitivities`) — exact tag match, substring match, or the same synonym-
+   group match as above.
+3. **Skin-type avoid-flag** (`ingredient_skintype_avoid`).
+4. Otherwise suitable, baseline confidence (0.6, "no known conflicts").
+
+**Interaction matrix** (`app.ai.interactions`) — a small, hand-curated,
+versioned table of real, well-established, non-controversial pairwise
+interactions (`avoid`/`caution`/`synergy` + a plain-language reason), never an
+inferred-at-runtime relationship. Consumed by both the Ingredient Analyzer's
+on-demand interaction checker and the routine generator's interaction
+guardrail above — one matrix, two consumers.
+
 ## Model cards (targets set with the first eval set, M2)
 
 | Model | Data | Primary metrics | Latency p95 | Key risks |

@@ -1,24 +1,26 @@
 """Milestone 2 P13 (MILESTONE_2_MASTER_PROMPT.md P13: "contract tests asserting
-every response matches openapi.json"). Two complementary proofs:
+every response matches openapi.json"). Real HTTP round trips through the three
+P9-P11 core endpoints (`POST /assessment/submit`, `GET /assessment/score/{id}`,
+`POST /routine/generate`) validate their JSON response bodies against the exact
+Pydantic response models that generated those `openapi.json` schema components
+in the first place — the strongest form of "matches the contract" available
+without adding a new dependency (Pydantic already round-trips the identical
+validation `openapi.json`'s schema was derived from; a generic JSON-Schema
+validator would only ever re-check a copy of the same rules).
 
-1. The committed `openapi.json` is byte-identical to what the live app
-   generates right now — proves the artifact isn't stale (a real risk any time
-   a schema changes without re-running the regen command).
-2. Real HTTP round trips through the three P9-P11 core endpoints
-   (`POST /assessment/submit`, `GET /assessment/score/{id}`,
-   `POST /routine/generate`) validate their JSON response bodies against the
-   exact Pydantic response models that generated those `openapi.json` schema
-   components in the first place — the strongest form of "matches the
-   contract" available without adding a new dependency (Pydantic already
-   round-trips the identical validation openapi.json's schema was derived
-   from; a generic JSON-Schema validator would only ever re-check a copy of
-   the same rules).
+Milestone 2 P14 correction: this file originally also compared a committed
+`openapi.json` against `app.openapi()` for staleness — but `.gitignore` deliberately
+excludes `/openapi.json` (only `web/lib/api-types.ts` is a committed artifact,
+per its own comment: "regenerate with `make openapi`; web/lib/api-types.ts IS
+committed"). That test would `FileNotFoundError` on any fresh checkout/CI run
+where `openapi.json` was never locally regenerated — removed rather than kept
+passing by accident locally. Staying in sync is still real, just enforced by
+discipline (regenerate both together, as every M2 phase touching the API
+surface has done) rather than a committed-file diff.
 """
 
-import json
 import uuid
 from collections.abc import AsyncGenerator
-from pathlib import Path
 
 import pytest
 from httpx import AsyncClient
@@ -32,17 +34,6 @@ from app.main import app
 from app.services.assessment.schemas import AssessmentSubmitResponse
 from app.services.routines.schemas import RoutineRead
 from app.services.scores.schemas import ScoreRead
-
-_OPENAPI_JSON_PATH = Path(__file__).resolve().parents[2] / "openapi.json"
-
-
-def test_committed_openapi_json_matches_the_live_generated_spec() -> None:
-    committed = json.loads(_OPENAPI_JSON_PATH.read_text(encoding="utf-8"))
-    live = app.openapi()
-    assert committed == live, (
-        "openapi.json is stale — regenerate it in the same branch as the schema "
-        "change that moved it (AGENTS.md §6)"
-    )
 
 
 @pytest.fixture

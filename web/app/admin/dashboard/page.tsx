@@ -8,7 +8,6 @@ import {
   ClipboardCheck,
   ClipboardList,
   FileBarChart,
-  Mail,
   RotateCw,
   Server,
   ShoppingBag,
@@ -32,17 +31,22 @@ import {
   ASSESSMENTS_OVERVIEW_FIXTURE,
   PLATFORM_ANALYTICS_FIXTURE,
   PLATFORM_REVENUE_FIXTURE,
-  SYSTEM_HEALTH_FIXTURE,
   SYSTEM_UPTIME_FIXTURE,
   USER_GROWTH_FIXTURE,
 } from "@/lib/fixtures/dashboard-fixtures";
 
 // docs/DECISIONS.md ADR-023: rebuilds MILESTONE_2_UI_SPEC.md §4.4's 4-row layout
 // from the P3 widget kit. Real: user-role counts, assessments/routines/products
-// counts, top skin concerns, recent activity, quick actions. Fixture (individually
-// justified in ADR-023, not invented): platform revenue, system uptime, user
-// growth trend, assessments-workflow donut, platform web-analytics, system-health
-// tiles — none of these correspond to a system this app actually has.
+// counts, top skin concerns, recent activity, quick actions, system health (P14 —
+// wired to the real /health/ready checks). Still fixture (individually justified
+// in ADR-023, not invented): platform revenue, system uptime, user growth trend,
+// assessments-workflow donut, platform web-analytics — none of these correspond
+// to a system this app actually has.
+
+interface HealthReadyResponse {
+  status: "ok" | "degraded";
+  checks: Record<string, string>;
+}
 
 interface AuditLogEntry {
   audit_log_id: number;
@@ -86,6 +90,21 @@ export default function AdminDashboardPage() {
     queryFn: async (): Promise<DashboardStatsResponse> => {
       const response = await fetch("/api/admin/dashboard-stats");
       if (!response.ok) throw new Error("Failed to load dashboard stats");
+      return response.json();
+    },
+  });
+
+  // Milestone 2 P14 — real /health/ready checks (postgres/redis/mongo), not the
+  // fixture's fictional Database/API Services/Storage/Email Service tiles (no S3
+  // healthcheck or email service exists anywhere in this app to back those two).
+  // Plain fetch, not the typed `api` client — FastAPI's health_ready returns a raw
+  // JSONResponse with no response_model, so its openapi.json schema is `unknown`,
+  // and it returns a real 503 (not a network error) when degraded, which `fetch`
+  // surfaces as a normal non-ok response body to parse, not a thrown exception.
+  const healthQuery = useQuery({
+    queryKey: ["admin", "health-ready"],
+    queryFn: async (): Promise<HealthReadyResponse> => {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/health/ready`);
       return response.json();
     },
   });
@@ -235,7 +254,36 @@ export default function AdminDashboardPage() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="border-border bg-card rounded-2xl border p-5">
           <h3 className="font-heading mb-3 text-base font-semibold">System Health</h3>
-          <StatusTileGrid tiles={SYSTEM_HEALTH_FIXTURE.map((t, i) => ({ ...t, icon: [Server, Activity, Server, Mail][i] }))} />
+          <StatusTileGrid
+            state={healthQuery.isLoading ? "loading" : healthQuery.isError ? "error" : "ready"}
+            errorMessage="Couldn't reach the health check."
+            tiles={
+              healthQuery.data && [
+                { key: "api", label: "API", status: "Reachable", healthy: true, icon: Server },
+                {
+                  key: "postgres",
+                  label: "Database",
+                  status: healthQuery.data.checks.postgres === "ok" ? "Healthy" : "Unreachable",
+                  healthy: healthQuery.data.checks.postgres === "ok",
+                  icon: Server,
+                },
+                {
+                  key: "redis",
+                  label: "Cache",
+                  status: healthQuery.data.checks.redis === "ok" ? "Healthy" : "Unreachable",
+                  healthy: healthQuery.data.checks.redis === "ok",
+                  icon: Activity,
+                },
+                {
+                  key: "mongo",
+                  label: "Document Store",
+                  status: healthQuery.data.checks.mongo === "ok" ? "Healthy" : "Unreachable",
+                  healthy: healthQuery.data.checks.mongo === "ok",
+                  icon: FileBarChart,
+                },
+              ]
+            }
+          />
         </div>
         <div className="border-border bg-card rounded-2xl border p-5">
           <h3 className="font-heading mb-3 text-base font-semibold">Quick Actions</h3>

@@ -5,6 +5,7 @@ round trips via tests/conftest.py's rollback-wrapped db_session/test_user_id, sa
 discipline as every other service's tests — nothing here is ever actually persisted.
 """
 
+import datetime
 import uuid
 from collections.abc import AsyncGenerator
 
@@ -16,12 +17,15 @@ from app.services.clinical_review.service import (
     add_note,
     create_assignment,
     get_client_detail,
+    get_portfolio_stats,
     list_my_clients,
     list_notes,
 )
 from app.services.scores.service import compute_and_store_score
 from app.services.skin_profile.schemas import SkinProfileConcernInput, SkinProfileCreate
 from app.services.skin_profile.service import create_profile
+from app.services.user.schemas import UserProfileUpdate
+from app.services.user.service import update_profile
 
 _SKIN_TYPE_WITH_SEEDED_PRODUCTS = 1
 
@@ -231,3 +235,126 @@ async def test_list_my_clients_pagination_is_real(
     page_two_ids = {c.user_id for c in page_two}
     assert page_one_ids.isdisjoint(page_two_ids)
     assert page_one_ids | page_two_ids == set(client_ids)
+
+
+# --- Milestone 2 P14: age/gender + portfolio stats (ADR-024's deferred consequence) --
+
+
+async def test_assigned_client_summary_includes_real_age_and_gender(
+    db_session: AsyncSession, professional_id: str, client_user_id: str
+) -> None:
+    await update_profile(
+        db_session,
+        client_user_id,
+        UserProfileUpdate(date_of_birth=datetime.date.today().replace(year=1994), gender="Female"),
+    )
+    await create_profile(
+        db_session, client_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+    await create_assignment(db_session, professional_id, client_user_id)
+
+    clients, _total = await list_my_clients(db_session, professional_id)
+
+    assert clients[0].gender == "Female"
+    assert clients[0].age in (
+        datetime.date.today().year - 1994,
+        datetime.date.today().year - 1994 - 1,
+    )
+
+
+async def test_assigned_client_summary_age_is_none_without_a_date_of_birth(
+    db_session: AsyncSession, professional_id: str, client_user_id: str
+) -> None:
+    await create_assignment(db_session, professional_id, client_user_id)
+
+    clients, _total = await list_my_clients(db_session, professional_id)
+
+    assert clients[0].age is None
+    assert clients[0].gender is None
+
+
+async def test_portfolio_stats_are_all_zero_with_no_assignments(
+    db_session: AsyncSession, professional_id: str
+) -> None:
+    stats = await get_portfolio_stats(db_session, professional_id)
+
+    assert stats.total_assigned == 0
+    assert stats.assessments_done == 0
+    assert stats.avg_improvement_points is None
+    assert stats.skin_type_distribution == []
+    assert stats.top_concerns == []
+    assert stats.recent_assessments == []
+
+
+async def test_portfolio_stats_aggregate_real_assigned_clients(
+    db_session: AsyncSession, professional_id: str, client_user_id: str
+) -> None:
+    other_client_id = f"test-client-2-{client_user_id}"
+    await db_session.execute(
+        external_user_table.insert().values(
+            id=other_client_id,
+            email=f"{other_client_id}@test.invalid",
+            name="Other Client",
+            emailVerified=False,
+        )
+    )
+    await db_session.flush()
+
+    await create_profile(
+        db_session,
+        client_user_id,
+        SkinProfileCreate(
+            skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS,
+            concerns=[SkinProfileConcernInput(concern_id=1, severity_rating=8, priority_level=9)],
+        ),
+    )
+    await create_profile(
+        db_session,
+        other_client_id,
+        SkinProfileCreate(
+            skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS,
+            concerns=[SkinProfileConcernInput(concern_id=1, severity_rating=5, priority_level=9)],
+        ),
+    )
+    await compute_and_store_score(db_session, client_user_id)
+    await compute_and_store_score(db_session, other_client_id)
+    await create_assignment(db_session, professional_id, client_user_id)
+    await create_assignment(db_session, professional_id, other_client_id)
+
+    stats = await get_portfolio_stats(db_session, professional_id)
+
+    assert stats.total_assigned == 2
+    assert stats.assessments_done == 2
+    # Both clients share skin_type_id=1 ("Normal") and concern_id=1 ("Acne") —
+    # one real distribution slice each, count 2.
+    assert len(stats.skin_type_distribution) == 1
+    assert stats.skin_type_distribution[0].count == 2
+    assert len(stats.top_concerns) == 1
+    assert stats.top_concerns[0].count == 2
+    assert len(stats.recent_assessments) == 2
+    # Only one score point each yet — RealProgressTrendAnalyzer.analyze needs 2+
+    # to return an insight at all, so no client is classified either way.
+    assert stats.clients_improving == 0
+    assert stats.clients_stable == 0
+    assert stats.clients_need_attention == 0
+    assert stats.avg_improvement_points is None
+
+
+async def test_portfolio_stats_never_leak_a_different_professionals_clients(
+    db_session: AsyncSession, professional_id: str, client_user_id: str
+) -> None:
+    other_professional_id = f"test-other-professional-portfolio-{client_user_id}"
+    await db_session.execute(
+        external_user_table.insert().values(
+            id=other_professional_id,
+            email=f"{other_professional_id}@test.invalid",
+            name="Other Professional",
+            emailVerified=False,
+        )
+    )
+    await db_session.flush()
+    await create_assignment(db_session, professional_id, client_user_id)
+
+    stats = await get_portfolio_stats(db_session, other_professional_id)
+
+    assert stats.total_assigned == 0

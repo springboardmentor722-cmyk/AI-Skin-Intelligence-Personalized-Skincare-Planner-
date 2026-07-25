@@ -12,18 +12,18 @@ import { SkinScoreRing } from "@/components/skin-score-ring";
 import { useAssessment } from "@/lib/assessment/context";
 import { useSession } from "@/lib/auth-client";
 import { buildAssessmentSubmitPayload } from "@/lib/assessment/payload";
-import { assessmentSubmitFixture } from "@/lib/fixtures/assessment-fixtures";
+import { api } from "@/lib/api";
 import { SCORE_COMPONENTS } from "@/lib/score-components";
 import type { components } from "@/lib/api-types";
 import type { AssessmentState } from "@/lib/assessment/context";
 
 type ScoreRead = components["schemas"]["ScoreRead"];
 
-// Milestone 2 P8 — UI phases run against fixtures until P14 swaps in the real
-// endpoint (MILESTONE_2_MASTER_PROMPT.md §12; P9 builds real persistence + scoring).
-// buildAssessmentSubmitPayload produces the exact P0-frozen contract shape
-// (web/lib/assessment/payload.ts, unit-tested against mile_2's worked example);
-// assessmentSubmitFixture stands in for the real backend until P9 lands.
+// Milestone 2 P14 — swapped from the P8 fixture to the real
+// POST /api/v1/assessment/submit (P9's real persistence + P10's real weighted
+// engine). buildAssessmentSubmitPayload still produces the exact P0-frozen
+// contract shape (web/lib/assessment/payload.ts, unit-tested against mile_2's
+// worked example) — only the fixture call underneath it changed.
 //
 // Deliberately `useQuery`, not `useMutation` + a manual `useEffect`/ref guard: under
 // Next.js App Router client-side navigation this component can render more than once
@@ -43,7 +43,7 @@ function useSubmitAssessment(state: AssessmentState, hydrated: boolean) {
   return useQuery({
     // Scoped by user id, not a bare string key — the QueryClient cache persists
     // across client-side navigation for the whole SPA session.
-    queryKey: ["assessment-submit-fixture", userId, state],
+    queryKey: ["assessment-submit", userId, state],
     enabled: hydrated && !!userId,
     retry: false,
     queryFn: async (): Promise<ScoreRead> => {
@@ -51,7 +51,9 @@ function useSubmitAssessment(state: AssessmentState, hydrated: boolean) {
         throw new Error("Select a skin type before viewing your results.");
       }
       const payload = buildAssessmentSubmitPayload(state, userId!);
-      return assessmentSubmitFixture(payload);
+      const { data, error } = await api.POST("/api/v1/assessment/submit", { body: payload });
+      if (error) throw new Error("Couldn't calculate your Skin Health Score.");
+      return data.score;
     },
   });
 }

@@ -1,7 +1,7 @@
 import datetime
 from typing import Any
 
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.mongo import get_mongo_db
@@ -33,6 +33,46 @@ from app.services.skin_profile.schemas import (
 async def list_skin_types(db: AsyncSession) -> list[SkinType]:
     result = await db.execute(select(SkinType))
     return list(result.scalars().all())
+
+
+async def list_current_skin_types_for_users(
+    db: AsyncSession, user_ids: list[str]
+) -> dict[str, int]:
+    """Interface function (ADR-005) — Milestone 2 P14's clinical portfolio-stats
+    aggregate (clinical_review/service.py) reads a whole assigned-client cohort's
+    current skin_type_id through this in one query, never `skin_profiles`
+    directly. user_id -> skin_type_id."""
+    if not user_ids:
+        return {}
+    result = await db.execute(
+        select(SkinProfile.user_id, SkinProfile.skin_type_id).where(
+            SkinProfile.user_id.in_(user_ids),
+            SkinProfile.is_current.is_(True),
+            SkinProfile.is_deleted.is_(False),
+        )
+    )
+    return {row.user_id: row.skin_type_id for row in result.all()}
+
+
+async def count_concern_occurrences_for_users(
+    db: AsyncSession, user_ids: list[str]
+) -> dict[int, int]:
+    """Interface function (ADR-005) — the same cohort's current-profile concern
+    counts (concern_id -> number of assigned clients whose current profile lists
+    it), one query, for a portfolio-wide "top concerns" breakdown."""
+    if not user_ids:
+        return {}
+    result = await db.execute(
+        select(SkinProfileConcern.concern_id, func.count(func.distinct(SkinProfile.user_id)))
+        .join(SkinProfile, SkinProfile.skin_profile_id == SkinProfileConcern.skin_profile_id)
+        .where(
+            SkinProfile.user_id.in_(user_ids),
+            SkinProfile.is_current.is_(True),
+            SkinProfile.is_deleted.is_(False),
+        )
+        .group_by(SkinProfileConcern.concern_id)
+    )
+    return {row[0]: row[1] for row in result.all()}
 
 
 async def list_skin_concerns(db: AsyncSession) -> list[SkinConcern]:
