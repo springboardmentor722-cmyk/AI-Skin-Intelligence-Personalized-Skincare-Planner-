@@ -1,3 +1,5 @@
+import path from "node:path";
+
 import type { NextConfig } from "next";
 
 // Milestone 1 audit finding: docs/ARCHITECTURE.md §9 requires "security headers/CSP
@@ -22,6 +24,14 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Next infers the workspace root by walking up for lockfiles, and on a machine
+  // with a stray package-lock.json in the home directory it picked that instead
+  // of this app — "We detected multiple lockfiles and selected the directory of
+  // C:\\Users\\<user>\\package-lock.json as the root directory". A wrong root
+  // changes which files Turbopack watches and traces for output file tracing, so
+  // this is pinned explicitly rather than left to inference that varies per
+  // developer machine.
+  turbopack: { root: path.resolve(__dirname) },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

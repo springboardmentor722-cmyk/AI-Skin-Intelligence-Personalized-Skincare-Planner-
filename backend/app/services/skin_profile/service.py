@@ -244,7 +244,9 @@ async def list_lifestyle_logs_since(user_id: str, days: int) -> list[dict[str, A
     # Naive UTC, matching upsert_lifestyle_log's own log_date construction exactly
     # (datetime.combine(date, time.min)) — comparing a naive cutoff against naive
     # stored values, not mixing aware/naive.
-    cutoff = datetime.datetime.utcnow() - datetime.timedelta(days=days)  # noqa: DTZ003
+    cutoff = datetime.datetime.now(datetime.UTC).replace(tzinfo=None) - datetime.timedelta(
+        days=days
+    )
     cursor = collection.find({"user_id": user_id, "log_date": {"$gte": cutoff}}).sort(
         "log_date", -1
     )

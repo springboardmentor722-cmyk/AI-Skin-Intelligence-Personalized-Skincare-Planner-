@@ -1,26 +1,63 @@
-"""Real external-data adapters (docs/DATASETS_AND_APIS.md). No live API keys exist in
-this environment (KAGGLE_USERNAME/KAGGLE_KEY/OPENWEATHER_API_KEY/OPENUV_API_KEY are
-blank — training_dataset/README.md), so these tests cover what's actually verifiable
-without live keys: the "unconfigured -> honest None" convention (real, since the keys
-genuinely are blank right now), the pure response-parsing logic (fixture payloads, no
-HTTP), and the resilience contract (CircuitBreaker/call_with_resilience) in isolation.
+"""Real external-data adapters (docs/DATASETS_AND_APIS.md). These tests cover what is
+verifiable without live keys: the "unconfigured -> honest None" convention, the pure
+response-parsing logic (fixture payloads, no HTTP), and the resilience contract
+(CircuitBreaker/call_with_resilience) in isolation.
+
+The unconfigured-key tests used to rely on OPENWEATHER_API_KEY/OPENUV_API_KEY simply
+being blank in the developer's own `.env` — this file's original docstring asserted
+"no live API keys exist in this environment" as a standing fact. That stopped being
+true the moment someone added real keys, and the failure mode was worse than a red
+test: with a key present the guard doesn't short-circuit, so the "returns None when
+unconfigured" tests issued **live HTTP requests to OpenWeather and OpenUV on every
+`pytest` run**, spending real API quota and making the suite network-dependent —
+against MILESTONE_2_MASTER_PROMPT.md P13's own rule ("Deterministic, no network
+dependence, no flakes").
+
+They now force the unconfigured state with monkeypatch, so they assert the actual
+contract regardless of what is in anyone's `.env`, and assert it without I/O.
 """
 
 import asyncio
+from typing import Any
 
+import httpx
 import pytest
 
+from app.core.config import settings
 from app.integrations import openuv, openweather
 from app.integrations.base import AdapterError, CircuitBreaker, call_with_resilience
 
-# --- Unconfigured key -> honest None (real in this environment, not simulated) ---
+# --- Unconfigured key -> honest None ---
 
 
-async def test_openweather_returns_none_when_unconfigured() -> None:
+@pytest.fixture
+def no_http(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Turn any outbound HTTP attempt into an immediate failure.
+
+    Makes "returns None because the key is missing" a stronger claim than "returns
+    None": these adapters must short-circuit *before* constructing a client, so a
+    test that passes with the network fused off has proven the guard is a real
+    early return and not a swallowed request failure."""
+
+    def _forbidden(*args: Any, **kwargs: Any) -> Any:
+        raise AssertionError(
+            "adapter attempted an outbound HTTP request while its API key was unset"
+        )
+
+    monkeypatch.setattr(httpx, "AsyncClient", _forbidden)
+
+
+async def test_openweather_returns_none_when_unconfigured(
+    monkeypatch: pytest.MonkeyPatch, no_http: None
+) -> None:
+    monkeypatch.setattr(settings, "openweather_api_key", "")
     assert await openweather.fetch_current_weather(lat=51.5, lon=-0.1) is None
 
 
-async def test_openuv_returns_none_when_unconfigured() -> None:
+async def test_openuv_returns_none_when_unconfigured(
+    monkeypatch: pytest.MonkeyPatch, no_http: None
+) -> None:
+    monkeypatch.setattr(settings, "openuv_api_key", "")
     assert await openuv.fetch_uv_index(lat=51.5, lon=-0.1) is None
 
 
