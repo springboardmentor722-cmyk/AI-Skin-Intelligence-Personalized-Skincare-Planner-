@@ -285,7 +285,10 @@ async def get_portfolio_stats(db: AsyncSession, professional_id: str) -> Clinica
     # it is one outlier. Truncate at the first index where fewer than half the
     # scoring clients contributed, so every plotted point is representative.
     scoring_clients = len(trend_points_by_index.get(0, []))
-    min_sample = max(2, (scoring_clients + 1) // 2)
+    # Floor of 1, not 2: with a single scoring client every point is 100% of the
+    # cohort and is fully representative, so a floor of 2 would blank the chart
+    # for exactly the professional who has just taken on their first client.
+    min_sample = max(1, (scoring_clients + 1) // 2)
     portfolio_score_trend: list[float] = []
     for _, values in sorted(trend_points_by_index.items()):
         if len(values) < min_sample:
