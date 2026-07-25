@@ -65,7 +65,9 @@ async def _get_user_row(db: AsyncSession, user_id: str) -> tuple[str | None, str
     return row.name, row.email
 
 
-async def _get_user_rows(db: AsyncSession, user_ids: list[str]) -> dict[str, tuple[str | None, str]]:
+async def _get_user_rows(
+    db: AsyncSession, user_ids: list[str]
+) -> dict[str, tuple[str | None, str]]:
     """Bulk sibling of `_get_user_row` — one `IN` query for a whole cohort.
 
     Deliberately tolerant where the single-row version is strict: `_get_user_row`
