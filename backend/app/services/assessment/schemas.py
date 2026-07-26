@@ -53,6 +53,12 @@ class AssessmentSubmitRequest(BaseModel):
     "Normal" to the doc's original 4)."""
 
     skin_type: str
+    # Not in the P0-frozen contract's original shape — the wizard's step 1 always
+    # collected this (web/lib/schemas/assessment.ts's required ageGroup) but it was
+    # never sent anywhere, so skin_profiles.age_group stayed null and the dashboard's
+    # Skin Age card stayed empty forever (bugs_report.md 2026-07-26, bug #3).
+    # SkinProfileCreate already accepts age_group; this just lets it reach there.
+    age_group: str | None = None
     lifestyle: AssessmentLifestyleInput
     concerns: list[AssessmentConcernInput] = Field(default_factory=list)
 

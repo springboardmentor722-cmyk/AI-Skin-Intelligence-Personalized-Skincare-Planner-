@@ -132,6 +132,45 @@ async def test_submit_assessment_persists_and_returns_ids(
     assert [c.concern_id for c in profile.concerns] == [acne_id]
 
 
+async def test_submit_assessment_persists_age_group_onto_profile(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    await submit_assessment(
+        db_session,
+        test_user_id,
+        AssessmentSubmitRequest(
+            skin_type="Oily",
+            age_group="18-24",
+            lifestyle=AssessmentLifestyleInput(
+                sleep_hours=7.5, water_intake_liters=2.5, stress_level=4, sun_exposure="Moderate"
+            ),
+        ),
+    )
+
+    profile = await get_current_profile(db_session, test_user_id)
+    assert profile is not None
+    assert profile.age_group == "18-24"
+
+
+async def test_submit_assessment_without_age_group_leaves_profile_age_group_none(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    await submit_assessment(
+        db_session,
+        test_user_id,
+        AssessmentSubmitRequest(
+            skin_type="Oily",
+            lifestyle=AssessmentLifestyleInput(
+                sleep_hours=7.5, water_intake_liters=2.5, stress_level=4, sun_exposure="Moderate"
+            ),
+        ),
+    )
+
+    profile = await get_current_profile(db_session, test_user_id)
+    assert profile is not None
+    assert profile.age_group is None
+
+
 async def test_submit_assessment_flat_field_adapter_maps_onto_concerns(
     db_session: AsyncSession, test_user_id: str
 ) -> None:

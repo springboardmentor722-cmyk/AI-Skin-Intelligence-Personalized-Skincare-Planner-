@@ -11,7 +11,7 @@ import type { AssessmentState } from "../assessment/context.ts";
 // test-local (this asserts the builder's own mapping logic, not real database ids —
 // concernId is passed straight through into concerns[] unchanged either way).
 const EXAMPLE_STATE: AssessmentState = {
-  ageGroup: null,
+  ageGroup: "25-34",
   goals: [],
   location: "",
   skinTypeId: 1,
@@ -31,6 +31,7 @@ test("buildAssessmentSubmitPayload — matches mile_2.docx's worked example exac
 
   assert.equal(payload.user_id, "usr_99");
   assert.equal(payload.skin_type, "Oily");
+  assert.equal(payload.age_group, "25-34");
   assert.equal(payload.acne_severity, 7);
   assert.equal(payload.hyperpigmentation_severity, 4);
   assert.equal(payload.redness_severity, 0);
@@ -66,4 +67,9 @@ test("buildAssessmentSubmitPayload — no concerns selected yields an empty conc
   const payload = buildAssessmentSubmitPayload({ ...EXAMPLE_STATE, priorities: [] }, "usr_1");
   assert.deepEqual(payload.concerns, []);
   assert.equal(payload.acne_severity, 0);
+});
+
+test("buildAssessmentSubmitPayload — omits age_group when the wizard state has none", () => {
+  const payload = buildAssessmentSubmitPayload({ ...EXAMPLE_STATE, ageGroup: null }, "usr_1");
+  assert.equal(payload.age_group, undefined);
 });

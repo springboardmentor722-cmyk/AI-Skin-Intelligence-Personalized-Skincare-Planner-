@@ -626,6 +626,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/notifications/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Notifications */
+        get: operations["get_my_notifications_api_v1_notifications_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/analytics/me": {
         parameters: {
             query?: never;
@@ -1258,6 +1275,8 @@ export interface components {
         AssessmentSubmitRequest: {
             /** Skin Type */
             skin_type: string;
+            /** Age Group */
+            age_group?: string | null;
             lifestyle: components["schemas"]["AssessmentLifestyleInput"];
             /** Concerns */
             concerns?: components["schemas"]["AssessmentConcernInput"][];
@@ -2169,6 +2188,21 @@ export interface components {
              * Format: date
              */
             achieved_on: string;
+        };
+        /** NotificationRead */
+        NotificationRead: {
+            /** Notification Id */
+            notification_id: number;
+            /** Title */
+            title: string | null;
+            /** Message */
+            message: string | null;
+            /** Notification Type */
+            notification_type: string | null;
+            /** Is Read */
+            is_read: boolean;
+            /** Created At */
+            created_at: string | null;
         };
         /** PageMeta */
         PageMeta: {
@@ -4009,6 +4043,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_my_notifications_api_v1_notifications_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationRead"][];
                 };
             };
         };

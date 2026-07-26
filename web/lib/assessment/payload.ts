@@ -28,6 +28,7 @@ type FlatSeverityField = (typeof FLAT_SEVERITY_FIELDS)[number];
 export type AssessmentSubmitPayload = {
   user_id: string;
   skin_type: string;
+  age_group?: string;
   lifestyle: {
     sleep_hours: number;
     water_intake_liters: number;
@@ -59,6 +60,7 @@ export function buildAssessmentSubmitPayload(
   return {
     user_id: userId,
     skin_type: state.skinTypeName ?? "",
+    age_group: state.ageGroup ?? undefined,
     ...flatSeverities,
     lifestyle: {
       sleep_hours: state.sleepHours,

@@ -198,7 +198,11 @@ async def submit_assessment(
     await skin_profile_service.create_profile(
         db,
         user_id,
-        SkinProfileCreate(skin_type_id=skin_type.skin_type_id, concerns=profile_concerns),
+        SkinProfileCreate(
+            skin_type_id=skin_type.skin_type_id,
+            age_group=payload.age_group,
+            concerns=profile_concerns,
+        ),
     )
 
     await skin_profile_service.upsert_lifestyle_log(
