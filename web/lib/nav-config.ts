@@ -707,11 +707,16 @@ export const ROLE_TOPBAR: Record<Role, TopbarConfig> = {
     primaryActionLabel: null,
     primaryActionHref: null,
   },
+  // primaryActionLabel/Href are null here now, same as every other role
+  // (bugs_report.md 2026-07-26, bug #5) — a consultant has no self-service way to
+  // add a client (consultant_clients rows are admin-assigned only, see
+  // components/admin/assign-client-dialog.tsx), so a CTA promising that action was
+  // the actual bug, not a missing destination for it to link to.
   consultant: {
     searchPlaceholder: "Search clients, assessments…",
     avatarCaption: "Skincare Consultant",
-    primaryActionLabel: "Add New Client",
-    primaryActionHref: "/consultant/clients",
+    primaryActionLabel: null,
+    primaryActionHref: null,
   },
   dermatologist: {
     searchPlaceholder: "Search patients, assessments…",
