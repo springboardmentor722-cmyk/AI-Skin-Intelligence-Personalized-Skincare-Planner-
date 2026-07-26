@@ -688,11 +688,13 @@ export const ROLE_FOOTER: Record<Role, FooterConfig> = {
 
 // Topbar chrome, MILESTONE_2_UI_SPEC.md §2.3. The dashboard's own greeting/subtitle
 // hero copy is dashboard-page content (P4/P5), not global shell chrome — this table
-// covers what's actually persistent across every route: search placeholder, bell
-// count, avatar caption, and (consultant-only) the primary action button.
+// covers what's actually persistent across every route: search placeholder, avatar
+// caption, and (consultant-only) the primary action button. Bell unread count used to
+// be a hardcoded fixture here (bugs_report.md 2026-07-26, bug #4) — it's real data
+// from GET /api/v1/notifications/me now (glass-topbar.tsx's NotificationBell), so it
+// doesn't belong in a static per-role config.
 export interface TopbarConfig {
   searchPlaceholder: string | null;
-  bellCount: number;
   avatarCaption: string;
   primaryActionLabel: string | null;
   primaryActionHref: string | null;
@@ -701,28 +703,24 @@ export interface TopbarConfig {
 export const ROLE_TOPBAR: Record<Role, TopbarConfig> = {
   user: {
     searchPlaceholder: null,
-    bellCount: 3,
     avatarCaption: "Premium User",
     primaryActionLabel: null,
     primaryActionHref: null,
   },
   consultant: {
     searchPlaceholder: "Search clients, assessments…",
-    bellCount: 3,
     avatarCaption: "Skincare Consultant",
     primaryActionLabel: "Add New Client",
     primaryActionHref: "/consultant/clients",
   },
   dermatologist: {
     searchPlaceholder: "Search patients, assessments…",
-    bellCount: 5,
     avatarCaption: "Dermatologist",
     primaryActionLabel: null,
     primaryActionHref: null,
   },
   admin: {
     searchPlaceholder: "Search users, reports, assessments…",
-    bellCount: 5,
     avatarCaption: "Super Administrator",
     primaryActionLabel: null,
     primaryActionHref: null,

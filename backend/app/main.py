@@ -22,6 +22,7 @@ from app.services.consultant_profile.router import router as consultant_profile_
 from app.services.dermatologist_profile.router import router as dermatologist_profile_router
 from app.services.ingredients.router import router as ingredients_router
 from app.services.instrumentation.router import router as instrumentation_router
+from app.services.notifications.router import router as notifications_router
 from app.services.progress.router import router as progress_router
 from app.services.recommendations.products_router import router as products_router
 from app.services.recommendations.router import router as recommendations_router
@@ -139,6 +140,7 @@ def create_app() -> FastAPI:
     # /ingredients/{id}/suitability/me, /ingredients/interactions), M3-B.
     api_v1.include_router(ingredients_router, tags=["ingredients"])
     api_v1.include_router(progress_router, tags=["progress"])
+    api_v1.include_router(notifications_router, tags=["notifications"])
     api_v1.include_router(analytics_router, tags=["analytics"])
     api_v1.include_router(instrumentation_router, tags=["instrumentation"])
     # admin_router already declares prefix="/admin" (verification queue + audit logs).

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { Bell, CalendarDays, LogOut, Search, Settings, SunMedium, UserPlus } from "lucide-react";
 
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -26,6 +27,8 @@ import {
 } from "@/components/ui/command";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Skeleton } from "@/components/ui/skeleton";
+import { api } from "@/lib/api";
 import { authClient } from "@/lib/auth-client";
 import { useWeatherUV } from "@/lib/hooks/use-weather-uv";
 import {
@@ -37,6 +40,85 @@ import {
   type Role,
 } from "@/lib/nav-config";
 import { useCurrentUser } from "@/lib/use-current-user";
+
+function timeAgo(iso: string | null): string {
+  if (!iso) return "";
+  const minutes = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60_000));
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.round(hours / 24)}d ago`;
+}
+
+// Real GET /api/v1/notifications/me (bugs_report.md 2026-07-26, bug #4 — this used to
+// be a hardcoded per-role `bellCount` fixture with a button that had no onClick at
+// all). Still an honest "No notifications yet" for every account today: nothing in the
+// app writes a row into `notifications` yet, so the list is genuinely always empty —
+// this is the real read path a producer will show up in later, not a mark-as-read UI
+// with nothing to mark (YAGNI until one exists).
+function NotificationBell() {
+  const { data, isLoading } = useQuery({
+    queryKey: ["notifications", "me"],
+    queryFn: async () => {
+      const { data } = await api.GET("/api/v1/notifications/me");
+      return data ?? [];
+    },
+  });
+  const unread = (data ?? []).filter((n) => !n.is_read).length;
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <button
+            type="button"
+            aria-label="Notifications"
+            className="text-on-surface-variant hover:bg-muted hover:text-on-surface relative flex size-9 items-center justify-center rounded-full transition-colors"
+          >
+            <Bell className="size-[18px]" strokeWidth={1.5} />
+            {unread > 0 && (
+              <span className="bg-destructive text-on-error absolute top-0.5 right-0.5 flex size-4 items-center justify-center rounded-full text-[10px] font-medium tabular-nums">
+                {unread}
+              </span>
+            )}
+          </button>
+        }
+      />
+      <DropdownMenuContent align="end" className="w-80">
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        {isLoading ? (
+          <div className="flex flex-col gap-2 p-2">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        ) : (data ?? []).length === 0 ? (
+          <p className="text-on-surface-variant px-2 py-6 text-center font-sans text-sm">
+            No notifications yet.
+          </p>
+        ) : (
+          (data ?? []).map((n) => (
+            <div key={n.notification_id} className="flex flex-col gap-0.5 px-2 py-2">
+              <div className="flex items-center gap-2">
+                {!n.is_read && <span className="bg-secondary size-1.5 shrink-0 rounded-full" />}
+                <span className="text-on-surface font-sans text-sm font-medium">{n.title}</span>
+              </div>
+              {n.message && (
+                <p className="text-on-surface-variant font-sans text-xs">{n.message}</p>
+              )}
+              <span className="text-on-surface-variant font-geist text-[11px]">
+                {timeAgo(n.created_at)}
+              </span>
+            </div>
+          ))
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
 
 interface GlassTopbarProps {
   role: Role;
@@ -50,7 +132,7 @@ interface GlassTopbarProps {
 // real (GET /api/v1/weather-uv, real OpenWeather/OpenUV adapters,
 // docs/DATASETS_AND_APIS.md) — still renders the same honest "UV —" whenever
 // location isn't granted or the backend's API keys aren't configured, never a
-// fabricated number. Notification count stays a stub (no adapter/service wired yet).
+// fabricated number. Notification bell is real too now (NotificationBell above).
 export function GlassTopbar({ role, userName, title }: GlassTopbarProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -108,6 +190,7 @@ export function GlassTopbar({ role, userName, title }: GlassTopbarProps) {
             <Button
               size="sm"
               className="hidden sm:inline-flex"
+              nativeButton={false}
               render={<Link href={topbar.primaryActionHref} />}
             >
               <UserPlus data-icon="inline-start" />
@@ -140,18 +223,7 @@ export function GlassTopbar({ role, userName, title }: GlassTopbarProps) {
             <span>{today}</span>
           </div>
 
-          <button
-            type="button"
-            aria-label="Notifications"
-            className="text-on-surface-variant hover:bg-muted hover:text-on-surface relative flex size-9 items-center justify-center rounded-full transition-colors"
-          >
-            <Bell className="size-[18px]" strokeWidth={1.5} />
-            {topbar.bellCount > 0 && (
-              <span className="bg-destructive text-on-error absolute top-0.5 right-0.5 flex size-4 items-center justify-center rounded-full text-[10px] font-medium tabular-nums">
-                {topbar.bellCount}
-              </span>
-            )}
-          </button>
+          <NotificationBell />
 
           <ThemeToggle />
 
