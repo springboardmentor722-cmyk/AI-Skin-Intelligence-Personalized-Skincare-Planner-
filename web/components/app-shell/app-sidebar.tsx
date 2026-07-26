@@ -138,7 +138,7 @@ export function AppSidebar({ role, userName }: AppSidebarProps) {
           </div>
           <p className="text-on-primary-container text-xs opacity-80">{footer.description}</p>
           {footer.actionLabel && (
-            <Button size="sm" className="w-full" render={<Link href={footer.actionHref} />}>
+            <Button size="sm" className="w-full" nativeButton={false} render={<Link href={footer.actionHref} />}>
               {footer.actionLabel}
             </Button>
           )}

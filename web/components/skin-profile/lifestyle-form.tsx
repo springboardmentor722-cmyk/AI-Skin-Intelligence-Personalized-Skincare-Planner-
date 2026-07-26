@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
@@ -14,15 +14,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { api } from "@/lib/api";
+import type { components } from "@/lib/api-types";
 import {
   ALCOHOL_OPTIONS,
   POLLUTION_OPTIONS,
   type LifestyleFormValues,
 } from "@/lib/schemas/skin-profile";
 import { selectItems } from "@/lib/utils";
+
+type LifestyleLogRead = components["schemas"]["LifestyleLogRead"];
 
 const ALCOHOL_ITEMS = selectItems(ALCOHOL_OPTIONS);
 const POLLUTION_ITEMS = selectItems(POLLUTION_OPTIONS);
@@ -43,6 +47,26 @@ const emptyForm: LifestyleFormValues = {
   pollution_level: undefined,
   ac_exposure_hours: undefined,
 };
+
+function formFromLog(log: LifestyleLogRead | null): LifestyleFormValues {
+  if (!log) return emptyForm;
+  return {
+    sleep_hours: log.sleep_hours ?? undefined,
+    sleep_quality: log.sleep_quality ?? 5,
+    water_intake_liters: log.water_intake_liters ?? undefined,
+    stress_level: log.stress_level ?? 5,
+    diet_quality: log.diet_quality ?? 5,
+    exercise_frequency: log.exercise_frequency ?? undefined,
+    smoking: log.smoking ?? false,
+    alcohol_consumption:
+      (log.alcohol_consumption as LifestyleFormValues["alcohol_consumption"]) ?? undefined,
+    sun_hours: log.environmental_exposure?.sun_hours ?? undefined,
+    pollution_level:
+      (log.environmental_exposure?.pollution_level as LifestyleFormValues["pollution_level"]) ??
+      undefined,
+    ac_exposure_hours: log.environmental_exposure?.ac_exposure_hours ?? undefined,
+  };
+}
 
 function RatingSlider({
   label,
@@ -65,8 +89,32 @@ function RatingSlider({
 }
 
 export function LifestyleForm() {
+  const logsQuery = useQuery({
+    queryKey: ["lifestyle-logs", "me"],
+    queryFn: async () => {
+      const { data } = await api.GET("/api/v1/lifestyle-logs/me");
+      return data ?? [];
+    },
+  });
+
+  if (logsQuery.isLoading) {
+    return (
+      <div className="rounded-lg border border-border bg-card p-6">
+        <Skeleton className="h-4 w-1/3" />
+        <Skeleton className="mt-4 h-24 w-full" />
+      </div>
+    );
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+  const todaysLog = (logsQuery.data ?? []).find((log) => log.log_date === today) ?? null;
+
+  return <LifestyleFormInner initialLog={todaysLog} />;
+}
+
+function LifestyleFormInner({ initialLog }: { initialLog: LifestyleLogRead | null }) {
   const queryClient = useQueryClient();
-  const [form, setForm] = useState<LifestyleFormValues>(emptyForm);
+  const [form, setForm] = useState<LifestyleFormValues>(() => formFromLog(initialLog));
 
   const saveMutation = useMutation({
     mutationFn: async (values: LifestyleFormValues) => {

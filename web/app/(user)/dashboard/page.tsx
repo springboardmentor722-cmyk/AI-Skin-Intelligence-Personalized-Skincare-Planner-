@@ -419,7 +419,7 @@ export default function UserDashboardPage() {
               />
             </>
           )}
-          <Button variant="outline" size="sm" className="w-full" render={<Link href="/routine" />}>
+          <Button variant="outline" size="sm" className="w-full" nativeButton={false} render={<Link href="/routine" />}>
             View Full Routine <span aria-hidden>→</span>
           </Button>
         </div>
