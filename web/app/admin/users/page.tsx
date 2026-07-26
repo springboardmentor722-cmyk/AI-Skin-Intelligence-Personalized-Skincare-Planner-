@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ClipboardCheck, Loader2, RotateCw, Search, ShieldBan, ShieldCheck, TriangleAlert } from "lucide-react";
 
+import { AssignClientDialog } from "@/components/admin/assign-client-dialog";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StateCard } from "@/components/state-card";
@@ -110,16 +111,19 @@ export default function AdminUsersPage() {
             Search, manage roles, and moderate accounts.
           </p>
         </div>
-        <Button
-          variant="outline"
-          nativeButton={false}
-          render={
-            <Link href="/admin/users/verification">
-              <ClipboardCheck className="size-4" strokeWidth={1.5} />
-              Verification queue
-            </Link>
-          }
-        />
+        <div className="flex gap-2">
+          <AssignClientDialog />
+          <Button
+            variant="outline"
+            nativeButton={false}
+            render={
+              <Link href="/admin/users/verification">
+                <ClipboardCheck className="size-4" strokeWidth={1.5} />
+                Verification queue
+              </Link>
+            }
+          />
+        </div>
       </div>
 
       <div className="relative max-w-sm">
