@@ -22,8 +22,8 @@ from app.services.ingredients.schemas import (
     IngredientListPage,
     IngredientRead,
     InteractionPair,
-    InteractionWarning,
     InteractionsRead,
+    InteractionWarning,
     SafetyScoreRead,
     SuitabilityRead,
 )
@@ -345,7 +345,9 @@ async def compute_safety_score(
     for index, id_a in enumerate(ingredient_ids):
         for id_b in ingredient_ids[index + 1 :]:
             ingredient_a, ingredient_b = by_id[id_a], by_id[id_b]
-            interaction = get_interaction(ingredient_a.ingredient_name, ingredient_b.ingredient_name)
+            interaction = get_interaction(
+                ingredient_a.ingredient_name, ingredient_b.ingredient_name
+            )
             if interaction is None or interaction["verdict"] == "synergy":
                 continue
             interaction_warnings.append(
