@@ -13,6 +13,7 @@ from app.services.admin.ingest.products import (
     _parse_ingredients,
     _parse_size_ml,
     download_dataset,
+    map_tertiary_category,
     normalize_rows,
 )
 
@@ -30,6 +31,43 @@ def _row(**overrides: object) -> dict[str, object]:
     }
     base.update(overrides)
     return base
+
+
+def test_map_tertiary_category_maps_known_skincare_types() -> None:
+    assert map_tertiary_category("Face Wash & Cleansers") == "Face Wash"
+    assert map_tertiary_category("Moisturizers") == "Moisturizer"
+    assert map_tertiary_category("Face Sunscreen") == "Sunscreen"
+    assert map_tertiary_category("Body Sunscreen") == "Sunscreen"
+    assert map_tertiary_category("Face Serums") == "Serum"
+    assert map_tertiary_category("Toners") == "Toner"
+    assert map_tertiary_category("Face Masks") == "Face Masks"
+    assert map_tertiary_category("Sheet Masks") == "Face Masks"
+    assert map_tertiary_category("Eye Masks") == "Face Masks"
+    assert map_tertiary_category("Blemish & Acne Treatments") == "Treatment Products"
+    assert map_tertiary_category("Anti-Aging") == "Treatment Products"
+    assert map_tertiary_category("Facial Peels") == "Treatment Products"
+    assert map_tertiary_category("Exfoliators") == "Treatment Products"
+    assert map_tertiary_category("Eye Creams & Treatments") == "Treatment Products"
+    assert map_tertiary_category("Night Creams") == "Moisturizer"
+
+
+def test_map_tertiary_category_returns_uncategorized_for_unmapped_or_missing_types() -> None:
+    # Real dataset values that don't cleanly map to any of the 7 rubric categories -
+    # never guessed (AGENTS.md §0.2).
+    assert map_tertiary_category("Face Oils") == "uncategorized"
+    assert map_tertiary_category("Mists & Essences") == "uncategorized"
+    assert map_tertiary_category("Beauty Supplements") == "uncategorized"
+    assert map_tertiary_category(None) == "uncategorized"
+    assert map_tertiary_category("Some Brand New Type Not In The Table") == "uncategorized"
+
+
+def test_normalize_rows_rejects_non_skincare_rows() -> None:
+    df = pd.DataFrame([_row(primary_category="Makeup", tertiary_category="Lipstick")])
+    products, rejected = normalize_rows(df)
+
+    assert products == []
+    assert len(rejected) == 1
+    assert rejected[0]["reason"] == "not a skincare product"
 
 
 def test_normalize_rows_accepts_a_valid_row() -> None:

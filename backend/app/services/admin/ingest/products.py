@@ -79,6 +79,36 @@ def download_dataset() -> Path:
     return _RAW_DIR / _PRIMARY_CSV
 
 
+# Real dataset values (training_dataset/raw/sephora/product_info.csv's
+# `tertiary_category` column, Skincare-primary-category rows only) mapped to
+# MILESTONE 3.pdf Step 2's 7 literal catalog categories. Anything not listed here
+# gets "uncategorized" rather than a guessed category (AGENTS.md §0.2) - this table
+# was built by inspecting the real column's actual value distribution, not invented.
+_TERTIARY_CATEGORY_MAP: dict[str, str] = {
+    "Face Wash & Cleansers": "Face Wash",
+    "Moisturizers": "Moisturizer",
+    "Night Creams": "Moisturizer",
+    "Face Sunscreen": "Sunscreen",
+    "Body Sunscreen": "Sunscreen",
+    "Face Serums": "Serum",
+    "Toners": "Toner",
+    "Face Masks": "Face Masks",
+    "Sheet Masks": "Face Masks",
+    "Eye Masks": "Face Masks",
+    "Blemish & Acne Treatments": "Treatment Products",
+    "Anti-Aging": "Treatment Products",
+    "Facial Peels": "Treatment Products",
+    "Exfoliators": "Treatment Products",
+    "Eye Creams & Treatments": "Treatment Products",
+}
+
+
+def map_tertiary_category(tertiary_category: str | None) -> str:
+    if tertiary_category is None:
+        return "uncategorized"
+    return _TERTIARY_CATEGORY_MAP.get(tertiary_category, "uncategorized")
+
+
 _MAX_INGREDIENT_NAME_LENGTH = 150  # ingredients.ingredient_name is VARCHAR(150)
 
 
@@ -149,6 +179,10 @@ def normalize_rows(df: pd.DataFrame) -> tuple[list[dict[str, Any]], list[dict[st
     rejected: list[dict[str, Any]] = []
 
     for _, row in df.iterrows():
+        if _safe_str(row.get("primary_category")) != "Skincare":
+            rejected.append({"row": row.to_dict(), "reason": "not a skincare product"})
+            continue
+
         brand_name = _safe_str(row.get("brand_name"))
         product_name = _safe_str(row.get("product_name"))
         price_raw = row.get("price_usd")
@@ -169,7 +203,7 @@ def normalize_rows(df: pd.DataFrame) -> tuple[list[dict[str, Any]], list[dict[st
             {
                 "brand_name": brand_name,
                 "product_name": product_name,
-                "category": _safe_str(row.get("primary_category")) or None,
+                "category": map_tertiary_category(_safe_str(row.get("tertiary_category")) or None),
                 "product_url": _safe_str(row.get("product_url")) or None,
                 "image_url": _safe_str(row.get("image_url")) or None,
                 "price": float(price_raw),
