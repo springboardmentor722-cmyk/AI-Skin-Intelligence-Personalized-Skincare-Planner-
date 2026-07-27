@@ -9,7 +9,6 @@ behavior worth covering, not incidental plumbing.
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db import vector
 from app.db.redis import get_redis
 from app.services.ingredients.models import Ingredient
 from app.services.recommendations.models import (
@@ -89,10 +88,12 @@ async def test_recommendations_are_ranked_highest_match_score_first(
 
     results = await get_recommendations(db_session, test_user_id)
 
-    assert len(results) <= 3  # service.py's own _TOP_N
-    scores = [r.match_score for r in results]
-    assert scores == sorted(scores, reverse=True)
+    # Per-category top-1 (service.py's own _TOP_PER_CATEGORY) — at most one
+    # result per category, not a single global top-N sorted across categories.
+    categories = [r.product.category for r in results]
+    assert len(categories) == len(set(categories))
     for r in results:
+        assert 0 <= r.match_score <= 100
         assert r.reasons, "every recommendation must explain itself, not just rank"
 
 
@@ -180,30 +181,6 @@ async def test_evaluate_products_suitability_flags_allergy_and_scores_a_clean_pr
 
     assert aggregate[product.product_id].any_allergy is False
     assert aggregate[product.product_id].score > 0.5
-
-
-async def test_recommendations_use_vector_similarity_when_a_profile_embedding_exists(
-    db_session: AsyncSession, test_user_id: str
-) -> None:
-    """Stage 2 (milestone_3.md §2) — uses the *already-projected* embedding as the
-    query vector (never computed request-path). A profile vector deliberately
-    identical to a real seeded product's vector should push that product's
-    vector_similarity signal to (near) 1.0."""
-    await create_profile(
-        db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
-    )
-    profile_vector_id = f"user_{test_user_id}"
-    try:
-        embedding = [1.0] + [0.0] * 383
-        vector.upsert(
-            "user_profiles", profile_vector_id, embedding, {"user_id": test_user_id}, dim=384
-        )
-
-        results = await get_recommendations(db_session, test_user_id)
-
-        assert results  # seeded catalog for skin_type_id=1 is non-empty
-    finally:
-        vector.remove("user_profiles", profile_vector_id)
 
 
 async def test_recommendations_persist_the_served_set_to_product_recommendations(

@@ -1,6 +1,5 @@
 import datetime
 import json
-import math
 from typing import NamedTuple
 
 from sqlalchemy import func, select
@@ -9,7 +8,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.ai.recommender import ContentBasedRecommender
 from app.ai.schemas import RecommendationFeatures
 from app.ai.suitability import RealIngredientSuitability
-from app.db import vector as vector_db
 from app.db.mongo import get_mongo_db
 from app.db.redis import get_redis
 from app.services.ingredients.models import Ingredient, IngredientSkintypeAvoid
@@ -30,7 +28,7 @@ from app.services.skin_profile import service as skin_profile_service
 from app.services.skin_profile.schemas import SkinProfileRead
 
 _CACHE_TTL_SECONDS = 24 * 60 * 60
-_TOP_N = 3
+_TOP_PER_CATEGORY = 1
 _recommender = ContentBasedRecommender()
 _suitability = RealIngredientSuitability()
 
@@ -262,33 +260,6 @@ async def evaluate_products_suitability(
     return results
 
 
-async def _get_budget_preference(user_id: str) -> tuple[float, float] | None:
-    """Mongo `user_preferences` (schema #4) — a real documented collection with no
-    writer anywhere in this app yet (M3-D is only its first *reader*); absent
-    gracefully rather than fabricated (AGENTS.md §0.2), same spirit as a cold-start
-    user with no interaction history."""
-    doc = await get_mongo_db()["user_preferences"].find_one({"user_id": user_id})
-    if not doc:
-        return None
-    budget = doc.get("preferred_budget")
-    if not budget or budget.get("min") is None or budget.get("max") is None:
-        return None
-    return float(budget["min"]), float(budget["max"])
-
-
-def _price_fit(price: float | None, budget: tuple[float, float] | None) -> float:
-    """0.5 (neutral, no signal either way) when there's no price or no registered
-    budget preference — not a penalty or a boost, since neither fact was observed."""
-    if price is None or budget is None:
-        return 0.5
-    budget_min, budget_max = budget
-    if budget_min <= price <= budget_max:
-        return 1.0
-    distance = budget_min - price if price < budget_min else price - budget_max
-    span = max(budget_max - budget_min, budget_max, 1.0)
-    return max(0.0, 1.0 - distance / span)
-
-
 async def _persist_recommendations(
     db: AsyncSession, user_id: str, served: list[tuple[float, Product, list[str]]]
 ) -> None:
@@ -308,23 +279,22 @@ async def _persist_recommendations(
 
 
 async def get_recommendations(db: AsyncSession, user_id: str) -> list[RecommendationRead]:
-    """Recommender v2 (M3-D, milestone_3.md §2/§8) — the five-stage pipeline:
+    """Recommender v2 (M3R Phase 2, MILESTONE 3.pdf Step 2) — the three-stage
+    pipeline:
     1. Relational pre-filter (skin-type match + two hard safety filters: the
        skin-type-avoid junction, then per-ingredient free-text allergy match —
        an allergy/avoid-flagged product can never reach ranking, regardless of how
        well it would otherwise score).
-    2. Vector similarity — FAISS `user_profiles` namespace query vector (the
-       worker's already-projected profile embedding, never computed request-path)
-       against the `products` namespace, restricted to stage-1 survivors. Skipped
-       (all candidates get a neutral 0 signal) if no profile vector is indexed yet
-       — a documented degrade, not an error (milestone_3.md §8).
-    3. Budget preference from Mongo `user_preferences` (absent gracefully — no
-       writer exists for it yet anywhere in the app).
-    4. Rank — `ContentBasedRecommender`'s documented weighted formula
-       (app/ai/recommender.py).
-    5. Serve + Redis cache (`recommendation:cache:{user_id}`, TTL 24h; invalidated
+    2. Rank — `ContentBasedRecommender`'s literal 3-factor formula (concern match/
+       skin-type fit/rating, weights from the active `recommendation_weights` row,
+       app/ai/recommender.py). Vector similarity and budget preference no longer
+       feed the score (dropped per the rubric's exact 3-factor requirement).
+    3. Serve + Redis cache (`recommendation:cache:{user_id}`, TTL 24h; invalidated
        on profile save, skin_profile/service.py) + persist the served set to PG
-       `product_recommendations` (M3-D's first real writer, milestone_3.md §5)."""
+       `product_recommendations` (M3-D's first real writer, milestone_3.md §5).
+       Serving takes the top `_TOP_PER_CATEGORY` ranked candidate(s) per
+       `product.category`, not a single global top-N — coverage across categories,
+       not one category dominating."""
     redis = get_redis()
     cache_key = f"recommendation:cache:{user_id}"
     cached = await redis.get(cache_key)
@@ -364,54 +334,27 @@ async def get_recommendations(db: AsyncSession, user_id: str) -> list[Recommenda
 
     product_concerns = await list_concern_ids_for_products(db, [p.product_id for p in products])
 
-    # --- Stage 2: vector similarity (metadata-filtered to stage-1 survivors) ---
-    stage1_ids = {p.product_id for p in products}
-    vector_similarity: dict[int, float] = {}
-    query_vector = vector_db.get_vector("user_profiles", f"user_{user_id}")
-    if query_vector is not None:
-        search_results = vector_db.search(
-            "products", query_vector, k=max(len(products) * 2, 50), dim=len(query_vector)
-        )
-        for result in search_results:
-            vector_id = result["vector_id"]
-            if not vector_id.startswith("product_"):
-                continue
-            product_id = int(vector_id.removeprefix("product_"))
-            if product_id in stage1_ids:
-                vector_similarity[product_id] = max(0.0, min(1.0, result["score"]))
-    # else: no profile vector indexed yet (e.g. the worker hasn't processed the
-    # profile's outbox row) — every candidate gets a neutral 0 vector_similarity,
-    # stage 2 simply contributes nothing rather than blocking the pipeline.
-
-    # --- Stage 3: budget preference (Mongo user_preferences) ---
-    budget = await _get_budget_preference(user_id)
-
-    # --- Stage 4: rank ---
-    max_review_count = max((p.review_count or 0 for p in products), default=0)
+    # --- Stage 2: rank ---
+    weights = await get_active_recommendation_weights(db)
     ranked: list[tuple[float, Product, list[str]]] = []
     for product in products:
         agg = suitability[product.product_id]
         product_concern_ids = product_concerns.get(product.product_id, [])
         matched = [cid for cid in product_concern_ids if cid in concern_ids]
         concern_overlap = len(matched) / len(concern_ids) if concern_ids else 0.0
-
-        price = float(product.price) if product.price is not None else None
         rating_norm = float(product.rating) / 5.0 if product.rating is not None else 0.5
-        popularity_norm = (
-            math.log1p(product.review_count) / math.log1p(max_review_count)
-            if product.review_count and max_review_count
-            else 0.0
-        )
 
         features = RecommendationFeatures(
-            suitability=agg.score,
             concern_overlap=concern_overlap,
-            vector_similarity=vector_similarity.get(product.product_id, 0.0),
+            skin_type_fit=agg.score,
             rating_norm=rating_norm,
-            price_fit=_price_fit(price, budget),
-            popularity_norm=popularity_norm,
         )
-        match_score = _recommender.score(features)
+        match_score = _recommender.score(
+            features,
+            concern_weight=float(weights.concern_weight),
+            skin_type_fit_weight=float(weights.skin_type_fit_weight),
+            rating_weight=float(weights.rating_weight),
+        )
 
         reasons = [f"Suits your {skin_type_name} skin type"]
         reasons += [f"Targets {concern_names[cid]}" for cid in matched if cid in concern_names]
@@ -424,9 +367,21 @@ async def get_recommendations(db: AsyncSession, user_id: str) -> list[Recommenda
     # jitter-free, deterministic tiebreak on product_id (stable, unlike ADR-007's
     # hash(user_id) jitter the old stub used — real signals no longer need one).
     ranked.sort(key=lambda row: (row[0], -row[1].product_id), reverse=True)
-    served = ranked[:_TOP_N]
 
-    # --- Stage 5: serve + cache + persist ---
+    # Per-category top-K (MILESTONE 3.pdf Step 2's "categorized recommendations" —
+    # coverage across categories, not one global top-N that could all land in a
+    # single category). Grouping preserves `ranked`'s sort order, so each
+    # category's slice is already its own best-first candidates.
+    served_by_category: dict[str | None, list[tuple[float, Product, list[str]]]] = {}
+    for row in ranked:
+        served_by_category.setdefault(row[1].category, []).append(row)
+    served = [
+        row
+        for rows in served_by_category.values()
+        for row in rows[:_TOP_PER_CATEGORY]
+    ]
+
+    # --- Stage 3: serve + cache + persist ---
     results = [
         RecommendationRead(
             product=ProductRead.model_validate(product), match_score=score, reasons=reasons
