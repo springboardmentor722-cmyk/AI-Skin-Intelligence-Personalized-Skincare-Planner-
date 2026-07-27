@@ -6,6 +6,8 @@ product_info.csv columns, not a live download.
 
 import pandas as pd
 import pytest
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.services.admin.ingest.products import (
@@ -13,9 +15,13 @@ from app.services.admin.ingest.products import (
     _parse_ingredients,
     _parse_size_ml,
     download_dataset,
+    load_into_database,
+    load_product_associations,
     map_tertiary_category,
     normalize_rows,
+    parse_highlights,
 )
+from app.services.recommendations.models import Product, ProductSkinType
 
 
 def _row(**overrides: object) -> dict[str, object]:
@@ -138,6 +144,95 @@ def test_parse_size_ml_returns_none_for_non_ml_units() -> None:
     # no invented oz->mL ratio.
     assert _parse_size_ml("1.7 oz") is None
     assert _parse_size_ml(None) is None
+
+
+def test_parse_highlights_maps_real_skin_type_and_concern_phrases() -> None:
+    raw = "['Vegan', 'Best for Oily, Combo, Normal Skin', 'Good for: Acne/Blemishes']"
+
+    skin_types, concerns = parse_highlights(raw)
+
+    assert skin_types == ["Combination", "Normal", "Oily"]
+    assert concerns == ["Acne"]
+
+
+def test_parse_highlights_ignores_unmapped_phrases_and_none() -> None:
+    assert parse_highlights(None) == ([], [])
+    assert parse_highlights("['Vegan', 'Good for: Pores']") == ([], [])
+
+
+def test_parse_highlights_handles_malformed_input_gracefully() -> None:
+    assert parse_highlights("not a python list literal") == ([], [])
+
+
+async def test_load_product_associations_creates_real_skin_type_and_concern_rows(
+    db_session: AsyncSession,
+) -> None:
+    products = [
+        {
+            "brand_name": "Test Brand",
+            "product_name": "Test Highlight Product",
+            "category": "Serum",
+            "product_url": None,
+            "image_url": None,
+            "price": 25.0,
+            "currency": "USD",
+            "volume_ml": None,
+            "ingredients": [],
+            "rating": None,
+            "review_count": None,
+            "skin_type_names": ["Oily", "Combination"],
+            "concern_names": ["Acne"],
+        }
+    ]
+    await load_into_database(db_session, products)
+
+    skin_type_created, concern_created = await load_product_associations(db_session, products)
+
+    assert skin_type_created == 2
+    assert concern_created == 1
+
+    product_id = (
+        await db_session.execute(
+            select(Product.product_id).where(Product.product_name == "Test Highlight Product")
+        )
+    ).scalar_one()
+    linked_skin_types = (
+        (
+            await db_session.execute(
+                select(ProductSkinType.skin_type_id).where(ProductSkinType.product_id == product_id)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    assert len(linked_skin_types) == 2
+
+
+async def test_load_product_associations_is_idempotent(db_session: AsyncSession) -> None:
+    products = [
+        {
+            "brand_name": "Test Brand 2",
+            "product_name": "Test Idempotent Product",
+            "category": "Serum",
+            "product_url": None,
+            "image_url": None,
+            "price": 25.0,
+            "currency": "USD",
+            "volume_ml": None,
+            "ingredients": [],
+            "rating": None,
+            "review_count": None,
+            "skin_type_names": ["Oily"],
+            "concern_names": [],
+        }
+    ]
+    await load_into_database(db_session, products)
+    await load_product_associations(db_session, products)
+
+    skin_type_created, concern_created = await load_product_associations(db_session, products)
+
+    assert skin_type_created == 0
+    assert concern_created == 0
 
 
 def test_download_dataset_raises_clear_error_without_credentials(
