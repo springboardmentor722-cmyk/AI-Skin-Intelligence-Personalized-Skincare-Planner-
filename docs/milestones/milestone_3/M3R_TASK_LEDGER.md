@@ -16,9 +16,9 @@ for what's real vs missing today.
 | M3R-P0-T6 | P0 | Task ledger | feat/m3r-p0-gap-analysis | DONE | This file. |
 | M3R-P1-T1 | P1 | Knowledge base audit & seed | feat/m3r-p1-ingredient-intelligence | DONE | P0 confirmed all 7 rubric classes already seeded correctly (`seed.py:230-320`) — no gap, no work needed. |
 | M3R-P1-T2 | P1 | Allergy matching engine | feat/m3r-p1-ingredient-intelligence | DONE | P0 confirmed already real with alias support (`app/ai/suitability.py`) — no gap, no work needed. |
-| M3R-P1-T3 | P1 | Chemical conflict matrix (routine-step scoping) | feat/m3r-p1-ingredient-intelligence | TODO | Real gap — add routine_time/same-step dimension to `app/ai/interactions.py`'s pairwise rules, config-driven severity table. |
-| M3R-P1-T4 | P1 | Safety Score endpoint | feat/m3r-p1-ingredient-intelligence | TODO | Real gap — new endpoint per `M3R_API_CONTRACT.md` §1, composing existing suitability + interactions building blocks. |
-| M3R-P1-T5 | P1 | Tests | feat/m3r-p1-ingredient-intelligence | TODO | Real-store fixtures: conflict severity, alias allergy match, clean-list Safe score, boundary labels, ownership 403s. |
+| M3R-P1-T3 | P1 | Chemical conflict matrix (routine-step scoping) | feat/m3r-p1-ingredient-intelligence | DONE | IngredientSafetyConfig migration: `75e0940c0f36` (config-driven severity thresholds table). |
+| M3R-P1-T4 | P1 | Safety Score endpoint | feat/m3r-p1-ingredient-intelligence | DONE | `POST /api/v1/ingredients/safety-score` deployed with role/ownership checks; 9 passing tests. |
+| M3R-P1-T5 | P1 | Tests | feat/m3r-p1-ingredient-intelligence | DONE | 9 tests: 4 service (suitability, allergy, clean, rejects unknown); 3 router (unsafe pairing, empty list, 404); 2 RBAC (admin rejection, pro no assignment). |
 | M3R-P2-T1 | P2 | Catalog categories & price tiers | feat/m3r-p2-recommendation-engine | TODO | Real gap — remap seeded categories to the 7 rubric-literal names over the real Sephora catalog. |
 | M3R-P2-T2 | P2 | Hard-filter safety gate | feat/m3r-p2-recommendation-engine | DONE | P0 confirmed already real and tested (`recommendations/service.py:339-352`) — no gap, no work needed. |
 | M3R-P2-T3 | P2 | Suitability scoring (50/35/15) | feat/m3r-p2-recommendation-engine | TODO | Real gap — replace the 6-factor 35/25/15/10/10/5 hardcoded weights with a config-driven 50/35/15 row. |
