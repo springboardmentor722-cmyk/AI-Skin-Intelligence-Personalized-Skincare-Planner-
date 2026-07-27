@@ -138,7 +138,7 @@ export default function RecommendationsPage() {
   ).length;
 
   const sorted = [...filtered].sort((a, b) => {
-    if (sortBy === "match") return b.match_score - a.match_score;
+    if (sortBy === "match") return b.match_percentage - a.match_percentage;
     if (sortBy === "price-asc") return (a.product.price ?? 0) - (b.product.price ?? 0);
     return (b.product.price ?? 0) - (a.product.price ?? 0);
   });
@@ -342,7 +342,7 @@ export default function RecommendationsPage() {
                           <Sparkles className="size-8" strokeWidth={1.5} />
                         </div>
                       )}
-                      <MatchRing score={rec.match_score} className="absolute top-2 right-2" />
+                      <MatchRing score={rec.match_percentage} className="absolute top-2 right-2" />
                     </div>
                     <h3 className="font-heading text-on-surface text-sm font-semibold">
                       {rec.product.product_name}
@@ -444,7 +444,7 @@ export default function RecommendationsPage() {
                   <div className="flex justify-between">
                     <dt className="text-on-surface-variant">Match</dt>
                     <dd className="font-geist tabular-nums">
-                      {Math.round(rec.match_score)}%
+                      {Math.round(rec.match_percentage)}%
                     </dd>
                   </div>
                 </dl>

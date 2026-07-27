@@ -245,7 +245,7 @@ export default function UserDashboardPage() {
       price: rec.product.price,
       currency: rec.product.currency,
       rating: rec.product.rating ?? undefined,
-      badge: rec.match_score >= 0.8 ? "Best Match" : undefined,
+      badge: rec.match_percentage >= 80 ? "Best Match" : undefined,
     }));
 
   const latestInsight = (analyticsQuery.data?.correlations ?? []).find((c) => c.correlation !== null);
