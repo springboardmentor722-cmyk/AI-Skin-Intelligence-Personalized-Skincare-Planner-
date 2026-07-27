@@ -77,7 +77,7 @@ def test_normalize_rows_rejects_non_skincare_rows() -> None:
 
 
 def test_normalize_rows_accepts_a_valid_row() -> None:
-    df = pd.DataFrame([_row()])
+    df = pd.DataFrame([_row(tertiary_category="Face Wash & Cleansers")])
     products, rejected = normalize_rows(df)
 
     assert len(products) == 1
@@ -86,6 +86,7 @@ def test_normalize_rows_accepts_a_valid_row() -> None:
     assert product["brand_name"] == "Bare Basics"
     assert product["currency"] == "USD"
     assert product["volume_ml"] == 150
+    assert product["category"] == "Face Wash"
 
 
 def test_normalize_rows_extracts_real_rating_and_review_count() -> None:

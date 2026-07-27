@@ -192,7 +192,9 @@ async def test_sensitive_skin_routine_never_includes_an_avoid_flagged_product(
     ).scalar_one()
 
     unsafe_product = Product(
-        brand_name="Test Only", product_name="Unsafe-for-Sensitive Treatment", category="Treatment Products"
+        brand_name="Test Only",
+        product_name="Unsafe-for-Sensitive Treatment",
+        category="Treatment Products",
     )
     db_session.add(unsafe_product)
     await db_session.flush()
@@ -926,7 +928,9 @@ async def test_search_products_for_edit_excludes_avoid_flagged_and_respects_cate
     sensitive_id = await _sensitive_skin_type_id(db_session)
     await create_profile(db_session, test_user_id, SkinProfileCreate(skin_type_id=sensitive_id))
 
-    treatment_results = await search_products_for_edit(db_session, test_user_id, "Treatment Products", "")
+    treatment_results = await search_products_for_edit(
+        db_session, test_user_id, "Treatment Products", ""
+    )
 
     assert treatment_results, "Sensitive skin should have safe Treatment candidates"
     assert all(p.category == "Treatment Products" for p in treatment_results)

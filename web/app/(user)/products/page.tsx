@@ -28,6 +28,7 @@ const CATEGORIES = [
   "Toner",
   "Treatment Products",
   "Face Masks",
+  "uncategorized",
 ];
 
 export default function ProductsPage() {

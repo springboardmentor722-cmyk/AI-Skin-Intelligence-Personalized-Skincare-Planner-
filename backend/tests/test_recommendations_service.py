@@ -147,15 +147,78 @@ async def test_over_budget_top_match_is_flagged_and_gets_a_cheaper_alternative(
     matching_entries = [r for r in capped if r.product.product_id == target.product.product_id]
     assert len(matching_entries) == 1
     assert matching_entries[0].over_budget is True
-    alternatives = [
-        r for r in capped if r.alternative_for_product_id == target.product.product_id
-    ]
+    alternatives = [r for r in capped if r.alternative_for_product_id == target.product.product_id]
     # An alternative is only guaranteed if the seeded catalog has another product in
     # the same category under the cap - assert the flagging behavior always, and the
     # alternative's presence only if one plausibly exists (same category, cheaper).
     if alternatives:
         assert float(alternatives[0].product.price) <= cheap_cap
         assert alternatives[0].over_budget is False
+
+
+async def test_budget_cap_alternative_never_carries_an_allergy_flagged_product(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    """The same release-blocking property
+    test_an_allergy_flagged_product_can_never_appear_in_recommendations already
+    covers for the main ranking path - this proves the budget-cap alternative path
+    respects it too, since it queries candidates independently."""
+    niacinamide = (
+        (
+            await db_session.execute(
+                select(Ingredient).where(Ingredient.ingredient_name == "Niacinamide")
+            )
+        )
+        .scalars()
+        .first()
+    )
+    assert niacinamide is not None
+
+    unsafe_cheap_product = Product(
+        brand_name="Test Only",
+        product_name="Unsafe Cheap Alternative",
+        category="Moisturizer",
+        price=5.0,
+        currency="USD",
+        is_active=True,
+    )
+    db_session.add(unsafe_cheap_product)
+    await db_session.flush()
+    db_session.add(
+        ProductIngredient(
+            product_id=unsafe_cheap_product.product_id, ingredient_id=niacinamide.ingredient_id
+        )
+    )
+    db_session.add(
+        ProductSkinType(
+            product_id=unsafe_cheap_product.product_id,
+            skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS,
+        )
+    )
+    await db_session.commit()
+
+    await create_profile(
+        db_session,
+        test_user_id,
+        SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS, allergies="Niacinamide"),
+    )
+
+    uncapped = await get_recommendations(db_session, test_user_id, max_price=None)
+    moisturizer_entries = [r for r in uncapped if r.product.category == "Moisturizer"]
+    assert moisturizer_entries, "need a real Moisturizer top match to cap under"
+    cheap_cap = float(moisturizer_entries[0].product.price) - 1.0
+    assert cheap_cap > unsafe_cheap_product.price, (
+        "cap must be above the unsafe product's price so it's a genuine cheaper candidate"
+    )
+
+    results = await get_recommendations(db_session, test_user_id, max_price=cheap_cap)
+
+    assert any(r.over_budget for r in results if r.product.category == "Moisturizer"), (
+        "test must exercise a genuine over-budget entry, not just find nothing in scope"
+    )
+    assert all(r.product.product_id != unsafe_cheap_product.product_id for r in results), (
+        "an allergy-flagged product must never be served as a budget alternative"
+    )
 
 
 async def test_recommendations_are_cached_in_redis(
@@ -220,7 +283,9 @@ async def test_evaluate_products_suitability_flags_allergy_and_scores_a_clean_pr
             select(Ingredient).where(Ingredient.ingredient_name == "Niacinamide")
         )
     ).scalar_one()
-    product = Product(brand_name="Test Only", product_name="Clean Serum", category="Treatment Products")
+    product = Product(
+        brand_name="Test Only", product_name="Clean Serum", category="Treatment Products"
+    )
     db_session.add(product)
     await db_session.flush()
     db_session.add(
@@ -308,7 +373,9 @@ async def test_list_avoided_ingredient_product_ids_flags_a_real_avoid_flagged_in
     ).scalar_one()
 
     product = Product(
-        brand_name="Test Only", product_name="Unsafe-for-Sensitive Treatment", category="Treatment Products"
+        brand_name="Test Only",
+        product_name="Unsafe-for-Sensitive Treatment",
+        category="Treatment Products",
     )
     db_session.add(product)
     await db_session.flush()
@@ -336,7 +403,9 @@ async def test_list_avoided_ingredient_product_ids_empty_for_a_safe_ingredient(
         )
     ).scalar_one()
 
-    product = Product(brand_name="Test Only", product_name="Safe Treatment", category="Treatment Products")
+    product = Product(
+        brand_name="Test Only", product_name="Safe Treatment", category="Treatment Products"
+    )
     db_session.add(product)
     await db_session.flush()
     db_session.add(
