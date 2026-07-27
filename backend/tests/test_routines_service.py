@@ -192,7 +192,7 @@ async def test_sensitive_skin_routine_never_includes_an_avoid_flagged_product(
     ).scalar_one()
 
     unsafe_product = Product(
-        brand_name="Test Only", product_name="Unsafe-for-Sensitive Treatment", category="Treatment"
+        brand_name="Test Only", product_name="Unsafe-for-Sensitive Treatment", category="Treatment Products"
     )
     db_session.add(unsafe_product)
     await db_session.flush()
@@ -816,7 +816,7 @@ async def test_add_step_rejects_an_avoid_flagged_product(
         )
     ).scalar_one()
     unsafe_product = Product(
-        brand_name="Test Only", product_name="Unsafe Treatment", category="Treatment"
+        brand_name="Test Only", product_name="Unsafe Treatment", category="Treatment Products"
     )
     db_session.add(unsafe_product)
     await db_session.flush()
@@ -862,7 +862,7 @@ async def test_update_step_swaps_product_and_usage_notes(
     routines = await get_or_generate_routines(db_session, test_user_id)
     am = next(r for r in routines if r.routine_type == "AM")
     cleansing_step = next(s for s in am.steps if s.category == constants.CLEANSING)
-    candidates = await search_products_for_edit(db_session, test_user_id, "Cleanser", "")
+    candidates = await search_products_for_edit(db_session, test_user_id, "Face Wash", "")
     other_product = next(
         p for p in candidates if p.product_id != cleansing_step.products[0].product.product_id
     )
@@ -891,7 +891,7 @@ async def test_update_step_rejects_an_avoid_flagged_product_swap(
         )
     ).scalar_one()
     unsafe_product = Product(
-        brand_name="Test Only", product_name="Unsafe Treatment 2", category="Treatment"
+        brand_name="Test Only", product_name="Unsafe Treatment 2", category="Treatment Products"
     )
     db_session.add(unsafe_product)
     await db_session.flush()
@@ -926,10 +926,10 @@ async def test_search_products_for_edit_excludes_avoid_flagged_and_respects_cate
     sensitive_id = await _sensitive_skin_type_id(db_session)
     await create_profile(db_session, test_user_id, SkinProfileCreate(skin_type_id=sensitive_id))
 
-    treatment_results = await search_products_for_edit(db_session, test_user_id, "Treatment", "")
+    treatment_results = await search_products_for_edit(db_session, test_user_id, "Treatment Products", "")
 
     assert treatment_results, "Sensitive skin should have safe Treatment candidates"
-    assert all(p.category == "Treatment" for p in treatment_results)
+    assert all(p.category == "Treatment Products" for p in treatment_results)
     assert not any("Salicylic" in (p.product_name or "") for p in treatment_results)
 
 

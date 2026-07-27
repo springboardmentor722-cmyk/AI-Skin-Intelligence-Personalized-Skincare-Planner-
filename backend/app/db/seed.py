@@ -64,7 +64,7 @@ _PRODUCTS: list[_ProductSeed] = [
     {
         "brand_name": "Lumina Labs",
         "product_name": "Gentle Foaming Cleanser",
-        "category": "Cleanser",
+        "category": "Face Wash",
         "price": 450,
         "volume_ml": 150,
         "skin_types": ["Normal", "Oily", "Combination"],
@@ -73,7 +73,7 @@ _PRODUCTS: list[_ProductSeed] = [
     {
         "brand_name": "Bare Basics",
         "product_name": "Cream Hydrating Cleanser",
-        "category": "Cleanser",
+        "category": "Face Wash",
         "price": 420,
         "volume_ml": 150,
         "skin_types": ["Dry", "Sensitive"],
@@ -82,7 +82,7 @@ _PRODUCTS: list[_ProductSeed] = [
     {
         "brand_name": "DermaCare Co",
         "product_name": "Micellar Cleansing Water",
-        "category": "Cleanser",
+        "category": "Face Wash",
         "price": 350,
         "volume_ml": 250,
         "skin_types": ["Normal", "Dry", "Oily", "Combination", "Sensitive"],
@@ -91,7 +91,7 @@ _PRODUCTS: list[_ProductSeed] = [
     {
         "brand_name": "Lumina Labs",
         "product_name": "2% Salicylic Acid Treatment",
-        "category": "Treatment",
+        "category": "Treatment Products",
         "price": 650,
         "volume_ml": 30,
         "skin_types": ["Oily", "Combination"],
@@ -101,7 +101,7 @@ _PRODUCTS: list[_ProductSeed] = [
     {
         "brand_name": "Lumina Labs",
         "product_name": "10% Niacinamide Serum",
-        "category": "Treatment",
+        "category": "Treatment Products",
         "price": 590,
         "volume_ml": 30,
         "skin_types": ["Oily", "Combination", "Normal"],
@@ -111,7 +111,7 @@ _PRODUCTS: list[_ProductSeed] = [
     {
         "brand_name": "DermaCare Co",
         "product_name": "Retinol 0.3% Night Treatment",
-        "category": "Treatment",
+        "category": "Treatment Products",
         "price": 890,
         "volume_ml": 30,
         "skin_types": ["Normal", "Combination"],
@@ -121,7 +121,7 @@ _PRODUCTS: list[_ProductSeed] = [
     {
         "brand_name": "Bare Basics",
         "product_name": "Hyaluronic Acid Serum",
-        "category": "Treatment",
+        "category": "Treatment Products",
         "price": 550,
         "volume_ml": 30,
         "skin_types": ["Normal", "Dry", "Oily", "Combination", "Sensitive"],
@@ -131,7 +131,7 @@ _PRODUCTS: list[_ProductSeed] = [
     {
         "brand_name": "Bare Basics",
         "product_name": "Centella Calming Serum",
-        "category": "Treatment",
+        "category": "Treatment Products",
         "price": 620,
         "volume_ml": 30,
         "skin_types": ["Sensitive"],
@@ -140,7 +140,7 @@ _PRODUCTS: list[_ProductSeed] = [
     {
         "brand_name": "Lumina Labs",
         "product_name": "Vitamin C Brightening Serum",
-        "category": "Treatment",
+        "category": "Treatment Products",
         "price": 750,
         "volume_ml": 30,
         "skin_types": ["Normal", "Combination", "Dry"],
@@ -150,7 +150,7 @@ _PRODUCTS: list[_ProductSeed] = [
     {
         "brand_name": "DermaCare Co",
         "product_name": "8% Glycolic Acid Night Exfoliant",
-        "category": "Treatment",
+        "category": "Treatment Products",
         "price": 720,
         "volume_ml": 30,
         "skin_types": ["Normal", "Oily", "Combination"],
@@ -160,7 +160,7 @@ _PRODUCTS: list[_ProductSeed] = [
     {
         "brand_name": "Bare Basics",
         "product_name": "Peptide Firming Serum",
-        "category": "Treatment",
+        "category": "Treatment Products",
         "price": 810,
         "volume_ml": 30,
         "skin_types": ["Normal", "Dry", "Combination"],

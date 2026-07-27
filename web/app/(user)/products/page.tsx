@@ -20,7 +20,15 @@ import { formatPrice } from "@/lib/utils";
 // from the Recommender (a separate GET /recommendations/me, linked below as "For
 // you"), not the catalog; allergy annotations already gate the *recommendations*
 // feed and the product detail page rather than a second, separate catalog toggle.
-const CATEGORIES = ["Cleanser", "Treatment", "Moisturizer", "Sunscreen"];
+const CATEGORIES = [
+  "Face Wash",
+  "Moisturizer",
+  "Sunscreen",
+  "Serum",
+  "Toner",
+  "Treatment Products",
+  "Face Masks",
+];
 
 export default function ProductsPage() {
   const router = useRouter();

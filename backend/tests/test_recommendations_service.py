@@ -46,10 +46,10 @@ async def test_list_products_for_skin_type_filters_by_category(
     db_session: AsyncSession,
 ) -> None:
     cleansers = await list_products_for_skin_type(
-        db_session, _SKIN_TYPE_WITH_SEEDED_PRODUCTS, category="Cleanser"
+        db_session, _SKIN_TYPE_WITH_SEEDED_PRODUCTS, category="Face Wash"
     )
     assert len(cleansers) > 0
-    assert all(p.category == "Cleanser" for p in cleansers)
+    assert all(p.category == "Face Wash" for p in cleansers)
 
 
 async def test_get_products_by_ids_empty_list_short_circuits(db_session: AsyncSession) -> None:
@@ -125,7 +125,7 @@ async def test_an_allergy_flagged_product_can_never_appear_in_recommendations(
     product = Product(
         brand_name="Test Only",
         product_name="Would-Otherwise-Match Serum",
-        category="Treatment",
+        category="Treatment Products",
         is_active=True,
     )
     db_session.add(product)
@@ -157,7 +157,7 @@ async def test_evaluate_products_suitability_flags_allergy_and_scores_a_clean_pr
             select(Ingredient).where(Ingredient.ingredient_name == "Niacinamide")
         )
     ).scalar_one()
-    product = Product(brand_name="Test Only", product_name="Clean Serum", category="Treatment")
+    product = Product(brand_name="Test Only", product_name="Clean Serum", category="Treatment Products")
     db_session.add(product)
     await db_session.flush()
     db_session.add(
@@ -269,7 +269,7 @@ async def test_list_avoided_ingredient_product_ids_flags_a_real_avoid_flagged_in
     ).scalar_one()
 
     product = Product(
-        brand_name="Test Only", product_name="Unsafe-for-Sensitive Treatment", category="Treatment"
+        brand_name="Test Only", product_name="Unsafe-for-Sensitive Treatment", category="Treatment Products"
     )
     db_session.add(product)
     await db_session.flush()
@@ -297,7 +297,7 @@ async def test_list_avoided_ingredient_product_ids_empty_for_a_safe_ingredient(
         )
     ).scalar_one()
 
-    product = Product(brand_name="Test Only", product_name="Safe Treatment", category="Treatment")
+    product = Product(brand_name="Test Only", product_name="Safe Treatment", category="Treatment Products")
     db_session.add(product)
     await db_session.flush()
     db_session.add(

@@ -22,16 +22,14 @@ CATEGORIES: list[str] = [
     NIGHT_CARE,
 ]
 
-# The seed catalog (backend/app/db/seed.py) has only 4 product categories
-# (Cleanser/Treatment/Moisturizer/Sunscreen) — no dedicated Exfoliation/Night Care
-# product category exists. Candidates for a canonical category are drawn from its
-# mapped real product category; Exfoliation and Night Care share Treatment/
-# Moisturizer respectively (same real actives, different cadence/positioning) —
-# mirrors this service's own pre-P11 "Night Care -> Moisturizer" precedent.
+# The seed catalog (backend/app/db/seed.py) uses the rubric's 7 literal product
+# categories (MILESTONE 3.pdf Step 2) since M3R-P2 — Exfoliation and Night Care
+# still share Treatment Products/Moisturizer respectively (same real actives,
+# different cadence/positioning), same precedent as before the rename.
 CATEGORY_TO_PRODUCT_CATEGORY: dict[str, str] = {
-    CLEANSING: "Cleanser",
-    EXFOLIATION: "Treatment",
-    TREATMENT: "Treatment",
+    CLEANSING: "Face Wash",
+    EXFOLIATION: "Treatment Products",
+    TREATMENT: "Treatment Products",
     MOISTURIZING: "Moisturizer",
     SUN_PROTECTION: "Sunscreen",
     NIGHT_CARE: "Moisturizer",
