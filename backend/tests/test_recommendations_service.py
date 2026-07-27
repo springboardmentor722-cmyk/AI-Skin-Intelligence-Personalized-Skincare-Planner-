@@ -20,6 +20,7 @@ from app.services.recommendations.models import (
 )
 from app.services.recommendations.service import (
     evaluate_products_suitability,
+    get_active_recommendation_weights,
     get_products_by_ids,
     get_recommendations,
     list_all_products,
@@ -320,3 +321,20 @@ async def test_list_all_products_paginates_over_real_seeded_data(
     if total > 2:
         page_two, _total = await list_all_products(db_session, page=2, page_size=2)
         assert {p.product_id for p in page_one}.isdisjoint({p.product_id for p in page_two})
+
+
+async def test_get_active_recommendation_weights_returns_the_seeded_active_row(
+    db_session: AsyncSession,
+) -> None:
+    weights = await get_active_recommendation_weights(db_session)
+
+    assert weights.is_active is True
+    total = (
+        float(weights.concern_weight)
+        + float(weights.skin_type_fit_weight)
+        + float(weights.rating_weight)
+    )
+    assert abs(total - 1.00) < 0.001
+    assert float(weights.concern_weight) == 0.50
+    assert float(weights.skin_type_fit_weight) == 0.35
+    assert float(weights.rating_weight) == 0.15

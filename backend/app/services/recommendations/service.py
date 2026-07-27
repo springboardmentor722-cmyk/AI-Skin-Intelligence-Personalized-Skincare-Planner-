@@ -19,6 +19,7 @@ from app.services.recommendations.models import (
     ProductIngredient,
     ProductRecommendation,
     ProductSkinType,
+    RecommendationWeights,
 )
 from app.services.recommendations.schemas import (
     ProductRead,
@@ -32,6 +33,16 @@ _CACHE_TTL_SECONDS = 24 * 60 * 60
 _TOP_N = 3
 _recommender = ContentBasedRecommender()
 _suitability = RealIngredientSuitability()
+
+
+async def get_active_recommendation_weights(db: AsyncSession) -> RecommendationWeights:
+    result = await db.execute(
+        select(RecommendationWeights).where(RecommendationWeights.is_active.is_(True))
+    )
+    weights = result.scalars().first()
+    if weights is None:
+        raise ValueError("No active recommendation_weights row — seed data is missing")
+    return weights
 
 
 class SuitabilityAggregate(NamedTuple):

@@ -1,6 +1,15 @@
 import datetime
 
-from sqlalchemy import ForeignKey, Index, Numeric, Text, UniqueConstraint, func
+from sqlalchemy import (
+    CheckConstraint,
+    ForeignKey,
+    Index,
+    Numeric,
+    Text,
+    UniqueConstraint,
+    func,
+    text,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.postgres import Base
@@ -86,3 +95,30 @@ class ProductRecommendation(Base):
     recommendation_reason: Mapped[str | None] = mapped_column(Text, default=None)
     created_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
+
+
+class RecommendationWeights(Base):
+    """Config-driven Suitability Scoring weights (MILESTONE 3.pdf Step 2) - same
+    philosophy as scores/models.py's ScoringWeights and ingredients/models.py's
+    IngredientSafetyConfig (M3R Phase 1): retuning is a DB update, not a deploy."""
+
+    __tablename__ = "recommendation_weights"
+    __table_args__ = (
+        CheckConstraint(
+            "concern_weight + skin_type_fit_weight + rating_weight = 1.00",
+            name="chk_recommendation_weights_sum",
+        ),
+        Index(
+            "uq_recommendation_weights_one_active",
+            "is_active",
+            unique=True,
+            postgresql_where=text("is_active = true"),
+        ),
+    )
+
+    weight_id: Mapped[int] = mapped_column(primary_key=True)
+    concern_weight: Mapped[float] = mapped_column(Numeric(4, 2), default=0.50)
+    skin_type_fit_weight: Mapped[float] = mapped_column(Numeric(4, 2), default=0.35)
+    rating_weight: Mapped[float] = mapped_column(Numeric(4, 2), default=0.15)
+    is_active: Mapped[bool | None] = mapped_column(default=True)
+    created_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
