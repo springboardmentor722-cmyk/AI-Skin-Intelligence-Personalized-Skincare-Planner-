@@ -54,11 +54,17 @@ matching with aliases is real (`app/ai/suitability.py`, synonym-aware).
 (`recommendations/service.py:339-352`). Budget-alternative logic exists as a separate
 endpoint (`/products/{id}/alternatives`).
 
-**Real gaps (P2 scope):**
-- Catalog categories seeded are `Cleanser, Moisturizer, Sunscreen, Treatment` —
+**Real gaps (P2 scope) — CLOSED in P2:**
+- ~~Catalog categories seeded are `Cleanser, Moisturizer, Sunscreen, Treatment` —
   rubric's literal 7 are `Face Wash, Moisturizer, Sunscreen, Serum, Toner, Treatment
   Products, Face Masks`. Needs a deterministic re-mapping migration over the real
-  8,464-product Sephora catalog (never fabricate products, AGENTS.md §0.2).
+  8,464-product Sephora catalog (never fabricate products, AGENTS.md §0.2).~~ **DONE:**
+  all 7 rubric-literal categories mapped over real Sephora skincare catalog. Raw CSV:
+  8,494 total rows across all Sephora product lines (skincare, makeup, hair, fragrance,
+  etc.); skincare-only ingest loaded 2,409 products across the 7 categories plus
+  `uncategorized`. Live DB: Face Wash 219, Moisturizer 406, Serum 379, Treatment
+  Products 356, Toner 79, Sunscreen 107, Face Masks 180, uncategorized 699 (2,425 total
+  incl. 16 hand-seeded originals).
 - Suitability weights are `0.35/0.25/0.15/0.10/0.10/0.05` across 6 hardcoded module
   constants (`app/ai/recommender.py:6-11`) — rubric needs exactly **Concern 50% /
   Skin-Type Fit 35% / Rating 15%**, config-driven (pattern: `scoring_weights`, CHECK
