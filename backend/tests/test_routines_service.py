@@ -494,13 +494,14 @@ async def test_generated_routines_never_place_two_avoid_paired_actives_together(
 ) -> None:
     """Routine-conflict regression (mile_2.docx §5 "interaction analysis" hooked
     into P11, docs/DECISIONS.md ADR-030): swept across every seeded skin type, no
-    real generated AM/PM/Weekly/Seasonal routine may contain two steps whose
-    products' real ingredients form an "avoid"-verdict pair in the curated
-    interaction matrix. Passes today because this catalog's Treatment category
-    has exactly one active per candidate and each pipeline has one Treatment
-    step (see routines/guardrails.py), but the assertion is real and would catch
-    a future catalog change that reintroduces the conflict the guardrail exists
-    to prevent."""
+    real generated AM/PM/Weekly/Seasonal routine may combine two DIFFERENT products
+    whose real ingredients form an "avoid"-verdict pair in the curated interaction
+    matrix. Checks only cross-product conflicts within a generated routine —
+    matches what `apply_interaction_guardrail` actually enforces (combining two
+    separate products in the same step). A single product's own multi-active
+    formula (e.g. a real commercial Retinol+Salicylic-Acid serum) is a
+    manufacturer formulation decision, not something a routine-level guardrail
+    can or should second-guess."""
     skin_types = (await db_session.execute(select(SkinType))).scalars().all()
     for i, skin_type in enumerate(skin_types):
         user_id = f"conflict-sweep-user-{skin_type.skin_type_id}-{i}"
@@ -520,14 +521,19 @@ async def test_generated_routines_never_place_two_avoid_paired_actives_together(
             ingredient_names = await recommendations_service.list_ingredient_names_for_products(
                 db_session, product_ids
             )
-            all_names = [name for names in ingredient_names.values() for name in names]
-            for x in range(len(all_names)):
-                for y in range(x + 1, len(all_names)):
-                    interaction = get_interaction(all_names[x], all_names[y])
-                    assert interaction is None or interaction["verdict"] != "avoid", (
-                        f"skin_type={skin_type.skin_type_name} routine={routine.routine_type} "
-                        f"{all_names[x]!r} + {all_names[y]!r}"
-                    )
+            for a_idx in range(len(product_ids)):
+                for b_idx in range(a_idx + 1, len(product_ids)):
+                    product_a, product_b = product_ids[a_idx], product_ids[b_idx]
+                    if product_a == product_b:
+                        continue
+                    for name_a in ingredient_names.get(product_a, []):
+                        for name_b in ingredient_names.get(product_b, []):
+                            interaction = get_interaction(name_a, name_b)
+                            assert interaction is None or interaction["verdict"] != "avoid", (
+                                f"skin_type={skin_type.skin_type_name} "
+                                f"routine={routine.routine_type} "
+                                f"{name_a!r} + {name_b!r} (products {product_a}, {product_b})"
+                            )
 
 
 async def test_routine_output_test_every_am_routine_has_a_sun_protection_step(
