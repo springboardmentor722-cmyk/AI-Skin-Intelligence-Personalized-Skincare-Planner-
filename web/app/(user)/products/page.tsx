@@ -120,7 +120,7 @@ export default function ProductsPage() {
             variant={category === c ? "default" : "outline"}
             onClick={() => setCategory(c)}
           >
-            {c}
+            {c === "uncategorized" ? "Uncategorized" : c}
           </Button>
         ))}
       </div>

@@ -290,10 +290,12 @@ async def _apply_budget_cap(
     top match over `max_price` is flagged, and the cheapest same-category candidate
     under the cap with the most concern overlap is added alongside it as a real,
     never-fabricated substitute. Candidates go through the SAME stage-1 hard
-    safety gates the main ranking pipeline uses (skin-type link + the free-text/
-    structured allergy check) - a budget alternative is never exempt from the
-    release-blocking allergy guarantee."""
+    safety gates the main ranking pipeline uses (skin-type link + the avoid-
+    ingredient junction + the free-text/structured allergy check) - a budget
+    alternative is never exempt from the release-blocking allergy/avoid guarantee."""
     existing_product_ids = {r.product.product_id for r in results}
+    avoided_product_ids = await list_avoided_ingredient_product_ids(db, profile.skin_type_id)
+    weights_for_alt = await get_active_recommendation_weights(db)
     augmented: list[RecommendationRead] = list(results)
 
     for entry in results:
@@ -309,6 +311,7 @@ async def _apply_budget_cap(
                 ProductSkinType.skin_type_id == profile.skin_type_id,
                 Product.category == entry.product.category,
                 Product.product_id.notin_(existing_product_ids),
+                Product.product_id.notin_(avoided_product_ids),
                 Product.is_active.is_(True),
                 Product.price.isnot(None),
                 Product.price <= max_price,
@@ -342,7 +345,6 @@ async def _apply_budget_cap(
 
         best = max(safe_candidates, key=lambda c: (_overlap_count(c.product_id), -(c.price or 0.0)))
         best_overlap = _overlap_count(best.product_id)
-        weights_for_alt = await get_active_recommendation_weights(db)
         alt_features = RecommendationFeatures(
             concern_overlap=(best_overlap / len(concern_ids)) if concern_ids else 0.0,
             skin_type_fit=suitability[best.product_id].score,

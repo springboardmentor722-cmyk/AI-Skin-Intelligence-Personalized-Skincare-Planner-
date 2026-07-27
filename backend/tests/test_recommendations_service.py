@@ -221,6 +221,77 @@ async def test_budget_cap_alternative_never_carries_an_allergy_flagged_product(
     )
 
 
+async def test_budget_cap_alternative_never_carries_an_avoid_flagged_product(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    """Sibling of test_budget_cap_alternative_never_carries_an_allergy_flagged_product -
+    the main pipeline's stage-1 hard filter is actually TWO gates
+    (list_avoided_ingredient_product_ids' skin-type-avoid junction, then the
+    free-text allergy check) and a budget alternative must respect both, not just
+    the allergy one. Real seeded ingredient ("Salicylic Acid", seed.py) is
+    avoid-flagged for "Sensitive" skin - no user-declared allergy involved here."""
+    sensitive = (
+        await db_session.execute(select(SkinType).where(SkinType.skin_type_name == "Sensitive"))
+    ).scalar_one()
+    salicylic_acid = (
+        (
+            await db_session.execute(
+                select(Ingredient).where(Ingredient.ingredient_name == "Salicylic Acid")
+            )
+        )
+        .scalars()
+        .first()
+    )
+    assert salicylic_acid is not None
+
+    unsafe_cheap_product = Product(
+        brand_name="Test Only",
+        product_name="Unsafe Avoid-Flagged Alternative",
+        category="Moisturizer",
+        price=5.0,
+        currency="USD",
+        is_active=True,
+    )
+    db_session.add(unsafe_cheap_product)
+    await db_session.flush()
+    db_session.add(
+        ProductIngredient(
+            product_id=unsafe_cheap_product.product_id,
+            ingredient_id=salicylic_acid.ingredient_id,
+        )
+    )
+    db_session.add(
+        ProductSkinType(
+            product_id=unsafe_cheap_product.product_id,
+            skin_type_id=sensitive.skin_type_id,
+        )
+    )
+    await db_session.commit()
+
+    await create_profile(
+        db_session,
+        test_user_id,
+        SkinProfileCreate(skin_type_id=sensitive.skin_type_id),
+    )
+
+    uncapped = await get_recommendations(db_session, test_user_id, max_price=None)
+    moisturizer_entries = [r for r in uncapped if r.product.category == "Moisturizer"]
+    assert moisturizer_entries, "need a real Moisturizer top match to cap under"
+    cheap_cap = float(moisturizer_entries[0].product.price) - 1.0
+    assert cheap_cap > unsafe_cheap_product.price, (
+        "cap must be above the unsafe product's price so it's a genuine cheaper candidate"
+    )
+
+    results = await get_recommendations(db_session, test_user_id, max_price=cheap_cap)
+
+    assert any(r.over_budget for r in results if r.product.category == "Moisturizer"), (
+        "test must exercise a genuine over-budget entry, not just find nothing in scope"
+    )
+    assert all(r.product.product_id != unsafe_cheap_product.product_id for r in results), (
+        "an avoid-flagged product must never be served as a budget alternative"
+    )
+
+
 async def test_recommendations_are_cached_in_redis(
     db_session: AsyncSession, test_user_id: str
 ) -> None:
