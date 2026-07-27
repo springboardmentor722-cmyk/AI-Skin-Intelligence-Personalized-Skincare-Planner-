@@ -82,3 +82,32 @@ class InteractionPair(BaseModel):
 
 class InteractionsRead(BaseModel):
     pairs: list[InteractionPair]
+
+
+class SafetyScoreRequest(BaseModel):
+    ingredient_ids: list[int]
+    routine_time: Literal["AM", "PM"]
+
+
+class AllergyAlert(BaseModel):
+    ingredient_id: int
+    ingredient_name: str
+    reason: str
+    confidence: float
+
+
+class InteractionWarning(BaseModel):
+    ingredient_id_a: int
+    ingredient_id_b: int
+    ingredient_name_a: str
+    ingredient_name_b: str
+    verdict: Literal["avoid", "caution"]
+    reason: str | None
+
+
+class SafetyScoreRead(BaseModel):
+    score: int
+    label: Literal["Safe", "Warning", "Unsafe"]
+    confidence: float
+    allergy_alerts: list[AllergyAlert]
+    interaction_warnings: list[InteractionWarning]

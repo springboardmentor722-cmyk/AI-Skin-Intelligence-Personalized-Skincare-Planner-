@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Literal
 
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,6 +13,7 @@ from app.services.ingredients.models import (
     IngredientSkintypeAvoid,
 )
 from app.services.ingredients.schemas import (
+    AllergyAlert,
     AvoidForSkinType,
     ConcernTreated,
     EducationSnippet,
@@ -21,7 +22,9 @@ from app.services.ingredients.schemas import (
     IngredientListPage,
     IngredientRead,
     InteractionPair,
+    InteractionWarning,
     InteractionsRead,
+    SafetyScoreRead,
     SuitabilityRead,
 )
 from app.services.recommendations.models import Product, ProductIngredient
@@ -287,3 +290,98 @@ async def get_interactions_for_ids(db: AsyncSession, ids: list[int]) -> Interact
                 )
             )
     return InteractionsRead(pairs=pairs)
+
+
+async def compute_safety_score(
+    db: AsyncSession, ingredient_ids: list[int], routine_time: Literal["AM", "PM"], user_id: str
+) -> SafetyScoreRead:
+    # `routine_time` narrows the request to "these ingredients are all used in the
+    # same routine step" by construction — that IS the rubric's "same evening step"
+    # scoping; no separate step-aware conflict table needed (M3R_GAP_ANALYSIS.md §1).
+    rows = (
+        await db.execute(select(Ingredient).where(Ingredient.ingredient_id.in_(ingredient_ids)))
+    ).scalars().all()
+    by_id = {row.ingredient_id: row for row in rows}
+    missing = [i for i in ingredient_ids if i not in by_id]
+    if missing:
+        raise ValueError(f"Unknown ingredient_ids: {missing}")
+
+    profile = await skin_profile_service.get_current_profile(db, user_id)
+    allergies = profile.allergies if profile else None
+    sensitivities = profile.sensitivities if profile else None
+    structured_allergies = (
+        [(a.ingredient_id, a.ingredient_name) for a in profile.allergy_ingredients]
+        if profile
+        else []
+    )
+
+    config = await get_active_safety_config(db)
+    score = 100.0
+    allergy_alerts: list[AllergyAlert] = []
+    for ingredient_id in ingredient_ids:
+        ingredient = by_id[ingredient_id]
+        result = _suitability.evaluate(
+            ingredient_name=ingredient.ingredient_name,
+            inci_name=ingredient.inci_name,
+            skin_type_name=None,
+            allergies=allergies,
+            sensitivities=sensitivities,
+            avoid_reason=None,
+            structured_allergy_ingredients=structured_allergies,
+            candidate_ingredient_id=ingredient_id,
+        )
+        if result.allergy_flag:
+            allergy_alerts.append(
+                AllergyAlert(
+                    ingredient_id=ingredient_id,
+                    ingredient_name=ingredient.ingredient_name,
+                    reason=result.reasons[0],
+                    confidence=result.confidence,
+                )
+            )
+            score -= float(config.allergy_deduction)
+
+    interaction_warnings: list[InteractionWarning] = []
+    for index, id_a in enumerate(ingredient_ids):
+        for id_b in ingredient_ids[index + 1 :]:
+            ingredient_a, ingredient_b = by_id[id_a], by_id[id_b]
+            interaction = get_interaction(ingredient_a.ingredient_name, ingredient_b.ingredient_name)
+            if interaction is None or interaction["verdict"] == "synergy":
+                continue
+            interaction_warnings.append(
+                InteractionWarning(
+                    ingredient_id_a=id_a,
+                    ingredient_id_b=id_b,
+                    ingredient_name_a=ingredient_a.ingredient_name,
+                    ingredient_name_b=ingredient_b.ingredient_name,
+                    verdict=interaction["verdict"],
+                    reason=interaction["reason"],
+                )
+            )
+            deduction = (
+                config.avoid_deduction
+                if interaction["verdict"] == "avoid"
+                else config.caution_deduction
+            )
+            score -= float(deduction)
+
+    score = max(0.0, min(100.0, score))
+    label: Literal["Safe", "Warning", "Unsafe"] = (
+        "Safe"
+        if score >= float(config.safe_threshold)
+        else "Warning"
+        if score >= float(config.warning_threshold)
+        else "Unsafe"
+    )
+    confidences = [alert.confidence for alert in allergy_alerts]
+    if interaction_warnings:
+        confidences.append(0.95)  # curated-fact confidence, app/ai/interactions.py
+    overall_confidence = min(confidences) if confidences else 0.9
+
+    return SafetyScoreRead(
+        score=round(score),
+        label=label,
+        confidence=overall_confidence,
+        allergy_alerts=allergy_alerts,
+        interaction_warnings=interaction_warnings,
+    )
