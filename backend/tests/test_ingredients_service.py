@@ -252,3 +252,18 @@ async def test_get_suitability_allergy_match_is_case_insensitive(
 
     assert result is not None
     assert result.allergy_flag is True
+
+
+# --- Milestone 3 Phase 1: Safety Score Endpoint (config-driven thresholds) -------
+
+
+async def test_get_active_safety_config_returns_the_seeded_active_row(
+    db_session: AsyncSession,
+) -> None:
+    config = await service.get_active_safety_config(db_session)
+
+    assert config.is_active is True
+    assert 0 < float(config.warning_threshold) < float(config.safe_threshold) <= 100
+    assert float(config.avoid_deduction) > 0
+    assert float(config.caution_deduction) > 0
+    assert float(config.allergy_deduction) > 0

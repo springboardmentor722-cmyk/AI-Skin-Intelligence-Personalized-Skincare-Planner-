@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import ForeignKey, UniqueConstraint, func
+from sqlalchemy import CheckConstraint, ForeignKey, Index, Numeric, UniqueConstraint, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.postgres import Base
@@ -50,3 +50,34 @@ class IngredientSkintypeAvoid(Base):
         ForeignKey("skin_types.skin_type_id", ondelete="CASCADE")
     )
     reason: Mapped[str | None] = mapped_column(default=None)
+
+
+class IngredientSafetyConfig(Base):
+    """Tunable numeric parameters for the Safety Score endpoint (MILESTONE 3.pdf
+    Step 1) — same config-driven philosophy as scores/models.py's ScoringWeights
+    (AGENTS.md §2 rule 7): retuning is a DB update, not a deploy. The pairwise
+    chemistry facts themselves stay in app/ai/interactions.py's hand-curated dict
+    (its own docstring explains why — vetted facts, not tunable weights); only the
+    score-formula's deductions/thresholds live here."""
+
+    __tablename__ = "ingredient_safety_config"
+    __table_args__ = (
+        CheckConstraint(
+            "safe_threshold > warning_threshold", name="chk_safety_thresholds_ordered"
+        ),
+        Index(
+            "uq_ingredient_safety_config_one_active",
+            "is_active",
+            unique=True,
+            postgresql_where=text("is_active = true"),
+        ),
+    )
+
+    config_id: Mapped[int] = mapped_column(primary_key=True)
+    avoid_deduction: Mapped[float] = mapped_column(Numeric(5, 2), default=40.0)
+    caution_deduction: Mapped[float] = mapped_column(Numeric(5, 2), default=15.0)
+    allergy_deduction: Mapped[float] = mapped_column(Numeric(5, 2), default=50.0)
+    safe_threshold: Mapped[float] = mapped_column(Numeric(5, 2), default=80.0)
+    warning_threshold: Mapped[float] = mapped_column(Numeric(5, 2), default=50.0)
+    is_active: Mapped[bool | None] = mapped_column(default=True)
+    created_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())

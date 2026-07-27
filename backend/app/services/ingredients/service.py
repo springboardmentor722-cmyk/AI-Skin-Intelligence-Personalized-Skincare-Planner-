@@ -9,6 +9,7 @@ from app.db.elasticsearch import get_elasticsearch, is_elasticsearch_available
 from app.services.ingredients.models import (
     Ingredient,
     IngredientConcernTreats,
+    IngredientSafetyConfig,
     IngredientSkintypeAvoid,
 )
 from app.services.ingredients.schemas import (
@@ -46,6 +47,16 @@ async def list_all_ingredients(
         .limit(page_size)
     )
     return list(result.scalars().all()), total
+
+
+async def get_active_safety_config(db: AsyncSession) -> IngredientSafetyConfig:
+    result = await db.execute(
+        select(IngredientSafetyConfig).where(IngredientSafetyConfig.is_active.is_(True))
+    )
+    config = result.scalars().first()
+    if config is None:
+        raise ValueError("No active ingredient_safety_config row — seed data is missing")
+    return config
 
 
 async def list_ingredients(
