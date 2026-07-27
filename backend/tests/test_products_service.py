@@ -44,7 +44,7 @@ async def test_list_products_via_es_filters_by_category(db_session: AsyncSession
         db_session,
         page=1,
         page_size=50,
-        q=None,
+        q="Vitamin C",
         category="Treatment Products",
         brand=None,
         budget_min=None,
