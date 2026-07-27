@@ -20,8 +20,11 @@ class ProductRead(BaseModel):
 
 class RecommendationRead(BaseModel):
     product: ProductRead
-    match_score: float
+    match_percentage: int
     reasons: list[str]
+    active_ingredient_tags: list[str]
+    over_budget: bool
+    alternative_for_product_id: int | None
 
 
 class RecommendationFeedbackCreate(BaseModel):

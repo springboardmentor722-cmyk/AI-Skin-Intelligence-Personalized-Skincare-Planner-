@@ -65,8 +65,7 @@ merge).
 - **Response** (`RecommendationRead`, extended):
   ```json
   {
-    "category": "Face Wash",
-    "product": { "...": "ProductRead, unchanged" },
+    "product": { "...": "ProductRead, unchanged (product.category carries the category)" },
     "match_percentage": 94,
     "reasons": ["Targets acne", "Oil-free formula matches oily skin type"],
     "active_ingredient_tags": ["Salicylic Acid", "Niacinamide"],
@@ -74,15 +73,23 @@ merge).
     "alternative_for_product_id": null
   }
   ```
-  - `category`: one of the 7 rubric-literal categories (Face Wash, Moisturizer,
-    Sunscreen, Serum, Toner, Treatment Products, Face Masks) — response is grouped by
-    category, not a flat list.
+  - No redundant top-level `category` — `product.category` already carries it.
+    "Categorized recommendations" (MILESTONE 3.pdf Step 2) means: the served list is
+    the top `_TOP_PER_CATEGORY` (= 1) ranked candidate per `product.category` across
+    the 7 rubric-literal categories (Face Wash, Moisturizer, Sunscreen, Serum, Toner,
+    Treatment Products, Face Masks) — i.e. one best match per category, not a flat
+    single global top-N that could all land in one category.
   - `match_percentage`: `int` 0-100, rounded — replaces the raw `match_score: float`
     (renamed field, same underlying weighted-scoring computation).
-  - `over_budget` / `alternative_for_product_id`: when a top match in a category
-    exceeds `max_price`, it's replaced in the response by the cheapest same-actives
-    alternative; `alternative_for_product_id` names the product it's standing in for,
-    `over_budget: true` marks the original for UI "budget flag" display alongside it.
+  - `active_ingredient_tags`: the distinct `ingredients.category` values (Retinoids,
+    AHAs/BHAs, ...) found across the product's mapped ingredients — `[]` when a
+    budget-cap alternative entry doesn't have this looked up (see below).
+  - `over_budget` / `alternative_for_product_id`: when a top match exceeds
+    `max_price`, its entry gets `over_budget: true` (the product itself is never
+    dropped from the response — the UI flags it), and — if a real cheaper
+    same-category, non-avoid-filtered candidate exists — a second entry is appended
+    with `alternative_for_product_id` set to the over-budget product's id and
+    `over_budget: false`. No alternative is fabricated if none qualifies.
   - Weights (Concern 50% / Skin-Type Fit 35% / Rating 15%) live in a new config-driven
     PG row (pattern: `scoring_weights`, `CHECK` sum = 1.00) — never hardcoded literals.
 - **Errors:** unchanged from the existing endpoint.

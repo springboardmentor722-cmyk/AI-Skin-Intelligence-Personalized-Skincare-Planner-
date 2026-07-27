@@ -278,7 +278,80 @@ async def _persist_recommendations(
     await db.commit()
 
 
-async def get_recommendations(db: AsyncSession, user_id: str) -> list[RecommendationRead]:
+async def _apply_budget_cap(
+    db: AsyncSession,
+    results: list[RecommendationRead],
+    max_price: float,
+    profile: SkinProfileRead,
+    concern_ids: set[int],
+) -> list[RecommendationRead]:
+    """Hard cap (MILESTONE 3.pdf Step 2 "Budget Optimization & Alternatives") - a
+    top match over `max_price` is flagged, and the cheapest same-category candidate
+    under the cap with the most concern overlap is added alongside it as a real,
+    never-fabricated substitute. Reuses the same avoid-filter every other stage of
+    this pipeline already applies (list_avoided_ingredient_product_ids) - this is
+    not a rebuild of products_service.py's get_alternatives (that function finds a
+    similarly-*priced* substitute via a +/-30% band; this needs a substitute
+    strictly *under* a hard cap, a different filter, hence a separate small query
+    here rather than reusing that function's band logic)."""
+    avoided_product_ids = await list_avoided_ingredient_product_ids(db, profile.skin_type_id)
+    existing_product_ids = {r.product.product_id for r in results}
+    augmented: list[RecommendationRead] = list(results)
+
+    for entry in results:
+        price = entry.product.price
+        if price is None or float(price) <= max_price:
+            continue
+        entry.over_budget = True
+
+        candidates_result = await db.execute(
+            select(Product).where(
+                Product.category == entry.product.category,
+                Product.product_id.notin_(existing_product_ids),
+                Product.is_active.is_(True),
+                Product.price.isnot(None),
+                Product.price <= max_price,
+            )
+        )
+        candidates = [
+            c
+            for c in candidates_result.scalars().all()
+            if c.product_id not in avoided_product_ids
+        ]
+        if not candidates:
+            continue
+
+        candidate_concerns = await list_concern_ids_for_products(
+            db, [c.product_id for c in candidates]
+        )
+
+        def _overlap_count(
+            product_id: int, _concerns: dict[int, list[int]] = candidate_concerns
+        ) -> int:
+            return len([cid for cid in _concerns.get(product_id, []) if cid in concern_ids])
+
+        best = max(candidates, key=lambda c: (_overlap_count(c.product_id), -(c.price or 0.0)))
+        best_overlap = _overlap_count(best.product_id)
+        match_percentage = round((best_overlap / len(concern_ids)) * 100) if concern_ids else 50
+
+        augmented.append(
+            RecommendationRead(
+                product=ProductRead.model_validate(best),
+                match_percentage=match_percentage,
+                reasons=[f"Cheaper alternative under your ${max_price:.2f} budget"],
+                active_ingredient_tags=[],
+                over_budget=False,
+                alternative_for_product_id=entry.product.product_id,
+            )
+        )
+        existing_product_ids.add(best.product_id)
+
+    return augmented
+
+
+async def get_recommendations(
+    db: AsyncSession, user_id: str, *, max_price: float | None = None
+) -> list[RecommendationRead]:
     """Recommender v2 (M3R Phase 2, MILESTONE 3.pdf Step 2) — the three-stage
     pipeline:
     1. Relational pre-filter (skin-type match + two hard safety filters: the
@@ -294,103 +367,129 @@ async def get_recommendations(db: AsyncSession, user_id: str) -> list[Recommenda
        `product_recommendations` (M3-D's first real writer, milestone_3.md §5).
        Serving takes the top `_TOP_PER_CATEGORY` ranked candidate(s) per
        `product.category`, not a single global top-N — coverage across categories,
-       not one category dominating."""
+       not one category dominating.
+
+    `profile`/`concern_ids` are fetched *before* the cache check (not after, as
+    Stage 1 used to) because the budget-cap post-process below needs them whether
+    results came from cache or fresh computation. Side effect: a deleted profile
+    now returns `[]` unconditionally, even if a stale cache entry still exists —
+    more correct than the old behavior (serving a cached result for a profile that
+    no longer exists), intentional per this task's brief."""
+    profile = await skin_profile_service.get_current_profile(db, user_id)
+    if profile is None:
+        return []
+    concern_ids = {c.concern_id for c in profile.concerns}
+
     redis = get_redis()
     cache_key = f"recommendation:cache:{user_id}"
     cached = await redis.get(cache_key)
     if cached:
-        return [RecommendationRead.model_validate(item) for item in json.loads(cached)]
+        results = [RecommendationRead.model_validate(item) for item in json.loads(cached)]
+    else:
+        all_skin_types = await skin_profile_service.list_skin_types(db)
+        skin_types = {t.skin_type_id: t.skin_type_name for t in all_skin_types}
+        all_concerns = await skin_profile_service.list_skin_concerns(db)
+        concern_names = {c.concern_id: c.concern_name for c in all_concerns}
+        skin_type_name = skin_types.get(profile.skin_type_id, "your")
 
-    profile = await skin_profile_service.get_current_profile(db, user_id)
-    if profile is None:
-        return []
+        # --- Stage 1: relational pre-filter (hard filters first) ---
+        products = await list_products_for_skin_type(db, profile.skin_type_id)
+        if not products:
+            return []
 
-    all_skin_types = await skin_profile_service.list_skin_types(db)
-    skin_types = {t.skin_type_id: t.skin_type_name for t in all_skin_types}
-    all_concerns = await skin_profile_service.list_skin_concerns(db)
-    concern_names = {c.concern_id: c.concern_name for c in all_concerns}
-    skin_type_name = skin_types.get(profile.skin_type_id, "your")
-    concern_ids = {c.concern_id for c in profile.concerns}
+        avoided_product_ids = await list_avoided_ingredient_product_ids(db, profile.skin_type_id)
+        products = [p for p in products if p.product_id not in avoided_product_ids]
+        if not products:
+            return []
 
-    # --- Stage 1: relational pre-filter (hard filters first) ---
-    products = await list_products_for_skin_type(db, profile.skin_type_id)
-    if not products:
-        return []
-
-    avoided_product_ids = await list_avoided_ingredient_product_ids(db, profile.skin_type_id)
-    products = [p for p in products if p.product_id not in avoided_product_ids]
-    if not products:
-        return []
-
-    suitability = await evaluate_products_suitability(
-        db, [p.product_id for p in products], profile, skin_type_name
-    )
-    # An allergy match can never appear, however well it would otherwise score
-    # (milestone_3.md §M3-D acceptance criteria — a release-blocking property, not
-    # a metric).
-    products = [p for p in products if not suitability[p.product_id].any_allergy]
-    if not products:
-        return []
-
-    product_concerns = await list_concern_ids_for_products(db, [p.product_id for p in products])
-
-    # --- Stage 2: rank ---
-    weights = await get_active_recommendation_weights(db)
-    ranked: list[tuple[float, Product, list[str]]] = []
-    for product in products:
-        agg = suitability[product.product_id]
-        product_concern_ids = product_concerns.get(product.product_id, [])
-        matched = [cid for cid in product_concern_ids if cid in concern_ids]
-        concern_overlap = len(matched) / len(concern_ids) if concern_ids else 0.0
-        rating_norm = float(product.rating) / 5.0 if product.rating is not None else 0.5
-
-        features = RecommendationFeatures(
-            concern_overlap=concern_overlap,
-            skin_type_fit=agg.score,
-            rating_norm=rating_norm,
+        suitability = await evaluate_products_suitability(
+            db, [p.product_id for p in products], profile, skin_type_name
         )
-        match_score = _recommender.score(
-            features,
-            concern_weight=float(weights.concern_weight),
-            skin_type_fit_weight=float(weights.skin_type_fit_weight),
-            rating_weight=float(weights.rating_weight),
+        # An allergy match can never appear, however well it would otherwise score
+        # (milestone_3.md §M3-D acceptance criteria — a release-blocking property, not
+        # a metric).
+        products = [p for p in products if not suitability[p.product_id].any_allergy]
+        if not products:
+            return []
+
+        product_concerns = await list_concern_ids_for_products(
+            db, [p.product_id for p in products]
+        )
+        ingredient_categories = await list_ingredient_categories_for_products(
+            db, [p.product_id for p in products]
         )
 
-        reasons = [f"Suits your {skin_type_name} skin type"]
-        reasons += [f"Targets {concern_names[cid]}" for cid in matched if cid in concern_names]
-        if agg.any_unsuitable:
-            reasons.append(
-                "Contains an ingredient flagged for your sensitivities — check before use."
+        # --- Stage 2: rank ---
+        weights = await get_active_recommendation_weights(db)
+        ranked: list[tuple[float, Product, list[str]]] = []
+        for product in products:
+            agg = suitability[product.product_id]
+            product_concern_ids = product_concerns.get(product.product_id, [])
+            matched = [cid for cid in product_concern_ids if cid in concern_ids]
+            concern_overlap = len(matched) / len(concern_ids) if concern_ids else 0.0
+            rating_norm = float(product.rating) / 5.0 if product.rating is not None else 0.5
+
+            features = RecommendationFeatures(
+                concern_overlap=concern_overlap,
+                skin_type_fit=agg.score,
+                rating_norm=rating_norm,
             )
-        ranked.append((match_score, product, reasons))
+            match_score = _recommender.score(
+                features,
+                concern_weight=float(weights.concern_weight),
+                skin_type_fit_weight=float(weights.skin_type_fit_weight),
+                rating_weight=float(weights.rating_weight),
+            )
 
-    # jitter-free, deterministic tiebreak on product_id (stable, unlike ADR-007's
-    # hash(user_id) jitter the old stub used — real signals no longer need one).
-    ranked.sort(key=lambda row: (row[0], -row[1].product_id), reverse=True)
+            reasons = [f"Suits your {skin_type_name} skin type"]
+            reasons += [
+                f"Targets {concern_names[cid]}" for cid in matched if cid in concern_names
+            ]
+            if agg.any_unsuitable:
+                reasons.append(
+                    "Contains an ingredient flagged for your sensitivities — check before use."
+                )
+            ranked.append((match_score, product, reasons))
 
-    # Per-category top-K (MILESTONE 3.pdf Step 2's "categorized recommendations" —
-    # coverage across categories, not one global top-N that could all land in a
-    # single category). Grouping preserves `ranked`'s sort order, so each
-    # category's slice is already its own best-first candidates.
-    served_by_category: dict[str | None, list[tuple[float, Product, list[str]]]] = {}
-    for row in ranked:
-        served_by_category.setdefault(row[1].category, []).append(row)
-    served = [
-        row
-        for rows in served_by_category.values()
-        for row in rows[:_TOP_PER_CATEGORY]
-    ]
+        # jitter-free, deterministic tiebreak on product_id (stable, unlike ADR-007's
+        # hash(user_id) jitter the old stub used — real signals no longer need one).
+        ranked.sort(key=lambda row: (row[0], -row[1].product_id), reverse=True)
 
-    # --- Stage 3: serve + cache + persist ---
-    results = [
-        RecommendationRead(
-            product=ProductRead.model_validate(product), match_score=score, reasons=reasons
+        # Per-category top-K (MILESTONE 3.pdf Step 2's "categorized recommendations" —
+        # coverage across categories, not one global top-N that could all land in a
+        # single category). Grouping preserves `ranked`'s sort order, so each
+        # category's slice is already its own best-first candidates.
+        served_by_category: dict[str | None, list[tuple[float, Product, list[str]]]] = {}
+        for row in ranked:
+            served_by_category.setdefault(row[1].category, []).append(row)
+        served = [
+            row
+            for rows in served_by_category.values()
+            for row in rows[:_TOP_PER_CATEGORY]
+        ]
+
+        # --- Stage 3: serve + cache + persist ---
+        results = [
+            RecommendationRead(
+                product=ProductRead.model_validate(product),
+                match_percentage=round(score),
+                reasons=reasons,
+                active_ingredient_tags=sorted(
+                    set(ingredient_categories.get(product.product_id, []))
+                ),
+                over_budget=False,
+                alternative_for_product_id=None,
+            )
+            for score, product, reasons in served
+        ]
+
+        await redis.set(
+            cache_key, json.dumps([r.model_dump() for r in results]), ex=_CACHE_TTL_SECONDS
         )
-        for score, product, reasons in served
-    ]
+        await _persist_recommendations(db, user_id, served)
 
-    await redis.set(cache_key, json.dumps([r.model_dump() for r in results]), ex=_CACHE_TTL_SECONDS)
-    await _persist_recommendations(db, user_id, served)
+    if max_price is not None:
+        results = await _apply_budget_cap(db, results, max_price, profile, concern_ids)
     return results
 
 
