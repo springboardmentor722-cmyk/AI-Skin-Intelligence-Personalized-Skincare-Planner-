@@ -12,8 +12,8 @@ merge).
 `POST /api/v1/ingredients/safety-score`
 
 - **Auth:** `require_role("user")` (own profile) + consultant/dermatologist for
-  assigned clients via `clinical_review`'s `_verify_assignment` (pass `client_user_id`
-  as an optional query param, ownership-checked).
+  assigned clients via `clinical_review`'s public `verify_assignment` wrapper (pass
+  `client_user_id` as an optional query param, ownership-checked).
 - **Request body** (`SafetyScoreRequest`):
   ```json
   {
@@ -30,10 +30,10 @@ merge).
     "label": "Warning",
     "confidence": 0.9,
     "allergy_alerts": [
-      { "ingredient_id": 45, "ingredient_name": "Tocopherol", "matched_allergen": "Vitamin E", "via_alias": true }
+      { "ingredient_id": 3, "ingredient_name": "Ascorbic Acid", "reason": "Possible allergy match: 'Ascorbic Acid' overlaps a tag in your recorded allergies. Check with a professional before using.", "confidence": 0.7 }
     ],
     "interaction_warnings": [
-      { "ingredient_id_a": 12, "ingredient_id_b": 88, "ingredient_name_a": "Retinol", "ingredient_name_b": "Glycolic Acid", "verdict": "avoid", "reason": "...", "same_step_conflict": true }
+      { "ingredient_id_a": 12, "ingredient_id_b": 88, "ingredient_name_a": "Retinol", "ingredient_name_b": "Glycolic Acid", "verdict": "avoid", "reason": "..." }
     ]
   }
   ```
@@ -42,10 +42,15 @@ merge).
     row, pattern: `scoring_weights`), not hardcoded Python constants.
   - `allergy_alerts`: built from the existing `app/ai/suitability.py` synonym-aware
     matcher against the caller's `skin_profile` allergens — read via the skin_profile
-    service interface, never its tables directly.
+    service interface, never its tables directly. Reuses `SuitabilityResult`'s existing
+    `reasons[0]` + `confidence` directly, rather than deriving a separate matched-
+    allergen/alias-flag pair.
   - `interaction_warnings`: built from `app/ai/interactions.py`'s existing pairwise
-    verdicts, filtered/weighted by whether both ingredients fall in the same
-    `routine_time` step (the new dimension P1 adds to the conflict matrix).
+    verdicts. `routine_time` scopes the request to one routine step by construction —
+    every ingredient in `ingredient_ids` is understood to be used in that one step, so
+    every pairwise interaction found among them is inherently a same-step conflict.
+    The parameter is recorded on the request but there is no separate per-pair
+    filtering logic to build.
   - `confidence`: standard AI-advisory field (AGENTS.md §2.8); "not medical advice"
     surfaces client-side wherever this is rendered.
 - **Errors:** `422` for unknown `ingredient_ids`; `404` if `client_user_id` isn't

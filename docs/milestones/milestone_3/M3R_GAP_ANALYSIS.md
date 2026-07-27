@@ -37,6 +37,12 @@ matching with aliases is real (`app/ai/suitability.py`, synonym-aware).
 **Real gaps (P1 scope):**
 - Chemical conflict matrix (`app/ai/interactions.py`) is pairwise ingredient-name rules
   only — **no routine-step/time dimension** (rubric wants "same evening step" scoping).
+  **Resolved during P1, no new table built:** the Safety Score endpoint's own request
+  shape (`ingredient_ids` + one `routine_time` value) already scopes every submitted
+  ingredient to one step by construction — every pairwise interaction found among them
+  is inherently a same-step conflict. `routine_time` is recorded on the request but
+  there's no separate per-pair, step-aware filtering logic to build on top of
+  `app/ai/interactions.py`'s existing pairwise dict. See `M3R_API_CONTRACT.md` §1.
 - **No Safety Score endpoint at all.** Closest is `GET /ingredients/interactions`
   (pairwise verdicts, no numeric 0-100 score or Safe/Warning/Unsafe label). This is the
   rubric's core Step-1 deliverable and must be built new, composing the existing

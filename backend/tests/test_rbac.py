@@ -320,6 +320,27 @@ async def test_verification_actions_require_a_non_empty_reason(
     assert response.status_code == 422
 
 
+@pytest.mark.parametrize(
+    "method,path,json_body",
+    [
+        ("POST", "/api/v1/ingredients/safety-score", {"ingredient_ids": [1], "routine_time": "AM"}),
+    ],
+)
+async def test_safety_score_route_rejects_admin_role(
+    client: AsyncClient, method: str, path: str, json_body: dict[str, Any] | None
+) -> None:
+    app.dependency_overrides[require_user] = lambda: {
+        "id": "admin_1",
+        "role": "admin",
+        "claims": {},
+    }
+    try:
+        response = await client.request(method, path, json=json_body)
+    finally:
+        app.dependency_overrides.pop(require_user, None)
+    assert response.status_code == 403, f"{method} {path} returned {response.status_code}"
+
+
 async def test_me_stays_role_agnostic(client: AsyncClient) -> None:
     # GET /users/me is the one deliberate exception (role-probing endpoint) — every role
     # must be able to call it to learn which dashboard to land on.

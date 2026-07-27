@@ -252,3 +252,81 @@ async def test_get_suitability_allergy_match_is_case_insensitive(
 
     assert result is not None
     assert result.allergy_flag is True
+
+
+# --- Milestone 3 Phase 1: Safety Score Endpoint (config-driven thresholds) -------
+
+
+async def test_get_active_safety_config_returns_the_seeded_active_row(
+    db_session: AsyncSession,
+) -> None:
+    config = await service.get_active_safety_config(db_session)
+
+    assert config.is_active is True
+    assert 0 < float(config.warning_threshold) < float(config.safe_threshold) <= 100
+    assert float(config.avoid_deduction) > 0
+    assert float(config.caution_deduction) > 0
+    assert float(config.allergy_deduction) > 0
+
+
+async def test_compute_safety_score_flags_a_known_unsafe_pairing(
+    db_session: AsyncSession,
+) -> None:
+    user_id = f"safety-{uuid.uuid4()}"
+    await _create_test_user(db_session, user_id)
+    await _create_profile(db_session, user_id)
+
+    result = await service.compute_safety_score(
+        db_session, [_RETINOL_ID, _GLYCOLIC_ACID_ID], "PM", user_id
+    )
+
+    assert result.label in ("Warning", "Unsafe")
+    assert result.score < 100
+    assert len(result.interaction_warnings) == 1
+    warning = result.interaction_warnings[0]
+    assert warning.verdict == "avoid"
+    assert {warning.ingredient_id_a, warning.ingredient_id_b} == {
+        _RETINOL_ID,
+        _GLYCOLIC_ACID_ID,
+    }
+
+
+async def test_compute_safety_score_flags_allergy_via_free_text_synonym(
+    db_session: AsyncSession,
+) -> None:
+    user_id = f"safety-{uuid.uuid4()}"
+    await _create_test_user(db_session, user_id)
+    await _create_profile(db_session, user_id, allergies="Vitamin C")
+
+    result = await service.compute_safety_score(db_session, [_ASCORBIC_ACID_ID], "AM", user_id)
+
+    assert len(result.allergy_alerts) == 1
+    assert result.allergy_alerts[0].ingredient_id == _ASCORBIC_ACID_ID
+    assert result.score < 100
+
+
+async def test_compute_safety_score_clean_list_scores_safe(db_session: AsyncSession) -> None:
+    user_id = f"safety-{uuid.uuid4()}"
+    await _create_test_user(db_session, user_id)
+    await _create_profile(db_session, user_id)
+
+    result = await service.compute_safety_score(db_session, [_NIACINAMIDE_ID], "AM", user_id)
+
+    assert result.score == 100
+    assert result.label == "Safe"
+    assert result.allergy_alerts == []
+    assert result.interaction_warnings == []
+
+
+async def test_compute_safety_score_rejects_unknown_ingredient_id(
+    db_session: AsyncSession,
+) -> None:
+    user_id = f"safety-{uuid.uuid4()}"
+    await _create_test_user(db_session, user_id)
+    await _create_profile(db_session, user_id)
+
+    try:
+        await service.compute_safety_score(db_session, [999_999], "AM", user_id)
+        raise AssertionError("expected ValueError for unknown ingredient id")
+    except ValueError:
+        pass
