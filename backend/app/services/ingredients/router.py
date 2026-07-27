@@ -80,11 +80,6 @@ async def get_safety_score(
     db: Annotated[AsyncSession, Depends(get_db)],
     client_user_id: Annotated[str | None, Query()] = None,
 ) -> SafetyScoreRead:
-    if not 1 <= len(payload.ingredient_ids) <= 20:
-        raise HTTPException(
-            status.HTTP_422_UNPROCESSABLE_CONTENT, "ingredient_ids must contain 1-20 values"
-        )
-
     if user["role"] in ("consultant", "dermatologist"):
         if client_user_id is None:
             raise HTTPException(

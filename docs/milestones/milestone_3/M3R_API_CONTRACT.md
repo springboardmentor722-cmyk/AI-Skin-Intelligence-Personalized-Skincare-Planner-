@@ -46,8 +46,11 @@ merge).
     `reasons[0]` + `confidence` directly, rather than deriving a separate matched-
     allergen/alias-flag pair.
   - `interaction_warnings`: built from `app/ai/interactions.py`'s existing pairwise
-    verdicts, filtered/weighted by whether both ingredients fall in the same
-    `routine_time` step (the new dimension P1 adds to the conflict matrix).
+    verdicts. `routine_time` scopes the request to one routine step by construction —
+    every ingredient in `ingredient_ids` is understood to be used in that one step, so
+    every pairwise interaction found among them is inherently a same-step conflict.
+    The parameter is recorded on the request but there is no separate per-pair
+    filtering logic to build.
   - `confidence`: standard AI-advisory field (AGENTS.md §2.8); "not medical advice"
     surfaces client-side wherever this is rendered.
 - **Errors:** `422` for unknown `ingredient_ids`; `404` if `client_user_id` isn't

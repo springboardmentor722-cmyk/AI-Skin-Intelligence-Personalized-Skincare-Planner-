@@ -1,7 +1,7 @@
 import datetime
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.services.recommendations.schemas import ProductRead
 
@@ -85,7 +85,7 @@ class InteractionsRead(BaseModel):
 
 
 class SafetyScoreRequest(BaseModel):
-    ingredient_ids: list[int]
+    ingredient_ids: Annotated[list[int], Field(min_length=1, max_length=20)]
     routine_time: Literal["AM", "PM"]
 
 

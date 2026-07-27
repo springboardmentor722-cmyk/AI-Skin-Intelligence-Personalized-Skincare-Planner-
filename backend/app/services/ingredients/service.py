@@ -295,6 +295,9 @@ async def get_interactions_for_ids(db: AsyncSession, ids: list[int]) -> Interact
 async def compute_safety_score(
     db: AsyncSession, ingredient_ids: list[int], routine_time: Literal["AM", "PM"], user_id: str
 ) -> SafetyScoreRead:
+    # Dedupe first — a duplicate id (e.g. [3, 3]) must not double-count an allergy
+    # deduction or produce a redundant repeated pair in the interaction loop below.
+    ingredient_ids = sorted(set(ingredient_ids))
     # `routine_time` narrows the request to "these ingredients are all used in the
     # same routine step" by construction — that IS the rubric's "same evening step"
     # scoping; no separate step-aware conflict table needed (M3R_GAP_ANALYSIS.md §1).

@@ -312,6 +312,10 @@ CREATE TABLE ingredient_safety_config (
     CONSTRAINT chk_safety_thresholds_ordered CHECK (safe_threshold > warning_threshold)
 );
 
+CREATE UNIQUE INDEX uq_ingredient_safety_config_one_active
+    ON ingredient_safety_config (is_active)
+    WHERE is_active = true;
+
 CREATE TABLE skin_assessments (
     score_id SERIAL PRIMARY KEY,
     user_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
