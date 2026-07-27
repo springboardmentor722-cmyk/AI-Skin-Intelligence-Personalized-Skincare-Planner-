@@ -109,6 +109,14 @@ async def _verify_assignment(
     return assignment
 
 
+async def verify_assignment(db: AsyncSession, professional_id: str, user_id: str) -> None:
+    """Public entry point for other services to reuse this ownership check
+    (single-writer rule, AGENTS.md §2 rule 4) — `_verify_assignment` stays private
+    to this module's own callers; this is the cross-service interface (first real
+    consumer: ingredients/router.py's safety-score endpoint, M3R Phase 1)."""
+    await _verify_assignment(db, professional_id, user_id)
+
+
 async def list_my_clients(
     db: AsyncSession, professional_id: str, *, page: int = 1, page_size: int = 20
 ) -> tuple[list[ClientSummaryRead], int]:

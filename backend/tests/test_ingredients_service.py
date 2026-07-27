@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.mongo import get_mongo_db
 from app.db.postgres import external_user_table
+from app.services.clinical_review import service as clinical_review_service
 from app.services.ingredients import service
 from app.services.ingredients.service import list_all_ingredients
 from app.services.skin_profile.schemas import SkinProfileCreate
@@ -330,3 +331,21 @@ async def test_compute_safety_score_rejects_unknown_ingredient_id(
         raise AssertionError("expected ValueError for unknown ingredient id")
     except ValueError:
         pass
+
+
+async def test_compute_safety_score_works_for_a_consultant_with_a_real_assignment(
+    db_session: AsyncSession,
+) -> None:
+    consultant_id = f"consultant-{uuid.uuid4()}"
+    client_user_id = f"safety-{uuid.uuid4()}"
+    await _create_test_user(db_session, consultant_id)
+    await _create_test_user(db_session, client_user_id)
+    await _create_profile(db_session, client_user_id)
+    await clinical_review_service.create_assignment(db_session, consultant_id, client_user_id)
+
+    result = await service.compute_safety_score(
+        db_session, [_NIACINAMIDE_ID], "AM", client_user_id
+    )
+
+    assert result.score == 100
+    assert result.label == "Safe"

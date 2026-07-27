@@ -556,6 +556,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/ingredients/safety-score": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Get Safety Score */
+        post: operations["get_safety_score_api_v1_ingredients_safety_score_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ingredients/{ingredient_id}": {
         parameters: {
             query?: never;
@@ -1167,6 +1184,17 @@ export interface components {
             range_label: string;
             /** User Count */
             user_count: number;
+        };
+        /** AllergyAlert */
+        AllergyAlert: {
+            /** Ingredient Id */
+            ingredient_id: number;
+            /** Ingredient Name */
+            ingredient_name: string;
+            /** Reason */
+            reason: string;
+            /** Confidence */
+            confidence: number;
         };
         /** AllergyIngredientRead */
         AllergyIngredientRead: {
@@ -2105,6 +2133,24 @@ export interface components {
             /** Reason */
             reason: string | null;
         };
+        /** InteractionWarning */
+        InteractionWarning: {
+            /** Ingredient Id A */
+            ingredient_id_a: number;
+            /** Ingredient Id B */
+            ingredient_id_b: number;
+            /** Ingredient Name A */
+            ingredient_name_a: string;
+            /** Ingredient Name B */
+            ingredient_name_b: string;
+            /**
+             * Verdict
+             * @enum {string}
+             */
+            verdict: "avoid" | "caution";
+            /** Reason */
+            reason: string | null;
+        };
         /** InteractionsRead */
         InteractionsRead: {
             /** Pairs */
@@ -2535,6 +2581,32 @@ export interface components {
             products: components["schemas"]["RoutineProductRead"][];
             /** Completed Today */
             completed_today: boolean;
+        };
+        /** SafetyScoreRead */
+        SafetyScoreRead: {
+            /** Score */
+            score: number;
+            /**
+             * Label
+             * @enum {string}
+             */
+            label: "Safe" | "Warning" | "Unsafe";
+            /** Confidence */
+            confidence: number;
+            /** Allergy Alerts */
+            allergy_alerts: components["schemas"]["AllergyAlert"][];
+            /** Interaction Warnings */
+            interaction_warnings: components["schemas"]["InteractionWarning"][];
+        };
+        /** SafetyScoreRequest */
+        SafetyScoreRequest: {
+            /** Ingredient Ids */
+            ingredient_ids: number[];
+            /**
+             * Routine Time
+             * @enum {string}
+             */
+            routine_time: "AM" | "PM";
         };
         /** ScoreAdherencePoint */
         ScoreAdherencePoint: {
@@ -3866,6 +3938,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuitabilityRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_safety_score_api_v1_ingredients_safety_score_post: {
+        parameters: {
+            query?: {
+                client_user_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SafetyScoreRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SafetyScoreRead"];
                 };
             };
             /** @description Validation Error */

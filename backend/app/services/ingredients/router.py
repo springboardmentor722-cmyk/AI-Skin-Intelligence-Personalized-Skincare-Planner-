@@ -6,11 +6,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.security import require_role
 from app.db.mongo import get_mongo_db
 from app.db.postgres import get_db
+from app.services.clinical_review import service as clinical_review_service
 from app.services.ingredients import service
 from app.services.ingredients.schemas import (
     IngredientDetail,
     IngredientListPage,
     InteractionsRead,
+    SafetyScoreRead,
+    SafetyScoreRequest,
     SuitabilityRead,
 )
 
@@ -66,6 +69,42 @@ async def get_my_suitability(
     if result is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Ingredient not found")
     return result
+
+
+@router.post("/ingredients/safety-score")
+async def get_safety_score(
+    payload: SafetyScoreRequest,
+    user: Annotated[
+        dict[str, Any], Depends(require_role("user", "consultant", "dermatologist"))
+    ],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    client_user_id: Annotated[str | None, Query()] = None,
+) -> SafetyScoreRead:
+    if not 1 <= len(payload.ingredient_ids) <= 20:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT, "ingredient_ids must contain 1-20 values"
+        )
+
+    if user["role"] in ("consultant", "dermatologist"):
+        if client_user_id is None:
+            raise HTTPException(
+                status.HTTP_422_UNPROCESSABLE_CONTENT,
+                "client_user_id is required for professional access",
+            )
+        try:
+            await clinical_review_service.verify_assignment(db, user["id"], client_user_id)
+        except ValueError as exc:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+        target_user_id = client_user_id
+    else:
+        target_user_id = user["id"]
+
+    try:
+        return await service.compute_safety_score(
+            db, payload.ingredient_ids, payload.routine_time, target_user_id
+        )
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from exc
 
 
 @router.get("/ingredients/{ingredient_id}")
