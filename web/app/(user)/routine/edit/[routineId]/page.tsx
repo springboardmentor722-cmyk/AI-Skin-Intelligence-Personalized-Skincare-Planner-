@@ -34,7 +34,15 @@ import type { components } from "@/lib/api-types";
 type RoutineRead = components["schemas"]["RoutineRead"];
 type ProductRead = components["schemas"]["ProductRead"];
 
-const CATEGORIES = ["Cleanser", "Treatment", "Moisturizer", "Sunscreen"];
+const CATEGORIES = [
+  "Face Wash",
+  "Moisturizer",
+  "Sunscreen",
+  "Serum",
+  "Toner",
+  "Treatment Products",
+  "Face Masks",
+];
 
 // web/designs/wireframes/app-routine-edit{,-dark}.html — the deferred half of the
 // My Routine screen. Real AppShell (not the wireframe's own raw sidebar/topbar),
