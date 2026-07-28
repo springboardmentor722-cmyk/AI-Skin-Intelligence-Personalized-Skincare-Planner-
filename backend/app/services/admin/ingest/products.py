@@ -26,6 +26,7 @@ per-run JSON manifest in `training_dataset/processed/` — same information, no 
 change.
 """
 
+import ast
 import datetime
 import json
 import re
@@ -39,7 +40,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.db.outbox import append_outbox
 from app.services.ingredients.models import Ingredient
-from app.services.recommendations.models import Product, ProductIngredient
+from app.services.recommendations.models import (
+    Product,
+    ProductConcern,
+    ProductIngredient,
+    ProductSkinType,
+)
+from app.services.skin_profile.models import SkinConcern, SkinType
 
 _DATASET_SLUG = "nadyinky/sephora-products-and-skincare-reviews"
 _PRIMARY_CSV = "product_info.csv"
@@ -79,6 +86,87 @@ def download_dataset() -> Path:
     return _RAW_DIR / _PRIMARY_CSV
 
 
+# Real dataset values (training_dataset/raw/sephora/product_info.csv's
+# `tertiary_category` column, Skincare-primary-category rows only) mapped to
+# MILESTONE 3.pdf Step 2's 7 literal catalog categories. Anything not listed here
+# gets "uncategorized" rather than a guessed category (AGENTS.md §0.2) - this table
+# was built by inspecting the real column's actual value distribution, not invented.
+_TERTIARY_CATEGORY_MAP: dict[str, str] = {
+    "Face Wash & Cleansers": "Face Wash",
+    "Moisturizers": "Moisturizer",
+    "Night Creams": "Moisturizer",
+    "Face Sunscreen": "Sunscreen",
+    "Body Sunscreen": "Sunscreen",
+    "Face Serums": "Serum",
+    "Toners": "Toner",
+    "Face Masks": "Face Masks",
+    "Sheet Masks": "Face Masks",
+    "Eye Masks": "Face Masks",
+    "Blemish & Acne Treatments": "Treatment Products",
+    "Anti-Aging": "Treatment Products",
+    "Facial Peels": "Treatment Products",
+    "Exfoliators": "Treatment Products",
+    "Eye Creams & Treatments": "Treatment Products",
+}
+
+
+def map_tertiary_category(tertiary_category: str | None) -> str:
+    if tertiary_category is None:
+        return "uncategorized"
+    return _TERTIARY_CATEGORY_MAP.get(tertiary_category, "uncategorized")
+
+
+# Real dataset values (training_dataset/raw/sephora/product_info.csv's `highlights`
+# column, Skincare-primary-category rows only) mapped onto this app's real seeded
+# skin_types.skin_type_name / skin_concerns.concern_name values. Confirmed by
+# inspecting the real column's actual value distribution (2,003 of 2,420 Skincare
+# rows have a non-null highlights value) — phrases with no clean match (e.g. "Good
+# for: Pores", no "Sensitive" phrase at all) are deliberately left unmapped, never
+# guessed (AGENTS.md §0.2).
+_SKIN_TYPE_HIGHLIGHT_MAP: dict[str, list[str]] = {
+    "Best for Combination Skin": ["Combination"],
+    "Best for Dry Skin": ["Dry"],
+    "Best for Dry, Combo, Normal Skin": ["Dry", "Combination", "Normal"],
+    "Best for Normal Skin": ["Normal"],
+    "Best for Oily Skin": ["Oily"],
+    "Best for Oily, Combo, Normal Skin": ["Oily", "Combination", "Normal"],
+}
+
+_CONCERN_HIGHLIGHT_MAP: dict[str, list[str]] = {
+    "Good for: Acne/Blemishes": ["Acne"],
+    "Good for: Anti-Aging": ["Wrinkles", "Fine Lines"],
+    "Good for: Dark spots": ["Dark Spots"],
+    "Good for: Dryness": ["Dry Skin"],
+    "Good for: Dullness/Uneven Texture": ["Uneven Skin Tone"],
+    "Good for: Redness": ["Redness"],
+}
+
+
+def parse_highlights(highlights_raw: str | None) -> tuple[list[str], list[str]]:
+    """Real, non-fabricated mapping from the raw Sephora dataset's own
+    `highlights` column (a Python-literal-repr'd list of strings) to this app's
+    exact seeded skin_types.skin_type_name / skin_concerns.concern_name values.
+    Any phrase not in the maps above contributes nothing - never guessed
+    (AGENTS.md §0.2)."""
+    if not highlights_raw:
+        return [], []
+    try:
+        items = ast.literal_eval(highlights_raw)
+    except (ValueError, SyntaxError):
+        return [], []
+    if not isinstance(items, list):
+        return [], []
+
+    skin_types: list[str] = []
+    concerns: list[str] = []
+    for item in items:
+        if item in _SKIN_TYPE_HIGHLIGHT_MAP:
+            skin_types.extend(_SKIN_TYPE_HIGHLIGHT_MAP[item])
+        if item in _CONCERN_HIGHLIGHT_MAP:
+            concerns.extend(_CONCERN_HIGHLIGHT_MAP[item])
+    return sorted(set(skin_types)), sorted(set(concerns))
+
+
 _MAX_INGREDIENT_NAME_LENGTH = 150  # ingredients.ingredient_name is VARCHAR(150)
 
 
@@ -104,7 +192,7 @@ def _parse_ingredients(raw: Any) -> list[str]:
     text = text.strip("[]'\"")
     without_parens = re.sub(r"\([^)]*\)", "", text)
     parts = [
-        p.strip().strip("'\"").title()
+        p.strip(" '\"").title()
         for chunk in without_parens.split(",")
         for p in chunk.split(";")
     ]
@@ -149,6 +237,10 @@ def normalize_rows(df: pd.DataFrame) -> tuple[list[dict[str, Any]], list[dict[st
     rejected: list[dict[str, Any]] = []
 
     for _, row in df.iterrows():
+        if _safe_str(row.get("primary_category")) != "Skincare":
+            rejected.append({"row": row.to_dict(), "reason": "not a skincare product"})
+            continue
+
         brand_name = _safe_str(row.get("brand_name"))
         product_name = _safe_str(row.get("product_name"))
         price_raw = row.get("price_usd")
@@ -165,11 +257,12 @@ def normalize_rows(df: pd.DataFrame) -> tuple[list[dict[str, Any]], list[dict[st
         seen.add(dedupe_key)
 
         reviews = _safe_number(row.get("reviews"))
+        skin_type_names, concern_names = parse_highlights(_safe_str(row.get("highlights")) or None)
         products.append(
             {
                 "brand_name": brand_name,
                 "product_name": product_name,
-                "category": _safe_str(row.get("primary_category")) or None,
+                "category": map_tertiary_category(_safe_str(row.get("tertiary_category")) or None),
                 "product_url": _safe_str(row.get("product_url")) or None,
                 "image_url": _safe_str(row.get("image_url")) or None,
                 "price": float(price_raw),
@@ -179,6 +272,8 @@ def normalize_rows(df: pd.DataFrame) -> tuple[list[dict[str, Any]], list[dict[st
                 "ingredients": _parse_ingredients(row.get("ingredients")),
                 "rating": _safe_number(row.get("rating")),
                 "review_count": int(reviews) if reviews is not None else None,
+                "skin_type_names": skin_type_names,
+                "concern_names": concern_names,
             }
         )
 
@@ -247,6 +342,77 @@ async def load_into_database(db: AsyncSession, products: list[dict[str, Any]]) -
     return created
 
 
+async def load_product_associations(
+    db: AsyncSession, products: list[dict[str, Any]]
+) -> tuple[int, int]:
+    """Idempotent - populates product_skin_types/product_concerns for every
+    accepted product from this ingest (whether just-created or already present
+    from an earlier run), keyed by the same (brand_name, product_name) natural
+    key load_into_database uses. Real data only: skin_type_names/concern_names
+    come from parse_highlights' honest mapping, never fabricated here."""
+    skin_type_id_by_name: dict[str, int] = dict(
+        (await db.execute(select(SkinType.skin_type_name, SkinType.skin_type_id))).all()  # type: ignore[arg-type]
+    )
+    concern_id_by_name: dict[str, int] = dict(
+        (await db.execute(select(SkinConcern.concern_name, SkinConcern.concern_id))).all()  # type: ignore[arg-type]
+    )
+    product_id_by_key = {
+        (brand_name, product_name): product_id
+        for product_id, brand_name, product_name in (
+            await db.execute(
+                select(Product.product_id, Product.brand_name, Product.product_name)
+            )
+        ).all()
+    }
+    existing_skin_type_pairs = {
+        (product_id, skin_type_id)
+        for product_id, skin_type_id in (
+            await db.execute(select(ProductSkinType.product_id, ProductSkinType.skin_type_id))
+        ).all()
+    }
+    existing_concern_pairs = {
+        (product_id, concern_id)
+        for product_id, concern_id in (
+            await db.execute(select(ProductConcern.product_id, ProductConcern.concern_id))
+        ).all()
+    }
+
+    skin_type_created = 0
+    concern_created = 0
+    # ADR-010: the ES product document (build_product_document) reads
+    # skin_types_supported/concerns_supported from these same junction rows —
+    # every product whose association set actually changes here needs its own
+    # outbox row too, same as load_into_database's own upserts, or a fresh
+    # environment/re-run indexes it with permanently empty ES fields.
+    changed_product_ids: set[int] = set()
+    for entry in products:
+        product_id = product_id_by_key.get((entry["brand_name"], entry["product_name"]))
+        if product_id is None:
+            continue
+        for name in entry.get("skin_type_names", []):
+            skin_type_id = skin_type_id_by_name.get(name)
+            if skin_type_id is None or (product_id, skin_type_id) in existing_skin_type_pairs:
+                continue
+            db.add(ProductSkinType(product_id=product_id, skin_type_id=skin_type_id))
+            existing_skin_type_pairs.add((product_id, skin_type_id))
+            skin_type_created += 1
+            changed_product_ids.add(product_id)
+        for name in entry.get("concern_names", []):
+            concern_id = concern_id_by_name.get(name)
+            if concern_id is None or (product_id, concern_id) in existing_concern_pairs:
+                continue
+            db.add(ProductConcern(product_id=product_id, concern_id=concern_id))
+            existing_concern_pairs.add((product_id, concern_id))
+            concern_created += 1
+            changed_product_ids.add(product_id)
+
+    for product_id in changed_product_ids:
+        await append_outbox(db, "product", str(product_id), "upsert")
+
+    await db.commit()
+    return skin_type_created, concern_created
+
+
 def write_ingest_report(products: list[dict[str, Any]], rejected: list[dict[str, Any]]) -> Path:
     _REPORT_DIR.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.datetime.now(datetime.UTC).strftime("%Y%m%dT%H%M%SZ")
@@ -272,10 +438,12 @@ async def run(db: AsyncSession) -> None:
     df = pd.read_csv(csv_path)
     products, rejected = normalize_rows(df)
     created = await load_into_database(db, products)
+    skin_type_created, concern_created = await load_product_associations(db, products)
     report_path = write_ingest_report(products, rejected)
     print(
         f"Ingested {created} new product(s) ({len(products) - created} already present, "
-        f"{len(rejected)} rejected). Report: {report_path}"
+        f"{len(rejected)} rejected). Associations: {skin_type_created} skin-type link(s), "
+        f"{concern_created} concern link(s). Report: {report_path}"
     )
 
 

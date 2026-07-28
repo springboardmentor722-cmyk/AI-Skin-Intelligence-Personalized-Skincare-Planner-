@@ -51,16 +51,21 @@ class IngredientSuitability(Protocol):
 
 
 class RecommendationFeatures(BaseModel):
-    """Stage-4 rank inputs (milestone_3.md §8) — every field pre-normalized to
-    [0, 1] by the caller (service.py), so the formula itself stays pure arithmetic
-    with no unit-conversion logic hidden inside it."""
+    """Stage-4 rank inputs (MILESTONE 3.pdf Step 2's literal 3-factor formula,
+    M3R Phase 2) — every field pre-normalized to [0, 1] by the caller (service.py).
+    `skin_type_fit` reuses the same per-product suitability aggregate the pipeline
+    already computed (how well this product's ingredients fit the user's skin
+    type, allergies, and sensitivities) - renamed from `suitability` for literal-
+    rubric clarity, not a new signal. `vector_similarity`/`price_fit`/
+    `popularity_norm` are dropped from ranking per the rubric's exact 3-factor
+    requirement - price becomes a separate hard budget-cap gate (service.py), not
+    a ranking weight; vector similarity and popularity remain used elsewhere
+    (products_service.py's alternatives lookup) but no longer feed the primary
+    recommendation score."""
 
-    suitability: float
     concern_overlap: float
-    vector_similarity: float
+    skin_type_fit: float
     rating_norm: float
-    price_fit: float
-    popularity_norm: float
 
 
 class TrendInsight(BaseModel):
@@ -97,7 +102,14 @@ class Recommender(Protocol):
     milestone_3.md §3 explicitly permits shipping content-based-only until real
     feedback accumulates (AGENTS.md §0.2 — never train on fabricated labels)."""
 
-    def score(self, features: RecommendationFeatures) -> float: ...
+    def score(
+        self,
+        features: RecommendationFeatures,
+        *,
+        concern_weight: float,
+        skin_type_fit_weight: float,
+        rating_weight: float,
+    ) -> float: ...
 
 
 # namespace -> (model_name, dimensions) — the exact pins from

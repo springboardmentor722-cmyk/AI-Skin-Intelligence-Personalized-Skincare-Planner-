@@ -15,6 +15,7 @@ from app.services.routines.guardrails import GeneratedStep
 from app.services.routines.models import Routine, RoutineProduct, RoutineStep
 from app.services.routines.schemas import RoutineProductRead, RoutineRead, RoutineStepRead
 from app.services.skin_profile import service as skin_profile_service
+from app.services.skin_profile.schemas import SkinProfileRead
 
 _ROUTINE_LOGS_COLLECTION = "routine_logs"
 
@@ -110,6 +111,7 @@ async def _generate_steps(
     concern_ids: list[int],
     redness_severity: int | None,
     rng: Any,
+    profile: SkinProfileRead,
 ) -> list[GeneratedStep]:
     """Candidate selection (generation) — returns in-memory steps, not yet
     persisted. `routines/guardrails.py`'s safety layer runs on the result
@@ -121,9 +123,15 @@ async def _generate_steps(
     all_candidates = await recommendations_service.list_products_for_skin_type(
         db, skin_type_id, category=None
     )
+    suitability = await recommendations_service.evaluate_products_suitability(
+        db, [p.product_id for p in all_candidates], profile, skin_type_name
+    )
     candidates_by_product_category: dict[str, list[Any]] = defaultdict(list)
     for product in all_candidates:
-        if product.product_id not in avoided_product_ids:
+        if (
+            product.product_id not in avoided_product_ids
+            and not suitability[product.product_id].any_allergy
+        ):
             candidates_by_product_category[product.category or ""].append(product)
     product_concerns = await recommendations_service.list_concern_ids_for_products(
         db, [p.product_id for p in all_candidates]
@@ -158,6 +166,23 @@ async def _generate_steps(
         db, guardrails.SOOTHING_PRODUCT_NAME
     )
     soothing_product_id = soothing_product.product_id if soothing_product else None
+    if soothing_product_id is not None:
+        # The soothing product is a substitution TARGET the guardrails below can
+        # introduce into a routine that never went through the candidate-pool
+        # allergy/avoid filters above — gate it the same way (both gates, same as
+        # every candidate), so a user allergic to or needing to avoid its own key
+        # ingredient (e.g. Centella Asiatica) can never receive it via this path
+        # either. No second soothing product exists in this catalog, so the
+        # fallback is the same one both guardrail functions already implement for
+        # "no real soothing product available": leave the original step as-is.
+        soothing_suitability = await recommendations_service.evaluate_products_suitability(
+            db, [soothing_product_id], profile, skin_type_name
+        )
+        if (
+            soothing_product_id in avoided_product_ids
+            or soothing_suitability[soothing_product_id].any_allergy
+        ):
+            soothing_product_id = None
     generated = guardrails.apply_safety_guardrails(
         generated,
         skin_type_name=skin_type_name,
@@ -191,11 +216,12 @@ async def _generate_routine(
     concern_ids: list[int],
     redness_severity: int | None,
     skin_profile_id: int | None,
+    profile: SkinProfileRead,
     score_id: int | None = None,
 ) -> Routine:
     rng = seeded_random(user_id, "routine", routine_type)
     generated_steps = await _generate_steps(
-        db, pipeline, skin_type_id, skin_type_name, concern_ids, redness_severity, rng
+        db, pipeline, skin_type_id, skin_type_name, concern_ids, redness_severity, rng, profile
     )
     # "Every generated AM routine contains a Sun Protection step. No exceptions,
     # no configuration that can disable it." — enforced here, unconditionally,
@@ -340,6 +366,7 @@ async def get_or_generate_routines(db: AsyncSession, user_id: str) -> list[Routi
             concern_ids,
             redness_severity,
             profile.skin_profile_id,
+            profile,
             score_id=score_id,
         )
         pm = await _generate_routine(
@@ -353,6 +380,7 @@ async def get_or_generate_routines(db: AsyncSession, user_id: str) -> list[Routi
             concern_ids,
             redness_severity,
             profile.skin_profile_id,
+            profile,
             score_id=score_id,
         )
         weekly = await _generate_routine(
@@ -366,6 +394,7 @@ async def get_or_generate_routines(db: AsyncSession, user_id: str) -> list[Routi
             concern_ids,
             redness_severity,
             profile.skin_profile_id,
+            profile,
             score_id=score_id,
         )
         core = [am, pm, weekly]
@@ -384,6 +413,7 @@ async def get_or_generate_routines(db: AsyncSession, user_id: str) -> list[Routi
             concern_ids,
             redness_severity,
             profile.skin_profile_id,
+            profile,
             score_id=score_id,
         )
 
@@ -545,10 +575,11 @@ async def _get_owned_step(db: AsyncSession, user_id: str, step_id: int) -> Routi
 
 
 async def _assert_product_is_safe(db: AsyncSession, user_id: str, product_id: int) -> None:
-    """Same hard safety filter _generate_routine enforces at generation time
-    (recommendations_service.list_avoided_ingredient_product_ids), now enforced on
-    manual edits too — a user (or a direct API call) can't add/swap in a product
-    flagged unsafe for their own skin type."""
+    """Same hard safety filters _generate_routine enforces at generation time
+    (the skin-type avoid-junction AND the allergy check), now enforced on manual
+    edits too - a user (or a direct API call) can't add/swap in a product flagged
+    unsafe for their own skin type, and can't add one that matches their declared
+    allergies either."""
     profile = await skin_profile_service.get_current_profile(db, user_id)
     if profile is None:
         raise ValueError("No skin profile yet")
@@ -557,6 +588,11 @@ async def _assert_product_is_safe(db: AsyncSession, user_id: str, product_id: in
     )
     if product_id in avoided:
         raise UnsafeProductError("This product isn't safe for your skin type")
+    suitability = await recommendations_service.evaluate_products_suitability(
+        db, [product_id], profile, None
+    )
+    if suitability[product_id].any_allergy:
+        raise UnsafeProductError("This product matches one of your recorded allergies")
 
 
 async def reorder_steps(
@@ -675,15 +711,20 @@ async def search_products_for_edit(
     avoided = await recommendations_service.list_avoided_ingredient_product_ids(
         db, profile.skin_type_id
     )
+    candidate_ids = {p.product_id for p in candidates if p.product_id not in avoided}
     query_lower = query.strip().lower()
-    matches = [
+    name_matches = [
         p
         for p in candidates
-        if p.product_id not in avoided
+        if p.product_id in candidate_ids
         and (
             not query_lower
             or query_lower in (p.product_name or "").lower()
             or query_lower in (p.brand_name or "").lower()
         )
     ]
+    suitability = await recommendations_service.evaluate_products_suitability(
+        db, [p.product_id for p in name_matches], profile, None
+    )
+    matches = [p for p in name_matches if not suitability[p.product_id].any_allergy]
     return [ProductRead.model_validate(p) for p in matches[:10]]

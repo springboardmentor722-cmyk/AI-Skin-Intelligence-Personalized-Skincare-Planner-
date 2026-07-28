@@ -50,24 +50,64 @@ matching with aliases is real (`app/ai/suitability.py`, synonym-aware).
 
 ## 2. Product Recommendation Engine (Rubric Step 2)
 
-**Exists, wrong shape.** Hard-filter safety gate is real and tested
-(`recommendations/service.py:339-352`). Budget-alternative logic exists as a separate
-endpoint (`/products/{id}/alternatives`).
+**Real, rubric-shaped, as of P2 (Tasks 1-9).** Every gap this section originally
+flagged is now closed. What's actually live today:
 
-**Real gaps (P2 scope):**
-- Catalog categories seeded are `Cleanser, Moisturizer, Sunscreen, Treatment` —
+- ~~Catalog categories seeded are `Cleanser, Moisturizer, Sunscreen, Treatment` —
   rubric's literal 7 are `Face Wash, Moisturizer, Sunscreen, Serum, Toner, Treatment
-  Products, Face Masks`. Needs a deterministic re-mapping migration over the real
-  8,464-product Sephora catalog (never fabricate products, AGENTS.md §0.2).
-- Suitability weights are `0.35/0.25/0.15/0.10/0.10/0.05` across 6 hardcoded module
-  constants (`app/ai/recommender.py:6-11`) — rubric needs exactly **Concern 50% /
-  Skin-Type Fit 35% / Rating 15%**, config-driven (pattern: `scoring_weights`, CHECK
-  sum = 1.00), not scattered Python literals.
-- No hard budget-cap filter on `GET /recommendations/me` — only a soft `_price_fit`
-  scoring signal. The existing `/products/{id}/alternatives` endpoint needs to be
-  integrated into the main recommendation response, not left as a side call.
-- `match_score` is a raw float, not literally the "94% Match" display shape — cosmetic
-  only, no gap in substance.
+  Products, Face Masks`.~~ **CLOSED (Task 2, T1):** all 7 rubric-literal categories
+  mapped over real Sephora skincare catalog. Raw CSV: 8,494 total rows across all
+  Sephora product lines (skincare, makeup, hair, fragrance, etc.); skincare-only
+  ingest loaded 2,409 products across the 7 categories plus `uncategorized`. Live DB:
+  Face Wash 219, Moisturizer 406, Serum 379, Treatment Products 356, Toner 79,
+  Sunscreen 107, Face Masks 180, uncategorized 699 (2,425 total incl. 16 hand-seeded
+  originals). Task 9 closed a follow-on leak: `uncategorized` was being served as an
+  unintended 8th recommendation category from `GET /recommendations/me` — it's now
+  hard-excluded from `served_by_category` (still browsable via `GET /products` with
+  an explicit `category=uncategorized` filter; only the ranked-recommendation feed
+  excludes it, per the rubric's literal 7).
+- ~~Suitability weights are `0.35/0.25/0.15/0.10/0.10/0.05` across 6 hardcoded module
+  constants — rubric needs exactly Concern 50% / Skin-Type Fit 35% / Rating 15%,
+  config-driven.~~ **CLOSED (T3):** the real, live `recommendation_weights` table
+  (migration `6d05f726e558`) seeds one active row at exactly 50/35/15 (CHECK sum =
+  1.00), read via `get_active_recommendation_weights()` — no hardcoded module
+  constants left in the ranking path.
+- ~~No hard budget-cap filter on `GET /recommendations/me`; `/products/{id}/
+  alternatives` left as a separate side call.~~ **CLOSED (T4):** `max_price` on
+  `GET /recommendations/me` hard-flags any top match over the cap
+  (`over_budget: true`) and inlines the cheapest same-category, safety-gated
+  alternative alongside it via `alternative_for_product_id` — no separate endpoint
+  call needed for the budget flow. (`/products/{id}/alternatives` still exists
+  separately for the product-detail page's own "similar products" use case, now
+  also allergy-gated per Task 9 — see below.)
+- ~~`match_score` is a raw float, not literally the "94% Match" display shape.~~
+  **CLOSED (T5):** renamed to `match_percentage`, an integer 0-100.
+- **Task 9 safety-gate closure:** the hard allergy filter
+  (`evaluate_products_suitability(...).any_allergy`) that the main
+  `GET /recommendations/me` ranking path and the Task 8 budget-cap-alternative path
+  both already enforced was **not** reachable from routine generation
+  (`_generate_steps`), manual routine step add/update
+  (`_assert_product_is_safe`), the routine step-swap search
+  (`search_products_for_edit`), or the product-detail "alternatives" endpoint
+  (`get_alternatives`) — pre-existing gaps, only reachable once Task 7 gave
+  routines a real 665+-product candidate pool instead of 16 hand-seeded ones. All
+  four now run the same `evaluate_products_suitability` check the recommendation
+  pipeline uses, over the same avoid-junction-narrowed candidate pool, before any
+  product reaches the user. TDD-verified: the first version of 2 of the 3 new
+  routine tests passed even without the fix (a 137-candidate real Moisturizer pool
+  made the unsafe pick too rare to reliably trigger, and a `[:10]`-truncated search
+  result sorted the freshly-inserted unsafe product past the cap by `product_id`)
+  — both were rewritten to be deterministic (an RNG-forcing monkeypatch; a
+  unique-name search query) before being trusted as real regression coverage.
+- **Known, honest coverage gap (not a bug):** Sensitive-skin recommendations still
+  draw effectively only from the original 16 hand-seeded products. The real
+  Sephora `highlights` column (the only field `parse_highlights` maps to
+  `skin_types`/`skin_concerns`) has no phrase that maps to "Sensitive" in the real
+  dataset's actual value distribution (`_SKIN_TYPE_HIGHLIGHT_MAP` in
+  `admin/ingest/products.py` — six real phrases, none naming Sensitive skin) — so
+  none of the 2,409 real ingested products ever get a `product_skin_types` row for
+  Sensitive. Not fabricated/guessed around (AGENTS.md §0.2); flagged here as a real,
+  known data-coverage limitation rather than silently left undocumented.
 
 ## 3. Progress Tracking & Cloud Photo Pipeline (Rubric Step 3)
 

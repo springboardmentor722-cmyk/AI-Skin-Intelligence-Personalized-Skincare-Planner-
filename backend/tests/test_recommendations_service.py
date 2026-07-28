@@ -9,7 +9,6 @@ behavior worth covering, not incidental plumbing.
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db import vector
 from app.db.redis import get_redis
 from app.services.ingredients.models import Ingredient
 from app.services.recommendations.models import (
@@ -20,6 +19,7 @@ from app.services.recommendations.models import (
 )
 from app.services.recommendations.service import (
     evaluate_products_suitability,
+    get_active_recommendation_weights,
     get_products_by_ids,
     get_recommendations,
     list_all_products,
@@ -46,10 +46,10 @@ async def test_list_products_for_skin_type_filters_by_category(
     db_session: AsyncSession,
 ) -> None:
     cleansers = await list_products_for_skin_type(
-        db_session, _SKIN_TYPE_WITH_SEEDED_PRODUCTS, category="Cleanser"
+        db_session, _SKIN_TYPE_WITH_SEEDED_PRODUCTS, category="Face Wash"
     )
     assert len(cleansers) > 0
-    assert all(p.category == "Cleanser" for p in cleansers)
+    assert all(p.category == "Face Wash" for p in cleansers)
 
 
 async def test_get_products_by_ids_empty_list_short_circuits(db_session: AsyncSession) -> None:
@@ -88,11 +88,208 @@ async def test_recommendations_are_ranked_highest_match_score_first(
 
     results = await get_recommendations(db_session, test_user_id)
 
-    assert len(results) <= 3  # service.py's own _TOP_N
-    scores = [r.match_score for r in results]
-    assert scores == sorted(scores, reverse=True)
+    # Per-category top-1 (service.py's own _TOP_PER_CATEGORY) — at most one
+    # result per category, not a single global top-N sorted across categories.
+    categories = [r.product.category for r in results]
+    assert len(categories) == len(set(categories))
     for r in results:
+        assert 0 <= r.match_percentage <= 100
         assert r.reasons, "every recommendation must explain itself, not just rank"
+
+
+async def test_recommendation_read_carries_match_percentage_and_active_ingredient_tags(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    await create_profile(
+        db_session,
+        test_user_id,
+        SkinProfileCreate(
+            skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS,
+            concerns=[SkinProfileConcernInput(concern_id=1, severity_rating=8, priority_level=8)],
+        ),
+    )
+
+    results = await get_recommendations(db_session, test_user_id)
+
+    assert len(results) > 0
+    for r in results:
+        assert 0 <= r.match_percentage <= 100
+        assert isinstance(r.active_ingredient_tags, list)
+        assert r.over_budget is False  # no max_price given
+        assert r.alternative_for_product_id is None
+
+
+async def test_over_budget_top_match_is_flagged_and_gets_a_cheaper_alternative(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    """Real seeded product fixture, no mocks - same pattern as
+    test_an_allergy_flagged_product_can_never_appear_in_recommendations above.
+    Creates a same-category cheaper product so a real substitute exists, then caps
+    the budget below the top-ranked candidate's real seeded price."""
+    await create_profile(
+        db_session,
+        test_user_id,
+        SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS),
+    )
+
+    # First run uncapped to find which product/category actually wins today's
+    # ranking and its real price - don't hardcode a price, read it from the live
+    # seeded catalog so this test doesn't silently rot if seed data changes.
+    uncapped = await get_recommendations(db_session, test_user_id, max_price=None)
+    assert len(uncapped) > 0
+    target = uncapped[0]
+    real_price = float(target.product.price)
+    cheap_cap = real_price - 1.0
+    assert cheap_cap > 0, "seeded fixture must have a real positive price to cap under"
+
+    capped = await get_recommendations(db_session, test_user_id, max_price=cheap_cap)
+
+    matching_entries = [r for r in capped if r.product.product_id == target.product.product_id]
+    assert len(matching_entries) == 1
+    assert matching_entries[0].over_budget is True
+    alternatives = [r for r in capped if r.alternative_for_product_id == target.product.product_id]
+    # An alternative is only guaranteed if the seeded catalog has another product in
+    # the same category under the cap - assert the flagging behavior always, and the
+    # alternative's presence only if one plausibly exists (same category, cheaper).
+    if alternatives:
+        assert float(alternatives[0].product.price) <= cheap_cap
+        assert alternatives[0].over_budget is False
+
+
+async def test_budget_cap_alternative_never_carries_an_allergy_flagged_product(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    """The same release-blocking property
+    test_an_allergy_flagged_product_can_never_appear_in_recommendations already
+    covers for the main ranking path - this proves the budget-cap alternative path
+    respects it too, since it queries candidates independently."""
+    niacinamide = (
+        (
+            await db_session.execute(
+                select(Ingredient).where(Ingredient.ingredient_name == "Niacinamide")
+            )
+        )
+        .scalars()
+        .first()
+    )
+    assert niacinamide is not None
+
+    unsafe_cheap_product = Product(
+        brand_name="Test Only",
+        product_name="Unsafe Cheap Alternative",
+        category="Moisturizer",
+        price=5.0,
+        currency="USD",
+        is_active=True,
+    )
+    db_session.add(unsafe_cheap_product)
+    await db_session.flush()
+    db_session.add(
+        ProductIngredient(
+            product_id=unsafe_cheap_product.product_id, ingredient_id=niacinamide.ingredient_id
+        )
+    )
+    db_session.add(
+        ProductSkinType(
+            product_id=unsafe_cheap_product.product_id,
+            skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS,
+        )
+    )
+    await db_session.commit()
+
+    await create_profile(
+        db_session,
+        test_user_id,
+        SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS, allergies="Niacinamide"),
+    )
+
+    uncapped = await get_recommendations(db_session, test_user_id, max_price=None)
+    moisturizer_entries = [r for r in uncapped if r.product.category == "Moisturizer"]
+    assert moisturizer_entries, "need a real Moisturizer top match to cap under"
+    cheap_cap = float(moisturizer_entries[0].product.price) - 1.0
+    assert cheap_cap > unsafe_cheap_product.price, (
+        "cap must be above the unsafe product's price so it's a genuine cheaper candidate"
+    )
+
+    results = await get_recommendations(db_session, test_user_id, max_price=cheap_cap)
+
+    assert any(r.over_budget for r in results if r.product.category == "Moisturizer"), (
+        "test must exercise a genuine over-budget entry, not just find nothing in scope"
+    )
+    assert all(r.product.product_id != unsafe_cheap_product.product_id for r in results), (
+        "an allergy-flagged product must never be served as a budget alternative"
+    )
+
+
+async def test_budget_cap_alternative_never_carries_an_avoid_flagged_product(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    """Sibling of test_budget_cap_alternative_never_carries_an_allergy_flagged_product -
+    the main pipeline's stage-1 hard filter is actually TWO gates
+    (list_avoided_ingredient_product_ids' skin-type-avoid junction, then the
+    free-text allergy check) and a budget alternative must respect both, not just
+    the allergy one. Real seeded ingredient ("Salicylic Acid", seed.py) is
+    avoid-flagged for "Sensitive" skin - no user-declared allergy involved here."""
+    sensitive = (
+        await db_session.execute(select(SkinType).where(SkinType.skin_type_name == "Sensitive"))
+    ).scalar_one()
+    salicylic_acid = (
+        (
+            await db_session.execute(
+                select(Ingredient).where(Ingredient.ingredient_name == "Salicylic Acid")
+            )
+        )
+        .scalars()
+        .first()
+    )
+    assert salicylic_acid is not None
+
+    unsafe_cheap_product = Product(
+        brand_name="Test Only",
+        product_name="Unsafe Avoid-Flagged Alternative",
+        category="Moisturizer",
+        price=5.0,
+        currency="USD",
+        is_active=True,
+    )
+    db_session.add(unsafe_cheap_product)
+    await db_session.flush()
+    db_session.add(
+        ProductIngredient(
+            product_id=unsafe_cheap_product.product_id,
+            ingredient_id=salicylic_acid.ingredient_id,
+        )
+    )
+    db_session.add(
+        ProductSkinType(
+            product_id=unsafe_cheap_product.product_id,
+            skin_type_id=sensitive.skin_type_id,
+        )
+    )
+    await db_session.commit()
+
+    await create_profile(
+        db_session,
+        test_user_id,
+        SkinProfileCreate(skin_type_id=sensitive.skin_type_id),
+    )
+
+    uncapped = await get_recommendations(db_session, test_user_id, max_price=None)
+    moisturizer_entries = [r for r in uncapped if r.product.category == "Moisturizer"]
+    assert moisturizer_entries, "need a real Moisturizer top match to cap under"
+    cheap_cap = float(moisturizer_entries[0].product.price) - 1.0
+    assert cheap_cap > unsafe_cheap_product.price, (
+        "cap must be above the unsafe product's price so it's a genuine cheaper candidate"
+    )
+
+    results = await get_recommendations(db_session, test_user_id, max_price=cheap_cap)
+
+    assert any(r.over_budget for r in results if r.product.category == "Moisturizer"), (
+        "test must exercise a genuine over-budget entry, not just find nothing in scope"
+    )
+    assert all(r.product.product_id != unsafe_cheap_product.product_id for r in results), (
+        "an avoid-flagged product must never be served as a budget alternative"
+    )
 
 
 async def test_recommendations_are_cached_in_redis(
@@ -125,7 +322,7 @@ async def test_an_allergy_flagged_product_can_never_appear_in_recommendations(
     product = Product(
         brand_name="Test Only",
         product_name="Would-Otherwise-Match Serum",
-        category="Treatment",
+        category="Treatment Products",
         is_active=True,
     )
     db_session.add(product)
@@ -149,6 +346,42 @@ async def test_an_allergy_flagged_product_can_never_appear_in_recommendations(
     assert product.product_id not in {r.product.product_id for r in results}
 
 
+async def test_recommendations_never_include_an_uncategorized_product(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    """Real ingest (Task 2) left 699 real products with category="uncategorized"
+    (no clean tertiary_category mapping) — MILESTONE 3.pdf Step 2's "categorized
+    recommendations" is literally 7 named categories, and this phase's own frozen
+    API contract never listed an 8th. `served_by_category` must not treat
+    "uncategorized" as just another bucket to serve a top match from."""
+    uncategorized_product = Product(
+        brand_name="Test Only",
+        product_name="Test Uncategorized Item",
+        category="uncategorized",
+        price=10.0,
+        currency="USD",
+        is_active=True,
+    )
+    db_session.add(uncategorized_product)
+    await db_session.flush()
+    db_session.add(
+        ProductSkinType(
+            product_id=uncategorized_product.product_id,
+            skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS,
+        )
+    )
+    await db_session.commit()
+
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+
+    results = await get_recommendations(db_session, test_user_id)
+
+    assert all(r.product.product_id != uncategorized_product.product_id for r in results)
+    assert all(r.product.category != "uncategorized" for r in results)
+
+
 async def test_evaluate_products_suitability_flags_allergy_and_scores_a_clean_product_high(
     db_session: AsyncSession, test_user_id: str
 ) -> None:
@@ -157,7 +390,9 @@ async def test_evaluate_products_suitability_flags_allergy_and_scores_a_clean_pr
             select(Ingredient).where(Ingredient.ingredient_name == "Niacinamide")
         )
     ).scalar_one()
-    product = Product(brand_name="Test Only", product_name="Clean Serum", category="Treatment")
+    product = Product(
+        brand_name="Test Only", product_name="Clean Serum", category="Treatment Products"
+    )
     db_session.add(product)
     await db_session.flush()
     db_session.add(
@@ -179,30 +414,6 @@ async def test_evaluate_products_suitability_flags_allergy_and_scores_a_clean_pr
 
     assert aggregate[product.product_id].any_allergy is False
     assert aggregate[product.product_id].score > 0.5
-
-
-async def test_recommendations_use_vector_similarity_when_a_profile_embedding_exists(
-    db_session: AsyncSession, test_user_id: str
-) -> None:
-    """Stage 2 (milestone_3.md §2) — uses the *already-projected* embedding as the
-    query vector (never computed request-path). A profile vector deliberately
-    identical to a real seeded product's vector should push that product's
-    vector_similarity signal to (near) 1.0."""
-    await create_profile(
-        db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
-    )
-    profile_vector_id = f"user_{test_user_id}"
-    try:
-        embedding = [1.0] + [0.0] * 383
-        vector.upsert(
-            "user_profiles", profile_vector_id, embedding, {"user_id": test_user_id}, dim=384
-        )
-
-        results = await get_recommendations(db_session, test_user_id)
-
-        assert results  # seeded catalog for skin_type_id=1 is non-empty
-    finally:
-        vector.remove("user_profiles", profile_vector_id)
 
 
 async def test_recommendations_persist_the_served_set_to_product_recommendations(
@@ -269,7 +480,9 @@ async def test_list_avoided_ingredient_product_ids_flags_a_real_avoid_flagged_in
     ).scalar_one()
 
     product = Product(
-        brand_name="Test Only", product_name="Unsafe-for-Sensitive Treatment", category="Treatment"
+        brand_name="Test Only",
+        product_name="Unsafe-for-Sensitive Treatment",
+        category="Treatment Products",
     )
     db_session.add(product)
     await db_session.flush()
@@ -297,7 +510,9 @@ async def test_list_avoided_ingredient_product_ids_empty_for_a_safe_ingredient(
         )
     ).scalar_one()
 
-    product = Product(brand_name="Test Only", product_name="Safe Treatment", category="Treatment")
+    product = Product(
+        brand_name="Test Only", product_name="Safe Treatment", category="Treatment Products"
+    )
     db_session.add(product)
     await db_session.flush()
     db_session.add(
@@ -320,3 +535,20 @@ async def test_list_all_products_paginates_over_real_seeded_data(
     if total > 2:
         page_two, _total = await list_all_products(db_session, page=2, page_size=2)
         assert {p.product_id for p in page_one}.isdisjoint({p.product_id for p in page_two})
+
+
+async def test_get_active_recommendation_weights_returns_the_seeded_active_row(
+    db_session: AsyncSession,
+) -> None:
+    weights = await get_active_recommendation_weights(db_session)
+
+    assert weights.is_active is True
+    total = (
+        float(weights.concern_weight)
+        + float(weights.skin_type_fit_weight)
+        + float(weights.rating_weight)
+    )
+    assert abs(total - 1.00) < 0.001
+    assert float(weights.concern_weight) == 0.50
+    assert float(weights.skin_type_fit_weight) == 0.35
+    assert float(weights.rating_weight) == 0.15

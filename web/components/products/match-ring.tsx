@@ -1,8 +1,8 @@
 import { cn } from "@/lib/utils";
 
 interface MatchRingProps {
-  /** 0-100 match_score from the recommendation API (milestone_3.md §M3-D: "0-100
-   * match_score driving the Match ring"). */
+  /** 0-100 match_percentage from the recommendation API (milestone_3.md §M3-D: "0-100
+   * match_percentage driving the Match ring"). */
   score: number;
   size?: number;
   className?: string;

@@ -24,6 +24,7 @@ from app.services.recommendations.schemas import (
     ProductRead,
 )
 from app.services.recommendations.service import (
+    evaluate_products_suitability,
     list_avoided_ingredient_product_ids,
     list_concern_ids_for_products,
 )
@@ -367,6 +368,11 @@ async def get_alternatives(
     if profile is not None:
         avoided_ids = await list_avoided_ingredient_product_ids(db, profile.skin_type_id)
         candidates = [c for c in candidates if c.product_id not in avoided_ids]
+        if candidates:
+            suitability = await evaluate_products_suitability(
+                db, [c.product_id for c in candidates], profile, None
+            )
+            candidates = [c for c in candidates if not suitability[c.product_id].any_allergy]
     if not candidates:
         return ProductAlternativesRead(alternatives=[])
 

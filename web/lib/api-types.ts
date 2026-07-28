@@ -2524,10 +2524,16 @@ export interface components {
         /** RecommendationRead */
         RecommendationRead: {
             product: components["schemas"]["ProductRead"];
-            /** Match Score */
-            match_score: number;
+            /** Match Percentage */
+            match_percentage: number;
             /** Reasons */
             reasons: string[];
+            /** Active Ingredient Tags */
+            active_ingredient_tags: string[];
+            /** Over Budget */
+            over_budget: boolean;
+            /** Alternative For Product Id */
+            alternative_for_product_id: number | null;
         };
         /** RiskFactorRead */
         RiskFactorRead: {
@@ -3675,7 +3681,9 @@ export interface operations {
     };
     get_my_recommendations_api_v1_recommendations_me_get: {
         parameters: {
-            query?: never;
+            query?: {
+                max_price?: number | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3689,6 +3697,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RecommendationRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

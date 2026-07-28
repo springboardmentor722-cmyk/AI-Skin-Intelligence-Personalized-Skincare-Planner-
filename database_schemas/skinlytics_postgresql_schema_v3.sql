@@ -316,6 +316,19 @@ CREATE UNIQUE INDEX uq_ingredient_safety_config_one_active
     ON ingredient_safety_config (is_active)
     WHERE is_active = true;
 
+CREATE TABLE recommendation_weights (
+    weight_id SERIAL PRIMARY KEY,
+    concern_weight DECIMAL(4,2) NOT NULL DEFAULT 0.50,
+    skin_type_fit_weight DECIMAL(4,2) NOT NULL DEFAULT 0.35,
+    rating_weight DECIMAL(4,2) NOT NULL DEFAULT 0.15,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_recommendation_weights_sum CHECK (
+        concern_weight + skin_type_fit_weight + rating_weight = 1.00
+    )
+);
+CREATE UNIQUE INDEX uq_recommendation_weights_one_active ON recommendation_weights (is_active) WHERE is_active = true;
+
 CREATE TABLE skin_assessments (
     score_id SERIAL PRIMARY KEY,
     user_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
@@ -654,6 +667,9 @@ VALUES (0.35, 0.20, 0.15, 0.20, 0.10, TRUE);
 INSERT INTO ingredient_safety_config
     (avoid_deduction, caution_deduction, allergy_deduction, safe_threshold, warning_threshold, is_active)
 VALUES (40.0, 15.0, 50.0, 80.0, 50.0, TRUE);
+
+INSERT INTO recommendation_weights (concern_weight, skin_type_fit_weight, rating_weight, is_active)
+VALUES (0.50, 0.35, 0.15, TRUE);
 
 INSERT INTO skin_types (skin_type_name, description) VALUES
     ('Normal', 'Balanced oil and hydration'),
