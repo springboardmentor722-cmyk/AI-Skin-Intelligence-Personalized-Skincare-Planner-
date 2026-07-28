@@ -190,9 +190,21 @@ export function ClientDetailView({ userId, backHref }: ClientDetailViewProps) {
                     return (
                       <div key={routine.routine_id} className="flex items-center justify-between text-sm">
                         <span>{routine.routine_name}</span>
-                        <span className="font-geist tabular-nums">
-                          {completed}/{routine.steps.length} today
-                        </span>
+                        <div className="flex items-center gap-3">
+                          <span className="font-geist tabular-nums">
+                            {completed}/{routine.steps.length} today
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            nativeButton={false}
+                            render={
+                              <Link href={`${backHref}/${userId}/routines/${routine.routine_id}/edit`}>
+                                Edit routine
+                              </Link>
+                            }
+                          />
+                        </div>
                       </div>
                     );
                   })}
