@@ -6,6 +6,7 @@ import { Camera, TriangleAlert } from "lucide-react";
 import { StateCard } from "@/components/state-card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { WidgetEmpty } from "@/components/dashboard/widget-states";
 import { api } from "@/lib/api";
 import type { components } from "@/lib/api-types";
 
@@ -75,7 +76,7 @@ export function PhotoComparison({ userId }: PhotoComparisonProps) {
         Baseline vs Current
       </h3>
       {!before ? (
-        <StateCard icon={Camera} description="No progress photos yet." />
+        <WidgetEmpty icon={Camera} message="No progress photos yet." />
       ) : (
         <div className={`grid grid-cols-1 gap-4 ${after ? "sm:grid-cols-2" : ""}`}>
           <div>
