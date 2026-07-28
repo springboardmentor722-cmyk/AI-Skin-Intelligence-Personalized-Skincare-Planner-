@@ -192,7 +192,7 @@ def _parse_ingredients(raw: Any) -> list[str]:
     text = text.strip("[]'\"")
     without_parens = re.sub(r"\([^)]*\)", "", text)
     parts = [
-        p.strip().strip("'\"").title()
+        p.strip(" '\"").title()
         for chunk in without_parens.split(",")
         for p in chunk.split(";")
     ]

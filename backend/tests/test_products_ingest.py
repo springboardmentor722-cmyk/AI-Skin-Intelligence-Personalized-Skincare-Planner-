@@ -135,6 +135,20 @@ def test_parse_ingredients_handles_missing_value() -> None:
     assert _parse_ingredients(float("nan")) == []
 
 
+def test_parse_ingredients_strips_trailing_space_after_a_quote() -> None:
+    """Regression: the old `.strip().strip("'\\"")` two-call sequence could leave
+    a stray space behind once the quote in between was removed — the first
+    whitespace-only `.strip()` never got a second pass after the quote strip
+    exposed a new outer character. A single `.strip(" '\\"")` call strips both
+    character classes together in one continuous pass from both ends, so a
+    fragment like "Acid' " (space, quote, space) comes out fully clean. This
+    exact bug silently duplicated the curated "Salicylic Acid" ingredient as
+    "Salicylic Acid " (trailing space) in the live ingested catalog, defeating
+    that ingredient's avoid-junction safety entry for any product linked only to
+    the malformed row."""
+    assert _parse_ingredients("[\"Salicylic Acid' \", 'Water']") == ["Salicylic Acid", "Water"]
+
+
 def test_parse_size_ml_extracts_explicit_ml_values() -> None:
     assert _parse_size_ml("150 mL") == 150
     assert _parse_size_ml("50ml") == 50
