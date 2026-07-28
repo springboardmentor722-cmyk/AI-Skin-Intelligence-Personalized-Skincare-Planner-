@@ -485,7 +485,10 @@ async def get_recommendations(
         # category's slice is already its own best-first candidates.
         served_by_category: dict[str | None, list[tuple[float, Product, list[str]]]] = {}
         for row in ranked:
-            served_by_category.setdefault(row[1].category, []).append(row)
+            category = row[1].category
+            if not category or category == "uncategorized":
+                continue
+            served_by_category.setdefault(category, []).append(row)
         served = [row for rows in served_by_category.values() for row in rows[:_TOP_PER_CATEGORY]]
 
         # --- Stage 3: serve + cache + persist ---

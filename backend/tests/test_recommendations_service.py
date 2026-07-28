@@ -346,6 +346,42 @@ async def test_an_allergy_flagged_product_can_never_appear_in_recommendations(
     assert product.product_id not in {r.product.product_id for r in results}
 
 
+async def test_recommendations_never_include_an_uncategorized_product(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    """Real ingest (Task 2) left 699 real products with category="uncategorized"
+    (no clean tertiary_category mapping) — MILESTONE 3.pdf Step 2's "categorized
+    recommendations" is literally 7 named categories, and this phase's own frozen
+    API contract never listed an 8th. `served_by_category` must not treat
+    "uncategorized" as just another bucket to serve a top match from."""
+    uncategorized_product = Product(
+        brand_name="Test Only",
+        product_name="Test Uncategorized Item",
+        category="uncategorized",
+        price=10.0,
+        currency="USD",
+        is_active=True,
+    )
+    db_session.add(uncategorized_product)
+    await db_session.flush()
+    db_session.add(
+        ProductSkinType(
+            product_id=uncategorized_product.product_id,
+            skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS,
+        )
+    )
+    await db_session.commit()
+
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+
+    results = await get_recommendations(db_session, test_user_id)
+
+    assert all(r.product.product_id != uncategorized_product.product_id for r in results)
+    assert all(r.product.category != "uncategorized" for r in results)
+
+
 async def test_evaluate_products_suitability_flags_allergy_and_scores_a_clean_product_high(
     db_session: AsyncSession, test_user_id: str
 ) -> None:
