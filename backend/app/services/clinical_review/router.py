@@ -18,6 +18,8 @@ from app.services.clinical_review.schemas import (
     ConsultantNoteListPageMeta,
     ConsultantNoteRead,
 )
+from app.services.progress import service as progress_service
+from app.services.progress.schemas import ProgressPhotosRead
 
 router = APIRouter()
 
@@ -75,6 +77,19 @@ async def get_client_analytics(
     except ValueError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
     return await analytics_service.get_my_analytics(db, user_id)
+
+
+@router.get("/clients/{user_id}/photos")
+async def get_client_photos(
+    user_id: str,
+    professional: Annotated[dict[str, Any], Depends(_professional)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> ProgressPhotosRead:
+    try:
+        await service.verify_assignment(db, professional["id"], user_id)
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+    return await progress_service.get_progress_photos(db, user_id)
 
 
 @router.get("/clients/{user_id}/notes")

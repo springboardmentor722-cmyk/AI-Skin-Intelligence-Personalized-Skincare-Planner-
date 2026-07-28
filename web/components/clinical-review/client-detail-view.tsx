@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ScoreAdherenceChart } from "@/components/charts/score-adherence-chart";
+import { PhotoComparison } from "@/components/clinical-review/photo-comparison";
 import { SkinScoreRing } from "@/components/skin-score-ring";
 import { StateCard } from "@/components/state-card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -217,6 +218,8 @@ export function ClientDetailView({ userId, backHref }: ClientDetailViewProps) {
           emptyMessage="Not enough history yet to chart this client's progress."
         />
       </div>
+
+      <PhotoComparison userId={userId} />
 
       <div className="border-border bg-card rounded-2xl border p-6">
         <h3 className="font-heading text-on-surface mb-4 text-lg font-semibold">Clinical notes</h3>
