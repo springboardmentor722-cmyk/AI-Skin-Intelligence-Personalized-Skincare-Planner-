@@ -474,7 +474,10 @@ async def add_client_routine_step(
         db,
         actor_user_id=professional_id,
         action=_ROUTINE_OVERWRITE_ACTION,
-        target_type="routine_steps",
+        # target_id here is the routine id (the new step's id isn't known/stable
+        # at this point) — target_type must match that id-space, not the
+        # step-scoped "routine_steps" used by update/delete below.
+        target_type="skincare_routines",
         target_id=str(routine_id),
         metadata={"client_user_id": user_id, "step_name": step_name, "product_id": product_id},
     )

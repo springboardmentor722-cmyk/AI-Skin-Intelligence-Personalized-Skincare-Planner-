@@ -229,6 +229,9 @@ export function ClientDetailView({ userId, backHref }: ClientDetailViewProps) {
           points={chartPoints}
           emptyMessage="Not enough history yet to chart this client's progress."
         />
+        <p className="text-on-surface-variant mt-4 font-sans text-xs">
+          AI-derived insights, not a clinical diagnosis.
+        </p>
       </div>
 
       <PhotoComparison userId={userId} />
