@@ -366,7 +366,16 @@ export default function DesignSystemShowcasePage() {
       <WidgetShowcase name="ProductCarousel" consumedBy="User dashboard">
         <ProductCarousel
           products={[
-            { key: 1, name: "Hyaluronic Acid Serum", price: 349, currency: "INR", rating: 4.6, badge: "Best Match" },
+            {
+              key: 1,
+              name: "Hyaluronic Acid Serum",
+              price: 349,
+              currency: "INR",
+              rating: 4.6,
+              matchPercentage: 94,
+              activeIngredientTags: ["Hyaluronic Acid", "Niacinamide"],
+              overBudget: false,
+            },
           ]}
         />
         <ProductCarousel state="loading" />

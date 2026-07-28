@@ -17,7 +17,9 @@ export interface CarouselProduct {
   price: number | null;
   currency: string | null;
   rating?: number;
-  badge?: string;
+  matchPercentage: number;
+  activeIngredientTags: string[];
+  overBudget: boolean;
 }
 
 interface ProductCarouselProps extends WidgetStateProps {
@@ -63,11 +65,6 @@ export function ProductCarousel({
               {product.imageUrl && (
                 <Image src={product.imageUrl} alt={product.name} fill className="object-contain" />
               )}
-              {product.badge && (
-                <Badge variant="secondary" className="absolute top-1 left-1">
-                  {product.badge}
-                </Badge>
-              )}
             </div>
             <p className="line-clamp-2 text-xs font-medium">{product.name}</p>
             <div className="mt-1 flex items-center justify-between">
@@ -81,6 +78,23 @@ export function ProductCarousel({
                 </span>
               )}
             </div>
+            <p className="text-secondary mt-1 text-xs font-semibold tabular-nums">
+              {product.matchPercentage}% Match
+            </p>
+            {product.activeIngredientTags.length > 0 && (
+              <div className="mt-1 flex flex-wrap gap-1">
+                {product.activeIngredientTags.slice(0, 2).map((tag) => (
+                  <Badge key={tag} variant="outline" className="px-1.5 py-0 text-[10px]">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            )}
+            {product.overBudget && (
+              <Badge variant="destructive" className="mt-1 px-1.5 py-0 text-[10px]">
+                Over budget
+              </Badge>
+            )}
           </div>
         ))}
       </div>

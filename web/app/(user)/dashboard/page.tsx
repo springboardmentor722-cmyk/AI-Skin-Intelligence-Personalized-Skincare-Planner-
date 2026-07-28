@@ -236,7 +236,9 @@ export default function UserDashboardPage() {
       price: rec.product.price,
       currency: rec.product.currency,
       rating: rec.product.rating ?? undefined,
-      badge: rec.match_percentage >= 80 ? "Best Match" : undefined,
+      matchPercentage: rec.match_percentage,
+      activeIngredientTags: rec.active_ingredient_tags,
+      overBudget: rec.over_budget,
     }));
 
   const latestInsight = (analyticsQuery.data?.correlations ?? []).find((c) => c.correlation !== null);
