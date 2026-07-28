@@ -20,7 +20,7 @@ import { ProductCarousel, type CarouselProduct } from "@/components/dashboard/pr
 import { RoutineChain, type RoutineChainStep } from "@/components/dashboard/routine-chain";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { DonutBreakdown } from "@/components/charts/donut-breakdown";
-import { TrendChart } from "@/components/charts/trend-chart";
+import { ScoreAdherenceChart } from "@/components/charts/score-adherence-chart";
 import { SkinScoreRing } from "@/components/skin-score-ring";
 import { StateCard } from "@/components/state-card";
 import { Button } from "@/components/ui/button";
@@ -85,16 +85,11 @@ function iconForStep(stepName: string | null): LucideIcon {
   return Sparkles;
 }
 
-const TREND_RANGES = ["This Week", "This Month", "All Time"] as const;
-type TrendRange = (typeof TREND_RANGES)[number];
-const TREND_RANGE_DAYS: Record<TrendRange, number> = {
-  "This Week": 7,
-  "This Month": 30,
-  "All Time": Infinity,
-};
+const RANGE_OPTIONS = ["7", "30", "90"] as const;
+type Range = (typeof RANGE_OPTIONS)[number];
 
 export default function UserDashboardPage() {
-  const [trendRange, setTrendRange] = useState<TrendRange>("This Month");
+  const [trendRange, setTrendRange] = useState<Range>("30");
   const toggleStep = useToggleRoutineStep();
 
   const scoreQuery = useQuery({
@@ -118,12 +113,6 @@ export default function UserDashboardPage() {
   const recommendationsQuery = useQuery({
     queryKey: ["recommendations", "me"],
     queryFn: async () => (await api.GET("/api/v1/recommendations/me")).data ?? [],
-    enabled: scoreQuery.data !== null,
-  });
-
-  const progressQuery = useQuery({
-    queryKey: ["progress", "me", "summary"],
-    queryFn: async () => (await api.GET("/api/v1/progress/me/summary")).data?.points ?? [],
     enabled: scoreQuery.data !== null,
   });
 
@@ -161,25 +150,24 @@ export default function UserDashboardPage() {
 
   const { greeting, today } = useGreeting();
 
-  const fullChartData = useMemo(
-    () =>
-      (progressQuery.data ?? [])
-        .filter((p) => p.overall_score != null)
-        .map((p) => ({ x: p.date, y: p.overall_score as number })),
-    [progressQuery.data]
-  );
-  const chartData = useMemo(() => {
-    const days = TREND_RANGE_DAYS[trendRange];
-    return Number.isFinite(days) ? fullChartData.slice(-days) : fullChartData;
-  }, [fullChartData, trendRange]);
+  const chartPoints = useMemo(() => {
+    const points = analyticsQuery.data?.score_vs_adherence ?? [];
+    const days = Number(trendRange);
+    return points.slice(-days).map((p) => ({
+      date: p.date,
+      score: p.overall_score,
+      adherence: p.adherence_ratio,
+    }));
+  }, [analyticsQuery.data, trendRange]);
   const scoreDelta = useMemo(() => {
-    if (fullChartData.length < 2) return null;
-    const diff = fullChartData[fullChartData.length - 1].y - fullChartData[0].y;
+    const scored = chartPoints.filter((p) => p.score != null);
+    if (scored.length < 2) return null;
+    const diff = (scored[scored.length - 1].score as number) - (scored[0].score as number);
     return {
       label: `${Math.abs(Math.round(diff))} pts this range`,
       direction: diff >= 0 ? ("up" as const) : ("down" as const),
     };
-  }, [fullChartData]);
+  }, [chartPoints]);
 
   const routines = routinesQuery.data ?? [];
   const amSteps = routines.find((r) => r.routine_type === "AM")?.steps ?? [];
@@ -440,14 +428,13 @@ export default function UserDashboardPage() {
 
         <div className="border-border bg-card flex flex-col gap-2 rounded-2xl border p-5 lg:col-span-4">
           <h3 className="font-heading text-base font-semibold">Skin Health Progress</h3>
-          <TrendChart
-            state={widgetStateFor(progressQuery, chartData.length < 2)}
-            onRetry={retryFor(progressQuery)}
-            series={chartData}
-            seriesLabel="Skin score"
-            rangeOptions={[...TREND_RANGES]}
+          <ScoreAdherenceChart
+            state={widgetStateFor(analyticsQuery, chartPoints.length < 2)}
+            onRetry={retryFor(analyticsQuery)}
+            points={chartPoints}
+            rangeOptions={RANGE_OPTIONS}
             rangeValue={trendRange}
-            onRangeChange={(v) => setTrendRange(v as TrendRange)}
+            onRangeChange={(v) => setTrendRange(v as Range)}
             emptyMessage="Check back after a few days to see your Skin Score trend."
             footerNote={
               scoreDelta ? `Your skin health has changed by ${scoreDelta.label} in this range.` : undefined
