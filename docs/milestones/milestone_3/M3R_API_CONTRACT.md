@@ -141,14 +141,28 @@ endpoint, no client-side recomputation or a second fetch to `/progress/me/photos
 - **Response** (`AnalyticsMeRead`, extended):
   ```json
   {
-    "score_timeline": [{ "date": "2026-07-01", "overall_score": 68 }],
+    "score_vs_adherence": [
+      { "date": "2026-07-01", "overall_score": 68, "adherence_ratio": 0.85 }
+    ],
     "compliance": { "7_day": 0.85, "30_day": 0.72, "90_day": 0.68 },
     "photos": [
       { "progress_image_id": 9, "image_stage": "Baseline", "uploaded_at": "...", "skin_health_score_at_upload": 74.5, "url": "..." }
     ],
-    "correlations": { "...": "unchanged" }
+    "correlations": [
+      { "label": "Routine adherence", "data_source": "routine_logs", "correlation": 0.62, "confidence": 0.38, "summary": "..." }
+    ]
   }
   ```
+  - `score_vs_adherence`: combines score timeline and adherence into one structure
+    (date, overall_score [None when no score computed yet], adherence_ratio [0-1 or
+    None when no routine assigned that day]).
+  - `compliance`: 7/30/90-day completed/assigned percentages (0-1), None fields when
+    nothing was ever assigned for that window.
+  - `photos`: merged ProgressPhotoRead entries (see §3b).
+  - `correlations`: array of computed correlations between score and other factors
+    (Pearson r computed over user's real history, r² = confidence "fraction of variance
+    explained", both None when insufficient data). Each item is advisory (`confidence`
+    field surfaces client-side).
 - **Auth:** unchanged (`require_role("user")` + assigned professionals via
   `clinical_review`).
 

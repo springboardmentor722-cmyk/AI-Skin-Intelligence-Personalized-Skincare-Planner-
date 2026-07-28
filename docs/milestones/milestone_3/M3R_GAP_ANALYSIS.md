@@ -111,22 +111,33 @@ flagged is now closed. What's actually live today:
 
 ## 3. Progress Tracking & Cloud Photo Pipeline (Rubric Step 3)
 
-**Mostly exists.** AM/PM check-in logging in Mongo is real
+**Fully exists (P3 tasks 1-4 closed).** AM/PM check-in logging in Mongo is real
 (`routines/service.py::toggle_step_completion`/`get_completed_step_ids`, `routine_logs`
 collection). Photo upload pipeline is real and live-verified (`core/storage.py` —
 private bucket, presigned URLs, EXIF-stripped, content-type sniffed).
 
-**Real gaps (P3 scope):**
-- Adherence math only computes 7-day and 30-day windows
-  (`progress/service.py::get_adherence_series`, `routines/service.py`) — **no 90-day
-  window exists anywhere.**
-- `ProgressImage` (PG) has no skin-health-score-at-upload column; `image_stage` (the
-  tag field) exists in the model but the upload router never accepts it from the
-  client, so every photo silently defaults to `"progress"` — the "Baseline"/"Week 4"
-  tag never actually reaches the API.
-- Analytics endpoint (`GET /analytics/me`) returns score timeline + compliance % but
-  **not** photo links — those live on a separate `GET /progress/me/photos`. Rubric
-  wants all three in one payload shaped for charting/comparison.
+**Formerly real gaps (all now closed, P3-T1–T4):**
+- ~~Adherence math only computes 7-day and 30-day windows~~: **CLOSED (T2, commit
+  b78c0f6).** Added `get_compliance_percentages` (7/30/90-day completed/assigned
+  ratios). **But the more significant fix in T2 was the underlying bug:** previous
+  `get_adherence_series` judged every historical day against the *currently active*
+  routine's steps, silently misjudging any day before a mid-window regeneration (e.g.
+  dermatologist overwrite, reassessment). The fix adds
+  `list_historical_active_step_ids` (per-day lookup against whichever routine of each
+  type was active as of that day; soft-deactivated routines are never deleted so
+  remain queryable), and rebuilds adherence math on top of it. This is what "assigned
+  counts follow what was assigned each day" (MILESTONE 3.pdf Step 3) actually means in
+  practice — a correctness fix, not just a window-count addition.
+- ~~`ProgressImage` has no score-at-upload, `image_stage` unreachable from client~~:
+  **CLOSED (T3, commit 5ce97b6).** Migration `fc93ac5cf2d4` adds `skin_health_score_at_upload`
+  column; `POST /progress/photos` now accepts `tag` parameter (first photo auto-tags
+  "Baseline", subsequent compute "Week N" from weeks-since-baseline, user-supplied
+  value wins over default).
+- ~~Analytics endpoint missing photo links~~: **CLOSED (T4, commit 1b11963).** `GET
+  /analytics/me` now returns `photos` array (progress_image_id, image_stage,
+  uploaded_at, skin_health_score_at_upload, url) merged into the score_timeline +
+  compliance response. Single endpoint serves the rubric's "score timelines, compliance
+  %, and progress photo links" together for charting/comparison.
 
 ## 4. Frontend Dashboards (Rubric Step 4)
 
