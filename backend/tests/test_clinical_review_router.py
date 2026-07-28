@@ -98,3 +98,42 @@ async def test_get_my_clients_q_param_filters_over_http(
     miss_body = miss.json()
     assert miss_body["meta"]["total"] == 0
     assert miss_body["items"] == []
+
+
+async def test_get_client_analytics_assigned_ok_unassigned_404(
+    client: AsyncClient, router_professional_and_client: tuple[str, str]
+) -> None:
+    """`GET /clients/{user_id}/analytics` — thin assignment-gated wrapper around
+    `analytics_service.get_my_analytics` (M3R Phase 5 patient inspection timeline).
+    An assigned professional gets the real `AnalyticsMeRead` shape back; a
+    professional with no assignment to this user gets the same 404-on-unassigned
+    behavior as every other `/clients/{user_id}/*` route."""
+    professional_id, client_user_id = router_professional_and_client
+    other_professional_id = f"test-other-professional-{uuid.uuid4().hex[:16]}"
+    app.dependency_overrides[clinical_review_router._professional] = lambda: {
+        "id": professional_id,
+        "role": "consultant",
+        "claims": {},
+    }
+    try:
+        ok = await client.get(f"/api/v1/clients/{client_user_id}/analytics")
+    finally:
+        app.dependency_overrides.pop(clinical_review_router._professional, None)
+
+    assert ok.status_code == 200
+    ok_body = ok.json()
+    assert "score_vs_adherence" in ok_body
+    assert "correlations" in ok_body
+    assert "compliance" in ok_body
+
+    app.dependency_overrides[clinical_review_router._professional] = lambda: {
+        "id": other_professional_id,
+        "role": "consultant",
+        "claims": {},
+    }
+    try:
+        forbidden = await client.get(f"/api/v1/clients/{client_user_id}/analytics")
+    finally:
+        app.dependency_overrides.pop(clinical_review_router._professional, None)
+
+    assert forbidden.status_code == 404

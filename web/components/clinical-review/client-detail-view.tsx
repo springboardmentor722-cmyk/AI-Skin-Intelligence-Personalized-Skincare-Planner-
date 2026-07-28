@@ -8,11 +8,13 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { ScoreAdherenceChart } from "@/components/charts/score-adherence-chart";
 import { SkinScoreRing } from "@/components/skin-score-ring";
 import { StateCard } from "@/components/state-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/lib/api";
+import { retryFor, widgetStateFor } from "@/lib/widget-state";
 
 // web/designs/wireframes/consultant-client-detail.html /
 // derm-patient-detail.html — real content only. The wireframes' "Diagnostic
@@ -49,6 +51,22 @@ export function ClientDetailView({ userId, backHref }: ClientDetailViewProps) {
       return data;
     },
   });
+
+  const analyticsQuery = useQuery({
+    queryKey: ["clinical-review", "client-analytics", userId],
+    queryFn: async () => {
+      const { data, error } = await api.GET("/api/v1/clients/{user_id}/analytics", {
+        params: { path: { user_id: userId } },
+      });
+      if (error) throw new Error("Couldn't load this client's progress timeline.");
+      return data;
+    },
+  });
+  const chartPoints = (analyticsQuery.data?.score_vs_adherence ?? []).map((p) => ({
+    date: p.date,
+    score: p.overall_score,
+    adherence: p.adherence_ratio,
+  }));
 
   const addNoteMutation = useMutation({
     mutationFn: async (text: string) => {
@@ -186,6 +204,18 @@ export function ClientDetailView({ userId, backHref }: ClientDetailViewProps) {
             </p>
           )}
         </div>
+      </div>
+
+      <div className="border-border bg-card rounded-2xl border p-6">
+        <h3 className="font-heading text-on-surface mb-4 text-lg font-semibold">
+          Progress timeline
+        </h3>
+        <ScoreAdherenceChart
+          state={widgetStateFor(analyticsQuery, chartPoints.length < 2)}
+          onRetry={retryFor(analyticsQuery)}
+          points={chartPoints}
+          emptyMessage="Not enough history yet to chart this client's progress."
+        />
       </div>
 
       <div className="border-border bg-card rounded-2xl border p-6">

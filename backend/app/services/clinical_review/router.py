@@ -5,6 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import require_verified_professional
 from app.db.postgres import get_db
+from app.services.analytics import service as analytics_service
+from app.services.analytics.schemas import AnalyticsMeRead
 from app.services.clinical_review import service
 from app.services.clinical_review.schemas import (
     ClientDetailRead,
@@ -60,6 +62,19 @@ async def get_client(
         return await service.get_client_detail(db, professional["id"], user_id)
     except ValueError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+
+
+@router.get("/clients/{user_id}/analytics")
+async def get_client_analytics(
+    user_id: str,
+    professional: Annotated[dict[str, Any], Depends(_professional)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> AnalyticsMeRead:
+    try:
+        await service.verify_assignment(db, professional["id"], user_id)
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+    return await analytics_service.get_my_analytics(db, user_id)
 
 
 @router.get("/clients/{user_id}/notes")
