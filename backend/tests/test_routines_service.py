@@ -1113,6 +1113,97 @@ async def test_search_products_for_edit_excludes_an_allergy_flagged_product(
     assert all(r.product_id != niacinamide_product.product_id for r in results)
 
 
+async def test_soothing_substitution_never_serves_an_allergy_flagged_soothing_product(
+    db_session: AsyncSession, test_user_id: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Follow-up gap found in review: `routines/guardrails.py`'s soothing-product
+    substitution (`SOOTHING_PRODUCT_NAME` = "Centella Calming Serum", real seeded
+    product_id 8) runs AFTER `_generate_steps`'s candidate-pool allergy filter, on
+    a product looked up by name — a route that bypasses the candidate-pool filter
+    entirely, so it could reintroduce an allergen the rest of generation already
+    excludes everywhere else. Real seeded "Retinol" ingredient (Retinoids
+    category, avoid-flagged only for Sensitive skin — NOT for Normal,
+    skin_type_id=1) tags a temp harsh Treatment product; `redness_severity=9`
+    (>7) triggers `requires_soothing_substitution` regardless of skin type. The
+    real soothing product ships with no curated ingredients by default, so this
+    test gives it a real Niacinamide link and declares the profile allergic to
+    Niacinamide — proving the substitution's own target product is gated the
+    same way every other candidate already is."""
+    niacinamide = (
+        await db_session.execute(
+            select(Ingredient).where(Ingredient.ingredient_name == "Niacinamide")
+        )
+    ).scalar_one()
+    retinol = (
+        await db_session.execute(select(Ingredient).where(Ingredient.ingredient_name == "Retinol"))
+    ).scalar_one()
+
+    harsh_product = Product(
+        brand_name="Test Only",
+        product_name="Test Harsh Retinol Treatment",
+        category="Treatment Products",
+        price=10.0,
+        currency="USD",
+        is_active=True,
+    )
+    db_session.add(harsh_product)
+    await db_session.flush()
+    db_session.add(
+        ProductIngredient(product_id=harsh_product.product_id, ingredient_id=retinol.ingredient_id)
+    )
+    db_session.add(
+        ProductSkinType(
+            product_id=harsh_product.product_id, skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS
+        )
+    )
+    # Real seeded soothing product (id 8) — give it a real ingredient for this
+    # test only, so it can actually become allergy-flagged.
+    db_session.add(ProductIngredient(product_id=8, ingredient_id=niacinamide.ingredient_id))
+    await db_session.commit()
+
+    real_seeded_random = routines_service.seeded_random
+
+    class _PreferHarshProduct:
+        def __init__(self, real_rng: object) -> None:
+            self._real_rng = real_rng
+
+        def choice(self, seq: object) -> object:
+            for item in seq:  # type: ignore[attr-defined]
+                if getattr(item, "product_id", None) == harsh_product.product_id:
+                    return item
+            return self._real_rng.choice(seq)  # type: ignore[attr-defined]
+
+    monkeypatch.setattr(
+        routines_service,
+        "seeded_random",
+        lambda *parts: _PreferHarshProduct(real_seeded_random(*parts)),
+    )
+
+    await create_profile(
+        db_session,
+        test_user_id,
+        SkinProfileCreate(
+            skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS,
+            allergies="Niacinamide",
+            concerns=[
+                SkinProfileConcernInput(
+                    concern_id=_REDNESS_CONCERN_ID, severity_rating=9, priority_level=9
+                )
+            ],
+        ),
+    )
+
+    routines = await get_or_generate_routines(db_session, test_user_id)
+
+    for routine in routines:
+        for step in routine.steps:
+            for p in step.products:
+                assert p.product.product_id != 8, (
+                    "an allergy-flagged soothing-substitution product must never appear "
+                    "in a generated routine"
+                )
+
+
 # --- Seasonal routines (Milestone 2, calendar-quarter swap) ---
 
 
@@ -1263,9 +1354,13 @@ async def test_first_time_generation_does_not_n_plus_one_per_category(
     candidate product once (category=None) and every concern mapping once,
     filtering by category in Python. Milestone 2 P11 added two more real queries
     *per routine type* (the guardrail layer's ingredient-category lookup and
-    soothing-product lookup) — a real, legitimate cost of the safety layer, not
-    an N+1 regression; the ceiling below accounts for it. Counts real SQL
-    statements via the same event-listener tool as the read-path test above."""
+    soothing-product lookup); Task 9's allergy-gate work added one bulk
+    suitability query per routine type over the candidate pool, and its
+    follow-up review round added one more per routine type to gate the
+    soothing-product substitution target itself against the same allergy check
+    — all real, legitimate costs of the safety layer, not an N+1 regression; the
+    ceiling below accounts for them. Counts real SQL statements via the same
+    event-listener tool as the read-path test above."""
     await create_profile(
         db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
     )
@@ -1288,8 +1383,9 @@ async def test_first_time_generation_does_not_n_plus_one_per_category(
     # Most of this call's real query volume is legitimate, necessary per-row work
     # (one INSERT per RoutineStep/RoutineProduct created — that scales with step
     # count by nature, not a bug). Generous ceiling — see this test's own
-    # docstring for the P11 guardrail-query addition this accounts for.
-    assert query_count < 90, (
+    # docstring for the P11 guardrail-query and Task 9 allergy-check additions
+    # this accounts for.
+    assert query_count < 100, (
         f"{query_count} queries to generate {total_categories} steps across 4 "
         "routine types looks like a regression, not the expected P11 guardrail cost"
     )

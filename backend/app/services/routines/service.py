@@ -166,6 +166,19 @@ async def _generate_steps(
         db, guardrails.SOOTHING_PRODUCT_NAME
     )
     soothing_product_id = soothing_product.product_id if soothing_product else None
+    if soothing_product_id is not None:
+        # The soothing product is a substitution TARGET the guardrails below can
+        # introduce into a routine that never went through the candidate-pool
+        # allergy filter above — gate it the same way, so a user allergic to its
+        # own key ingredient (e.g. Centella Asiatica) can never receive it via
+        # this path either. No second soothing product exists in this catalog, so
+        # the fallback is the same one both guardrail functions already implement
+        # for "no real soothing product available": leave the original step as-is.
+        soothing_suitability = await recommendations_service.evaluate_products_suitability(
+            db, [soothing_product_id], profile, skin_type_name
+        )
+        if soothing_suitability[soothing_product_id].any_allergy:
+            soothing_product_id = None
     generated = guardrails.apply_safety_guardrails(
         generated,
         skin_type_name=skin_type_name,
@@ -694,20 +707,20 @@ async def search_products_for_edit(
     avoided = await recommendations_service.list_avoided_ingredient_product_ids(
         db, profile.skin_type_id
     )
-    candidate_ids = [p.product_id for p in candidates if p.product_id not in avoided]
-    suitability = await recommendations_service.evaluate_products_suitability(
-        db, candidate_ids, profile, None
-    )
+    candidate_ids = {p.product_id for p in candidates if p.product_id not in avoided}
     query_lower = query.strip().lower()
-    matches = [
+    name_matches = [
         p
         for p in candidates
         if p.product_id in candidate_ids
-        and not suitability[p.product_id].any_allergy
         and (
             not query_lower
             or query_lower in (p.product_name or "").lower()
             or query_lower in (p.brand_name or "").lower()
         )
     ]
+    suitability = await recommendations_service.evaluate_products_suitability(
+        db, [p.product_id for p in name_matches], profile, None
+    )
+    matches = [p for p in name_matches if not suitability[p.product_id].any_allergy]
     return [ProductRead.model_validate(p) for p in matches[:10]]
