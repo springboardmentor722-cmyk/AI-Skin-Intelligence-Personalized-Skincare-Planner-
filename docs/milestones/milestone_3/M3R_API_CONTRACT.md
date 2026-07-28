@@ -144,7 +144,7 @@ endpoint, no client-side recomputation or a second fetch to `/progress/me/photos
     "score_vs_adherence": [
       { "date": "2026-07-01", "overall_score": 68, "adherence_ratio": 0.85 }
     ],
-    "compliance": { "7_day": 0.85, "30_day": 0.72, "90_day": 0.68 },
+    "compliance": { "seven_day": 0.85, "thirty_day": 0.72, "ninety_day": 0.68 },
     "photos": [
       { "progress_image_id": 9, "image_stage": "Baseline", "uploaded_at": "...", "skin_health_score_at_upload": 74.5, "url": "..." }
     ],

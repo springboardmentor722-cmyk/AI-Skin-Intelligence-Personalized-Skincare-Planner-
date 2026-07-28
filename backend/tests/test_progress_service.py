@@ -165,12 +165,11 @@ async def test_adherence_series_reflects_real_routine_logs(
     db_session: AsyncSession, progress_test_user: str
 ) -> None:
     # No routine ever assigned for this throwaway user -> every day in the window
-    # has zero assigned steps, so each day is honestly 0.0 (not fabricated), and
-    # the series still covers the full requested window (see
-    # list_historical_active_step_ids/get_adherence_series's per-day contract).
+    # has zero assigned steps, so each is omitted entirely (not fabricated as
+    # 0.0) - an empty series is the honest "no routine ever assigned" signal the
+    # frontend's empty state branches on.
     series = await get_adherence_series(db_session, progress_test_user, days=7)
-    assert len(series) == 7
-    assert all(day.completed_ratio == 0.0 for day in series)
+    assert series == []
 
 
 async def test_adherence_series_uses_the_routine_active_on_each_historical_day(

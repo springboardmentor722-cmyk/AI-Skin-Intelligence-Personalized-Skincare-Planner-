@@ -86,6 +86,24 @@ async def test_get_my_analytics_aligns_scores_with_real_lifestyle_logs(
     assert result.score_vs_adherence[0].date == today
 
 
+async def test_get_my_analytics_adherence_ratio_is_none_when_nothing_assigned(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    # No routine ever generated for this user -> get_adherence_series omits the
+    # day entirely (not a fabricated 0.0), so adherence_by_date.get(date) must
+    # fall through to None here too - matching M3R_API_CONTRACT.md §4's
+    # documented "0-1 or None when no routine assigned that day".
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+    await compute_and_store_score(db_session, test_user_id)
+
+    result = await get_my_analytics(db_session, test_user_id)
+
+    assert len(result.score_vs_adherence) == 1
+    assert result.score_vs_adherence[0].adherence_ratio is None
+
+
 async def test_get_admin_analytics_reflects_real_feedback_and_routine_activity(
     db_session: AsyncSession, test_user_id: str
 ) -> None:

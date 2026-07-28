@@ -142,7 +142,10 @@ async def get_adherence_series(
     for day in all_days:
         assigned_ids = assigned_by_day.get(day, set())
         if not assigned_ids:
-            series.append(AdherenceDay(date=day, completed_ratio=0.0))
+            # Omit entirely rather than fabricating a 0% - matches
+            # get_compliance_percentages' treatment of zero-assigned days, and
+            # keeps `[]` as the honest "no routine ever assigned" empty state
+            # the frontend (web/app/(user)/progress/page.tsx) branches on.
             continue
         log = logs_by_date.get(day)
         completed = (
@@ -207,6 +210,10 @@ async def get_compliance_percentages(db: AsyncSession, user_id: str) -> Complian
 def _detect_streak_milestones(adherence: list[AdherenceDay]) -> list[Milestone]:
     streak = 0
     milestones: list[Milestone] = []
+    # `adherence` omits days with nothing assigned (get_adherence_series), so a
+    # streak only counts consecutive *assigned* days at 100% - a day nothing was
+    # assignable is absent rather than present-with-zero, so it can't wrongly
+    # break a streak.
     for day in adherence:  # ascending
         streak = streak + 1 if day.completed_ratio >= 1.0 else 0
         if streak in _STREAK_MILESTONE_DAYS:
