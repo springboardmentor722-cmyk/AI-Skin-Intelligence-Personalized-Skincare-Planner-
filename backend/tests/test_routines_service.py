@@ -13,7 +13,7 @@ import datetime
 
 import pytest
 from sqlalchemy import event as sa_event
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.ai.interactions import _INTERACTIONS, get_interaction
@@ -32,7 +32,7 @@ from app.services.routines.guardrails import (
     is_harsh_product,
     requires_soothing_substitution,
 )
-from app.services.routines.models import Routine
+from app.services.routines.models import Routine, RoutineStep
 from app.services.routines.service import (
     UnsafeProductError,
     _assert_product_is_safe,
@@ -42,6 +42,7 @@ from app.services.routines.service import (
     delete_step,
     get_or_generate_routines,
     list_active_step_counts_by_user,
+    list_historical_active_step_ids,
     reorder_steps,
     search_products_for_edit,
     toggle_step_completion,
@@ -1553,3 +1554,47 @@ async def test_count_completed_steps_by_user_reflects_real_toggles(
 
 async def test_count_completed_steps_by_user_empty_list_short_circuits() -> None:
     assert await count_completed_steps_by_user([]) == {}
+
+
+async def test_list_historical_active_step_ids_uses_the_routine_active_on_each_day(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    """Real regression for the exact scenario the rubric names: a routine
+    regenerated mid-window must not retroactively change what earlier days were
+    judged against."""
+    old_routine = Routine(
+        user_id=test_user_id, routine_name="Old AM", routine_type="AM", is_active=False
+    )
+    db_session.add(old_routine)
+    await db_session.flush()
+    old_step = RoutineStep(routine_id=old_routine.routine_id, step_order=1, step_name="Cleanse")
+    db_session.add(old_step)
+    await db_session.flush()
+    # Backdate created_at directly - the ORM default is "now", this test needs a
+    # real earlier timestamp to prove the day-boundary logic, not just insertion order.
+    await db_session.execute(
+        update(Routine)
+        .where(Routine.routine_id == old_routine.routine_id)
+        .values(
+            created_at=datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
+            - datetime.timedelta(days=10)
+        )
+    )
+
+    new_routine = Routine(
+        user_id=test_user_id, routine_name="New AM", routine_type="AM", is_active=True
+    )
+    db_session.add(new_routine)
+    await db_session.flush()
+    new_step = RoutineStep(routine_id=new_routine.routine_id, step_order=1, step_name="Cleanse")
+    db_session.add(new_step)
+    await db_session.commit()
+
+    today = datetime.datetime.now(datetime.UTC).date()
+    old_day = today - datetime.timedelta(days=8)  # before the new routine existed
+    new_day = today  # after
+
+    result = await list_historical_active_step_ids(db_session, test_user_id, [old_day, new_day])
+
+    assert result[old_day] == {old_step.step_id}
+    assert result[new_day] == {new_step.step_id}

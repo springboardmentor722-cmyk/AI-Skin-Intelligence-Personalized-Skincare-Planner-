@@ -11,8 +11,9 @@ class ScoreTrendPoint(BaseModel):
 
 class AdherenceDay(BaseModel):
     """One cell of the wireframe's "Routine Adherence" heat grid — real signal from
-    `routine_logs` via the routines service interface (`list_active_step_ids` +
-    `list_recent_routine_logs`), never fabricated."""
+    `routine_logs` via the routines service interface (`list_historical_active_step_ids`
+    + `list_recent_routine_logs`), never fabricated. Judged against whatever routine
+    was actually assigned on that historical day, not today's active routine."""
 
     date: datetime.date
     completed_ratio: float  # 0-1
@@ -26,6 +27,17 @@ class TrendInsightRead(BaseModel):
     # Mirrors app/ai/schemas.py's TrendInsight — a UI-facing flag so the frontend
     # never has to hardcode the 0.6 threshold itself (milestone_3.md §8).
     low_confidence: bool
+
+
+class CompliancePercentages(BaseModel):
+    """7/30/90-day compliance percentages (completed / assigned steps) on top of
+    the same historically-corrected assignment data get_adherence_series uses.
+    None (not 0.0) when nothing was ever assigned in that window — an honest
+    empty state, never a fabricated 0%."""
+
+    seven_day: float | None
+    thirty_day: float | None
+    ninety_day: float | None
 
 
 class Milestone(BaseModel):
