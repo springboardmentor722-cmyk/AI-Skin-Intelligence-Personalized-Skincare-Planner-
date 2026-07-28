@@ -484,6 +484,57 @@ async def list_recent_routine_logs(user_id: str, days: int = 7) -> list[dict[str
     return [doc async for doc in cursor]
 
 
+async def list_historical_active_step_ids(
+    db: AsyncSession, user_id: str, days: list[datetime.date]
+) -> dict[datetime.date, set[int]]:
+    """Interface function (ADR-005) - for each requested day, the step ids that
+    were actually assigned that day: the routine of each type (AM/PM/Weekly/
+    Seasonal) that was current as of that day, not necessarily today's routine.
+    Old routines are soft-deactivated (is_active=False), never deleted
+    (get_or_generate_routines), so their historical composition stays queryable -
+    this is what "assigned counts follow what was assigned each day" (MILESTONE
+    3.pdf Step 3) means in practice."""
+    rows = (
+        await db.execute(
+            select(Routine.routine_id, Routine.routine_type, Routine.created_at)
+            .where(Routine.user_id == user_id)
+            .order_by(Routine.created_at)
+        )
+    ).all()
+    by_type: dict[str, list[tuple[datetime.datetime, int]]] = defaultdict(list)
+    for routine_id, routine_type, created_at in rows:
+        by_type[routine_type or ""].append((created_at, routine_id))
+
+    all_routine_ids = [routine_id for entries in by_type.values() for _, routine_id in entries]
+    steps_by_routine: dict[int, set[int]] = defaultdict(set)
+    if all_routine_ids:
+        step_rows = await db.execute(
+            select(RoutineStep.routine_id, RoutineStep.step_id).where(
+                RoutineStep.routine_id.in_(all_routine_ids)
+            )
+        )
+        for routine_id, step_id in step_rows.all():
+            steps_by_routine[routine_id].add(step_id)
+
+    result: dict[datetime.date, set[int]] = {}
+    for day in days:
+        # created_at is TIMESTAMP WITHOUT TIME ZONE (naive) in Postgres — compare
+        # against a naive day_end, same convention _day_start already uses below.
+        day_end = datetime.datetime.combine(day, datetime.time.max)
+        assigned: set[int] = set()
+        for entries in by_type.values():
+            candidate: int | None = None
+            for created_at, routine_id in entries:
+                if created_at <= day_end:
+                    candidate = routine_id
+                else:
+                    break
+            if candidate is not None:
+                assigned |= steps_by_routine.get(candidate, set())
+        result[day] = assigned
+    return result
+
+
 async def list_active_step_ids(db: AsyncSession, user_id: str) -> list[int]:
     """Interface function (ADR-005) — scores/service.py reads the scheduled-step count
     for routine_adherence through this, never `routine_steps` directly."""

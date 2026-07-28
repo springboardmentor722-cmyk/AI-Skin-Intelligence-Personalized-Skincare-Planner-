@@ -1,6 +1,6 @@
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import require_role
@@ -42,13 +42,16 @@ async def upload_my_progress_photo(
     user: Annotated[dict[str, Any], Depends(require_role("user"))],
     db: Annotated[AsyncSession, Depends(get_db)],
     file: Annotated[UploadFile, File()],
+    tag: Annotated[str | None, Form()] = None,
 ) -> ProgressPhotosRead:
     # Bounded read (MAX_UPLOAD_BYTES + 1, one call) — never buffers an unbounded
     # body into memory before rejecting an oversized upload (same pattern as
     # consultant_profile/router.py's document upload).
     data = await file.read(MAX_UPLOAD_BYTES + 1)
     try:
-        await service.upload_progress_photo(db, user["id"], data, file.filename or "photo.jpg")
+        await service.upload_progress_photo(
+            db, user["id"], data, file.filename or "photo.jpg", tag=tag
+        )
     except FileValidationError as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
     return await service.get_progress_photos(db, user["id"])

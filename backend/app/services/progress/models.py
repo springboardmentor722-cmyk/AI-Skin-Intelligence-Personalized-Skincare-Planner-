@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import ForeignKey, Index, func
+from sqlalchemy import ForeignKey, Index, Numeric, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.postgres import Base
@@ -23,5 +23,6 @@ class ProgressImage(Base):
     user_id: Mapped[str] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
     image_url: Mapped[str | None] = mapped_column(default=None)
     image_stage: Mapped[str | None] = mapped_column(default=None)
+    skin_health_score_at_upload: Mapped[float | None] = mapped_column(Numeric(5, 2), default=None)
     uploaded_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
