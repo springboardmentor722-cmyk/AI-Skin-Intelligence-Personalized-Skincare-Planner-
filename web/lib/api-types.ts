@@ -1221,6 +1221,9 @@ export interface components {
             score_vs_adherence: components["schemas"]["ScoreAdherencePoint"][];
             /** Correlations */
             correlations: components["schemas"]["CorrelationInsight"][];
+            compliance: components["schemas"]["CompliancePercentages"];
+            /** Photos */
+            photos: components["schemas"]["ProgressPhotoRead"][];
         };
         /** AppearancePreferenceRead */
         AppearancePreferenceRead: {
@@ -1578,6 +1581,21 @@ export interface components {
             portfolio_score_trend: number[];
             /** Recent Assessments */
             recent_assessments: components["schemas"]["PortfolioRecentAssessment"][];
+        };
+        /**
+         * CompliancePercentages
+         * @description 7/30/90-day compliance percentages (completed / assigned steps) on top of
+         *     the same historically-corrected assignment data get_adherence_series uses.
+         *     None (not 0.0) when nothing was ever assigned in that window — an honest
+         *     empty state, never a fabricated 0%.
+         */
+        CompliancePercentages: {
+            /** Seven Day */
+            seven_day: number | null;
+            /** Thirty Day */
+            thirty_day: number | null;
+            /** Ninety Day */
+            ninety_day: number | null;
         };
         /** ConcernChangeRead */
         ConcernChangeRead: {

@@ -16,10 +16,12 @@ from app.services.analytics.service import (
     get_admin_analytics,
     get_my_analytics,
 )
+from app.services.progress import service as progress_service
 from app.services.routines.service import get_or_generate_routines, toggle_step_completion
 from app.services.scores.service import compute_and_store_score
 from app.services.skin_profile.schemas import LifestyleLogCreate, SkinProfileCreate
 from app.services.skin_profile.service import create_profile, upsert_lifestyle_log
+from tests.test_progress_service import _real_jpeg_bytes
 
 _SKIN_TYPE_WITH_SEEDED_PRODUCTS = 1
 
@@ -115,3 +117,22 @@ async def test_get_admin_analytics_reflects_real_feedback_and_routine_activity(
     finally:
         await mongo["recommendation_feedback"].delete_many({"user_id": test_user_id})
         await mongo["routine_logs"].delete_many({"user_id": test_user_id})
+
+
+async def test_get_my_analytics_includes_compliance_and_photos(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=1, concerns=[])
+    )
+    await compute_and_store_score(db_session, test_user_id)
+    await progress_service.upload_progress_photo(
+        db_session, test_user_id, _real_jpeg_bytes(), "one.jpg"
+    )
+
+    result = await get_my_analytics(db_session, test_user_id)
+
+    assert result.compliance.seven_day is not None or result.compliance.seven_day is None
+    assert len(result.photos) == 1
+    assert result.photos[0].image_stage == "Baseline"
+    assert result.photos[0].skin_health_score_at_upload is not None

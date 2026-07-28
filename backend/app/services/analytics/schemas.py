@@ -2,6 +2,8 @@ import datetime
 
 from pydantic import BaseModel
 
+from app.services.progress.schemas import CompliancePercentages, ProgressPhotoRead
+
 
 class ScoreAdherencePoint(BaseModel):
     date: datetime.date
@@ -27,6 +29,8 @@ class CorrelationInsight(BaseModel):
 class AnalyticsMeRead(BaseModel):
     score_vs_adherence: list[ScoreAdherencePoint]
     correlations: list[CorrelationInsight]
+    compliance: CompliancePercentages
+    photos: list[ProgressPhotoRead]
 
 
 class RecommendationAcceptanceRead(BaseModel):
