@@ -124,3 +124,14 @@ A human pass with a real browser, in both themes, against a fully seeded
 verified professional account, is recommended before treating P5 as fully
 shipped — flagged here rather than silently assumed, matching this
 milestone's established practice.
+
+## Final whole-branch review fix (post-dated addendum)
+
+The phase spec (T2) unconditionally requires a "'Not medical advice'"
+disclaimer on this view; this fidelity pass's own a11y/content checks above
+never caught its absence because the plan's own Global Constraint had
+softened that into "wherever AI-derived values ... are shown," which never
+fired since `correlations` isn't rendered here. Fixed: added inline text
+("AI-derived insights, not a clinical diagnosis.") near the skin-score/
+progress-timeline card in `client-detail-view.tsx`, matching the existing
+`ingredient-detail.tsx` pattern.

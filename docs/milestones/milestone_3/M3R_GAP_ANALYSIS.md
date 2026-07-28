@@ -190,6 +190,14 @@ T4) only names "add/remove/edit AM/PM steps," never reordering. The professional
 editor hides reorder controls rather than wiring them to a nonexistent endpoint (a real,
 correctly-scoped UI decision, not a silently broken feature).
 
+**Same category, a second instance:** the phase spec's T3 bullet also names "a selector
+to compare any two tagged photos," but the graded rubric itself
+(`milestone_3_Master_prompt.md`) only says "side-by-side **Baseline vs Current** photos" —
+no selector requirement. `PhotoComparison` was built as the server-computed Baseline/
+Current pair only, no selector, which matches the actual graded wording rather than the
+phase spec's elaboration of it — the same defensible phase-spec-vs-graded-rubric
+simplification as the reorder omission above, just not documented until this review.
+
 These two gaps (photo comparison, routine-overwrite) were the last blockers on Step 5's
 E2E walkthrough — P6 can now build the full assessment→recs→check-off→photo→derm
 inspects+edits→user sees live update spec.
