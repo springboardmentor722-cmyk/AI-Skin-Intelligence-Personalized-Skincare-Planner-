@@ -1,0 +1,27 @@
+# Minimum-version floors (not exact pins) so pip can select versions with
+# prebuilt wheels for your Python version (3.11 – 3.14+). Exact pins caused
+# source builds (Rust/C compilers) on newer Pythons like 3.14.
+fastapi>=0.115
+uvicorn[standard]>=0.32
+sqlalchemy>=2.0.36
+pydantic>=2.10
+pydantic-settings>=2.7
+email-validator>=2.2
+PyJWT>=2.10
+python-multipart>=0.0.20
+pymongo>=4.10
+
+# PostgreSQL driver — only needed if you switch DATABASE_URL away from SQLite.
+# Install separately when needed: pip install psycopg2-binary
+
+# --- Milestone 2: assessment, scoring & routine engines ---
+numpy>=1.26
+pandas>=2.1
+scikit-learn>=1.4
+pytest>=8.0
+httpx>=0.27
+
+# --- Milestone 3, Parts 4-8: AI skin analysis (computer vision) ---
+opencv-python>=4.8,<5.0
+onnxruntime>=1.17
+Pillow>=10.0

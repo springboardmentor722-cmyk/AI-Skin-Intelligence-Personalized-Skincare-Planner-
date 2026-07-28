@@ -1,0 +1,500 @@
+"""Comprehensive product catalogue — Milestone 3, Part 1.
+
+A curated, multi-brand starter catalogue. Each product lists its real hero
+ingredients (which link to the ingredient knowledge base, so skin-type / concern
+compatibility and ingredient benefits are auto-derived), plus explicit
+usage timing, warnings and contraindications.
+
+Ratings/review counts are representative placeholders (clearly sourced as
+"seed"); real values flow in via app/import_dataset.py when a licensed dataset
+is supplied. Brands span budget to premium across the major reputable ranges so
+the catalogue is broad enough for realistic search, filtering and recommendation.
+
+Tuple:
+  name, brand, category, price(INR), tier, description,
+  key_ingredients (link to KB), usage_time (AM|PM|both),
+  warnings, contraindications, image_url, rating, review_count
+"""
+
+# category vocabulary: cleanser, toner, serum, moisturizer, sunscreen,
+# exfoliant, treatment, mask, eye care, oil
+
+PRODUCT_CATALOG: list[tuple] = [
+    # ======================================================================
+    # EXTENDED BRAND COVERAGE (Part 1 expansion)
+    # Additional reputable ranges named in the spec — The Inkey List, Simple,
+    # Vanicream, Anua, Isntree, Round Lab, Axis-Y, Skin1004, Some By Mi — plus
+    # extra hero products for existing brands. Every key ingredient below links
+    # to the ingredient knowledge base, so skin-type/concern compatibility and
+    # ingredient benefits are auto-derived at seed time.
+    # ======================================================================
+
+    # ---- The Inkey List ---------------------------------------------------
+    ("Niacinamide Serum", "The Inkey List", "serum", 700, "budget",
+     "A 10% niacinamide serum to balance oil and calm blemish-prone skin.",
+     ["Niacinamide", "Hyaluronic Acid"], "both",
+     "Introduce slowly if layering other actives.", None,
+     "https://images.lumen.example/inkey-niacinamide.jpg", 4.3, 9600),
+    ("Hyaluronic Acid Serum", "The Inkey List", "serum", 750, "budget",
+     "Multi-molecular-weight hyaluronic acid for plumping surface hydration.",
+     ["Hyaluronic Acid", "Panthenol"], "both",
+     "Apply to damp skin, then seal with moisturiser.", None,
+     "https://images.lumen.example/inkey-ha.jpg", 4.4, 11200),
+    ("Retinol Eye Cream", "The Inkey List", "eye care", 950, "premium",
+     "A gentle retinol and peptide eye cream for fine lines and crepiness.",
+     ["Retinol", "Peptides"], "PM",
+     "For the eye area only; introduce 2x per week.", "Avoid during pregnancy.",
+     "https://images.lumen.example/inkey-retinol-eye.jpg", 4.1, 5400),
+    ("Beta Hydroxy Acid Exfoliant", "The Inkey List", "exfoliant", 800, "budget",
+     "A 2% salicylic acid liquid that decongests pores and smooths texture.",
+     ["Salicylic Acid"], "PM",
+     "Start 2-3x per week; always follow with SPF the next day.",
+     "Not for broken or eczema-prone skin.",
+     "https://images.lumen.example/inkey-bha.jpg", 4.2, 7300),
+
+    # ---- Simple -----------------------------------------------------------
+    ("Kind to Skin Refreshing Facial Wash", "Simple", "cleanser", 499, "budget",
+     "A fragrance-free gel wash for sensitive skin with no harsh chemicals.",
+     ["Glycerin", "Panthenol"], "both",
+     None, None,
+     "https://images.lumen.example/simple-wash.jpg", 4.4, 16800),
+    ("Kind to Skin Hydrating Light Moisturiser", "Simple", "moisturizer", 599, "budget",
+     "A light day moisturiser for sensitive skin with provitamin B5.",
+     ["Glycerin", "Panthenol", "Hyaluronic Acid"], "both",
+     None, None,
+     "https://images.lumen.example/simple-moist.jpg", 4.3, 12400),
+    ("Booster Serum 3% Hyaluronic Acid + B5", "Simple", "serum", 649, "budget",
+     "A soothing hydration booster for tired, dehydrated sensitive skin.",
+     ["Hyaluronic Acid", "Panthenol"], "both",
+     None, None,
+     "https://images.lumen.example/simple-booster.jpg", 4.2, 6100),
+
+    # ---- Vanicream --------------------------------------------------------
+    ("Gentle Facial Cleanser", "Vanicream", "cleanser", 1150, "budget",
+     "A non-foaming, fragrance-free cleanser for reactive, barrier-compromised skin.",
+     ["Glycerin", "Squalane"], "both",
+     None, None,
+     "https://images.lumen.example/vanicream-cleanser.jpg", 4.6, 14700),
+    ("Moisturizing Cream", "Vanicream", "moisturizer", 1350, "budget",
+     "A rich, fragrance-free cream for very dry and eczema-prone skin.",
+     ["Ceramides", "Glycerin", "Squalane"], "both",
+     None, None,
+     "https://images.lumen.example/vanicream-cream.jpg", 4.7, 21300),
+    ("Daily Facial Moisturizer SPF 30", "Vanicream", "sunscreen", 1450, "premium",
+     "A mineral daily moisturiser with SPF for sensitive skin.",
+     ["Zinc Oxide", "Glycerin"], "AM",
+     "Reapply every two hours in direct sun.", None,
+     "https://images.lumen.example/vanicream-spf.jpg", 4.4, 8900),
+
+    # ---- Anua -------------------------------------------------------------
+    ("Heartleaf 77% Soothing Toner", "Anua", "toner", 1490, "premium",
+     "A lightweight calming toner with heartleaf extract for redness-prone skin.",
+     ["Centella Asiatica", "Panthenol"], "both",
+     None, None,
+     "https://images.lumen.example/anua-heartleaf-toner.jpg", 4.6, 23400),
+    ("Heartleaf Pore Control Cleansing Oil", "Anua", "oil", 1690, "premium",
+     "A gentle cleansing oil that melts sunscreen and sebum without stripping.",
+     ["Jojoba Oil", "Green Tea Extract"], "PM",
+     "Massage onto dry skin, then emulsify and rinse.", None,
+     "https://images.lumen.example/anua-cleansing-oil.jpg", 4.5, 15600),
+    ("Niacinamide 10% + TXA 4% Serum", "Anua", "serum", 1790, "premium",
+     "A brightening serum pairing niacinamide with tranexamic acid for dark spots.",
+     ["Niacinamide", "Tranexamic Acid"], "both",
+     "Introduce slowly; can tingle on very sensitive skin.", None,
+     "https://images.lumen.example/anua-niacinamide-txa.jpg", 4.4, 9200),
+
+    # ---- Isntree ----------------------------------------------------------
+    ("Hyaluronic Acid Toner", "Isntree", "toner", 1590, "premium",
+     "A deeply hydrating toner with eight types of hyaluronic acid.",
+     ["Hyaluronic Acid", "Panthenol"], "both",
+     None, None,
+     "https://images.lumen.example/isntree-ha-toner.jpg", 4.5, 13800),
+    ("Hyaluronic Acid Watery Sun Gel SPF50+", "Isntree", "sunscreen", 1890, "premium",
+     "A lightweight chemical sunscreen with a watery, non-greasy finish.",
+     ["Tinosorb S", "Hyaluronic Acid"], "AM",
+     "Reapply every two hours during sun exposure.", None,
+     "https://images.lumen.example/isntree-sun-gel.jpg", 4.6, 18100),
+    ("Green Tea Fresh Cleanser", "Isntree", "cleanser", 1290, "budget",
+     "A low-pH gel cleanser with green tea for oily, blemish-prone skin.",
+     ["Green Tea Extract", "Salicylic Acid"], "both",
+     None, None,
+     "https://images.lumen.example/isntree-greentea.jpg", 4.3, 7600),
+
+    # ---- Round Lab --------------------------------------------------------
+    ("1025 Dokdo Toner", "Round Lab", "toner", 1690, "premium",
+     "A mineral-rich hydrating toner that gently exfoliates and soothes.",
+     ["Panthenol", "Glycerin"], "both",
+     None, None,
+     "https://images.lumen.example/roundlab-dokdo-toner.jpg", 4.5, 16900),
+    ("Birch Juice Moisturizing Sunscreen SPF50+", "Round Lab", "sunscreen", 1990, "premium",
+     "A hydrating daily sunscreen with birch sap for a comfortable finish.",
+     ["Tinosorb S", "Panthenol"], "AM",
+     "Reapply every two hours in direct sun.", None,
+     "https://images.lumen.example/roundlab-birch-spf.jpg", 4.6, 20400),
+    ("Soybean Nourishing Cleansing Foam", "Round Lab", "cleanser", 1390, "budget",
+     "A creamy soybean cleanser for normal-to-dry skin that leaves it soft.",
+     ["Glycerin", "Panthenol"], "both",
+     None, None,
+     "https://images.lumen.example/roundlab-soybean.jpg", 4.4, 8300),
+
+    # ---- Axis-Y -----------------------------------------------------------
+    ("Dark Spot Correcting Glow Serum", "Axis-Y", "serum", 1790, "premium",
+     "A brightening serum with niacinamide and squalane for uneven tone.",
+     ["Niacinamide", "Squalane"], "both",
+     None, None,
+     "https://images.lumen.example/axisy-glow-serum.jpg", 4.4, 12700),
+    ("Daily Purifying Treatment Toner", "Axis-Y", "toner", 1490, "premium",
+     "A gentle exfoliating toner with PHA and centella for smoother skin.",
+     ["Polyhydroxy Acid", "Centella Asiatica"], "both",
+     "Introduce gradually if new to exfoliating acids.", None,
+     "https://images.lumen.example/axisy-toner.jpg", 4.3, 6800),
+
+    # ---- Skin1004 ---------------------------------------------------------
+    ("Madagascar Centella Ampoule", "Skin1004", "serum", 1690, "premium",
+     "A single-ingredient centella ampoule to calm irritation and redness.",
+     ["Centella Asiatica", "Madecassoside"], "both",
+     None, None,
+     "https://images.lumen.example/skin1004-centella-ampoule.jpg", 4.6, 24800),
+    ("Centella Air-Fit Suncream SPF50+", "Skin1004", "sunscreen", 1890, "premium",
+     "A lightweight centella sunscreen with a soft, non-white-cast finish.",
+     ["Centella Asiatica", "Tinosorb S"], "AM",
+     "Reapply every two hours during sun exposure.", None,
+     "https://images.lumen.example/skin1004-suncream.jpg", 4.5, 15200),
+    ("Centella Tone Brightening Capsule Ampoule", "Skin1004", "serum", 1990, "premium",
+     "A brightening centella ampoule with niacinamide capsules for glow.",
+     ["Centella Asiatica", "Niacinamide"], "both",
+     None, None,
+     "https://images.lumen.example/skin1004-brightening.jpg", 4.4, 8100),
+
+    # ---- Some By Mi -------------------------------------------------------
+    ("AHA BHA PHA 30 Days Miracle Toner", "Some By Mi", "toner", 1590, "premium",
+     "A gentle multi-acid toner for congested, blemish-prone skin.",
+     ["Lactic Acid", "Salicylic Acid", "Centella Asiatica"], "PM",
+     "Start 2-3x per week; always follow with SPF the next day.",
+     "Avoid layering with retinoids on the same night.",
+     "https://images.lumen.example/somebymi-miracle-toner.jpg", 4.3, 19700),
+    ("Snail Truecica Miracle Repair Serum", "Some By Mi", "serum", 1890, "premium",
+     "A reparative serum with snail mucin and centella for stressed skin.",
+     ["Snail Mucin", "Madecassoside"], "both",
+     None, None,
+     "https://images.lumen.example/somebymi-snail-serum.jpg", 4.4, 11300),
+    ("Yuja Niacin 30 Days Brightening Serum", "Some By Mi", "serum", 1790, "premium",
+     "A vitamin-C-and-niacinamide serum targeting dullness and dark spots.",
+     ["Vitamin C", "Niacinamide"], "AM",
+     "Follow with SPF; store away from direct light.", None,
+     "https://images.lumen.example/somebymi-yuja.jpg", 4.3, 9400),
+
+    # ---- Bioderma (extra) -------------------------------------------------
+    ("Sébium Gel Moussant Cleanser", "Bioderma", "cleanser", 1250, "premium",
+     "A purifying gel cleanser for combination-to-oily, blemish-prone skin.",
+     ["Zinc PCA", "Glycerin"], "both",
+     None, None,
+     "https://images.lumen.example/bioderma-sebium.jpg", 4.5, 13600),
+
+    # ---- COSRX (extra) ----------------------------------------------------
+    ("Advanced Snail 96 Mucin Power Essence", "COSRX", "serum", 1490, "premium",
+     "A lightweight snail mucin essence for repair and lasting hydration.",
+     ["Snail Mucin", "Panthenol"], "both",
+     None, None,
+     "https://images.lumen.example/cosrx-snail-essence.jpg", 4.6, 51200),
+
+    # ---- Beauty of Joseon (extra) -----------------------------------------
+    ("Ginseng Essence Water", "Beauty of Joseon", "toner", 1490, "premium",
+     "A hydrating ginseng essence that plumps and preps the skin.",
+     ["Panthenol", "Niacinamide"], "both",
+     None, None,
+     "https://images.lumen.example/boj-ginseng-essence.jpg", 4.5, 21600),
+
+    # ---- The Ordinary (DECIEM) --------------------------------------------
+    ("Niacinamide 10% + Zinc 1%", "The Ordinary", "serum", 650, "budget",
+     "High-strength vitamin B3 and zinc serum to reduce shine and congestion.",
+     ["Niacinamide", "Zinc PCA"], "both",
+     "May pill under heavier creams; introduce slowly.", "Avoid layering with pure vitamin C.",
+     "https://images.lumen.example/ordinary-niacinamide.jpg", 4.4, 18200),
+    ("Hyaluronic Acid 2% + B5", "The Ordinary", "serum", 700, "budget",
+     "Multi-weight hyaluronic acid with provitamin B5 for layered hydration.",
+     ["Hyaluronic Acid", "Panthenol"], "both",
+     "Apply to damp skin and seal with moisturiser.", None,
+     "https://images.lumen.example/ordinary-ha.jpg", 4.3, 15400),
+    ("Salicylic Acid 2% Solution", "The Ordinary", "exfoliant", 750, "budget",
+     "Leave-on BHA that clears pores and smooths rough, congested skin.",
+     ["Salicylic Acid"], "PM",
+     "Can dry the skin; start 2-3x per week.", "Not for broken or eczema-prone skin.",
+     "https://images.lumen.example/ordinary-bha.jpg", 4.2, 12900),
+    ("Retinol 0.5% in Squalane", "The Ordinary", "serum", 890, "premium",
+     "Moderate-strength retinol suspended in soothing squalane.",
+     ["Retinol", "Squalane"], "PM",
+     "Causes purging and sun sensitivity; build up slowly.", "Avoid during pregnancy and breastfeeding.",
+     "https://images.lumen.example/ordinary-retinol.jpg", 4.3, 9800),
+    ("Alpha Arbutin 2% + HA", "The Ordinary", "serum", 780, "budget",
+     "Concentrated brightening serum targeting uneven tone and dark spots.",
+     ["Alpha Arbutin", "Hyaluronic Acid"], "both",
+     None, None,
+     "https://images.lumen.example/ordinary-arbutin.jpg", 4.2, 8700),
+    ("Azelaic Acid Suspension 10%", "The Ordinary", "treatment", 820, "budget",
+     "A brightening, calming cream-gel for redness, bumps and marks.",
+     ["Azelaic Acid"], "both",
+     "Mild tingling is normal in the first week.", None,
+     "https://images.lumen.example/ordinary-azelaic.jpg", 4.3, 11100),
+
+    # ---- CeraVe (L'Oreal) --------------------------------------------------
+    ("Foaming Facial Cleanser", "CeraVe", "cleanser", 999, "budget",
+     "A gel cleanser with ceramides that removes oil without stripping.",
+     ["Ceramides", "Niacinamide", "Hyaluronic Acid"], "both",
+     None, None,
+     "https://images.lumen.example/cerave-foaming.jpg", 4.6, 42000),
+    ("Hydrating Facial Cleanser", "CeraVe", "cleanser", 999, "budget",
+     "A non-foaming cream cleanser for normal-to-dry and sensitive skin.",
+     ["Ceramides", "Hyaluronic Acid", "Glycerin"], "both",
+     None, None,
+     "https://images.lumen.example/cerave-hydrating.jpg", 4.7, 51000),
+    ("Moisturising Lotion", "CeraVe", "moisturizer", 1199, "budget",
+     "A lightweight ceramide lotion for all-day barrier hydration.",
+     ["Ceramides", "Hyaluronic Acid"], "both",
+     None, None,
+     "https://images.lumen.example/cerave-lotion.jpg", 4.6, 33000),
+    ("PM Facial Moisturising Lotion", "CeraVe", "moisturizer", 1299, "budget",
+     "A night moisturiser with niacinamide and ceramides.",
+     ["Ceramides", "Niacinamide", "Hyaluronic Acid"], "PM",
+     None, None,
+     "https://images.lumen.example/cerave-pm.jpg", 4.6, 21000),
+
+    # ---- La Roche-Posay (L'Oreal) -----------------------------------------
+    ("Effaclar Duo+", "La Roche-Posay", "treatment", 1690, "premium",
+     "A targeted treatment for blemishes, marks and congestion.",
+     ["Niacinamide", "Salicylic Acid", "Zinc PCA"], "both",
+     "Introduce gradually alongside other actives.", None,
+     "https://images.lumen.example/lrp-effaclar.jpg", 4.4, 19800),
+    ("Cicaplast Baume B5", "La Roche-Posay", "moisturizer", 1350, "premium",
+     "A soothing repair balm for dry, irritated or compromised skin.",
+     ["Panthenol", "Glycerin", "Madecassoside"], "both",
+     None, None,
+     "https://images.lumen.example/lrp-cicaplast.jpg", 4.7, 26500),
+    ("Anthelios UVMune 400 SPF50+", "La Roche-Posay", "sunscreen", 2100, "premium",
+     "A broad-spectrum, high-UVA sunscreen for daily protection.",
+     ["Tinosorb S"], "AM",
+     "Reapply every two hours in strong sun.", None,
+     "https://images.lumen.example/lrp-anthelios.jpg", 4.6, 30200),
+    ("Toleriane Sensitive Fluide", "La Roche-Posay", "moisturizer", 1450, "premium",
+     "A fragrance-free daily fluid for sensitive, reactive skin.",
+     ["Ceramides", "Glycerin", "Niacinamide"], "both",
+     None, None,
+     "https://images.lumen.example/lrp-toleriane.jpg", 4.5, 14300),
+
+    # ---- Paula's Choice ----------------------------------------------------
+    ("Skin Perfecting 2% BHA Liquid", "Paula's Choice", "exfoliant", 2900, "premium",
+     "An iconic leave-on BHA exfoliant for pores, blackheads and texture.",
+     ["Salicylic Acid", "Green Tea Extract"], "PM",
+     "Start 2-3x per week; always follow with SPF.", "Not for broken skin.",
+     "https://images.lumen.example/pc-bha.jpg", 4.5, 28000),
+    ("10% Niacinamide Booster", "Paula's Choice", "serum", 3200, "premium",
+     "A concentrated pore-refining and oil-balancing booster.",
+     ["Niacinamide", "Vitamin C"], "both",
+     None, None,
+     "https://images.lumen.example/pc-niacinamide.jpg", 4.4, 9600),
+    ("C15 Super Booster", "Paula's Choice", "serum", 4200, "premium",
+     "A stabilised 15% vitamin C serum with ferulic acid and vitamin E.",
+     ["Vitamin C", "Ferulic Acid", "Vitamin E"], "AM",
+     "May tingle on first use; store away from light.", None,
+     "https://images.lumen.example/pc-c15.jpg", 4.4, 8100),
+
+    # ---- Minimalist (India) -----------------------------------------------
+    ("Niacinamide 10% Face Serum", "Minimalist", "serum", 599, "budget",
+     "An oil-control and blemish-marks serum with zinc.",
+     ["Niacinamide", "Zinc PCA"], "both",
+     None, None,
+     "https://images.lumen.example/minimalist-niacinamide.jpg", 4.3, 22000),
+    ("Salicylic Acid 2% Serum", "Minimalist", "exfoliant", 549, "budget",
+     "A gentle BHA serum for active acne and clogged pores.",
+     ["Salicylic Acid", "Hyaluronic Acid"], "PM",
+     "Introduce slowly with SPF.", "Avoid on broken skin.",
+     "https://images.lumen.example/minimalist-bha.jpg", 4.2, 16500),
+    ("Vitamin C 10% Face Serum", "Minimalist", "serum", 699, "budget",
+     "A stabilised vitamin C serum for brightness and even tone.",
+     ["Vitamin C", "Ferulic Acid"], "AM",
+     "Store cool and dark; may oxidise over time.", None,
+     "https://images.lumen.example/minimalist-vitc.jpg", 4.2, 14000),
+    ("Marula Oil 100%", "Minimalist", "oil", 549, "budget",
+     "A lightweight nourishing facial oil for dry skin.",
+     ["Squalane", "Vitamin E"], "PM",
+     None, None,
+     "https://images.lumen.example/minimalist-marula.jpg", 4.1, 5400),
+
+    # ---- Cetaphil (Galderma) ----------------------------------------------
+    ("Gentle Skin Cleanser", "Cetaphil", "cleanser", 899, "budget",
+     "A classic non-foaming cleanser for sensitive and dry skin.",
+     ["Glycerin", "Panthenol"], "both",
+     None, None,
+     "https://images.lumen.example/cetaphil-gentle.jpg", 4.5, 39000),
+    ("Moisturising Cream", "Cetaphil", "moisturizer", 1150, "budget",
+     "A rich barrier cream for very dry, sensitive skin.",
+     ["Glycerin", "Shea Butter", "Panthenol"], "both",
+     None, "Very rich — may feel heavy on oily skin.",
+     "https://images.lumen.example/cetaphil-cream.jpg", 4.5, 24500),
+
+    # ---- Neutrogena (J&J) --------------------------------------------------
+    ("Hydro Boost Water Gel", "Neutrogena", "moisturizer", 1099, "budget",
+     "An oil-free gel moisturiser for lightweight hydration.",
+     ["Hyaluronic Acid", "Glycerin"], "both",
+     None, None,
+     "https://images.lumen.example/neutrogena-hydroboost.jpg", 4.4, 41000),
+    ("Ultra Sheer SPF50+", "Neutrogena", "sunscreen", 699, "budget",
+     "A lightweight daily sunscreen with a dry-touch finish.",
+     ["Titanium Dioxide"], "AM",
+     "Reapply through the day.", None,
+     "https://images.lumen.example/neutrogena-ultrasheer.jpg", 4.2, 27000),
+
+    # ---- COSRX (Korea) -----------------------------------------------------
+    ("Advanced Snail 96 Mucin Essence", "COSRX", "serum", 1490, "premium",
+     "A repairing, hydrating essence rich in snail secretion.",
+     ["Snail Mucin", "Hyaluronic Acid"], "both",
+     "Patch-test if you have not used snail mucin before.", None,
+     "https://images.lumen.example/cosrx-snail.jpg", 4.5, 33000),
+    ("Low pH Good Morning Cleanser", "COSRX", "cleanser", 890, "budget",
+     "A gentle low-pH gel cleanser with tea tree and BHA.",
+     ["Salicylic Acid", "Tea Tree Oil"], "both",
+     None, "Avoid contact with eyes.",
+     "https://images.lumen.example/cosrx-lowph.jpg", 4.4, 20000),
+    ("Centella Blemish Ampoule", "COSRX", "treatment", 1650, "premium",
+     "A soothing ampoule for blemish-prone, reactive skin.",
+     ["Centella Asiatica", "Madecassoside"], "both",
+     None, None,
+     "https://images.lumen.example/cosrx-centella.jpg", 4.4, 12000),
+
+    # ---- Beauty of Joseon (Korea) -----------------------------------------
+    ("Relief Sun Rice + Probiotics SPF50+", "Beauty of Joseon", "sunscreen", 1290, "premium",
+     "A cosmetically elegant chemical sunscreen with a dewy finish.",
+     ["Tinosorb S", "Rosehip Oil"], "AM",
+     "Reapply every two hours outdoors.", None,
+     "https://images.lumen.example/boj-sun.jpg", 4.7, 22000),
+    ("Glow Deep Serum Rice + Alpha Arbutin", "Beauty of Joseon", "serum", 1390, "premium",
+     "A brightening serum with rice extract and alpha arbutin.",
+     ["Alpha Arbutin", "Niacinamide"], "both",
+     None, None,
+     "https://images.lumen.example/boj-glow.jpg", 4.5, 15000),
+
+    # ---- Bioderma ----------------------------------------------------------
+    ("Sensibio H2O Micellar Water", "Bioderma", "cleanser", 1350, "premium",
+     "A micellar cleansing water for sensitive skin and gentle makeup removal.",
+     ["Glycerin"], "both",
+     None, None,
+     "https://images.lumen.example/bioderma-sensibio.jpg", 4.6, 36000),
+
+    # ---- Aveeno (J&J) ------------------------------------------------------
+    ("Calm + Restore Oat Gel Moisturiser", "Aveeno", "moisturizer", 1250, "budget",
+     "A soothing oat-based gel for sensitive, easily-irritated skin.",
+     ["Colloidal Oatmeal", "Ceramides", "Glycerin"], "both",
+     None, None,
+     "https://images.lumen.example/aveeno-calm.jpg", 4.4, 11800),
+
+    # ---- Eucerin (Beiersdorf) ---------------------------------------------
+    ("Hyaluron-Filler Night Cream", "Eucerin", "moisturizer", 2200, "premium",
+     "An anti-ageing night cream with hyaluronic acid and peptides.",
+     ["Hyaluronic Acid", "Peptides", "Glycerin"], "PM",
+     None, None,
+     "https://images.lumen.example/eucerin-hyaluron.jpg", 4.4, 8600),
+
+    # ---- Olay (P&G) --------------------------------------------------------
+    ("Regenerist Retinol24 Night Serum", "Olay", "serum", 2490, "premium",
+     "A niacinamide and retinol serum for overnight renewal.",
+     ["Retinol", "Niacinamide"], "PM",
+     "Introduce slowly; always wear SPF the next day.", "Avoid during pregnancy.",
+     "https://images.lumen.example/olay-retinol24.jpg", 4.3, 13500),
+
+    # ---- Dr. Sheth's (India) ----------------------------------------------
+    ("Cica & Ceramide Overnight Repair", "Dr. Sheth's", "moisturizer", 799, "budget",
+     "A barrier-repair night cream with cica and ceramides.",
+     ["Centella Asiatica", "Ceramides", "Squalane"], "PM",
+     None, None,
+     "https://images.lumen.example/drsheths-cica.jpg", 4.2, 6800),
+    ("Haldi & Hyaluronic Sunscreen SPF50", "Dr. Sheth's", "sunscreen", 699, "budget",
+     "A lightweight hydrating sunscreen with no white cast.",
+     ["Hyaluronic Acid", "Titanium Dioxide"], "AM",
+     "Reapply outdoors.", None,
+     "https://images.lumen.example/drsheths-sunscreen.jpg", 4.1, 9200),
+
+    # ---- Plum (India) ------------------------------------------------------
+    ("15% Vitamin C Serum", "Plum", "serum", 649, "budget",
+     "A brightening vitamin C serum with mandelic acid.",
+     ["Vitamin C", "Mandelic Acid"], "AM",
+     "May tingle; store cool.", None,
+     "https://images.lumen.example/plum-vitc.jpg", 4.1, 10400),
+    ("2% Salicylic Acid + LHA", "Plum", "exfoliant", 575, "budget",
+     "A liquid exfoliant for oily, acne-prone skin.",
+     ["Salicylic Acid"], "PM",
+     "Follow with SPF.", "Avoid on broken skin.",
+     "https://images.lumen.example/plum-bha.jpg", 4.0, 7300),
+
+    # ---- The Derma Co (India) ---------------------------------------------
+    ("1% Hyaluronic Sunscreen Aqua Gel SPF50", "The Derma Co", "sunscreen", 449, "budget",
+     "A gel sunscreen with hyaluronic acid for a weightless finish.",
+     ["Hyaluronic Acid", "Titanium Dioxide"], "AM",
+     "Reapply outdoors.", None,
+     "https://images.lumen.example/dermaco-sunscreen.jpg", 4.1, 15800),
+    ("2% Kojic Acid Face Serum", "The Derma Co", "serum", 599, "budget",
+     "A pigmentation-targeting serum with kojic and tranexamic acid.",
+     ["Kojic Acid", "Tranexamic Acid", "Niacinamide"], "both",
+     "Can sensitise; patch-test first.", None,
+     "https://images.lumen.example/dermaco-kojic.jpg", 4.0, 8900),
+
+    # ---- First Aid Beauty --------------------------------------------------
+    ("Ultra Repair Cream", "First Aid Beauty", "moisturizer", 2400, "premium",
+     "An intensive rich cream for dry, distressed skin.",
+     ["Colloidal Oatmeal", "Ceramides", "Shea Butter"], "both",
+     None, "Rich texture — may be heavy for oily skin.",
+     "https://images.lumen.example/fab-ultrarepair.jpg", 4.5, 17600),
+
+    # ---- Kiehl's (L'Oreal) -------------------------------------------------
+    ("Ultra Facial Cream", "Kiehl's", "moisturizer", 2650, "premium",
+     "A daily moisturiser with squalane for balanced 24-hour hydration.",
+     ["Squalane", "Glycerin"], "both",
+     None, None,
+     "https://images.lumen.example/kiehls-ultrafacial.jpg", 4.5, 20400),
+
+    # ---- Innisfree (Korea) -------------------------------------------------
+    ("Green Tea Seed Hyaluronic Serum", "Innisfree", "serum", 1490, "premium",
+     "An antioxidant-rich hydrating serum with green tea.",
+     ["Green Tea Extract", "Hyaluronic Acid"], "both",
+     None, None,
+     "https://images.lumen.example/innisfree-greentea.jpg", 4.3, 18700),
+    ("Volcanic Pore Clay Mask", "Innisfree", "mask", 1150, "budget",
+     "A purifying clay mask for oily, congested skin.",
+     ["Clay (Kaolin)", "Charcoal"], "both",
+     "Use 1-2x per week; do not let it fully dry out.", None,
+     "https://images.lumen.example/innisfree-clay.jpg", 4.3, 21500),
+
+    # ---- Good Molecules ----------------------------------------------------
+    ("Discoloration Correcting Serum", "Good Molecules", "serum", 950, "budget",
+     "A gentle brightening serum with tranexamic and niacinamide.",
+     ["Tranexamic Acid", "Niacinamide"], "both",
+     None, None,
+     "https://images.lumen.example/gm-discoloration.jpg", 4.3, 12100),
+
+    # ---- Foxtale (India) ---------------------------------------------------
+    ("Dewy Drops Vitamin C Serum", "Foxtale", "serum", 645, "budget",
+     "A stabilised vitamin C and ferulic serum for glow.",
+     ["Vitamin C", "Ferulic Acid", "Vitamin E"], "AM",
+     "Store cool and dark.", None,
+     "https://images.lumen.example/foxtale-vitc.jpg", 4.2, 7600),
+
+    # ---- Pilgrim (India) ---------------------------------------------------
+    ("Retinol Night Serum", "Pilgrim", "serum", 695, "budget",
+     "A beginner-friendly encapsulated retinol serum.",
+     ["Retinol", "Bakuchiol"], "PM",
+     "Start twice weekly; wear SPF daily.", "Avoid during pregnancy.",
+     "https://images.lumen.example/pilgrim-retinol.jpg", 4.0, 6200),
+
+    # ---- Eye care ----------------------------------------------------------
+    ("Caffeine Solution 5% + EGCG", "The Ordinary", "eye care", 780, "budget",
+     "A lightweight eye serum for puffiness and dark circles.",
+     ["Caffeine", "Green Tea Extract"], "both",
+     None, None,
+     "https://images.lumen.example/ordinary-caffeine.jpg", 4.1, 19400),
+
+    # ---- Toner -------------------------------------------------------------
+    ("Glow Tonic Exfoliating Toner", "Pixi", "toner", 1990, "premium",
+     "A gentle glycolic-acid toner for daily radiance.",
+     ["Glycolic Acid", "Aloe Vera"], "both",
+     "Build up gradually; follow with SPF.", "Not for very sensitive skin.",
+     "https://images.lumen.example/pixi-glow.jpg", 4.4, 29000),
+]
