@@ -40,6 +40,23 @@ export function getScoreBand(value: number): { label: ScoreBandLabel; colorVar: 
   return { label: band.label, colorVar: band.colorVar };
 }
 
+/**
+ * `GET /analytics/me`'s `score_vs_adherence` series has one point per day a
+ * score was actually computed — gaps are normal for a user who doesn't check
+ * in daily, so slicing the last N *entries* ("last 7 points") can silently
+ * span far more than N *calendar* days once the data is sparse. The
+ * dashboard's range switcher promises a literal "7/30/90 days" window
+ * (M3R_API_CONTRACT.md §4), so this filters by actual calendar distance
+ * instead. Uses the latest point's own date as "today" rather than the real
+ * current date, since historical/seed data may not include today.
+ */
+export function windowByCalendarDays<T extends { date: string }>(points: T[], days: number): T[] {
+  if (points.length === 0) return [];
+  const cutoff = new Date(points[points.length - 1].date);
+  cutoff.setDate(cutoff.getDate() - days);
+  return points.filter((p) => new Date(p.date) > cutoff);
+}
+
 export const SCORE_COMPONENTS: {
   key: keyof Pick<
     ScoreRead,

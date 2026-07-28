@@ -27,7 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
 import { useToggleRoutineStep } from "@/lib/hooks/use-toggle-routine-step";
-import { HYDRATION_BENCHMARK_LITERS } from "@/lib/score-components";
+import { HYDRATION_BENCHMARK_LITERS, windowByCalendarDays } from "@/lib/score-components";
 import { computePercent } from "@/lib/utils";
 import { retryFor, widgetStateFor } from "@/lib/widget-state";
 
@@ -152,8 +152,7 @@ export default function UserDashboardPage() {
 
   const chartPoints = useMemo(() => {
     const points = analyticsQuery.data?.score_vs_adherence ?? [];
-    const days = Number(trendRange);
-    return points.slice(-days).map((p) => ({
+    return windowByCalendarDays(points, Number(trendRange)).map((p) => ({
       date: p.date,
       score: p.overall_score,
       adherence: p.adherence_ratio,

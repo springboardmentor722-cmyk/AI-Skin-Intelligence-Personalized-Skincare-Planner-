@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 import {
   CategoryScale,
   Chart as ChartJS,
@@ -11,9 +11,7 @@ import {
   Tooltip,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
-import { useTheme } from "next-themes";
 
-import { usePalette } from "@/components/providers/palette-provider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WidgetEmpty, WidgetError, type WidgetStateProps } from "@/components/dashboard/widget-states";
@@ -45,30 +43,35 @@ const FALLBACK_COLORS = {
 // as plain CSS <color> strings with no cascade — it does not resolve `var()`
 // the way components/ui/chart.tsx's Recharts SVG output does (SVG presentation
 // attributes/styles go through normal DOM style resolution). Read the actual
-// token values from the cascade instead. Computed in render (not an effect)
-// so there's no setState-after-mount cascade. Two independent things force a
-// re-read: `resolvedTheme` (next-themes' light/dark mode, re-renders every
-// `useTheme()` consumer on toggle) AND `palette` (the 8 accent palettes —
-// components/providers/palette-provider.tsx's separate PaletteContext, driven
-// by a `data-palette` attribute, NOT by next-themes; globals.css's
-// `[data-palette="emerald"]` etc. blocks redefine --secondary/--tertiary
-// independent of `.dark`). Dropping either dependency leaves the chart
-// painting stale colors after that one axis changes without the other.
+// token values from the cascade and re-read whenever they can change: light/
+// dark mode (next-themes toggles `class="dark"` on <html>, but in its OWN
+// effect that commits AFTER this component's render — a `useMemo` keyed on
+// `resolvedTheme` recomputes one commit too early and reads the stale class)
+// and the 8 accent palettes (components/providers/palette-provider.tsx's
+// `data-palette` attribute, applied synchronously). A MutationObserver on
+// <html>'s `class`/`data-palette` handles both axes correctly with one
+// mechanism, instead of chasing two different re-render timings.
 function useThemeColors() {
-  const { resolvedTheme } = useTheme();
-  const { palette } = usePalette();
-  return useMemo(() => {
-    if (typeof document === "undefined") return FALLBACK_COLORS;
-    const style = getComputedStyle(document.documentElement);
-    const read = (name: string, fallback: string) => style.getPropertyValue(name).trim() || fallback;
-    return {
-      secondary: read("--secondary", FALLBACK_COLORS.secondary),
-      tertiary: read("--tertiary", FALLBACK_COLORS.tertiary),
-      mutedForeground: read("--muted-foreground", FALLBACK_COLORS.mutedForeground),
-      border: read("--border", FALLBACK_COLORS.border),
+  const [colors, setColors] = useState(FALLBACK_COLORS);
+
+  useEffect(() => {
+    const read = () => {
+      const style = getComputedStyle(document.documentElement);
+      const get = (name: string, fallback: string) => style.getPropertyValue(name).trim() || fallback;
+      setColors({
+        secondary: get("--secondary", FALLBACK_COLORS.secondary),
+        tertiary: get("--tertiary", FALLBACK_COLORS.tertiary),
+        mutedForeground: get("--muted-foreground", FALLBACK_COLORS.mutedForeground),
+        border: get("--border", FALLBACK_COLORS.border),
+      });
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- resolvedTheme/palette are re-render triggers, not values read inside
-  }, [resolvedTheme, palette]);
+    read();
+    const observer = new MutationObserver(read);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "data-palette"] });
+    return () => observer.disconnect();
+  }, []);
+
+  return colors;
 }
 
 // Dashboard-only "score + adherence, 7/30/90" trend widget, fed exclusively by
@@ -115,7 +118,7 @@ export function ScoreAdherenceChart({
         label: "Skin score",
         data: points.map((p) => p.score),
         borderColor: colors.secondary,
-        backgroundColor: `${colors.secondary}26`,
+        backgroundColor: `color-mix(in srgb, ${colors.secondary} 15%, transparent)`,
         yAxisID: "y",
         tension: 0.35,
         pointRadius: 2,
@@ -124,7 +127,7 @@ export function ScoreAdherenceChart({
         label: "Adherence",
         data: points.map((p) => (p.adherence == null ? null : Math.round(p.adherence * 100))),
         borderColor: colors.tertiary,
-        backgroundColor: `${colors.tertiary}26`,
+        backgroundColor: `color-mix(in srgb, ${colors.tertiary} 15%, transparent)`,
         yAxisID: "y",
         tension: 0.35,
         pointRadius: 2,

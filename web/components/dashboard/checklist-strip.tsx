@@ -14,8 +14,8 @@ export interface ChecklistTask {
 interface ChecklistStripProps extends WidgetStateProps {
   tasks?: ChecklistTask[];
   /** Pure callback — this widget never persists a toggle itself (P3 guardrail: no
-   * widget fetches its own data). The real checklist card
-   * (components/dashboard/routine-checklist-card.tsx) owns the actual mutation. */
+   * widget fetches its own data). The caller (the user dashboard,
+   * useToggleRoutineStep()) owns the actual mutation. */
   onToggle?: (key: string | number) => void;
 }
 
@@ -67,6 +67,7 @@ export function ChecklistStrip({
           <button
             key={task.key}
             type="button"
+            aria-pressed={task.done}
             onClick={() => onToggle?.(task.key)}
             className={cn(
               "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors",
