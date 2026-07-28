@@ -24,6 +24,9 @@ from app.services.progress.service import (
     upsert_progress_log,
 )
 from app.services.routines.models import Routine, RoutineStep
+from app.services.scores import service as scores_service
+from app.services.skin_profile.schemas import SkinProfileCreate
+from app.services.skin_profile.service import create_profile
 
 
 def _real_jpeg_bytes() -> bytes:
@@ -54,7 +57,7 @@ async def test_upload_progress_photo_strips_exif_and_lands_in_pg(
 
     assert photo.progress_image_id is not None
     assert photo.image_url  # a storage key, not a public URL
-    assert photo.image_stage == "progress"
+    assert photo.image_stage == "Baseline"  # first-ever photo for this user auto-tags
 
 
 async def test_list_progress_photos_orders_oldest_first(
@@ -73,6 +76,63 @@ async def test_list_progress_photos_orders_oldest_first(
         first.progress_image_id,
         second.progress_image_id,
     ]
+
+
+async def test_upload_progress_photo_freezes_the_current_skin_health_score(
+    db_session: AsyncSession, progress_test_user: str
+) -> None:
+    await create_profile(
+        db_session, progress_test_user, SkinProfileCreate(skin_type_id=1, concerns=[])
+    )
+    await scores_service.compute_and_store_score(db_session, progress_test_user)
+
+    photo = await upload_progress_photo(
+        db_session, progress_test_user, _real_jpeg_bytes(), "selfie.jpg"
+    )
+
+    assert photo.skin_health_score_at_upload is not None
+
+
+async def test_first_photo_auto_tags_baseline_second_computes_week_number(
+    db_session: AsyncSession, progress_test_user: str
+) -> None:
+    first = await upload_progress_photo(
+        db_session, progress_test_user, _real_jpeg_bytes(), "one.jpg"
+    )
+    second = await upload_progress_photo(
+        db_session, progress_test_user, _real_jpeg_bytes(), "two.jpg"
+    )
+
+    assert first.image_stage == "Baseline"
+    assert second.image_stage is not None and second.image_stage.startswith("Week")
+
+
+async def test_upload_progress_photo_accepts_an_explicit_tag_override(
+    db_session: AsyncSession, progress_test_user: str
+) -> None:
+    photo = await upload_progress_photo(
+        db_session, progress_test_user, _real_jpeg_bytes(), "one.jpg", tag="Month 2"
+    )
+
+    assert photo.image_stage == "Month 2"
+
+
+async def test_progress_photo_score_stays_frozen_after_a_later_score_changes(
+    db_session: AsyncSession, progress_test_user: str
+) -> None:
+    await create_profile(
+        db_session, progress_test_user, SkinProfileCreate(skin_type_id=1, concerns=[])
+    )
+    await scores_service.compute_and_store_score(db_session, progress_test_user)
+    photo = await upload_progress_photo(
+        db_session, progress_test_user, _real_jpeg_bytes(), "one.jpg"
+    )
+    frozen_score = photo.skin_health_score_at_upload
+
+    await scores_service.compute_and_store_score(db_session, progress_test_user)  # recompute again
+
+    reloaded = (await list_progress_photos(db_session, progress_test_user))[0]
+    assert reloaded.skin_health_score_at_upload == frozen_score
 
 
 async def test_upsert_progress_log_is_idempotent_one_doc_per_user_per_week(

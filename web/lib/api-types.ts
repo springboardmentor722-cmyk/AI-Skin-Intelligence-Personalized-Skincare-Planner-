@@ -1166,8 +1166,9 @@ export interface components {
         /**
          * AdherenceDay
          * @description One cell of the wireframe's "Routine Adherence" heat grid — real signal from
-         *     `routine_logs` via the routines service interface (`list_active_step_ids` +
-         *     `list_recent_routine_logs`), never fabricated.
+         *     `routine_logs` via the routines service interface (`list_historical_active_step_ids`
+         *     + `list_recent_routine_logs`), never fabricated. Judged against whatever routine
+         *     was actually assigned on that historical day, not today's active routine.
          */
         AdherenceDay: {
             /**
@@ -1448,6 +1449,8 @@ export interface components {
         Body_upload_my_progress_photo_api_v1_progress_me_photos_post: {
             /** File */
             file: string;
+            /** Tag */
+            tag?: string | null;
         };
         /** ClientDetailRead */
         ClientDetailRead: {
@@ -2463,6 +2466,8 @@ export interface components {
              * Format: date-time
              */
             uploaded_at: string;
+            /** Skin Health Score At Upload */
+            skin_health_score_at_upload: number | null;
             /** Url */
             url: string;
         };

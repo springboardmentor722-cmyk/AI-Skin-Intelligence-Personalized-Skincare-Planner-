@@ -181,6 +181,19 @@ async def get_recent_scores(db: AsyncSession, user_id: str, days: int = 30) -> l
     return list(result.scalars().all())
 
 
+async def get_latest_score(db: AsyncSession, user_id: str) -> SkinScore | None:
+    """Interface function (ADR-005) - the single most recent score regardless of
+    age, unlike get_recent_scores' day-bounded window. First real consumer:
+    progress/service.py's photo-upload score freeze."""
+    result = await db.execute(
+        select(SkinScore)
+        .where(SkinScore.user_id == user_id)
+        .order_by(SkinScore.calculated_at.desc())
+        .limit(1)
+    )
+    return result.scalars().first()
+
+
 async def get_recent_scores_for_users(
     db: AsyncSession, user_ids: list[str], days: int = 30
 ) -> dict[str, list[SkinScore]]:

@@ -372,6 +372,7 @@ CREATE TABLE progress_images (
     user_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
     image_url VARCHAR(255),
     image_stage VARCHAR(50),
+    skin_health_score_at_upload DECIMAL(5,2),
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

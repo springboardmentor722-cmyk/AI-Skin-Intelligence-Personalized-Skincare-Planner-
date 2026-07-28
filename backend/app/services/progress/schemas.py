@@ -62,6 +62,7 @@ class ProgressPhotoRead(BaseModel):
     progress_image_id: int
     image_stage: str | None
     uploaded_at: datetime.datetime
+    skin_health_score_at_upload: float | None
     url: str  # presigned — computed per-request, never a public/stored URL
 
 

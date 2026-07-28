@@ -44,14 +44,14 @@ async def upload_progress_photo(
     user_id: str,
     data: bytes,
     filename: str,
-    image_stage: str = "progress",
+    tag: str | None = None,
 ) -> ProgressImage:
-    """EXIF stripped before it ever reaches storage (milestone_3.md's own "EXIF
-    stripped, private bucket" requirement) — a phone photo's embedded GPS location
-    never leaves this process. `image_stage` defaults to "progress" (a plain
-    timeline entry, the wireframe's actual "Add today's photo" flow); "before"/
-    "after" pair retrieval (below) is computed from upload order, not a stage the
-    user has to pick per photo — no stage-picker UI exists in the wireframe."""
+    """EXIF stripped before it ever reaches storage. `tag` defaults to
+    "Baseline" for a user's first-ever photo, "Week N" (computed from
+    weeks-since-baseline) for subsequent ones - a caller-supplied tag always
+    wins. `skin_health_score_at_upload` is read from the scores service
+    interface once, at upload time, and never recomputed - a later score
+    change must not retroactively rewrite what this photo's caption claimed."""
     sniffed = sniff_content_type(data)
     if sniffed is None or sniffed not in _PROGRESS_PHOTO_CONTENT_TYPES:
         raise FileValidationError("Unsupported file type")
@@ -60,7 +60,35 @@ async def upload_progress_photo(
     key = build_key(prefix="progress-photos", owner_user_id=user_id, filename=filename)
     await upload(key, stripped, allowed_content_types=_PROGRESS_PHOTO_CONTENT_TYPES)
 
-    image = ProgressImage(user_id=user_id, image_url=key, image_stage=image_stage)
+    existing_photos = await list_progress_photos(db, user_id)
+    if tag is not None:
+        resolved_tag = tag
+    elif not existing_photos:
+        resolved_tag = "Baseline"
+    else:
+        # server_default=func.now() means uploaded_at is always set post-insert;
+        # the fallback only satisfies the type checker, never actually hit (same
+        # pattern as get_progress_photos below).
+        baseline_date = (
+            existing_photos[0].uploaded_at or datetime.datetime.now(datetime.UTC)
+        ).date()
+        days_since_baseline = (datetime.datetime.now(datetime.UTC).date() - baseline_date).days
+        weeks_since_baseline = max(1, days_since_baseline // 7)
+        resolved_tag = f"Week {weeks_since_baseline}"
+
+    latest_score = await scores_service.get_latest_score(db, user_id)
+    score_at_upload = (
+        float(latest_score.overall_score)
+        if latest_score and latest_score.overall_score is not None
+        else None
+    )
+
+    image = ProgressImage(
+        user_id=user_id,
+        image_url=key,
+        image_stage=resolved_tag,
+        skin_health_score_at_upload=score_at_upload,
+    )
     db.add(image)
     await db.commit()
     await db.refresh(image)
@@ -88,6 +116,7 @@ async def get_progress_photos(db: AsyncSession, user_id: str) -> ProgressPhotosR
             # server_default=func.now() means this is always set post-insert; the
             # fallback only satisfies the type checker, never actually hit.
             uploaded_at=photo.uploaded_at or datetime.datetime.now(datetime.UTC),
+            skin_health_score_at_upload=photo.skin_health_score_at_upload,
             url=await get_presigned_url(photo.image_url) if photo.image_url else "",
         )
         for photo in photos
