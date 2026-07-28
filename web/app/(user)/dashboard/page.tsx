@@ -110,6 +110,9 @@ export default function UserDashboardPage() {
     queryKey: ["routines", "me"],
     queryFn: async () => (await api.GET("/api/v1/routine")).data ?? [],
     enabled: scoreQuery.data !== null,
+    // P5 dependency: live-sync a professional's routine overwrite without a manual reload
+    refetchInterval: 30_000,
+    refetchIntervalInBackground: false,
   });
 
   const recommendationsQuery = useQuery({
