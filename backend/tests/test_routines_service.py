@@ -1204,6 +1204,96 @@ async def test_soothing_substitution_never_serves_an_allergy_flagged_soothing_pr
                 )
 
 
+async def test_soothing_substitution_never_serves_an_avoid_flagged_soothing_product(
+    db_session: AsyncSession, test_user_id: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Sibling of the allergy-flagged test above, proving the OTHER gate on the
+    soothing-substitution target: `avoided_product_ids` (the skin-type-avoid
+    junction) is computed earlier in `_generate_steps` but was never applied to
+    `soothing_product_id` itself — the same asymmetry Task 8's second round found
+    and fixed in `_apply_budget_cap`. Real seeded "Salicylic Acid" is avoid-
+    flagged for Dry skin (`ingredient_skintype_avoid`, live: reason "Can increase
+    dryness and flaking") — gives the real soothing product (id 8) that
+    ingredient here. Real seeded "Retinol" (avoid-flagged only for Sensitive, not
+    Dry) tags a temp harsh Treatment product so it passes the candidate filter
+    for a Dry profile and reaches the guardrail. No `allergies` declared here —
+    isolates the avoid-junction branch from the allergy branch the other test
+    already covers."""
+    dry_skin_type_id = (
+        await db_session.execute(select(SkinType).where(SkinType.skin_type_name == "Dry"))
+    ).scalar_one().skin_type_id
+    salicylic_acid = (
+        await db_session.execute(
+            select(Ingredient).where(Ingredient.ingredient_name == "Salicylic Acid")
+        )
+    ).scalar_one()
+    retinol = (
+        await db_session.execute(select(Ingredient).where(Ingredient.ingredient_name == "Retinol"))
+    ).scalar_one()
+
+    harsh_product = Product(
+        brand_name="Test Only",
+        product_name="Test Harsh Retinol Treatment For Dry",
+        category="Treatment Products",
+        price=10.0,
+        currency="USD",
+        is_active=True,
+    )
+    db_session.add(harsh_product)
+    await db_session.flush()
+    db_session.add(
+        ProductIngredient(product_id=harsh_product.product_id, ingredient_id=retinol.ingredient_id)
+    )
+    db_session.add(
+        ProductSkinType(product_id=harsh_product.product_id, skin_type_id=dry_skin_type_id)
+    )
+    # Real seeded soothing product (id 8) — give it a real avoid-flagged-for-Dry
+    # ingredient for this test only.
+    db_session.add(ProductIngredient(product_id=8, ingredient_id=salicylic_acid.ingredient_id))
+    await db_session.commit()
+
+    real_seeded_random = routines_service.seeded_random
+
+    class _PreferHarshProduct:
+        def __init__(self, real_rng: object) -> None:
+            self._real_rng = real_rng
+
+        def choice(self, seq: object) -> object:
+            for item in seq:  # type: ignore[attr-defined]
+                if getattr(item, "product_id", None) == harsh_product.product_id:
+                    return item
+            return self._real_rng.choice(seq)  # type: ignore[attr-defined]
+
+    monkeypatch.setattr(
+        routines_service,
+        "seeded_random",
+        lambda *parts: _PreferHarshProduct(real_seeded_random(*parts)),
+    )
+
+    await create_profile(
+        db_session,
+        test_user_id,
+        SkinProfileCreate(
+            skin_type_id=dry_skin_type_id,
+            concerns=[
+                SkinProfileConcernInput(
+                    concern_id=_REDNESS_CONCERN_ID, severity_rating=9, priority_level=9
+                )
+            ],
+        ),
+    )
+
+    routines = await get_or_generate_routines(db_session, test_user_id)
+
+    for routine in routines:
+        for step in routine.steps:
+            for p in step.products:
+                assert p.product.product_id != 8, (
+                    "an avoid-flagged soothing-substitution product must never appear "
+                    "in a generated routine"
+                )
+
+
 # --- Seasonal routines (Milestone 2, calendar-quarter swap) ---
 
 

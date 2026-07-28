@@ -169,15 +169,19 @@ async def _generate_steps(
     if soothing_product_id is not None:
         # The soothing product is a substitution TARGET the guardrails below can
         # introduce into a routine that never went through the candidate-pool
-        # allergy filter above — gate it the same way, so a user allergic to its
-        # own key ingredient (e.g. Centella Asiatica) can never receive it via
-        # this path either. No second soothing product exists in this catalog, so
-        # the fallback is the same one both guardrail functions already implement
-        # for "no real soothing product available": leave the original step as-is.
+        # allergy/avoid filters above — gate it the same way (both gates, same as
+        # every candidate), so a user allergic to or needing to avoid its own key
+        # ingredient (e.g. Centella Asiatica) can never receive it via this path
+        # either. No second soothing product exists in this catalog, so the
+        # fallback is the same one both guardrail functions already implement for
+        # "no real soothing product available": leave the original step as-is.
         soothing_suitability = await recommendations_service.evaluate_products_suitability(
             db, [soothing_product_id], profile, skin_type_name
         )
-        if soothing_suitability[soothing_product_id].any_allergy:
+        if (
+            soothing_product_id in avoided_product_ids
+            or soothing_suitability[soothing_product_id].any_allergy
+        ):
             soothing_product_id = None
     generated = guardrails.apply_safety_guardrails(
         generated,
