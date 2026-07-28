@@ -379,6 +379,12 @@ async def load_product_associations(
 
     skin_type_created = 0
     concern_created = 0
+    # ADR-010: the ES product document (build_product_document) reads
+    # skin_types_supported/concerns_supported from these same junction rows —
+    # every product whose association set actually changes here needs its own
+    # outbox row too, same as load_into_database's own upserts, or a fresh
+    # environment/re-run indexes it with permanently empty ES fields.
+    changed_product_ids: set[int] = set()
     for entry in products:
         product_id = product_id_by_key.get((entry["brand_name"], entry["product_name"]))
         if product_id is None:
@@ -390,6 +396,7 @@ async def load_product_associations(
             db.add(ProductSkinType(product_id=product_id, skin_type_id=skin_type_id))
             existing_skin_type_pairs.add((product_id, skin_type_id))
             skin_type_created += 1
+            changed_product_ids.add(product_id)
         for name in entry.get("concern_names", []):
             concern_id = concern_id_by_name.get(name)
             if concern_id is None or (product_id, concern_id) in existing_concern_pairs:
@@ -397,6 +404,10 @@ async def load_product_associations(
             db.add(ProductConcern(product_id=product_id, concern_id=concern_id))
             existing_concern_pairs.add((product_id, concern_id))
             concern_created += 1
+            changed_product_ids.add(product_id)
+
+    for product_id in changed_product_ids:
+        await append_outbox(db, "product", str(product_id), "upsert")
 
     await db.commit()
     return skin_type_created, concern_created

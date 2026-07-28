@@ -10,6 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.db.outbox import Outbox
 from app.services.admin.ingest.products import (
     KaggleCredentialsError,
     _parse_ingredients,
@@ -248,6 +249,61 @@ async def test_load_product_associations_is_idempotent(db_session: AsyncSession)
 
     assert skin_type_created == 0
     assert concern_created == 0
+
+
+async def test_load_product_associations_appends_an_outbox_event_when_associations_change(
+    db_session: AsyncSession,
+) -> None:
+    """ADR-010: the ES product document (`build_product_document`) reads
+    `skin_types_supported`/`concerns_supported` from these same junction rows —
+    `load_into_database` already appends an outbox row on product creation, but
+    `load_product_associations` wrote these rows in a later transaction with no
+    outbox row of its own, so a fresh environment/re-run would index the product
+    with permanently empty ES fields (the ES skin-type filter only falls back to
+    PG on an exception, never on a wrong-but-successful empty result)."""
+    products = [
+        {
+            "brand_name": "Test Brand 3",
+            "product_name": "Test Outbox Product",
+            "category": "Serum",
+            "product_url": None,
+            "image_url": None,
+            "price": 25.0,
+            "currency": "USD",
+            "volume_ml": None,
+            "ingredients": [],
+            "rating": None,
+            "review_count": None,
+            "skin_type_names": ["Oily"],
+            "concern_names": ["Acne"],
+        }
+    ]
+    await load_into_database(db_session, products)
+    product_id = (
+        await db_session.execute(
+            select(Product.product_id).where(Product.product_name == "Test Outbox Product")
+        )
+    ).scalar_one()
+
+    await load_product_associations(db_session, products)
+
+    def _outbox_rows_for_product():
+        return db_session.execute(
+            select(Outbox).where(
+                Outbox.aggregate_type == "product", Outbox.aggregate_id == str(product_id)
+            )
+        )
+
+    rows = (await _outbox_rows_for_product()).scalars().all()
+    # One row from load_into_database's own creation upsert, one more from
+    # load_product_associations' real association change.
+    assert len(rows) == 2
+
+    # Idempotent re-run: no association actually changes the second time, so no
+    # additional outbox row either.
+    await load_product_associations(db_session, products)
+    rows_after = (await _outbox_rows_for_product()).scalars().all()
+    assert len(rows_after) == 2
 
 
 def test_download_dataset_raises_clear_error_without_credentials(
