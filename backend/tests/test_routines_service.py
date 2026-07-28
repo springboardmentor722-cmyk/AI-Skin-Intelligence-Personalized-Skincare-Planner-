@@ -35,6 +35,7 @@ from app.services.routines.guardrails import (
 from app.services.routines.models import Routine
 from app.services.routines.service import (
     UnsafeProductError,
+    _assert_product_is_safe,
     _current_season,
     add_step,
     count_completed_steps_by_user,
@@ -941,6 +942,175 @@ async def test_search_products_for_edit_excludes_avoid_flagged_and_respects_cate
     assert treatment_results, "Sensitive skin should have safe Treatment candidates"
     assert all(p.category == "Treatment Products" for p in treatment_results)
     assert not any("Salicylic" in (p.product_name or "") for p in treatment_results)
+
+
+# --- Allergy safety gate (Task 9 — reachable now that Task 7 gave routines a real,
+# 665+-product candidate pool instead of 16 hand-seeded ones) ---
+
+
+async def test_generated_routine_never_contains_an_allergy_flagged_product(
+    db_session: AsyncSession, test_user_id: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Same release-blocking property recommendations already enforces
+    (test_an_allergy_flagged_product_can_never_appear_in_recommendations) — now
+    proven for the routine generator too, since it independently selects
+    candidates. Real seeded "Niacinamide" ingredient linked to a temp product
+    that otherwise legitimately matches skin_type_id=1 (Normal).
+
+    The live catalog has 137+ real Moisturizer candidates for skin_type_id=1
+    alone, so the seeded rng.choice would only land on our one unsafe product by
+    chance (~1/138 per routine) — an un-forced version of this test can PASS even
+    without the allergy fix, just because the unlucky pick never happened
+    (confirmed: it did pass pre-fix on a real run). The rng is forced below to
+    always prefer the unsafe product when it's present in the candidate list, so
+    this test actually proves the fix removes it from the pool *before* any pick
+    happens, not that it merely got lucky."""
+    niacinamide = (
+        await db_session.execute(
+            select(Ingredient).where(Ingredient.ingredient_name == "Niacinamide")
+        )
+    ).scalar_one()
+    niacinamide_product = Product(
+        brand_name="Test Only",
+        product_name="Unsafe Niacinamide Moisturizer",
+        category="Moisturizer",
+        price=10.0,
+        currency="USD",
+        is_active=True,
+    )
+    db_session.add(niacinamide_product)
+    await db_session.flush()
+    db_session.add(
+        ProductIngredient(
+            product_id=niacinamide_product.product_id, ingredient_id=niacinamide.ingredient_id
+        )
+    )
+    db_session.add(
+        ProductSkinType(
+            product_id=niacinamide_product.product_id,
+            skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS,
+        )
+    )
+    await db_session.commit()
+
+    real_seeded_random = routines_service.seeded_random
+
+    class _PreferUnsafeProduct:
+        def __init__(self, real_rng: object) -> None:
+            self._real_rng = real_rng
+
+        def choice(self, seq: object) -> object:
+            for item in seq:  # type: ignore[attr-defined]
+                if getattr(item, "product_id", None) == niacinamide_product.product_id:
+                    return item
+            return self._real_rng.choice(seq)  # type: ignore[attr-defined]
+
+    monkeypatch.setattr(
+        routines_service,
+        "seeded_random",
+        lambda *parts: _PreferUnsafeProduct(real_seeded_random(*parts)),
+    )
+
+    await create_profile(
+        db_session,
+        test_user_id,
+        SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS, allergies="Niacinamide"),
+    )
+
+    routines = await get_or_generate_routines(db_session, test_user_id)
+
+    for routine in routines:
+        for step in routine.steps:
+            for p in step.products:
+                assert p.product.product_id != niacinamide_product.product_id, (
+                    "an allergy-flagged product must never appear in a generated routine"
+                )
+
+
+async def test_assert_product_is_safe_rejects_an_allergy_flagged_product(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    niacinamide = (
+        await db_session.execute(
+            select(Ingredient).where(Ingredient.ingredient_name == "Niacinamide")
+        )
+    ).scalar_one()
+    niacinamide_product = Product(
+        brand_name="Test Only",
+        product_name="Unsafe Niacinamide Serum",
+        category="Serum",
+        price=10.0,
+        currency="USD",
+        is_active=True,
+    )
+    db_session.add(niacinamide_product)
+    await db_session.flush()
+    db_session.add(
+        ProductIngredient(
+            product_id=niacinamide_product.product_id, ingredient_id=niacinamide.ingredient_id
+        )
+    )
+    await db_session.commit()
+
+    await create_profile(
+        db_session,
+        test_user_id,
+        SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS, allergies="Niacinamide"),
+    )
+
+    with pytest.raises(UnsafeProductError):
+        await _assert_product_is_safe(db_session, test_user_id, niacinamide_product.product_id)
+
+
+async def test_search_products_for_edit_excludes_an_allergy_flagged_product(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    niacinamide = (
+        await db_session.execute(
+            select(Ingredient).where(Ingredient.ingredient_name == "Niacinamide")
+        )
+    ).scalar_one()
+    # Distinctive product_name, queried for below by that same substring: the
+    # live Moisturizer category has 137+ real skin_type_id=1 candidates and
+    # search_products_for_edit caps its results at [:10] ordered by product_id —
+    # a freshly-inserted temp product sorts last and gets truncated out of an
+    # unqualified query regardless of the allergy filter, which would make this
+    # test pass even without the fix. Querying for a name unique to this temp
+    # product removes the truncation as a confound.
+    niacinamide_product = Product(
+        brand_name="Test Only",
+        product_name="Zzz-Test-Unsafe-Niacinamide-Cream",
+        category="Moisturizer",
+        price=10.0,
+        currency="USD",
+        is_active=True,
+    )
+    db_session.add(niacinamide_product)
+    await db_session.flush()
+    db_session.add(
+        ProductIngredient(
+            product_id=niacinamide_product.product_id, ingredient_id=niacinamide.ingredient_id
+        )
+    )
+    db_session.add(
+        ProductSkinType(
+            product_id=niacinamide_product.product_id,
+            skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS,
+        )
+    )
+    await db_session.commit()
+
+    await create_profile(
+        db_session,
+        test_user_id,
+        SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS, allergies="Niacinamide"),
+    )
+
+    results = await search_products_for_edit(
+        db_session, test_user_id, "Moisturizer", "Zzz-Test-Unsafe-Niacinamide-Cream"
+    )
+
+    assert all(r.product_id != niacinamide_product.product_id for r in results)
 
 
 # --- Seasonal routines (Milestone 2, calendar-quarter swap) ---
