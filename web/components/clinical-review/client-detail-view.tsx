@@ -230,7 +230,7 @@ export function ClientDetailView({ userId, backHref }: ClientDetailViewProps) {
           emptyMessage="Not enough history yet to chart this client's progress."
         />
         <p className="text-on-surface-variant mt-4 font-sans text-xs">
-          AI-derived insights, not a clinical diagnosis.
+          AI-derived insights — not medical advice, not a clinical diagnosis.
         </p>
       </div>
 
