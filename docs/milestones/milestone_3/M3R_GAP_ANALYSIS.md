@@ -141,13 +141,37 @@ private bucket, presigned URLs, EXIF-stripped, content-type sniffed).
 
 ## 4. Frontend Dashboards (Rubric Step 4)
 
-**User dashboard (4.1): mostly exists.** Score gauge (`skin-score-ring.tsx`), AM/PM
-checklist (`dashboard/routine-checklist-card.tsx`), a Recharts-based trend chart, and a
-recommendations section are all present at least partially.
+**User dashboard (4.1): closed in P4.** Score gauge now carries the real 5 weighted
+sub-score mini-bars (`skin-score-ring.tsx`'s optional `subScores` prop), the AM/PM
+checklist gained a 30s poll for future P5 live-sync, the trend chart was rebuilt on
+Chart.js as `ScoreAdherenceChart` (fed only by `GET /analytics/me`, dual score+adherence
+series, literal 7/30/90-day windows — `trend-chart.tsx` itself deliberately left alone,
+still serving 4 other Recharts consumers with an incompatible shape), and the
+recommendations shelf now shows literal match %, ingredient tag chips, and a budget
+flag. Full evidence: `M3R_TASK_LEDGER.md`'s P4-T1..T5 rows and
+`docs/milestones/milestone_3/build/p4-user-dashboard-fidelity.md`.
 
-**Real gap:** only `recharts` (`^3.9.2`) is installed in `web/package.json` — no
-Plotly, no Chart.js. The session's decision to switch dashboard charts to Chart.js or
-Plotly (see §Decisions below) hasn't been implemented in code yet — that's P4 scope.
+**New finding from P4's fidelity pass:** `web/designs/wireframes/app-dashboard.html`/
+`.png` (the file used as the User Dashboard's visual source of truth through this
+entire phase) actually has a "Clinical Portal"/"Dr. Sarah Chen" header and a 4-item nav
+matching none of AGENTS.md §4's four locked role navs — while its body content (score
+ring, routine checklist, score-history chart, recommendations carousel) matches the real
+User Dashboard closely. Confirmed `derm-dashboard.png` is a genuinely different screen,
+not a duplicate — this looks like a pre-existing Stitch extraction/mislabeling artifact
+(the exact risk `.agents/rules/skinlytics-stitch.md` warns about), not something
+introduced this phase. The Stitch MCP server was not reachable this session, so
+re-extraction couldn't happen; the owner chose to proceed on a content-only comparison
+for P4 and defer re-extraction to a future session. **Follow-up needed:** once Stitch is
+reachable again, re-fetch the correct "Dashboard" screen from the Skinlytics Stitch
+project (ID `933192060480910018`) and replace `app-dashboard.html`/`-dark.html` + their
+reference screenshots if the correct screen differs structurally.
+
+Every task in P4 was also constrained by having no browser/screenshot tool available in
+this environment (`docker-compose.yml`'s `api`/`web` entries are deliberately deferred to
+M4, ADR-005 — the real dev workflow runs host processes, not containers) — pixel/visual
+diffing and live keyboard-navigation recording were not possible for any task this
+phase, honestly flagged rather than faked. A human browser pass in both themes is
+recommended before treating P4 as fully shipped.
 
 **Consultant/Dermatologist portal (4.2): roster exists, everything else is missing.**
 `web/components/clinical-review/client-detail-view.tsx` shows only today's

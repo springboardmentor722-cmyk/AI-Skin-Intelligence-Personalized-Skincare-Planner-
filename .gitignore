@@ -27,8 +27,8 @@ venv/
 .ruff_cache/
 .coverage
 htmlcov/
-dist/
-build/
+/dist/
+/build/
 
 # --- Databases / local dev state ---
 *.sqlite3
