@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.ai.trend import RealProgressTrendAnalyzer
 from app.db.postgres import external_user_table
+from app.services.admin import service as admin_service
 from app.services.clinical_review.models import ConsultantClient, ConsultantNote
 from app.services.clinical_review.schemas import (
     ClientDetailRead,
@@ -16,7 +17,9 @@ from app.services.clinical_review.schemas import (
     PortfolioRecentAssessment,
 )
 from app.services.progress import service as progress_service
+from app.services.recommendations.schemas import ProductRead
 from app.services.routines import service as routines_service
+from app.services.routines.schemas import RoutineRead
 from app.services.scores import service as scores_service
 from app.services.skin_profile import service as skin_profile_service
 from app.services.user import service as user_service
@@ -435,3 +438,87 @@ async def add_note(
         created_at=note.created_at,
         updated_at=note.updated_at,
     )
+
+
+# --- Routine-overwrite (M3R Phase 5 Task 4) ---
+# Thin, assignment-gated wrappers around the exact same single-writer routine
+# mutation functions the user's own routine editor calls (routines/service.py) —
+# a professional's edit reuses that one real mutation path with the client's
+# user_id, never a duplicated write. `add_step`/`update_step`/`delete_step` each
+# already call `await db.commit()` internally before returning, so the audit-log
+# row below is written and committed in a deliberately separate transaction
+# AFTER the routine mutation has already landed — `write_audit_log` itself only
+# flushes (admin/service.py), it never commits.
+
+_ROUTINE_OVERWRITE_ACTION = "routine_step_overwrite"
+
+
+async def search_client_products(
+    db: AsyncSession, professional_id: str, user_id: str, category: str, query: str
+) -> list[ProductRead]:
+    await _verify_assignment(db, professional_id, user_id)
+    return await routines_service.search_products_for_edit(db, user_id, category, query)
+
+
+async def add_client_routine_step(
+    db: AsyncSession,
+    professional_id: str,
+    user_id: str,
+    routine_id: int,
+    step_name: str,
+    product_id: int,
+) -> RoutineRead:
+    await _verify_assignment(db, professional_id, user_id)
+    result = await routines_service.add_step(db, user_id, routine_id, step_name, product_id)
+    await admin_service.write_audit_log(
+        db,
+        actor_user_id=professional_id,
+        action=_ROUTINE_OVERWRITE_ACTION,
+        target_type="routine_steps",
+        target_id=str(routine_id),
+        metadata={"client_user_id": user_id, "step_name": step_name, "product_id": product_id},
+    )
+    await db.commit()
+    return result
+
+
+async def update_client_routine_step(
+    db: AsyncSession,
+    professional_id: str,
+    user_id: str,
+    step_id: int,
+    step_name: str | None,
+    product_id: int | None,
+    usage_notes: str | None,
+) -> RoutineRead:
+    await _verify_assignment(db, professional_id, user_id)
+    result = await routines_service.update_step(
+        db, user_id, step_id, step_name, product_id, usage_notes
+    )
+    await admin_service.write_audit_log(
+        db,
+        actor_user_id=professional_id,
+        action=_ROUTINE_OVERWRITE_ACTION,
+        target_type="routine_steps",
+        target_id=str(step_id),
+        metadata={"client_user_id": user_id},
+    )
+    await db.commit()
+    return result
+
+
+async def delete_client_routine_step(
+    db: AsyncSession, professional_id: str, user_id: str, step_id: int
+) -> RoutineRead:
+    await _verify_assignment(db, professional_id, user_id)
+    result = await routines_service.delete_step(db, user_id, step_id)
+    await admin_service.write_audit_log(
+        db,
+        actor_user_id=professional_id,
+        action=_ROUTINE_OVERWRITE_ACTION,
+        target_type="routine_steps",
+        target_id=str(step_id),
+        metadata={"client_user_id": user_id},
+    )
+    await db.commit()
+    return result

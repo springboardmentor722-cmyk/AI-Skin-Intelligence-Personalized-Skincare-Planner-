@@ -20,6 +20,9 @@ from app.services.clinical_review.schemas import (
 )
 from app.services.progress import service as progress_service
 from app.services.progress.schemas import ProgressPhotosRead
+from app.services.recommendations.schemas import ProductRead
+from app.services.routines.schemas import RoutineRead, StepCreate, StepUpdate
+from app.services.routines.service import UnsafeProductError
 
 router = APIRouter()
 
@@ -120,5 +123,82 @@ async def add_client_note(
 ) -> ConsultantNoteRead:
     try:
         return await service.add_note(db, professional["id"], user_id, body.note_text)
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+
+
+# --- Routine-overwrite (M3R Phase 5 Task 4) ---
+# Assignment-gated wrappers around routines/service.py's real single-writer
+# mutation functions (via clinical_review/service.py's thin delegation layer) —
+# mirrors routines/router.py's own request/response/error shapes exactly, just
+# professional-scoped. Each successful mutation also writes an audit-log row
+# (service.py) before the professional sees the updated routine.
+
+
+@router.get("/clients/{user_id}/routines/products/search")
+async def search_client_products(
+    user_id: str,
+    category: str,
+    q: str,
+    professional: Annotated[dict[str, Any], Depends(_professional)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> list[ProductRead]:
+    try:
+        return await service.search_client_products(db, professional["id"], user_id, category, q)
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+
+
+@router.post("/clients/{user_id}/routines/{routine_id}/steps")
+async def add_client_routine_step(
+    user_id: str,
+    routine_id: int,
+    body: StepCreate,
+    professional: Annotated[dict[str, Any], Depends(_professional)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> RoutineRead:
+    try:
+        return await service.add_client_routine_step(
+            db, professional["id"], user_id, routine_id, body.step_name, body.product_id
+        )
+    except UnsafeProductError as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+
+
+@router.patch("/clients/{user_id}/routines/steps/{step_id}")
+async def update_client_routine_step(
+    user_id: str,
+    step_id: int,
+    body: StepUpdate,
+    professional: Annotated[dict[str, Any], Depends(_professional)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> RoutineRead:
+    try:
+        return await service.update_client_routine_step(
+            db,
+            professional["id"],
+            user_id,
+            step_id,
+            body.step_name,
+            body.product_id,
+            body.usage_notes,
+        )
+    except UnsafeProductError as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+
+
+@router.delete("/clients/{user_id}/routines/steps/{step_id}")
+async def delete_client_routine_step(
+    user_id: str,
+    step_id: int,
+    professional: Annotated[dict[str, Any], Depends(_professional)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> RoutineRead:
+    try:
+        return await service.delete_client_routine_step(db, professional["id"], user_id, step_id)
     except ValueError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
