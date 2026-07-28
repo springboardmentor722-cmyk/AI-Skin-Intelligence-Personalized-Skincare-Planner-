@@ -13,6 +13,7 @@ import {
 import { Line } from "react-chartjs-2";
 import { useTheme } from "next-themes";
 
+import { usePalette } from "@/components/providers/palette-provider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WidgetEmpty, WidgetError, type WidgetStateProps } from "@/components/dashboard/widget-states";
@@ -45,11 +46,17 @@ const FALLBACK_COLORS = {
 // the way components/ui/chart.tsx's Recharts SVG output does (SVG presentation
 // attributes/styles go through normal DOM style resolution). Read the actual
 // token values from the cascade instead. Computed in render (not an effect)
-// so there's no setState-after-mount cascade; `resolvedTheme` as a dependency
-// still forces a re-read whenever the theme (or one of the 8 accent palettes)
-// changes, since next-themes toggling re-renders every `useTheme()` consumer.
+// so there's no setState-after-mount cascade. Two independent things force a
+// re-read: `resolvedTheme` (next-themes' light/dark mode, re-renders every
+// `useTheme()` consumer on toggle) AND `palette` (the 8 accent palettes —
+// components/providers/palette-provider.tsx's separate PaletteContext, driven
+// by a `data-palette` attribute, NOT by next-themes; globals.css's
+// `[data-palette="emerald"]` etc. blocks redefine --secondary/--tertiary
+// independent of `.dark`). Dropping either dependency leaves the chart
+// painting stale colors after that one axis changes without the other.
 function useThemeColors() {
   const { resolvedTheme } = useTheme();
+  const { palette } = usePalette();
   return useMemo(() => {
     if (typeof document === "undefined") return FALLBACK_COLORS;
     const style = getComputedStyle(document.documentElement);
@@ -60,8 +67,8 @@ function useThemeColors() {
       mutedForeground: read("--muted-foreground", FALLBACK_COLORS.mutedForeground),
       border: read("--border", FALLBACK_COLORS.border),
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- resolvedTheme is a re-render trigger, not a value read inside
-  }, [resolvedTheme]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- resolvedTheme/palette are re-render triggers, not values read inside
+  }, [resolvedTheme, palette]);
 }
 
 // Dashboard-only "score + adherence, 7/30/90" trend widget, fed exclusively by
