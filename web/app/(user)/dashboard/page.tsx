@@ -297,7 +297,18 @@ export default function UserDashboardPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-12">
         <div className="border-border bg-card flex flex-col items-center gap-3 rounded-2xl border p-5 lg:col-span-4">
           <p className="text-muted-foreground self-start text-xs font-medium">Skin Health Score</p>
-          <SkinScoreRing score={score.overall_score ?? 0} size={110} label="" />
+          <SkinScoreRing
+            score={score.overall_score ?? 0}
+            size={110}
+            label=""
+            subScores={[
+              { label: "Condition", value: score.skin_condition_score ?? 0, weight: 0.35 },
+              { label: "Lifestyle", value: score.lifestyle_score ?? 0, weight: 0.2 },
+              { label: "Routine", value: score.routine_adherence_score ?? 0, weight: 0.2 },
+              { label: "Sleep", value: score.sleep_quality_score ?? 0, weight: 0.15 },
+              { label: "Hydration", value: score.hydration_score ?? 0, weight: 0.1 },
+            ]}
+          />
           {scoreDelta && (
             <span
               className={`text-xs font-medium ${scoreDelta.direction === "up" ? "text-success" : "text-error"}`}
