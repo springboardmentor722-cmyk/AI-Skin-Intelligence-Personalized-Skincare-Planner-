@@ -28,7 +28,7 @@ unverified work**.
 `web/designs/wireframes/app-dashboard.html` / `app-dashboard.png` (the file every
 task in this phase treated as the User Dashboard's visual source of truth) has a
 "Clinical Portal" / "Dr. Sarah Chen" header and a 4-item nav (Dashboard,
-Analytics, Consultants, Settings) that matches none of AGENTS.md §4's four locked
+Analyses, Consultants, Settings) that matches none of AGENTS.md §4's four locked
 role navs. `derm-dashboard.png` was checked and confirmed to be a genuinely
 different screen (patient case queue, condition census) — so this isn't simply
 the same file duplicated. The wireframe's **body content** (Skin Score ring,
@@ -79,11 +79,23 @@ level (no live render available):
   score + adherence together, 7/30/90 windows) governs over the Stitch mockup's
   cosmetic bar-chart choice, consistent with how mini-bar labels were already
   handled earlier in this phase.
-- **Recommended for you card**: wireframe shows a single product image with
-  name/subtitle only, no match %, tags, or budget flag. Built version adds all
-  three per the rubric's explicit "active ingredient tags and budget flags"
-  requirement — an intentional addition beyond the cosmetic mockup, not a
-  fidelity regression.
+- **Recommended for you card**: **correction to an earlier draft of this note**
+  — the wireframe does NOT show "no match % at all". `app-dashboard.html:429-462`
+  shows match % as a circular ring badge overlaid on the product image (e.g.
+  "92%", "88%", SVG stroke-dasharray rings), with no ingredient tags or budget
+  flag at all. Task 4's review explicitly deferred this exact question to this
+  task: fix the built treatment to match the wireframe's ring-overlay style, or
+  accept the built literal-text treatment ("86% Match" below the price row) as
+  the correct call. **Resolved here, following this phase's established
+  precedent** (P2/P3/P4 have consistently let the rubric's literal wording
+  override a cosmetic Stitch mockup choice once the two conflict — e.g. the
+  sub-score mini-bar labels, the chart type): the rubric's own Step 4.1 bullet
+  gives the literal example text **"94% Match"**, which is exactly the text
+  treatment already built, not a ring badge. Keeping the built text treatment;
+  the wireframe's ring badge is accepted as the cosmetic deviation, not fixed.
+  Ingredient tag chips and the budget-flag badge remain a genuine addition
+  beyond the wireframe (which shows neither) per the rubric's explicit
+  "active ingredient tags and budget flags" requirement.
 - **External Factors / Reminders cards**: out of this phase's scope (weather,
   notifications), unchanged.
 
