@@ -69,8 +69,14 @@ level (no live render available):
   intentional content difference from the wireframe's placeholder, structurally
   in the same slot.
 - **Today's Routine card**: wireframe shows an AM/PM checklist with a
-  completion fraction — matches `RoutineChecklistCard`'s real structure
-  (Morning/Evening protocol groups, `doneCount/total`, checkbox rows) exactly.
+  completion fraction. **Correction (this session):** the dashboard actually
+  renders two different components across two rows, not `RoutineChecklistCard`
+  (that component is check-in-only, `web/app/(user)/check-in/page.tsx`) —
+  `RoutineChain` (read-only AM/PM step display, "Today's Routine", row 2) and
+  `ChecklistStrip` (the real interactive toggle UI, "Daily Checklist", row 4,
+  wired to `useToggleRoutineStep()`). Structurally still matches the
+  wireframe's AM/PM-checklist-with-completion-fraction content, just split
+  across the two real components that actually render it.
 - **Score History card**: wireframe shows a bar-style history chart with a
   day-range control near the top. Built version: `ScoreAdherenceChart`
   (Chart.js line chart, two series — score + adherence — 7/30/90-day literal
@@ -132,14 +138,21 @@ scores, `demo-client-*` fixtures also available):
   `POST /routines/steps/{id}/log` calls), confirmed via a direct Mongo query
   that `routine_logs` gained a `completed_steps` entry for that step with a
   real timestamp — then reverted the toggle to leave data as found. Confirms
-  the "real-time, not a client-only guess" claim in
-  `routine-checklist-card.tsx`'s own comment is genuinely true at the data
-  layer.
-- **Accessibility**: `RoutineChecklistCard` uses a real shadcn `Checkbox`
-  wrapped in a `<label>` — inherits standard keyboard focus/toggle semantics
-  from the underlying accessible primitive (Tab + Space), not a custom
-  non-semantic click handler. No a11y gap found in this component by static
-  reading.
+  the dashboard's real toggle path (`ChecklistStrip` → `useToggleRoutineStep()`
+  → `POST /routines/steps/{step_id}/log`) is genuinely persisted, not a
+  client-only guess, at the data layer.
+- **Accessibility — correction (this session)**: the earlier draft of this
+  note verified a11y against `RoutineChecklistCard` (which the dashboard never
+  renders — that component is check-in-only). The dashboard's actual
+  interactive checklist is `ChecklistStrip`
+  (`web/components/dashboard/checklist-strip.tsx`): a plain
+  `<button type="button">` per task with a real `onClick`, keyboard-focusable
+  by default, completion shown via a check icon plus color (not color alone)
+  — not a functional a11y failure, but the `done` state wasn't exposed to
+  assistive tech via ARIA. Fixed in the same pass as this correction:
+  `aria-pressed={task.done}` added to the button. The dashboard's other
+  routine surface, `RoutineChain` ("Today's Routine", row 2), is read-only
+  display with no interactive toggle, so no button semantics apply there.
 - **Automated gates**: `npm run typecheck` clean, `npm run lint` clean (0
   errors, the same 2 pre-existing unrelated warnings every task in this phase
   reported), `npm run build` succeeds (all routes prerender). Full backend

@@ -143,7 +143,9 @@ private bucket, presigned URLs, EXIF-stripped, content-type sniffed).
 
 **User dashboard (4.1): closed in P4.** Score gauge now carries the real 5 weighted
 sub-score mini-bars (`skin-score-ring.tsx`'s optional `subScores` prop), the AM/PM
-checklist gained a 30s poll for future P5 live-sync, the trend chart was rebuilt on
+checklist (`ChecklistStrip`, the dashboard's real interactive toggle — not
+`RoutineChecklistCard`, which is check-in-only) gained a 30s poll for future P5
+live-sync, the trend chart was rebuilt on
 Chart.js as `ScoreAdherenceChart` (fed only by `GET /analytics/me`, dual score+adherence
 series, literal 7/30/90-day windows — `trend-chart.tsx` itself deliberately left alone,
 still serving 4 other Recharts consumers with an incompatible shape), and the
