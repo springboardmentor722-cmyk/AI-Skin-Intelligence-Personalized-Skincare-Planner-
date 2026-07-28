@@ -1543,6 +1543,10 @@ export interface components {
             score_trend: number[];
             /** Last Sync */
             last_sync: string | null;
+            /** Compliance Seven Day */
+            compliance_seven_day: number | null;
+            /** Compliance Thirty Day */
+            compliance_thirty_day: number | null;
         };
         /**
          * ClinicalPortfolioStatsRead
@@ -5097,6 +5101,7 @@ export interface operations {
             query?: {
                 page?: number;
                 page_size?: number;
+                q?: string | null;
             };
             header?: never;
             path?: never;

@@ -32,9 +32,10 @@ async def get_my_clients(
     db: Annotated[AsyncSession, Depends(get_db)],
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
+    q: str | None = Query(default=None),
 ) -> ClientListPage:
     items, total = await service.list_my_clients(
-        db, professional["id"], page=page, page_size=page_size
+        db, professional["id"], page=page, page_size=page_size, search=q
     )
     return ClientListPage(
         items=items, meta=ClientListPageMeta(page=page, page_size=page_size, total=total)

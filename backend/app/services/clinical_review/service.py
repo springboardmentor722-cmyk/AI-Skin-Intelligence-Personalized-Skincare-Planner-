@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.ai.trend import RealProgressTrendAnalyzer
@@ -15,6 +15,7 @@ from app.services.clinical_review.schemas import (
     PortfolioDistributionSlice,
     PortfolioRecentAssessment,
 )
+from app.services.progress import service as progress_service
 from app.services.routines import service as routines_service
 from app.services.scores import service as scores_service
 from app.services.skin_profile import service as skin_profile_service
@@ -118,7 +119,12 @@ async def verify_assignment(db: AsyncSession, professional_id: str, user_id: str
 
 
 async def list_my_clients(
-    db: AsyncSession, professional_id: str, *, page: int = 1, page_size: int = 20
+    db: AsyncSession,
+    professional_id: str,
+    *,
+    page: int = 1,
+    page_size: int = 20,
+    search: str | None = None,
 ) -> tuple[list[ClientSummaryRead], int]:
     """Production-readiness audit finding: this had no LIMIT at all — every active
     assignment, unbounded, on every call, each one also driving 3 further queries
@@ -128,21 +134,32 @@ async def list_my_clients(
     fetch-everything-then-slice in Python like admin/service.py's own precedent)
     so an unpaginated professional's full client count never gets fetched or
     processed for a single page — bounds both the response size and the N+1's
-    real cost per call, though the N+1 itself isn't fixed this pass."""
-    count_result = await db.execute(
-        select(func.count())
-        .select_from(ConsultantClient)
-        .where(
-            ConsultantClient.consultant_id == professional_id, ConsultantClient.status == "active"
+    real cost per call, though the N+1 itself isn't fixed this pass.
+
+    `search` (M3R Phase 5 — rubric's "searchable list") matches the client's
+    identity-table name/email, case-insensitively, restricted to a subquery over
+    `external_user_table` so it can never match (and thus never leak) a user who
+    isn't already this professional's active assignment — the base
+    consultant/status filter still gates both queries below."""
+    filters = [
+        ConsultantClient.consultant_id == professional_id,
+        ConsultantClient.status == "active",
+    ]
+    if search:
+        term = f"%{search}%"
+        matching_user_ids = select(external_user_table.c.id).where(
+            or_(external_user_table.c.name.ilike(term), external_user_table.c.email.ilike(term))
         )
+        filters.append(ConsultantClient.user_id.in_(matching_user_ids))
+
+    count_result = await db.execute(
+        select(func.count()).select_from(ConsultantClient).where(*filters)
     )
     total = count_result.scalar_one()
 
     result = await db.execute(
         select(ConsultantClient)
-        .where(
-            ConsultantClient.consultant_id == professional_id, ConsultantClient.status == "active"
-        )
+        .where(*filters)
         .order_by(ConsultantClient.assignment_id)
         .offset((page - 1) * page_size)
         .limit(page_size)
@@ -166,6 +183,7 @@ async def list_my_clients(
         # per-assignment-loop N+1 shape this function's own docstring already
         # accepted for get_current_profile/get_recent_scores above.
         user_profile = await user_service.get_or_create_profile(db, assignment.user_id)
+        compliance = await progress_service.get_compliance_percentages(db, assignment.user_id)
 
         primary_concern_name = None
         if profile and profile.concerns:
@@ -185,6 +203,8 @@ async def list_my_clients(
                 routine_adherence_score=latest.routine_adherence_score if latest else None,
                 score_trend=[float(s.overall_score) for s in scores if s.overall_score is not None],
                 last_sync=latest.calculated_at if latest else None,
+                compliance_seven_day=compliance.seven_day,
+                compliance_thirty_day=compliance.thirty_day,
             )
         )
     return summaries, total

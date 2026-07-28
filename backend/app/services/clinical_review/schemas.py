@@ -45,6 +45,12 @@ class ClientSummaryRead(BaseModel):
     # fabricated "AI Confidence" style stat.
     score_trend: list[float]
     last_sync: datetime.datetime | None
+    # M3R Phase 5 — the rubric's "compliance metrics (7/30-day)", wired straight from
+    # progress_service.get_compliance_percentages (already built, M3-E) rather than
+    # recomputed here. Same honest-None convention as that function's own fields:
+    # None when nothing was ever assigned in that window, never a fabricated 0%.
+    compliance_seven_day: float | None
+    compliance_thirty_day: float | None
 
 
 class ClientListPageMeta(BaseModel):
