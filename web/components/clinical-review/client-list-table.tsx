@@ -71,6 +71,7 @@ export function ClientListTable({
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder={`Search ${personLabel.toLowerCase()}...`}
+          aria-label={`Search ${personLabel.toLowerCase()}`}
           className="bg-muted focus:ring-secondary/40 w-full rounded-full py-2.5 pr-4 pl-10 text-sm outline-none focus:ring-2"
         />
       </div>

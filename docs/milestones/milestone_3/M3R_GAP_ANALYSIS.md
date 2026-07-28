@@ -175,17 +175,24 @@ diffing and live keyboard-navigation recording were not possible for any task th
 phase, honestly flagged rather than faked. A human browser pass in both themes is
 recommended before treating P4 as fully shipped.
 
-**Consultant/Dermatologist portal (4.2): roster exists, everything else is missing.**
-`web/components/clinical-review/client-detail-view.tsx` shows only today's
-step-completion ratio.
+**Consultant/Dermatologist portal (4.2): closed in P5.** Roster search + 7/30-day
+compliance metrics, an analytics/adherence timeline on the inspection view, real
+Baseline-vs-Current photo comparison (reusing `progress_service.get_progress_photos`'s
+already-computed before/after pair), and 4 assignment-gated routine-overwrite endpoints
+(reusing the exact same `routines_service` functions the user's own editor calls, with
+real audit-log attribution) are all now real. Full evidence:
+`M3R_TASK_LEDGER.md`'s P5-T1..T5 rows and
+`docs/milestones/milestone_3/build/p5-professional-portal-fidelity.md`.
 
-**Real gaps (P5 scope, both frontend and backend):**
-- **No photo display at all** — no baseline/current rendering, no side-by-side
-  compare. `clinical_review/router.py` has no photo-read endpoint.
-- **No routine-overwrite capability at all** — no write/edit endpoint in
-  `clinical_review/`, no form in the frontend.
+**One scoped omission, judged correct, not a gap:** no client-scoped step-reorder
+endpoint exists — this phase's own rubric bullet (`phases/phase_5_professional_portal.md`
+T4) only names "add/remove/edit AM/PM steps," never reordering. The professional's routine
+editor hides reorder controls rather than wiring them to a nonexistent endpoint (a real,
+correctly-scoped UI decision, not a silently broken feature).
 
-These two gaps also block Step 5's E2E walkthrough, which requires exactly this flow.
+These two gaps (photo comparison, routine-overwrite) were the last blockers on Step 5's
+E2E walkthrough — P6 can now build the full assessment→recs→check-off→photo→derm
+inspects+edits→user sees live update spec.
 
 ## 5. Testing & Verification (Rubric Step 5)
 
