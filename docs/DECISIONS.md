@@ -1423,3 +1423,82 @@ boundary is untouched) and `test_skin_condition_score_past_the_floor_keeps_discr
 (proves strictly-decreasing, always-positive behavior past it). No other
 test asserted behavior past 100 deduction. `docs/AI_ML.md`'s Condition
 sub-score description now notes the tail explicitly.
+
+## ADR-035 — Chart.js accepted alongside Recharts for the dashboard adherence chart
+
+**Status:** Accepted (M3-rubric-pass, P4, 2026-07-28)
+**Context:** `AGENTS.md` §4 locks the component stack to shadcn primitives, naming
+"shadcn Charts/Recharts" as the only charting library. `MILESTONE 3.pdf`'s Progress &
+Analytics step calls for a combined score+adherence-over-time chart; the existing
+`web/components/charts/trend-chart.tsx` (Recharts, `AreaChart`, single `TrendPoint[]`
+series shape) already has 5 real consumers (`check-in`, `progress`, `admin/dashboard`,
+`clinical-review/clinical-dashboard`, `design-system`) built around that single-series
+shape. Forcing a second, structurally different series (score + adherence, dual-metric,
+7/30/90-day literal windows per rubric wording) into the same component would have
+meant either breaking those 5 consumers' shape or building an awkward second mode inside
+one file.
+**Decision:** Owner-confirmed (recorded in `M3R_GAP_ANALYSIS.md` "Decisions already
+recorded this session") to add Chart.js (`chart.js` + `react-chartjs-2`, already a
+`web/package.json` dependency from a prior session's `6026db6` commit) as a second,
+narrowly-scoped charting library for exactly this one new component,
+`web/components/charts/score-adherence-chart.tsx`, fed only by `GET /analytics/me`.
+`trend-chart.tsx` and its 5 Recharts consumers are deliberately untouched.
+**Consequences:** Two charting libraries now coexist in `web/`. Any *future* chart
+should default to Recharts (the still-locked general default) unless it needs the same
+dual-metric multi-window shape this one solves — that's the bar for reaching for
+Chart.js again, not a free choice between the two.
+
+## ADR-036 — MinIO accepted as satisfying the rubric's cloud-storage requirement
+
+**Status:** Accepted (M3-rubric-pass, P3, 2026-07-28)
+**Context:** `MILESTONE 3.pdf` names "AWS S3 or Azure Blob" for photo/export storage.
+`backend/app/core/storage.py` already implements the full contract (magic-byte
+content-type sniffing, EXIF stripping, private-bucket + short-lived presigned URLs
+only) against MinIO in dev, per `AGENTS.md` §5's existing "drop-in real AWS S3 in prod
+via env vars only, no code change" design.
+**Decision:** Owner-confirmed (recorded in `M3R_GAP_ANALYSIS.md` §6 item 2) that the
+existing MinIO adapter satisfies the requirement as-is — no live AWS/Azure bucket is
+needed to pass this milestone. The env-var-swap story (same adapter, different
+endpoint/credentials env vars) is the proof, not a new integration.
+**Consequences:** No code change. Documented here so a future reviewer doesn't mistake
+"MinIO in docker-compose" for an unmet requirement.
+
+## ADR-037 — No endpoint-naming rubric conflict in M3 (contrast with M2)
+
+**Status:** Accepted (M3-rubric-pass, P0 gap analysis, 2026-07-27)
+**Context:** ADR precedent from Milestone 2 (§0.1 in `AGENTS.md`, and `AGENTS.md`'s
+own standing-precedent note) established that an external rubric's literal names win
+over internal architecture judgment when the two genuinely conflict — that's why M2
+renamed tables/endpoints to `skin_assessments`/`skincare_routines` and
+`/api/v1/assessment/*`/`/api/v1/routine/*`. Milestone 3's gap analysis
+(`M3R_GAP_ANALYSIS.md`, closing note before "Decisions already recorded this session")
+explicitly checked for the same class of conflict and found none: the Step 1 Safety
+Score endpoint and Step 2-4 gaps identified this pass were genuinely new-build or
+rework items, not cases of existing code already doing the same thing under a
+different name.
+**Decision:** No renaming precedent needed to be invoked this milestone. Recorded as an
+ADR anyway (rather than silence) so a future reader doesn't wonder whether the check
+was skipped.
+**Consequences:** None — this is a documented non-event, not a change.
+
+## ADR-038 — Adherence math: literal 7/30/90-day windows, judged against the routine active on each historical day
+
+**Status:** Accepted (M3-rubric-pass, P3-T2, commit `b78c0f6`)
+**Context:** `services/progress/service.py`'s `get_adherence_series` only computed
+7-day and 30-day windows; `MILESTONE 3.pdf` Step 3 calls for 90-day coverage too, and
+its "assigned counts follow what was assigned each day" wording implies each historical
+day's adherence should be judged against whichever routine was actually active *that
+day* — not the currently-active routine. The prior implementation silently misjudged
+any day before a mid-window regeneration (dermatologist overwrite, reassessment),
+because it always compared against the routine active *now*.
+**Decision:** Added `get_compliance_percentages` (7/30/90-day completed/assigned
+ratios) and `list_historical_active_step_ids` (per-day lookup against whichever routine
+of each type was active as of that specific day — soft-deactivated routines are never
+hard-deleted, so remain queryable), and rebuilt the adherence math on top of the latter.
+Verified with 3 new exact-assert tests in `backend/tests/test_progress_service.py`:
+30/90-day compliance ratios, a mid-window routine-change case, and a UTC day-boundary
+case.
+**Consequences:** Adherence percentages for any user who had a routine regenerated
+mid-window are now numerically different (more correct) than before this fix — a
+one-time recalculation discontinuity, not a bug, if anyone diffs historical values
+against a pre-fix snapshot.
