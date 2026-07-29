@@ -1,0 +1,11 @@
+{
+  "a": "docs/milestones/milestone_2/Consultant.png",
+  "b": "docs/milestones/milestone_2/build/consultant-dashboard.png",
+  "mode": "structural",
+  "dilate": 2,
+  "edge_iou_pct": 12.28,
+  "structure_mismatch_pct": 87.72,
+  "missing_from_build_px": 178646,
+  "extra_in_build_px": 266422,
+  "diff_image": "docs/milestones/milestone_2/build/diff-consultant-dashboard.png"
+}
