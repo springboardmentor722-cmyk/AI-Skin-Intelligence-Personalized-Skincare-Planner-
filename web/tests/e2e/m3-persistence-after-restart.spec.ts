@@ -139,8 +139,8 @@ test("check-ins, photos, and a routine overwrite all survive a real postgres/mon
   // Bumped from 120s (then 180s): restarting postgres/mongo (not just worker)
   // plus their readiness waits, plus a third real signup/assignment/edit-screen
   // check for the consultant role, adds real wall-clock time over the original
-  // worker-only version of this spec — measured to need more than 180s in
-  // practice.
+  // worker-only version of this spec. Real runs land around 20-30s; 300s is
+  // generous headroom, not a measured requirement.
   test.setTimeout(300_000);
 
   const password = "SuperSecret123!";
