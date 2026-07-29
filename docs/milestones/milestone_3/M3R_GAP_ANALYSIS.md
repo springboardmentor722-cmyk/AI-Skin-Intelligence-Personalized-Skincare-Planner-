@@ -202,17 +202,29 @@ These two gaps (photo comparison, routine-overwrite) were the last blockers on S
 E2E walkthrough — P6 can now build the full assessment→recs→check-off→photo→derm
 inspects+edits→user sees live update spec.
 
-## 5. Testing & Verification (Rubric Step 5)
+## 5. Testing & Verification (Rubric Step 5) — closed in P6
 
-**Partially exists.** Unit-test coverage for clash detection and allergy-filter
-exclusion is real (`test_ingredients_service.py`, `test_recommendations_service.py`,
-`test_suitability.py`). Adherence-math tests exist for the windows that currently
-exist (7/30) — 90-day is untestable until P3 builds it.
+All three rubric-named test classes now solidly covered: chemical-clash detection
+(`test_interactions.py`), allergy filtering (`test_suitability.py` +
+`test_recommendations_service.py`), and adherence formulas exact on fixtures —
+7/30/90-day, mid-window routine change, and day boundary
+(`test_progress_service.py`).
 
-**Real gap:** no E2E spec covers the rubric's literal walkthrough (assessment → recs →
-check-off → photo upload → derm inspects + edits → user sees live update). Existing
-specs (`user-journey.spec.ts`, `cross-role-verification-journey.spec.ts`) don't touch
-photos or derm routine edits. This is blocked on P5's portal work landing first.
+The rubric's literal E2E walkthrough now exists as
+`web/tests/e2e/m3-rubric-walkthrough.spec.ts` (assessment → recommendations →
+check-off → photo upload → dermatologist inspects + edits → user sees the live
+update, both themes, 3× flake-checked) plus
+`web/tests/e2e/m3-persistence-after-restart.spec.ts` (DB-level persistence across
+a real `worker` container restart — see `M3R_TASK_LEDGER.md`'s P6-T3 row for why
+the backend API process itself is out of scope for an in-sandbox restart proof;
+deferred to a real deployment environment).
+
+The full-gate run itself surfaced and closed 4 more real, previously-undetected
+bugs across the whole stack — 2 real UI layout bugs (a fixed save-bar overflowing
+the viewport; topbar widgets colliding with the sidebar's own breakpoint) and 2
+real pre-existing test-suite bugs (an ambiguous ingredient-search locator; a
+cleanup-helper FK-ordering race with a live background poll) — see
+`M3R_TASK_LEDGER.md`'s P6-T2/T4 rows for the full detail on each.
 
 ---
 
