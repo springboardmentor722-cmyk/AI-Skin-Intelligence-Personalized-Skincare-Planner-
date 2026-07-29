@@ -103,3 +103,55 @@ instead:
 Every phase branch (`feat/m3r-p1-*` through `feat/m3r-p6-*`) was merged to `dev` and
 deleted after its own verification + final whole-branch review pass — see each phase's
 row in `M3R_TASK_LEDGER.md` for the specific fixes each review round caught.
+
+**Branch cleanliness (`git branch -a`, 2026-07-29, re-verified fresh for this
+report):**
+
+```
+* chore/m3r-p7-docs-release   (this phase's own branch — merged to dev then deleted)
+  chore/repo-recovery         (pre-existing, unrelated to this milestone)
+  dev
+  main
+  satya-sai-tharun-skinlytics
+  remotes/origin/HEAD -> origin/main
+  remotes/origin/dev
+  remotes/origin/main
+  remotes/origin/satya-sai-tharun-skinlytics
+  remotes/origin/<other contributors' untouched branches>
+```
+
+Zero leftover `feat/m3r-*`/`fix/m3r-*`/`chore/m3r-*` branches from P0-P6 — every one
+was merged and deleted in the same change per this milestone's standing branch
+discipline.
+
+## M4 handoff note
+
+What M4 (Dashboards/Reports/Testing/Docker-cloud deploy, `docs/ARCHITECTURE.md` §13)
+inherits from this pass:
+
+- **`docker-compose.yml` still has no `api`/`web` service entries** — the monolith
+  currently runs `web` via `npm run dev` and `api` via `uv run uvicorn` on the host,
+  outside compose. M4's per-service container split (ADR-005) is the point where these
+  get added; don't add them prematurely before that ADR's split actually happens.
+- **Deprecated endpoint aliases:** none found mounted this pass (`M3R_GAP_ANALYSIS.md`
+  §0 — `/scores/me`, `/routines/me`, `/routines/generate` don't exist in code, only in
+  historical comments). Nothing to retire.
+- **Deferred items carried forward:** host-process restart-persistence proof (in-sandbox
+  Application Control policy makes force-killing the host `uv`/uvicorn process unsafe to
+  test directly — container-level restart already proves DB durability;
+  actual-process-restart proof, if ever needed, belongs in a real staging/CI environment
+  that isn't this dev sandbox); Sensitive-skin recommendation coverage (real ingested
+  catalog has no "Sensitive" highlight phrase to map from — a data gap, not a scoring
+  bug); a human browser click-through of P4/P5's dashboards before `dev → main`
+  promotion, though P6's real Playwright walkthrough now covers the same ground
+  end-to-end.
+- **Two charting libraries now coexist** (ADR-035) — Recharts stays the default; only
+  reach for Chart.js again if a future chart needs the same dual-metric/multi-window
+  shape `score-adherence-chart.tsx` solves.
+- **Two doc-drift bugs fixed this pass** that a future milestone's own "docs in
+  lockstep" pass should double check haven't crept back: `AGENTS.md`'s ingredients-router
+  and analytics-module notes (both were stale, corrected — but `AGENTS.md` is
+  gitignored/untracked by design, so these edits live on local disk only, not in git
+  history); `database_schemas/skinlytics_identity_betterauth.md`'s now-corrected note on
+  the Redis-backed (not Postgres) `session` table.
+- Branch state going into M4: clean — paste above is the record.
