@@ -528,7 +528,7 @@ export function RoutineEditor({ routine, backHref, clientUserId }: RoutineEditor
         </div>
       </div>
 
-      <div className="border-border bg-card/95 fixed bottom-0 left-0 flex w-full items-center justify-between border-t p-4 backdrop-blur md:left-64">
+      <div className="border-border bg-card/95 fixed inset-x-0 bottom-0 flex items-center justify-between border-t p-4 backdrop-blur md:left-(--sidebar-width)">
         <span className="text-on-surface-variant font-sans text-sm">
           {isDirty ? "Unsaved changes" : "No changes"}
         </span>

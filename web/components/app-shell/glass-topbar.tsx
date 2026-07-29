@@ -213,12 +213,12 @@ export function GlassTopbar({ role, userName, title }: GlassTopbarProps) {
           {/* Real OpenWeather/OpenUV adapters, docs/DATASETS_AND_APIS.md — "—" is an
               honest "not available" (no location permission or no API key configured),
               never a fabricated reading. */}
-          <div className="bg-tertiary-container font-geist text-on-tertiary-container hidden items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium md:flex">
+          <div className="bg-tertiary-container font-geist text-on-tertiary-container hidden items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium lg:flex">
             <SunMedium className="size-3.5" strokeWidth={1.5} />
             <span>UV {uvLabel}</span>
           </div>
 
-          <div className="border-border bg-card/60 text-on-surface-variant font-geist hidden items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs tabular-nums md:flex">
+          <div className="border-border bg-card/60 text-on-surface-variant font-geist hidden items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs tabular-nums lg:flex">
             <CalendarDays className="size-3.5" strokeWidth={1.5} />
             <span>{today}</span>
           </div>
