@@ -73,6 +73,25 @@ export async function deleteTestUser(userId: string): Promise<void> {
       [userId]
     );
     await db.query("delete from skincare_routines where user_id = $1", [userId]);
+    // Real finding: a spec that leaves its `page` open past sign-out (never
+    // navigates away or closes it) can have a live client-side poll — e.g. the
+    // dashboard's own 30s routines refetch — fire in the background during this
+    // exact cleanup window and call the real "get-or-generate" routine endpoint,
+    // which recreates fresh skincare_routines rows for this user the instant it
+    // finds none. That reintroduces the very FK the two deletes above just
+    // cleared, and the skin_profiles delete below then fails on
+    // skincare_routines_skin_profile_id_fkey. Sweeping this same delete a second
+    // time closes that window without requiring every calling spec to also
+    // manage its page's lifecycle before cleanup.
+    await db.query(
+      "delete from routine_products where routine_id in (select routine_id from skincare_routines where user_id = $1)",
+      [userId]
+    );
+    await db.query(
+      "delete from routine_steps where routine_id in (select routine_id from skincare_routines where user_id = $1)",
+      [userId]
+    );
+    await db.query("delete from skincare_routines where user_id = $1", [userId]);
     await db.query(
       "delete from skin_profile_concerns where skin_profile_id in (select skin_profile_id from skin_profiles where user_id = $1)",
       [userId]

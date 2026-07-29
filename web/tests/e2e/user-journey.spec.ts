@@ -210,7 +210,12 @@ test("signup -> real profile -> dashboard/routine/recommendations/profile/check-
     // row (backend/app/db/seed.py), proving the structured id round-trips, not a tag.
     await page.getByPlaceholder("Search ingredients...").click();
     await page.getByPlaceholder("Search ingredients...").fill("Retinol");
-    await page.getByRole("option", { name: "Retinol" }).click();
+    // exact: true — the real ingested Sephora catalog (Phase 2) now has 14+
+    // ingredient names containing "Retinol" as a substring (e.g. "0.5%
+    // Retinol", "Retinol Eye Stick:"), which a non-exact getByRole match
+    // resolves to ambiguously. This spec predates that real catalog, when
+    // "Retinol" was the only match.
+    await page.getByRole("option", { name: "Retinol", exact: true }).click();
 
     await page.getByRole("button", { name: /save skin profile/i }).click();
     await expect(page.getByText(/^saved$/i)).toBeVisible({ timeout: 10_000 });
