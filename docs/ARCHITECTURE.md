@@ -145,9 +145,12 @@ suitability, not service-layer-only as an earlier draft of this doc said),
 `dermatologist_profile`, plus two support modules not numbered in the table:
 `clinical_review` (consultant/dermatologist client review + portfolio-wide
 stats, shared by both roles, M2-P14) and `weather` (`/weather-uv`, backed by the
-OpenWeather/OpenUV adapters). The image-based Skin Assessment service (#3's
-scan/CV half) and Notification/Analytics/Report (#9–11) are still to be built
-in M3–M4 — follow the ownership table above when building them. Full endpoint
+OpenWeather/OpenUV adapters). `analytics` (#10) landed in M3-P3 as a genuine
+read-only aggregator (`GET /analytics/me` merges score timeline, 7/30/90-day
+compliance percentages, and progress-photo links; never a source of truth,
+never written to directly). The image-based Skin Assessment service (#3's
+scan/CV half), Notification (#9), and Report (#11) are still to be built in
+M3–M4 — follow the ownership table above when building them. Full endpoint
 mapping: `AGENTS.md` §5.
 
 **Async work** (report rendering, notification delivery, embedding jobs, ES/vector
