@@ -295,7 +295,21 @@ test("check-ins, photos, and a routine overwrite all survive a real worker resta
 
     await signIn(page, dermaEmail, password, /\/dermatologist/);
     await page.goto(`/dermatologist/patients/${userId}`);
-    await expect(page.getByText("Evening Routine")).toBeVisible({ timeout: 10_000 });
+    // "Evening Routine" alone is just routine.routine_name — a static field
+    // that would render identically whether or not the edit persisted (it's
+    // present before any edit too). The dermatologist's own patient-detail view
+    // never surfaces per-step product/usage-notes text — only the edit page
+    // does — so re-open the same edit screen and confirm the real persisted
+    // product name is what the dermatologist would actually see on a return
+    // visit, not just a page that happens to render regardless of this test.
+    const eveningRoutineRowPostRestart = page.locator("div.flex.items-center.justify-between", {
+      hasText: "Evening Routine",
+    });
+    await eveningRoutineRowPostRestart.getByRole("button", { name: /edit routine/i }).click();
+    await page.waitForURL(new RegExp(`/dermatologist/patients/${userId}/routines/\\d+/edit`), {
+      timeout: 10_000,
+    });
+    await expect(page.getByText(newProductName as string)).toBeVisible({ timeout: 10_000 });
     await signOut(page.request);
   } finally {
     if (dermaId) {
