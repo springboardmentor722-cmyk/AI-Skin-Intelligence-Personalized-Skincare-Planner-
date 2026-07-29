@@ -215,16 +215,19 @@ The rubric's literal E2E walkthrough now exists as
 check-off → photo upload → dermatologist inspects + edits → user sees the live
 update, both themes, 3× flake-checked) plus
 `web/tests/e2e/m3-persistence-after-restart.spec.ts` (DB-level persistence across
-a real `worker` container restart — see `M3R_TASK_LEDGER.md`'s P6-T3 row for why
-the backend API process itself is out of scope for an in-sandbox restart proof;
-deferred to a real deployment environment).
+a real `postgres`/`mongo`/`worker` container restart, plus a consultant-side
+post-overwrite check — see `M3R_TASK_LEDGER.md`'s P6-T3 row for why the backend
+API process itself is out of scope for an in-sandbox restart proof; deferred to
+a real deployment environment).
 
-The full-gate run itself surfaced and closed 4 more real, previously-undetected
+This phase's own testing surfaced and closed 4 more real, previously-undetected
 bugs across the whole stack — 2 real UI layout bugs (a fixed save-bar overflowing
-the viewport; topbar widgets colliding with the sidebar's own breakpoint) and 2
-real pre-existing test-suite bugs (an ambiguous ingredient-search locator; a
-cleanup-helper FK-ordering race with a live background poll) — see
-`M3R_TASK_LEDGER.md`'s P6-T2/T4 rows for the full detail on each.
+the viewport; topbar widgets colliding with the sidebar's own breakpoint), found by
+Task 2's new E2E walkthrough spec, not the Task 4 full-gate run, and 2 real
+pre-existing test-suite bugs (an ambiguous ingredient-search locator; a
+cleanup-helper FK-ordering race with a live background poll), found by the Task 4
+full-gate run itself — see `M3R_TASK_LEDGER.md`'s P6-T2/T4 rows for the full
+detail on each.
 
 ---
 

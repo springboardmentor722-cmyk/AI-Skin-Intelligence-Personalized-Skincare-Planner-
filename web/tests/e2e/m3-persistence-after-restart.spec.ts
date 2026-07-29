@@ -17,37 +17,100 @@ const execFileAsync = promisify(execFile);
 // concern is only the restart-survives-it half, not re-proving the walkthrough.
 //
 // Scope decision (owner-confirmed, 2026-07-29): this spec restarts the real
-// `worker` container only (the ADR-010 outbox/projection process — a genuine
-// docker-compose service) rather than the backend API process itself. An earlier
-// version of this spec also force-killed the real `uv run uvicorn` process to
-// restart it — that triggered a Windows Application Control policy that then
-// blocked the entire uv-managed Python toolchain (`uv.exe` and even a raw
-// `python -m uvicorn` invocation both failed with "An Application Control policy
-// has blocked this file"), taking the backend down with no way to bring it back
-// up short of the owner's own security-console action. Since `api`/`web` are
-// host processes, not compose services, in this repo (ADR-005,
-// docker-compose.yml's own comment), restarting them isn't a `docker compose
-// restart` the way `worker` is — doing it safely needs either a supervised
-// process manager or a real deployment environment, neither of which exists
-// here. Proving persistence across a full backend-process restart is deferred to
-// a real deployment/staging environment; this spec proves the same DB-truth
-// property (server-restart does not lose real data) for the one component that
+// `postgres`, `mongo`, and `worker` containers — all genuine docker-compose
+// services with named volumes (docker-compose.yml) — rather than the backend
+// API process itself. A worker-only restart doesn't own any of the three
+// things this spec asserts survive (Mongo `routine_logs`, Postgres
+// `progress_images`, Postgres `routine_products`/`routine_steps`), so it isn't
+// actually load-bearing on its own — restarting the real owning stores is.
+// An earlier version of this spec also force-killed the real `uv run uvicorn`
+// process to restart it — that triggered a Windows Application Control policy
+// that then blocked the entire uv-managed Python toolchain (`uv.exe` and even
+// a raw `python -m uvicorn` invocation both failed with "An Application
+// Control policy has blocked this file"), taking the backend down with no way
+// to bring it back up short of the owner's own security-console action. Since
+// `api`/`web` are host processes, not compose services, in this repo
+// (ADR-005, docker-compose.yml's own comment), restarting them isn't a
+// `docker compose restart` the way postgres/mongo/worker are — doing it
+// safely needs either a supervised process manager or a real deployment
+// environment, neither of which exists here. Proving persistence across a
+// full backend-process restart is deferred to a real deployment/staging
+// environment; this spec proves the same DB-truth property (a real restart of
+// the actual owning stores does not lose real data) for the components that
 // can be restarted safely and repeatably in this sandbox.
-const BACKEND_HEALTH_URL = "http://localhost:8000/health";
+//
+// Post-restart backend confirmation deliberately hits `/health/ready`, not the
+// bare `/health` liveness probe (backend/app/main.py) — `/health` returns
+// `{"status": "ok"}` unconditionally and never touches Postgres/Redis/Mongo,
+// so it would prove nothing about whether the backend's own DB connections
+// actually recovered after the restart. `/health/ready` genuinely pings all
+// three.
+const BACKEND_READY_URL = "http://localhost:8000/health/ready";
 
-async function restartWorker(): Promise<void> {
+async function waitForPostgresReady(): Promise<void> {
+  const deadline = Date.now() + 30_000;
+  let lastError: unknown;
+  while (Date.now() < deadline) {
+    const db = pool();
+    try {
+      await db.query("select 1");
+      return;
+    } catch (err) {
+      lastError = err;
+      await new Promise((r) => setTimeout(r, 1_000));
+    } finally {
+      await db.end();
+    }
+  }
+  throw new Error(`Postgres did not become ready after restart within 30s: ${String(lastError)}`);
+}
+
+async function waitForMongoReady(): Promise<void> {
+  const deadline = Date.now() + 30_000;
+  let lastError: unknown;
+  while (Date.now() < deadline) {
+    const client = new MongoClient(process.env.MONGO_URI ?? "mongodb://localhost:27017/skinlytics");
+    try {
+      await client.connect();
+      await client.db().command({ ping: 1 });
+      return;
+    } catch (err) {
+      lastError = err;
+      await new Promise((r) => setTimeout(r, 1_000));
+    } finally {
+      await client.close().catch(() => {});
+    }
+  }
+  throw new Error(`Mongo did not become ready after restart within 30s: ${String(lastError)}`);
+}
+
+async function restartStoresAndWorker(): Promise<void> {
   // process.cwd() is the `web/` directory (playwright.config.ts's own testDir
   // is relative to it, and `npx playwright test` is always run from there per
   // this repo's convention) — resolve the repo root from that, not from this
   // file's own location.
   const repoRoot = path.resolve(process.cwd(), "..");
-  await execFileAsync("docker", ["compose", "restart", "worker"], { cwd: repoRoot });
+  await execFileAsync("docker", ["compose", "restart", "postgres", "mongo", "worker"], {
+    cwd: repoRoot,
+  });
 
-  // The backend API itself is untouched by this restart, but confirm it's still
-  // actually healthy afterward (a real, if unlikely, way this could regress: the
-  // worker and api sharing a resource that a worker restart could disrupt).
-  const res = await fetch(BACKEND_HEALTH_URL);
-  expect(res.ok, "the backend should remain healthy through a worker-only restart").toBe(true);
+  // Postgres/Mongo take a moment to accept connections again after a
+  // container restart — wait for each with a real trivial query/ping rather
+  // than assuming `docker compose restart` returning means the store is
+  // already accepting connections.
+  await waitForPostgresReady();
+  await waitForMongoReady();
+
+  // The backend API process itself is untouched by this restart, but confirm
+  // it's still actually able to reach the restarted stores afterward — the
+  // backend's own DB pool needs to reconnect to the restarted Postgres/Mongo
+  // containers, which is exactly the kind of thing that could regress
+  // silently.
+  const res = await fetch(BACKEND_READY_URL);
+  expect(
+    res.ok,
+    "the backend should be able to reach postgres/redis/mongo again after the restart"
+  ).toBe(true);
 }
 
 async function signIn(
@@ -64,7 +127,7 @@ async function signIn(
   await page.waitForURL(redirect, { timeout: 10_000 });
 }
 
-test("check-ins, photos, and a routine overwrite all survive a real worker restart", async ({
+test("check-ins, photos, and a routine overwrite all survive a real postgres/mongo/worker restart", async ({
   page,
 }, testInfo) => {
   // Backend-persistence check, theme-independent — only run once (light project)
@@ -73,7 +136,12 @@ test("check-ins, photos, and a routine overwrite all survive a real worker resta
   // which deliberately runs both themes because its own point includes
   // visual/responsive verification).
   test.skip(testInfo.project.name !== "chromium-light", "backend-persistence check, theme-independent");
-  test.setTimeout(120_000);
+  // Bumped from 120s (then 180s): restarting postgres/mongo (not just worker)
+  // plus their readiness waits, plus a third real signup/assignment/edit-screen
+  // check for the consultant role, adds real wall-clock time over the original
+  // worker-only version of this spec — measured to need more than 180s in
+  // practice.
+  test.setTimeout(300_000);
 
   const password = "SuperSecret123!";
   const userEmail = `e2e-restart-user-${Date.now()}@example.com`;
@@ -84,6 +152,7 @@ test("check-ins, photos, and a routine overwrite all survive a real worker resta
   );
   let userId: string | null = null;
   let dermaId: string | null = null;
+  let consultantId: string | null = null;
   let editedStepId: number | null = null;
 
   try {
@@ -241,8 +310,8 @@ test("check-ins, photos, and a routine overwrite all survive a real worker resta
 
     await signOut(page.request);
 
-    // --- The actual restart (worker container only — see file header for why) ---
-    await restartWorker();
+    // --- The actual restart (postgres + mongo + worker — see file header for why) ---
+    await restartStoresAndWorker();
 
     // --- Re-verify everything survived, reading fresh from the DB directly
     // (the strongest form of this proof — no UI/client cache involved at all) ---
@@ -282,7 +351,8 @@ test("check-ins, photos, and a routine overwrite all survive a real worker resta
 
     // --- Also confirm both roles see the SAME post-restart state via a fresh
     // real HTTP request (not just direct SQL), proving the backend still serves
-    // the persisted truth after the worker restart, not stale in-memory state. ---
+    // the persisted truth after the postgres/mongo/worker restart, not stale
+    // in-memory state. ---
     await signIn(page, userEmail, password, /\/dashboard/);
     await page.goto("/routine");
     await page.getByRole("button", { name: "PM Routine" }).click();
@@ -311,7 +381,93 @@ test("check-ins, photos, and a routine overwrite all survive a real worker resta
     });
     await expect(page.getByText(newProductName as string)).toBeVisible({ timeout: 10_000 });
     await signOut(page.request);
+
+    // --- Consultant: same client, different professional role, must see the
+    // SAME post-overwrite state the dermatologist created (phase spec's
+    // literal "Consultant sees the same post-overwrite state the
+    // dermatologist created"). consultant_clients.consultant_id is a generic
+    // FK used for both roles (database_schemas/..._v3.sql), and
+    // client-detail-view.tsx is the exact same component both
+    // /consultant/clients/{userId} and /dermatologist/patients/{userId}
+    // render (AGENTS.md §4) — real signup + promoteRole + a real approved
+    // consultant_profiles row + a real second consultant_clients assignment
+    // row for this same client, same pattern already proven for the
+    // dermatologist above.
+    const consultantEmail = `e2e-restart-consultant-${Date.now()}@example.com`;
+    await clearRateLimits();
+    await page.goto("/signup");
+    await page.fill("#firstName", "Restart");
+    await page.fill("#lastName", "Consultant");
+    await page.fill("#email", consultantEmail);
+    await page.fill("#password", password);
+    await page.fill("#confirmPassword", password);
+    await page.getByRole("checkbox").click({ force: true });
+    await page.getByRole("button", { name: /create account/i }).click();
+    await page.waitForURL(/\/(assessment|consultant-onboarding|dermatologist-onboarding)/, {
+      timeout: 10_000,
+    });
+
+    const consultantLookupDb = pool();
+    try {
+      const { rows } = await consultantLookupDb.query('select id from "user" where email = $1', [
+        consultantEmail,
+      ]);
+      consultantId = rows[0]?.id ?? null;
+    } finally {
+      await consultantLookupDb.end();
+    }
+    expect(consultantId).toBeTruthy();
+
+    await promoteRole(consultantId as string, "consultant");
+    const consultantAssignDb = pool();
+    try {
+      await consultantAssignDb.query(
+        `insert into consultant_profiles (user_id, verification_status) values ($1, 'approved')`,
+        [consultantId]
+      );
+      await consultantAssignDb.query(
+        `insert into consultant_clients (consultant_id, user_id, status) values ($1, $2, 'active')`,
+        [consultantId, userId]
+      );
+    } finally {
+      await consultantAssignDb.end();
+    }
+
+    // Same real bug class this file's own dermatologist block already guards
+    // against: signup leaves the browser authenticated as the pre-promotion
+    // session, so /login would redirect an already-authenticated visitor away
+    // before the form could even be filled in as the newly-promoted role —
+    // sign out first, same as the dermatologist setup above does.
+    await signOut(page.request);
+    await signIn(page, consultantEmail, password, /\/consultant/);
+    await page.goto(`/consultant/clients/${userId}`);
+    // Same as the dermatologist's own patient-detail view: client-detail-view.tsx
+    // never surfaces per-step product/usage-notes text on the detail page
+    // itself, only the routine edit screen does (reached via "Edit routine").
+    // Confirm the consultant, via their own route, reaches the same edit
+    // screen and sees the same real persisted product name.
+    await expect(page.getByText("Evening Routine")).toBeVisible({ timeout: 10_000 });
+    const eveningRoutineRowConsultant = page.locator("div.flex.items-center.justify-between", {
+      hasText: "Evening Routine",
+    });
+    await eveningRoutineRowConsultant.getByRole("button", { name: /edit routine/i }).click();
+    await page.waitForURL(new RegExp(`/consultant/clients/${userId}/routines/\\d+/edit`), {
+      timeout: 10_000,
+    });
+    await expect(page.getByText(newProductName as string)).toBeVisible({ timeout: 10_000 });
+    await signOut(page.request);
   } finally {
+    if (consultantId) {
+      const consultantCleanupDb = pool();
+      try {
+        await consultantCleanupDb.query("delete from consultant_clients where consultant_id = $1", [
+          consultantId,
+        ]);
+      } finally {
+        await consultantCleanupDb.end();
+      }
+      await deleteTestUser(consultantId);
+    }
     if (dermaId) {
       const cleanupDb = pool();
       try {
