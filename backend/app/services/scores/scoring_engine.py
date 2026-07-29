@@ -57,8 +57,13 @@ def _skin_condition_score(concerns: list[Any]) -> float:
     exceptions — every deduction <= 100 returns bit-for-bit `100.0 - deduction`.
     Past 100 (unspecified by the docx; previously a flat clamp to 0, so 7+
     simultaneous High-severity concerns were all indistinguishable) the score
-    instead decays from `CONDITION_SATURATION_TAIL_SCALE` toward, but never
-    reaching, 0 — worse keeps meaning worse, all the way down."""
+    instead decays from 0 toward, but never reaching,
+    `-CONDITION_SATURATION_TAIL_SCALE` — worse keeps meaning worse, all the way
+    down, continuously (the tail starts at exactly 0, matching the linear
+    branch's own value at deduction==100 and its slope, instead of jumping to
+    `CONDITION_SATURATION_TAIL_SCALE`; the original formula had that jump, which
+    briefly scored a *worse* profile higher right at the deduction==100 seam —
+    e.g. deduction 101 scored ~4.09 while deduction 97 scored 3.0)."""
     if not concerns:
         return 100.0
     highest_severity_per_group: dict[object, int] = {}
@@ -80,7 +85,7 @@ def _skin_condition_score(concerns: list[Any]) -> float:
         return 100.0 - deduction
     overflow = deduction - 100.0
     tail_scale = constants.CONDITION_SATURATION_TAIL_SCALE
-    return float(tail_scale * np.exp(-overflow / tail_scale))
+    return float(-tail_scale * (1.0 - np.exp(-overflow / tail_scale)))
 
 
 def _lifestyle_score(logs: list[dict[str, Any]], uv_index: float | None = None) -> float:

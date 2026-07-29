@@ -75,6 +75,24 @@ async def count_concern_occurrences_for_users(
     return {row[0]: row[1] for row in result.all()}
 
 
+async def get_top_skin_concerns(db: AsyncSession, limit: int = 5) -> list[tuple[str, int]]:
+    """Interface function (ADR-005) — Admin's platform-wide concern-frequency KPI
+    (admin/service.py's get_top_skin_concerns) reads this, never `skin_profile_concerns`
+    directly. Distinct from count_concern_occurrences_for_users: that one is scoped to
+    a professional's assigned-client cohort, this is every current profile platform-wide."""
+    rows = (
+        await db.execute(
+            select(SkinConcern.concern_name, func.count(SkinProfileConcern.skin_profile_id))
+            .select_from(SkinProfileConcern)
+            .join(SkinConcern, SkinConcern.concern_id == SkinProfileConcern.concern_id)
+            .group_by(SkinConcern.concern_name)
+            .order_by(func.count(SkinProfileConcern.skin_profile_id).desc())
+            .limit(limit)
+        )
+    ).all()
+    return [(row[0], row[1]) for row in rows]
+
+
 async def list_skin_concerns(db: AsyncSession) -> list[SkinConcern]:
     result = await db.execute(select(SkinConcern))
     return list(result.scalars().all())
@@ -203,7 +221,10 @@ async def create_profile(
     await db.commit()
     await db.refresh(profile)
 
-    await get_redis().delete(f"recommendation:cache:{user_id}")
+    # Must match recommendations/service.py's _CACHE_SCHEMA_VERSION-prefixed key
+    # (kept as a literal here, not an import, to avoid a circular import — that
+    # module already imports this one).
+    await get_redis().delete(f"recommendation:cache:v2:{user_id}")
 
     return await _read_with_concerns(db, profile)
 

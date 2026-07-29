@@ -120,12 +120,29 @@ def test_skin_condition_score_past_the_floor_keeps_discriminating() -> None:
     # ADR-034 (M2_RECOVERY_AND_REVIEW.md §5 item 2): 7 High-severity concerns is
     # 105 deduction — past the docx's specified range entirely. Previously this
     # clamped to a flat 0, indistinguishable from 8, 9, or 10 High concerns. Now it
-    # decays from CONDITION_SATURATION_TAIL_SCALE (5.0) toward, never reaching, 0.
+    # decays from 0 toward, never reaching, -CONDITION_SATURATION_TAIL_SCALE (5.0) —
+    # continuous with the linear branch's boundary value (see the continuity test
+    # below), not a jump up to +5.0.
     seven_high = _skin_condition_score([_FakeConcern(10)] * 7)
     eight_high = _skin_condition_score([_FakeConcern(10)] * 8)
     ten_high = _skin_condition_score([_FakeConcern(10)] * 10)
-    assert seven_high == pytest.approx(5.0 * math.exp(-1), abs=1e-9)
-    assert 0.0 < ten_high < eight_high < seven_high < 5.0
+    assert seven_high == pytest.approx(-5.0 * (1 - math.exp(-1)), abs=1e-9)
+    assert -5.0 < ten_high < eight_high < seven_high < 0.0
+
+
+def test_skin_condition_score_is_continuous_at_the_saturation_boundary() -> None:
+    # Regression test: the original tail formula started at +CONDITION_SATURATION_TAIL_SCALE
+    # for any deduction just past 100, while the linear branch is exactly 0 at
+    # deduction==100 — a worse profile (higher deduction) briefly scored *better*
+    # right at the seam (e.g. deduction 101 scored ~4.09 while deduction 97 scored
+    # 3.0). The tail must start at 0 and only ever move the score down from there.
+    deduction_97 = _skin_condition_score([_FakeConcern(10)] * 6 + [_FakeConcern(5)])
+    deduction_100 = _skin_condition_score([_FakeConcern(10)] * 2 + [_FakeConcern(5)] * 10)
+    deduction_101 = _skin_condition_score([_FakeConcern(10)] * 3 + [_FakeConcern(5)] * 8)
+    assert deduction_97 == 3.0
+    assert deduction_100 == 0.0
+    assert deduction_101 == pytest.approx(-5.0 * (1 - math.exp(-1 / 5)), abs=1e-9)
+    assert deduction_101 < deduction_100 < deduction_97
 
 
 def test_skin_condition_score_defaults_missing_severity_to_medium() -> None:

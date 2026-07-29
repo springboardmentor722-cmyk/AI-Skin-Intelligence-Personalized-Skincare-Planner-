@@ -535,6 +535,16 @@ async def list_historical_active_step_ids(
     return result
 
 
+async def count_active_routines(db: AsyncSession) -> int:
+    """Interface function (ADR-005) — Admin's platform-wide "active routines" KPI
+    (admin/service.py's get_platform_counts) reads this, never `routines` directly."""
+    return (
+        await db.execute(
+            select(func.count()).select_from(Routine).where(Routine.is_active.is_(True))
+        )
+    ).scalar_one()
+
+
 async def list_active_step_ids(db: AsyncSession, user_id: str) -> list[int]:
     """Interface function (ADR-005) — scores/service.py reads the scheduled-step count
     for routine_adherence through this, never `routine_steps` directly."""

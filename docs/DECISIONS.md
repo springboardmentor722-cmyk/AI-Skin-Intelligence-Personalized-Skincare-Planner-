@@ -1424,6 +1424,28 @@ boundary is untouched) and `test_skin_condition_score_past_the_floor_keeps_discr
 test asserted behavior past 100 deduction. `docs/AI_ML.md`'s Condition
 sub-score description now notes the tail explicitly.
 
+**Errata (found during the `dev` → `satya-sai-tharun-skinlytics` merge review,
+2026-07-29):** the accepted formula, `tail_scale * exp(-(deduction - 100) /
+tail_scale)`, is continuous and strictly decreasing *within* the tail — but not
+where the tail meets the linear branch. At `deduction == 100` the linear
+branch returns exactly `0.0`; the tail formula evaluated at `deduction ==
+100 + ε` returns `≈ tail_scale` (5.0), not `≈ 0.0`. That is a ~5-point
+discontinuous jump upward exactly at the seam: e.g. deduction 97 (linear
+branch) scored `3.0`, while deduction 101 (tail branch) scored `≈4.09` — a
+strictly worse profile scoring higher, the exact defect this ADR set out to
+fix, reintroduced at one specific point instead of across the whole range.
+Corrected formula: `-tail_scale * (1 - exp(-(deduction - 100) / tail_scale))`
+— same shape and asymptote, anchored so the tail starts at `0.0` (matching
+the linear branch's value *and* slope at the seam) and decays toward, but
+never reaching, `-tail_scale` (i.e. -5.0) as deduction grows without bound.
+Severity still discriminates all the way down, now without the jump.
+Component sub-scores can therefore read slightly below `0.0` for deduction >
+100 (bounded at -5.0) — no schema CHECK constrains this column's range
+(`database_schemas/skinlytics_postgresql_schema_v3.sql`), and this only
+triggers for profiles already past the docx's specified range (7+
+simultaneous High-severity concerns), so no other consumer assumption
+changes.
+
 ## ADR-035 — Chart.js accepted alongside Recharts for the dashboard adherence chart
 
 **Status:** Accepted (M3-rubric-pass, P4, 2026-07-28)

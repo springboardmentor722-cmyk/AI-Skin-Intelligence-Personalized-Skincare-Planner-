@@ -301,7 +301,7 @@ async def test_recommendations_are_cached_in_redis(
 
     await get_recommendations(db_session, test_user_id)
 
-    cached = await get_redis().get(f"recommendation:cache:{test_user_id}")
+    cached = await get_redis().get(f"recommendation:cache:v2:{test_user_id}")
     assert cached is not None
 
 
@@ -444,18 +444,20 @@ async def test_saving_a_new_profile_invalidates_the_recommendation_cache(
 ) -> None:
     # docs/WIREFRAMES.md "4. Skin profile & lifestyle": "saving a profile invalidates
     # recommendation:cache:{user_id}" — asserted directly, not just trusted from the
-    # comment in skin_profile/service.py.
+    # comment in skin_profile/service.py. Key carries recommendations/service.py's
+    # _CACHE_SCHEMA_VERSION prefix (merge-review fix: an unversioned key let a stale
+    # cache entry fail model_validate() against a newer RecommendationRead shape).
     await create_profile(
         db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
     )
     await get_recommendations(db_session, test_user_id)
-    assert await get_redis().get(f"recommendation:cache:{test_user_id}") is not None
+    assert await get_redis().get(f"recommendation:cache:v2:{test_user_id}") is not None
 
     await create_profile(
         db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
     )
 
-    assert await get_redis().get(f"recommendation:cache:{test_user_id}") is None
+    assert await get_redis().get(f"recommendation:cache:v2:{test_user_id}") is None
 
 
 # --- list_avoided_ingredient_product_ids — Milestone 2 Step 4's hard safety filter ---

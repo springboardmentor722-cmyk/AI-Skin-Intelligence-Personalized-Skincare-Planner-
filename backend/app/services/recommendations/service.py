@@ -28,6 +28,14 @@ from app.services.skin_profile import service as skin_profile_service
 from app.services.skin_profile.schemas import SkinProfileRead
 
 _CACHE_TTL_SECONDS = 24 * 60 * 60
+# Bump whenever RecommendationRead's shape changes — a stale cache entry written
+# under an old version then simply misses (falls through to fresh computation)
+# instead of raising inside RecommendationRead.model_validate() on the read path.
+# (Found during the dev -> satya-sai-tharun-skinlytics merge review: this diff
+# replaced match_score with required match_percentage/active_ingredient_tags/
+# over_budget/alternative_for_product_id fields, which would have raised a
+# ValidationError for 24h on every user with a pre-deploy warm cache.)
+_CACHE_SCHEMA_VERSION = "v2"
 _TOP_PER_CATEGORY = 1
 _recommender = ContentBasedRecommender()
 _suitability = RealIngredientSuitability()
@@ -96,6 +104,12 @@ async def list_avoided_ingredient_product_ids(db: AsyncSession, skin_type_id: in
     )
     result = await db.execute(stmt)
     return set(result.scalars().all())
+
+
+async def count_all_products(db: AsyncSession) -> int:
+    """Interface function (ADR-005) — Admin's platform-wide "total products" KPI
+    (admin/service.py's get_platform_counts) reads this, never `products` directly."""
+    return (await db.execute(select(func.count()).select_from(Product))).scalar_one()
 
 
 async def list_all_products(
@@ -390,8 +404,9 @@ async def get_recommendations(
        skin-type fit/rating, weights from the active `recommendation_weights` row,
        app/ai/recommender.py). Vector similarity and budget preference no longer
        feed the score (dropped per the rubric's exact 3-factor requirement).
-    3. Serve + Redis cache (`recommendation:cache:{user_id}`, TTL 24h; invalidated
-       on profile save, skin_profile/service.py) + persist the served set to PG
+    3. Serve + Redis cache (`recommendation:cache:{_CACHE_SCHEMA_VERSION}:{user_id}`,
+       TTL 24h; invalidated on profile save, skin_profile/service.py) + persist the
+       served set to PG
        `product_recommendations` (M3-D's first real writer, milestone_3.md §5).
        Serving takes the top `_TOP_PER_CATEGORY` ranked candidate(s) per
        `product.category`, not a single global top-N — coverage across categories,
@@ -412,7 +427,7 @@ async def get_recommendations(
     skin_type_name = skin_types.get(profile.skin_type_id, "your")
 
     redis = get_redis()
-    cache_key = f"recommendation:cache:{user_id}"
+    cache_key = f"recommendation:cache:{_CACHE_SCHEMA_VERSION}:{user_id}"
     cached = await redis.get(cache_key)
     if cached:
         results = [RecommendationRead.model_validate(item) for item in json.loads(cached)]

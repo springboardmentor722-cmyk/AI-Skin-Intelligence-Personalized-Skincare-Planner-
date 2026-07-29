@@ -88,10 +88,11 @@ and passes it in):
   Wrinkles/Fine Lines — two cards for the same underlying condition) collapse to
   one deduction at their higher severity, not two. Past 100 total deduction (the
   docx doesn't specify this range; reachable since 10 concerns are seeded and
-  nothing stops most being reported High) the score decays from
-  `CONDITION_SATURATION_TAIL_SCALE` (5.0) toward, never reaching, 0 instead of
-  flooring flat — ADR-034, so severity keeps discriminating instead of every
-  profile past ~7 simultaneous High concerns reading identically.
+  nothing stops most being reported High) the score decays from 0 toward,
+  never reaching, `-CONDITION_SATURATION_TAIL_SCALE` (5.0) instead of
+  flooring flat — ADR-034 (errata below), so severity keeps discriminating
+  instead of every profile past ~7 simultaneous High concerns reading
+  identically.
 - **lifestyle** = equal-weighted sub-index of exercise frequency, stress
   (inverted), diet quality, sun-exposure hygiene from `lifestyle_logs` (30-day
   window), plus a real unprotected-high-UV-exposure penalty
