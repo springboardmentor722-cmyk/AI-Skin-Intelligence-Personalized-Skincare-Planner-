@@ -12,6 +12,7 @@ const STEPS = [
   { path: "/assessment/basics", label: "Basics" },
   { path: "/assessment/skin-type", label: "Skin type" },
   { path: "/assessment/concerns", label: "Concerns" },
+  { path: "/assessment/severity", label: "Severity" },
   { path: "/assessment/lifestyle", label: "Lifestyle" },
   { path: "/assessment/results", label: "Done" },
 ];

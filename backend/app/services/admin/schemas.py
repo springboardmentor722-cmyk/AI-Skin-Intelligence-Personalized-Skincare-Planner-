@@ -159,15 +159,39 @@ class AuditLogPage(BaseModel):
     meta: PageMeta
 
 
+class PlatformCounts(BaseModel):
+    """Milestone 2 P4 — Admin dashboard's 3 additional real KPIs (Assessments
+    Completed, Active Routines, Total Products). Platform Revenue and System Uptime
+    have no real backing (no billing/payments processing, no uptime monitoring
+    service) and stay UI-layer fixtures — see docs/DECISIONS.md ADR-023, not
+    invented here."""
+
+    total_assessments: int
+    active_routines: int
+    total_products: int
+
+
+class TopConcernStat(BaseModel):
+    """One row of the admin-wide top-concerns aggregate — count of skin profiles
+    reporting this concern, platform-wide (not one user's, unlike the Assessment
+    Engine's per-user prioritisation)."""
+
+    concern_name: str
+    count: int
+
+
 class DashboardStats(BaseModel):
     """Admin dashboard (Branch 6) — real counts only, no invented KPIs. User-role
     counts come from Better Auth (web/app/api/admin/dashboard-stats/route.ts calls
     its own listUsers, not this endpoint) — this covers only what FastAPI actually
-    owns: the verification queue and the audit trail."""
+    owns: the verification queue and the audit trail, platform counts, and the
+    top-concerns aggregate (Milestone 2 P4)."""
 
     pending_consultant_count: int
     pending_dermatologist_count: int
     recent_activity: list[AuditLogRead]
+    platform_counts: PlatformCounts
+    top_concerns: list[TopConcernStat]
 
 
 class IngredientPage(BaseModel):

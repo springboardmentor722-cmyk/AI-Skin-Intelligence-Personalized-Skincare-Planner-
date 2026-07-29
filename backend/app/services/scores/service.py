@@ -3,7 +3,8 @@ import datetime
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.services.scores import scoring_engine
+from app.services.routines import service as routines_service
+from app.services.scores import constants, scoring_engine
 from app.services.scores.models import ScoringWeights, SkinScore
 from app.services.scores.schemas import ScoreRead, ScoreWeightsRead
 from app.services.scores.scoring_engine import (
@@ -12,14 +13,32 @@ from app.services.scores.scoring_engine import (
     _routine_adherence_score,
     _skin_condition_score,
     _sleep_quality_score,
+    derive_skin_age,
+    representative_age_for_group,
+    score_band,
 )
 from app.services.skin_profile import service as skin_profile_service
 from app.services.weather import service as weather_service
 
 # The Weighted Scoring Model's math (the 5 sub-score functions + the weighted-sum
-# equation) lives in scoring_engine.py (mile_2.docx Step 3.1's explicit "In a file
-# named scoring_engine.py..." requirement) — this module owns fetching the raw
-# inputs and persisting the result, never the calculation itself.
+# equation, Skin Age, score_band) lives in scoring_engine.py (MILESTONE 2.docx §2's
+# explicit "In a file named scoring_engine.py..." requirement) — this module owns
+# fetching the raw inputs and persisting the result, never the calculation itself.
+
+
+def _skin_age_and_band(
+    skin_condition_score: float | None,
+    overall_score: float | None,
+    age_group: str | None,
+) -> tuple[float | None, str | None]:
+    actual_age = representative_age_for_group(age_group)
+    skin_age = (
+        derive_skin_age(float(skin_condition_score), actual_age)
+        if actual_age is not None and skin_condition_score is not None
+        else None
+    )
+    band = score_band(float(overall_score)) if overall_score is not None else None
+    return skin_age, band
 
 
 async def get_active_weights(db: AsyncSession) -> ScoringWeights:
@@ -38,12 +57,16 @@ async def compute_and_store_score(db: AsyncSession, user_id: str) -> ScoreRead:
     weights = await get_active_weights(db)
     logs = await skin_profile_service.list_recent_lifestyle_logs(user_id, limit=30)
     uv_index = await weather_service.get_latest_uv_index(user_id)
+    step_ids = await routines_service.list_active_step_ids(db, user_id)
+    routine_logs = await routines_service.list_recent_routine_logs(
+        user_id, days=constants.ADHERENCE_WINDOW_DAYS
+    )
 
     skin_condition = _skin_condition_score(profile.concerns)
     lifestyle = _lifestyle_score(logs, uv_index=uv_index)
     sleep_quality = _sleep_quality_score(logs)
     hydration = _hydration_score(logs)
-    routine_adherence = await _routine_adherence_score(db, user_id)
+    routine_adherence = _routine_adherence_score(step_ids, routine_logs)
 
     overall = scoring_engine.calculate_skin_health_score(
         skin_condition=skin_condition,
@@ -95,6 +118,8 @@ async def compute_and_store_score(db: AsyncSession, user_id: str) -> ScoreRead:
     await db.commit()
     await db.refresh(score)
 
+    skin_age, band = _skin_age_and_band(skin_condition, overall, profile.age_group)
+
     return ScoreRead(
         score_id=score.score_id,
         skin_condition_score=score.skin_condition_score,
@@ -103,6 +128,42 @@ async def compute_and_store_score(db: AsyncSession, user_id: str) -> ScoreRead:
         hydration_score=score.hydration_score,
         routine_adherence_score=score.routine_adherence_score,
         overall_score=score.overall_score,
+        skin_age=skin_age,
+        band=band,
+        weights=ScoreWeightsRead.model_validate(weights),
+        calculated_at=score.calculated_at,
+    )
+
+
+async def get_score_by_id(db: AsyncSession, user_id: str, score_id: int) -> ScoreRead | None:
+    """GET /api/v1/assessment/score/{id} (P10) — ownership-checked: a `score_id`
+    belonging to another user returns None (the router 404s), never someone
+    else's score. Never invents a score for a missing/foreign id."""
+    result = await db.execute(
+        select(SkinScore).where(SkinScore.score_id == score_id, SkinScore.user_id == user_id)
+    )
+    score = result.scalar_one_or_none()
+    if score is None or score.weight_id is None:
+        return None
+    weights = await db.get(ScoringWeights, score.weight_id)
+    if weights is None:
+        return None
+
+    profile = await skin_profile_service.get_current_profile(db, user_id)
+    skin_age, band = _skin_age_and_band(
+        score.skin_condition_score, score.overall_score, profile.age_group if profile else None
+    )
+
+    return ScoreRead(
+        score_id=score.score_id,
+        skin_condition_score=score.skin_condition_score,
+        lifestyle_score=score.lifestyle_score,
+        sleep_quality_score=score.sleep_quality_score,
+        hydration_score=score.hydration_score,
+        routine_adherence_score=score.routine_adherence_score,
+        overall_score=score.overall_score,
+        skin_age=skin_age,
+        band=band,
         weights=ScoreWeightsRead.model_validate(weights),
         calculated_at=score.calculated_at,
     )
@@ -118,6 +179,46 @@ async def get_recent_scores(db: AsyncSession, user_id: str, days: int = 30) -> l
         .order_by(SkinScore.calculated_at.asc())
     )
     return list(result.scalars().all())
+
+
+async def get_latest_score(db: AsyncSession, user_id: str) -> SkinScore | None:
+    """Interface function (ADR-005) - the single most recent score regardless of
+    age, unlike get_recent_scores' day-bounded window. First real consumer:
+    progress/service.py's photo-upload score freeze."""
+    result = await db.execute(
+        select(SkinScore)
+        .where(SkinScore.user_id == user_id)
+        .order_by(SkinScore.calculated_at.desc())
+        .limit(1)
+    )
+    return result.scalars().first()
+
+
+async def get_recent_scores_for_users(
+    db: AsyncSession, user_ids: list[str], days: int = 30
+) -> dict[str, list[SkinScore]]:
+    """Interface function (ADR-005) — bulk sibling of `get_recent_scores`, for
+    callers that need a whole cohort's score history at once (Milestone 2 P14's
+    clinical portfolio-stats aggregate). One query with `IN`, never a per-user
+    loop: `get_portfolio_stats` runs over a professional's *entire* unpaginated
+    roster, so a per-user call there is an unbounded N+1 on the clinical
+    dashboard's main endpoint.
+
+    Every requested user_id is present in the result, mapping to `[]` when that
+    user has no scores in the window — callers can index without `.get`.
+    Per-user lists keep `get_recent_scores`'s ascending `calculated_at` order."""
+    if not user_ids:
+        return {}
+    since = datetime.datetime.now(datetime.UTC).replace(tzinfo=None) - datetime.timedelta(days=days)
+    result = await db.execute(
+        select(SkinScore)
+        .where(SkinScore.user_id.in_(user_ids), SkinScore.calculated_at >= since)
+        .order_by(SkinScore.user_id.asc(), SkinScore.calculated_at.asc())
+    )
+    scores_by_user: dict[str, list[SkinScore]] = {user_id: [] for user_id in user_ids}
+    for score in result.scalars().all():
+        scores_by_user[score.user_id].append(score)
+    return scores_by_user
 
 
 async def count_all_assessments(db: AsyncSession) -> int:

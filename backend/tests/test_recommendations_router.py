@@ -18,6 +18,33 @@ async def _as(role: str, client: AsyncClient) -> AsyncClient:
     return client
 
 
+async def test_get_recommendations_accepts_a_valid_max_price_query_param(
+    client: AsyncClient,
+) -> None:
+    await _as("user", client)
+    try:
+        response = await client.get("/api/v1/recommendations/me", params={"max_price": 50})
+    finally:
+        app.dependency_overrides.pop(require_user, None)
+
+    # "user_1" has no real skin profile in this live DB, so get_recommendations
+    # short-circuits to [] — the point here is the query param round-trips through
+    # routing/validation into a real 200, not the (already-covered-elsewhere)
+    # ranking/budget-cap logic itself.
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+async def test_get_recommendations_rejects_a_non_positive_max_price(client: AsyncClient) -> None:
+    await _as("user", client)
+    try:
+        response = await client.get("/api/v1/recommendations/me", params={"max_price": 0})
+    finally:
+        app.dependency_overrides.pop(require_user, None)
+
+    assert response.status_code == 422
+
+
 async def test_feedback_round_trips_into_mongo(client: AsyncClient) -> None:
     await _as("user", client)
     try:

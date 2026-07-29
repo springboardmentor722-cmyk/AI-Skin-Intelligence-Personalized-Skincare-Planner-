@@ -29,8 +29,19 @@ class SkinProfileConcernRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     concern_id: int
+    # Joined from skin_concerns.concern_name in _read_with_concerns — scoring_engine's
+    # _skin_condition_score needs the name to collapse synonym pairs (Hyperpigmentation/
+    # Dark Spots, Wrinkles/Fine Lines) to one deduction instead of double-counting.
+    concern_name: str | None
     severity_rating: int | None
     priority_level: int | None
+
+
+class AllergyIngredientRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    ingredient_id: int
+    ingredient_name: str | None
 
 
 class SkinProfileCreate(BaseModel):
@@ -39,6 +50,10 @@ class SkinProfileCreate(BaseModel):
     allergies: str | None = None
     sensitivities: str | None = None
     concerns: list[SkinProfileConcernInput] = Field(default_factory=list)
+    # Milestone 2 P7 (docs/DECISIONS.md ADR-026): structured ingredient ids, the
+    # primary allergy list going forward — `allergies` (TEXT, above) stays as an
+    # unrelated free-text fallback, not replaced.
+    allergy_ingredient_ids: list[int] = Field(default_factory=list)
 
 
 class SkinProfileRead(BaseModel):
@@ -50,6 +65,7 @@ class SkinProfileRead(BaseModel):
     allergies: str | None
     sensitivities: str | None
     concerns: list[SkinProfileConcernRead]
+    allergy_ingredients: list[AllergyIngredientRead] = Field(default_factory=list)
     # Optional to match the SQLAlchemy model exactly — the SQL schema only gives these
     # columns a DEFAULT, not NOT NULL, so they're technically nullable even though a
     # value is always present in practice.

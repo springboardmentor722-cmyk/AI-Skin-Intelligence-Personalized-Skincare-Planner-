@@ -17,12 +17,18 @@ const concernSelectionSchema = z.object({
   priority_level: z.number().min(1).max(10),
 });
 
+// docs/DECISIONS.md ADR-026 — allergies are structured ingredient ids, not free text.
+const allergyIngredientSchema = z.object({
+  ingredient_id: z.number(),
+  ingredient_name: z.string(),
+});
+
 export const skinProfileFormSchema = z.object({
   skin_type_id: z.number({ error: "Select your skin type" }),
   age_group: z.string().optional(),
   gender: z.string().optional(),
   concerns: z.array(concernSelectionSchema),
-  allergies: z.array(z.string()),
+  allergies: z.array(allergyIngredientSchema),
   sensitivities: z.array(z.string()),
 });
 export type SkinProfileFormValues = z.infer<typeof skinProfileFormSchema>;

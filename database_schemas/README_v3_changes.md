@@ -81,3 +81,48 @@ Vector DB: `user_profiles_namespace` embedding pipeline lands (worker consumer,
 `app/worker/consumers/embeddings.py`) — documented divergence from
 `skinlytics_vector_db_schema_v3.txt`'s aspirational "custom feature embedding" model
 name, noted in that file directly.
+
+## 2026-07-24 — M2-P7: `skin_profile_allergies` junction table (NEW)
+
+Milestone 2 UI-fidelity pack P7 (`docs/milestones/milestone_2/MILESTONE_2_MASTER_PROMPT.md`,
+docs/DECISIONS.md ADR-026): "the allergy list is stored as structured ingredient
+ids, not free text" (P7's own guardrail) — needed so P12's allergy detection can
+match a user's allergy list against ingredient rows directly instead of parsing
+free text. Adds `skin_profile_allergies (skin_profile_id, ingredient_id)`, same
+junction-table shape as `skin_profile_concerns`, with a `UNIQUE (skin_profile_id,
+ingredient_id)` constraint (a real allergy list shouldn't have duplicate entries,
+unlike concerns which the source schema deliberately leaves unconstrained).
+`skin_profiles.allergies` (TEXT) is unchanged and not dropped — a non-destructive
+addition, not a replacement; the column stays as a free-text fallback for
+whatever a structured ingredient id can't capture. Applied via Alembic migration
+(see that migration's own docstring for the revision id).
+
+## 2026-07-24 — M2-P9: `assessment_submissions` table (NEW)
+
+`POST /api/v1/assessment/submit`'s immutable raw snapshot (MILESTONE 2.docx "4.
+Core Backend API Endpoints": "Validates survey inputs and saves raw assessment
+snapshot to PostgreSQL"). Append-only — a re-assessment always inserts a new row,
+never updates one — so `raw_payload` (JSONB) is a genuine audit trail of what the
+wizard actually sent, independent of `skin_profiles` (the current, versioned
+profile the same submission also writes via the existing Skin Profile service)
+and `skin_assessments` (the computed score row `score_id` points at). Not a
+replacement for either — a third, narrower table recording the submission event
+itself.
+
+## 2026-07-24 — M2-P11: `routine_steps.category`/`rationale`/`safety_flag`, `skincare_routines.skin_profile_id` (NEW COLUMNS)
+
+MILESTONE 2.docx §"Dynamic Routine Generator": "each step carrying its category,
+product/ingredient recommendation, rationale, and any safety flag that fired."
+`routine_steps.category` is one of the 6 canonical categories (Cleansing,
+Exfoliation, Treatment, Moisturizing, Sun Protection, Night Care) — a distinct,
+step-level label from `products.category` (the real, smaller 4-value product
+taxonomy candidates are actually drawn from); `routines/constants.py` maps
+between the two, since the seed catalog has no dedicated Exfoliation/Night Care
+product category. `rationale`/`safety_flag` are additive, nullable TEXT/VARCHAR —
+existing rows simply have NULL until regenerated, no backfill needed.
+`skincare_routines.skin_profile_id` (nullable FK) records which profile *version*
+a routine was generated against, so `get_or_generate_routines` can detect a real
+re-assessment (a new profile version) and regenerate the core AM/PM/Weekly
+routines — the same mechanism Seasonal Care already uses for a season change,
+extended to profile changes (mile_2.docx §4's "adaptive routine updates that
+respond to... re-assessments").

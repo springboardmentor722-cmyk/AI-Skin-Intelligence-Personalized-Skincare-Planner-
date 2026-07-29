@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import CheckConstraint, ForeignKey, Index, Text, func, text
+from sqlalchemy import CheckConstraint, ForeignKey, Index, Text, UniqueConstraint, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.postgres import Base
@@ -72,4 +72,25 @@ class SkinProfileConcern(Base):
     concern_id: Mapped[int] = mapped_column(ForeignKey("skin_concerns.concern_id"))
     severity_rating: Mapped[int | None] = mapped_column(default=None)
     priority_level: Mapped[int | None] = mapped_column(default=None)
+    created_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
+
+
+class SkinProfileAllergy(Base):
+    """Milestone 2 P7 — the allergy list as structured ingredient ids (P12's allergy
+    detection matches against this, not free text). `skin_profiles.allergies`
+    (TEXT) stays as an unrelated, unchanged free-text fallback column."""
+
+    __tablename__ = "skin_profile_allergies"
+    __table_args__ = (
+        Index("idx_skin_profile_allergies_profile", "skin_profile_id"),
+        UniqueConstraint("skin_profile_id", "ingredient_id"),
+    )
+
+    profile_allergy_id: Mapped[int] = mapped_column(primary_key=True)
+    skin_profile_id: Mapped[int] = mapped_column(
+        ForeignKey("skin_profiles.skin_profile_id", ondelete="CASCADE")
+    )
+    ingredient_id: Mapped[int] = mapped_column(
+        ForeignKey("ingredients.ingredient_id", ondelete="CASCADE")
+    )
     created_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())

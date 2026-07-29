@@ -21,7 +21,7 @@ export function ProductRecommendationCard({
   recommendation,
   compact = false,
 }: ProductRecommendationCardProps) {
-  const { product, match_score, reasons } = recommendation;
+  const { product, match_percentage, reasons } = recommendation;
 
   return (
     <div className="group">
@@ -38,7 +38,7 @@ export function ProductRecommendationCard({
             <FlaskConical className="size-8" strokeWidth={1.5} />
           </div>
         )}
-        <MatchRing score={match_score} className="absolute top-2 right-2" />
+        <MatchRing score={match_percentage} className="absolute top-2 right-2" />
       </div>
       <h4 className="font-heading text-on-surface text-sm font-semibold">
         {product.product_name ?? "Untitled product"}

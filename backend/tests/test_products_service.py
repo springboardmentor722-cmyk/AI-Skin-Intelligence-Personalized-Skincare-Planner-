@@ -44,8 +44,8 @@ async def test_list_products_via_es_filters_by_category(db_session: AsyncSession
         db_session,
         page=1,
         page_size=50,
-        q=None,
-        category="Treatment",
+        q="Vitamin C",
+        category="Treatment Products",
         brand=None,
         budget_min=None,
         budget_max=None,
@@ -53,7 +53,7 @@ async def test_list_products_via_es_filters_by_category(db_session: AsyncSession
     )
 
     assert page.meta.source == "elasticsearch"
-    assert all(item.category == "Treatment" for item in page.items)
+    assert all(item.category == "Treatment Products" for item in page.items)
     assert any(item.product_id == _VITAMIN_C_SERUM_ID for item in page.items)
 
 
@@ -72,7 +72,7 @@ async def test_list_products_pg_fallback_when_es_is_reported_down(
         page=1,
         page_size=50,
         q=None,
-        category="Treatment",
+        category="Treatment Products",
         brand=None,
         budget_min=None,
         budget_max=None,
@@ -80,7 +80,7 @@ async def test_list_products_pg_fallback_when_es_is_reported_down(
     )
 
     assert page.meta.source == "fallback"
-    assert all(item.category == "Treatment" for item in page.items)
+    assert all(item.category == "Treatment Products" for item in page.items)
 
 
 async def test_list_products_budget_filter_excludes_out_of_range_items(
@@ -155,7 +155,8 @@ async def test_get_product_detail_suitability_is_none_without_a_profile(
 
 async def test_compare_products_returns_aligned_attribute_matrix(db_session: AsyncSession) -> None:
     compare = await products_service.compare_products(
-        db_session, [_VITAMIN_C_SERUM_ID, 4]  # Vitamin C Serum + Salicylic Acid Treatment
+        db_session,
+        [_VITAMIN_C_SERUM_ID, 4],  # Vitamin C Serum + Salicylic Acid Treatment
     )
 
     assert len(compare.items) == 2
@@ -196,7 +197,7 @@ async def _create_temp_product(
 async def test_alternatives_only_include_the_same_category(db_session: AsyncSession) -> None:
     target_id = await _create_temp_product(db_session, category="Serum", price=1000)
     same_category_id = await _create_temp_product(db_session, category="Serum", price=1000)
-    other_category_id = await _create_temp_product(db_session, category="Cleanser", price=1000)
+    other_category_id = await _create_temp_product(db_session, category="Face Wash", price=1000)
     user_id = f"test-{uuid.uuid4().hex[:16]}"
     await _create_test_user(db_session, user_id)
 

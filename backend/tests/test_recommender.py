@@ -1,80 +1,46 @@
-"""app/ai/recommender.py — the stage-4 rank formula (milestone_3.md §8):
-match = 0.35*suitability + 0.25*concern_overlap + 0.15*vector_similarity +
-0.10*rating_norm + 0.10*price_fit + 0.05*popularity_norm, scaled to 0-100. Pure
-arithmetic on fixed fixtures — no DB/model involved, matching IngredientSuitability's
+"""app/ai/recommender.py — the stage-4 rank formula (MILESTONE 3.pdf Step 2, M3R
+Phase 2): match = concern_weight*concern_overlap + skin_type_fit_weight*skin_type_fit
++ rating_weight*rating_norm, scaled to 0-100, weights passed in by the caller (the
+active `recommendation_weights` row), never module constants. Pure arithmetic on
+fixed fixtures — no DB/model involved, matching IngredientSuitability's
 "deterministic rule, not ML" precedent (app/ai/suitability.py)."""
 
 from app.ai.recommender import ContentBasedRecommender
 from app.ai.schemas import RecommendationFeatures
 
 
-def test_all_zero_features_score_zero() -> None:
+def test_content_based_recommender_applies_the_literal_50_35_15_formula() -> None:
     recommender = ContentBasedRecommender()
-    features = RecommendationFeatures(
-        suitability=0,
-        concern_overlap=0,
-        vector_similarity=0,
-        rating_norm=0,
-        price_fit=0,
-        popularity_norm=0,
+    features = RecommendationFeatures(concern_overlap=1.0, skin_type_fit=1.0, rating_norm=1.0)
+
+    score = recommender.score(
+        features, concern_weight=0.50, skin_type_fit_weight=0.35, rating_weight=0.15
     )
-    assert recommender.score(features) == 0.0
+
+    assert score == 100.0
 
 
-def test_all_perfect_features_score_one_hundred() -> None:
+def test_content_based_recommender_weights_concern_match_highest() -> None:
     recommender = ContentBasedRecommender()
-    features = RecommendationFeatures(
-        suitability=1,
-        concern_overlap=1,
-        vector_similarity=1,
-        rating_norm=1,
-        price_fit=1,
-        popularity_norm=1,
+    concern_only = RecommendationFeatures(concern_overlap=1.0, skin_type_fit=0.0, rating_norm=0.0)
+    fit_only = RecommendationFeatures(concern_overlap=0.0, skin_type_fit=1.0, rating_norm=0.0)
+
+    concern_score = recommender.score(
+        concern_only, concern_weight=0.50, skin_type_fit_weight=0.35, rating_weight=0.15
     )
-    assert recommender.score(features) == 100.0
+    fit_score = recommender.score(
+        fit_only, concern_weight=0.50, skin_type_fit_weight=0.35, rating_weight=0.15
+    )
+
+    assert concern_score > fit_score  # 50 > 35
 
 
-def test_weights_match_the_documented_formula() -> None:
-    """Isolating one feature at a time proves the exact weight, not just the sum."""
+def test_content_based_recommender_all_zero_features_score_zero() -> None:
     recommender = ContentBasedRecommender()
-    base = {
-        "suitability": 0.0,
-        "concern_overlap": 0.0,
-        "vector_similarity": 0.0,
-        "rating_norm": 0.0,
-        "price_fit": 0.0,
-        "popularity_norm": 0.0,
-    }
-    assert recommender.score(RecommendationFeatures(**{**base, "suitability": 1})) == 35.0
-    assert recommender.score(RecommendationFeatures(**{**base, "concern_overlap": 1})) == 25.0
-    assert recommender.score(RecommendationFeatures(**{**base, "vector_similarity": 1})) == 15.0
-    assert recommender.score(RecommendationFeatures(**{**base, "rating_norm": 1})) == 10.0
-    assert recommender.score(RecommendationFeatures(**{**base, "price_fit": 1})) == 10.0
-    assert recommender.score(RecommendationFeatures(**{**base, "popularity_norm": 1})) == 5.0
+    features = RecommendationFeatures(concern_overlap=0.0, skin_type_fit=0.0, rating_norm=0.0)
 
+    score = recommender.score(
+        features, concern_weight=0.50, skin_type_fit_weight=0.35, rating_weight=0.15
+    )
 
-def test_suitability_dominates_a_high_concern_overlap_low_suitability_candidate() -> None:
-    """0.35 suitability weight beats 0.25 concern_overlap — a product that's a poor
-    fit for the skin type should never outrank a genuinely suitable one just because
-    it targets more concerns (milestone_3.md's hard-filter-first spirit extended into
-    the soft-ranking signal)."""
-    recommender = ContentBasedRecommender()
-    low_suitability_high_overlap = RecommendationFeatures(
-        suitability=0.2,
-        concern_overlap=1.0,
-        vector_similarity=0.5,
-        rating_norm=0.5,
-        price_fit=0.5,
-        popularity_norm=0.5,
-    )
-    high_suitability_low_overlap = RecommendationFeatures(
-        suitability=1.0,
-        concern_overlap=0.2,
-        vector_similarity=0.5,
-        rating_norm=0.5,
-        price_fit=0.5,
-        popularity_norm=0.5,
-    )
-    assert recommender.score(high_suitability_low_overlap) > recommender.score(
-        low_suitability_high_overlap
-    )
+    assert score == 0.0

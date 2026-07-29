@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Search, TrendingUp, Users } from "lucide-react";
 
 import { StateCard } from "@/components/state-card";
@@ -14,6 +13,18 @@ interface ClientListTableProps {
    * different copy per role (docs/ARCHITECTURE.md §2). */
   personLabel: string;
   onSelect: (userId: string) => void;
+  /** M3R Phase 5 — search is now server-side (GET /clients/me?q=), so this
+   * component only renders the input and reports raw keystrokes; the page owns
+   * debouncing and the query key. `hasAssignments` distinguishes "no clients at
+   * all" (hide search, show the assignment empty-state) from "no matches for the
+   * current search" (keep the input visible). */
+  search: string;
+  onSearchChange: (value: string) => void;
+  hasAssignments: boolean;
+}
+
+function formatPercent(value: number | null): string {
+  return value != null ? `${Math.round(value * 100)}%` : "—";
 }
 
 function Sparkline({ values }: { values: number[] }) {
@@ -34,16 +45,15 @@ function Sparkline({ values }: { values: number[] }) {
   );
 }
 
-export function ClientListTable({ clients, personLabel, onSelect }: ClientListTableProps) {
-  const [query, setQuery] = useState("");
-
-  const filtered = clients.filter((c) => {
-    const q = query.trim().toLowerCase();
-    if (!q) return true;
-    return (c.name ?? "").toLowerCase().includes(q) || c.email.toLowerCase().includes(q);
-  });
-
-  if (clients.length === 0) {
+export function ClientListTable({
+  clients,
+  personLabel,
+  onSelect,
+  search,
+  onSearchChange,
+  hasAssignments,
+}: ClientListTableProps) {
+  if (!hasAssignments) {
     return (
       <StateCard
         icon={Users}
@@ -58,9 +68,10 @@ export function ClientListTable({ clients, personLabel, onSelect }: ClientListTa
       <div className="relative max-w-sm">
         <Search className="text-on-surface-variant absolute top-1/2 left-3 size-4 -translate-y-1/2" strokeWidth={1.5} />
         <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          value={search}
+          onChange={(e) => onSearchChange(e.target.value)}
           placeholder={`Search ${personLabel.toLowerCase()}...`}
+          aria-label={`Search ${personLabel.toLowerCase()}`}
           className="bg-muted focus:ring-secondary/40 w-full rounded-full py-2.5 pr-4 pl-10 text-sm outline-none focus:ring-2"
         />
       </div>
@@ -84,6 +95,12 @@ export function ClientListTable({ clients, personLabel, onSelect }: ClientListTa
               <th className="px-4 py-3 font-geist text-xs font-semibold tracking-[0.05em] uppercase">
                 Adherence
               </th>
+              {/* No wireframe placement exists for compliance % (consultant-clients.html
+                  has no such column) — rubric-required stat added here as the nearest
+                  fit to the existing Adherence column, per AGENTS.md §8. */}
+              <th className="px-4 py-3 font-geist text-xs font-semibold tracking-[0.05em] uppercase">
+                Compliance (7d / 30d)
+              </th>
               <th className="px-4 py-3 font-geist text-xs font-semibold tracking-[0.05em] uppercase">
                 Trend
               </th>
@@ -93,7 +110,7 @@ export function ClientListTable({ clients, personLabel, onSelect }: ClientListTa
             </tr>
           </thead>
           <tbody>
-            {filtered.map((client) => (
+            {clients.map((client) => (
               <tr
                 key={client.user_id}
                 onClick={() => onSelect(client.user_id)}
@@ -113,6 +130,9 @@ export function ClientListTable({ clients, personLabel, onSelect }: ClientListTa
                     ? `${Math.round(client.routine_adherence_score)}%`
                     : "—"}
                 </td>
+                <td className="px-4 py-4 font-geist text-sm tabular-nums">
+                  {formatPercent(client.compliance_seven_day)} / {formatPercent(client.compliance_thirty_day)}
+                </td>
                 <td className="px-4 py-4">
                   <Sparkline values={client.score_trend} />
                 </td>
@@ -125,10 +145,10 @@ export function ClientListTable({ clients, personLabel, onSelect }: ClientListTa
         </table>
       </div>
 
-      {filtered.length === 0 && (
+      {clients.length === 0 && (
         <p className="text-on-surface-variant flex items-center gap-2 font-sans text-sm">
           <TrendingUp className="size-4" strokeWidth={1.5} />
-          No matches for &quot;{query}&quot;.
+          No matches for &quot;{search}&quot;.
         </p>
       )}
     </div>

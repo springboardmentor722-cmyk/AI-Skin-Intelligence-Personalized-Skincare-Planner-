@@ -1,17 +1,40 @@
-from sqlalchemy import func, select
+import datetime
+
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.ai.trend import RealProgressTrendAnalyzer
 from app.db.postgres import external_user_table
+from app.services.admin import service as admin_service
 from app.services.clinical_review.models import ConsultantClient, ConsultantNote
 from app.services.clinical_review.schemas import (
     ClientDetailRead,
     ClientScoreRead,
     ClientSummaryRead,
+    ClinicalPortfolioStatsRead,
     ConsultantNoteRead,
+    PortfolioDistributionSlice,
+    PortfolioRecentAssessment,
 )
+from app.services.progress import service as progress_service
+from app.services.recommendations.schemas import ProductRead
 from app.services.routines import service as routines_service
+from app.services.routines.schemas import RoutineRead
 from app.services.scores import service as scores_service
 from app.services.skin_profile import service as skin_profile_service
+from app.services.user import service as user_service
+
+_trend_analyzer = RealProgressTrendAnalyzer()
+
+
+def _age_from_date_of_birth(date_of_birth: datetime.date | None) -> int | None:
+    if date_of_birth is None:
+        return None
+    today = datetime.date.today()
+    years = today.year - date_of_birth.year
+    if (today.month, today.day) < (date_of_birth.month, date_of_birth.day):
+        years -= 1
+    return years
 
 
 async def create_assignment(db: AsyncSession, professional_id: str, user_id: str) -> None:
@@ -46,6 +69,30 @@ async def _get_user_row(db: AsyncSession, user_id: str) -> tuple[str | None, str
     return row.name, row.email
 
 
+async def _get_user_rows(
+    db: AsyncSession, user_ids: list[str]
+) -> dict[str, tuple[str | None, str]]:
+    """Bulk sibling of `_get_user_row` — one `IN` query for a whole cohort.
+
+    Deliberately tolerant where the single-row version is strict: `_get_user_row`
+    calls `.one()`, which raises if the identity row is gone, and that is correct
+    for `get_client_detail` (a request for one named client that no longer exists
+    should fail). A portfolio-wide aggregate must not 500 the entire clinical
+    dashboard because one assigned client's Better Auth row was deleted while the
+    `consultant_clients` assignment survived — missing ids are simply absent from
+    the result and the caller falls back."""
+    if not user_ids:
+        return {}
+    result = await db.execute(
+        select(
+            external_user_table.c.id,
+            external_user_table.c.name,
+            external_user_table.c.email,
+        ).where(external_user_table.c.id.in_(user_ids))
+    )
+    return {row.id: (row.name, row.email) for row in result.all()}
+
+
 async def _verify_assignment(
     db: AsyncSession, professional_id: str, user_id: str
 ) -> ConsultantClient:
@@ -66,8 +113,21 @@ async def _verify_assignment(
     return assignment
 
 
+async def verify_assignment(db: AsyncSession, professional_id: str, user_id: str) -> None:
+    """Public entry point for other services to reuse this ownership check
+    (single-writer rule, AGENTS.md §2 rule 4) — `_verify_assignment` stays private
+    to this module's own callers; this is the cross-service interface (first real
+    consumer: ingredients/router.py's safety-score endpoint, M3R Phase 1)."""
+    await _verify_assignment(db, professional_id, user_id)
+
+
 async def list_my_clients(
-    db: AsyncSession, professional_id: str, *, page: int = 1, page_size: int = 20
+    db: AsyncSession,
+    professional_id: str,
+    *,
+    page: int = 1,
+    page_size: int = 20,
+    search: str | None = None,
 ) -> tuple[list[ClientSummaryRead], int]:
     """Production-readiness audit finding: this had no LIMIT at all — every active
     assignment, unbounded, on every call, each one also driving 3 further queries
@@ -77,21 +137,32 @@ async def list_my_clients(
     fetch-everything-then-slice in Python like admin/service.py's own precedent)
     so an unpaginated professional's full client count never gets fetched or
     processed for a single page — bounds both the response size and the N+1's
-    real cost per call, though the N+1 itself isn't fixed this pass."""
-    count_result = await db.execute(
-        select(func.count())
-        .select_from(ConsultantClient)
-        .where(
-            ConsultantClient.consultant_id == professional_id, ConsultantClient.status == "active"
+    real cost per call, though the N+1 itself isn't fixed this pass.
+
+    `search` (M3R Phase 5 — rubric's "searchable list") matches the client's
+    identity-table name/email, case-insensitively, restricted to a subquery over
+    `external_user_table` so it can never match (and thus never leak) a user who
+    isn't already this professional's active assignment — the base
+    consultant/status filter still gates both queries below."""
+    filters = [
+        ConsultantClient.consultant_id == professional_id,
+        ConsultantClient.status == "active",
+    ]
+    if search:
+        term = f"%{search}%"
+        matching_user_ids = select(external_user_table.c.id).where(
+            or_(external_user_table.c.name.ilike(term), external_user_table.c.email.ilike(term))
         )
+        filters.append(ConsultantClient.user_id.in_(matching_user_ids))
+
+    count_result = await db.execute(
+        select(func.count()).select_from(ConsultantClient).where(*filters)
     )
     total = count_result.scalar_one()
 
     result = await db.execute(
         select(ConsultantClient)
-        .where(
-            ConsultantClient.consultant_id == professional_id, ConsultantClient.status == "active"
-        )
+        .where(*filters)
         .order_by(ConsultantClient.assignment_id)
         .offset((page - 1) * page_size)
         .limit(page_size)
@@ -111,6 +182,11 @@ async def list_my_clients(
         profile = await skin_profile_service.get_current_profile(db, assignment.user_id)
         scores = await scores_service.get_recent_scores(db, assignment.user_id, days=30)
         latest = scores[-1] if scores else None
+        # Milestone 2 P14 (ADR-024) — real age/gender from user_profiles, the same
+        # per-assignment-loop N+1 shape this function's own docstring already
+        # accepted for get_current_profile/get_recent_scores above.
+        user_profile = await user_service.get_or_create_profile(db, assignment.user_id)
+        compliance = await progress_service.get_compliance_percentages(db, assignment.user_id)
 
         primary_concern_name = None
         if profile and profile.concerns:
@@ -122,15 +198,163 @@ async def list_my_clients(
                 user_id=assignment.user_id,
                 name=name,
                 email=email,
+                age=_age_from_date_of_birth(user_profile.date_of_birth),
+                gender=user_profile.gender,
                 skin_type_name=skin_types.get(profile.skin_type_id) if profile else None,
                 primary_concern_name=primary_concern_name,
                 overall_score=latest.overall_score if latest else None,
                 routine_adherence_score=latest.routine_adherence_score if latest else None,
                 score_trend=[float(s.overall_score) for s in scores if s.overall_score is not None],
                 last_sync=latest.calculated_at if latest else None,
+                compliance_seven_day=compliance.seven_day,
+                compliance_thirty_day=compliance.thirty_day,
             )
         )
     return summaries, total
+
+
+async def get_portfolio_stats(db: AsyncSession, professional_id: str) -> ClinicalPortfolioStatsRead:
+    """Milestone 2 P14 (ADR-024's deferred consequence) — the real, aggregated
+    replacement for the clinical dashboard's fixture KPIs/donut/bars/trend/stat-
+    footer/recent-assessments, computed once across the professional's WHOLE
+    active roster (unpaginated — a portfolio-wide stat, not a page of it).
+
+    Because the roster here is unpaginated, this function must stay free of
+    per-client queries: `list_my_clients` can afford its documented N+1 (LIMIT/
+    OFFSET bounds it to one page), but the same pattern here would scale with a
+    professional's entire client count on the clinical dashboard's main
+    endpoint. Every read below is therefore a single cohort-wide query keyed by
+    `user_ids`, and the loop is pure in-memory aggregation over their results."""
+    assignments_result = await db.execute(
+        select(ConsultantClient.user_id).where(
+            ConsultantClient.consultant_id == professional_id, ConsultantClient.status == "active"
+        )
+    )
+    user_ids = list(assignments_result.scalars().all())
+    total_assigned = len(user_ids)
+    if not user_ids:
+        return ClinicalPortfolioStatsRead(
+            total_assigned=0,
+            assessments_done=0,
+            active_routines=0,
+            avg_improvement_points=None,
+            clients_improving=0,
+            clients_stable=0,
+            clients_need_attention=0,
+            skin_type_distribution=[],
+            top_concerns=[],
+            portfolio_score_trend=[],
+            recent_assessments=[],
+        )
+
+    skin_type_by_user = await skin_profile_service.list_current_skin_types_for_users(db, user_ids)
+    concern_counts = await skin_profile_service.count_concern_occurrences_for_users(db, user_ids)
+    all_skin_types = {
+        t.skin_type_id: t.skin_type_name for t in await skin_profile_service.list_skin_types(db)
+    }
+    all_concerns = {
+        c.concern_id: c.concern_name for c in await skin_profile_service.list_skin_concerns(db)
+    }
+    active_step_counts = await routines_service.list_active_step_counts_by_user(db, user_ids)
+    user_rows = await _get_user_rows(db, user_ids)
+    scores_by_user = await scores_service.get_recent_scores_for_users(db, user_ids, days=90)
+
+    skin_type_counts: dict[int, int] = {}
+    for skin_type_id in skin_type_by_user.values():
+        skin_type_counts[skin_type_id] = skin_type_counts.get(skin_type_id, 0) + 1
+
+    assessments_done = 0
+    active_routines = 0
+    improvements: list[float] = []
+    clients_improving = 0
+    clients_stable = 0
+    clients_need_attention = 0
+    trend_points_by_index: dict[int, list[float]] = {}
+    recent_assessments: list[PortfolioRecentAssessment] = []
+
+    for user_id in user_ids:
+        name = user_rows.get(user_id, (None, ""))[0]
+        scores = scores_by_user.get(user_id, [])
+        assessments_done += len(scores)
+        if user_id in active_step_counts:
+            active_routines += 1
+        for index, s in enumerate(scores):
+            if s.overall_score is not None:
+                trend_points_by_index.setdefault(index, []).append(float(s.overall_score))
+        if scores:
+            latest = scores[-1]
+            recent_assessments.append(
+                PortfolioRecentAssessment(
+                    user_id=user_id,
+                    name=name,
+                    overall_score=latest.overall_score,
+                    calculated_at=latest.calculated_at,
+                )
+            )
+
+        series = [
+            (s.calculated_at.date(), float(s.overall_score))
+            for s in scores
+            if s.calculated_at is not None and s.overall_score is not None
+        ]
+        insight = _trend_analyzer.analyze(series)
+        if insight is not None:
+            improvements.append(insight.magnitude)
+            if insight.direction == "improving":
+                clients_improving += 1
+            elif insight.direction == "declining":
+                clients_need_attention += 1
+            else:
+                clients_stable += 1
+
+    recent_assessments.sort(key=lambda a: a.calculated_at or datetime.datetime.min, reverse=True)
+
+    # The trend is a cohort curve — "average score at the Nth assessment" — so it
+    # is keyed by position, not by date, and the frontend labels it that way
+    # ("Assessment 1", "Assessment 2", ...). The catch is that the sample size
+    # shrinks as N grows: if one client has 30 assessments and everyone else has
+    # 3, index 29 is a single client's score rendered identically to index 0's
+    # full-cohort average, and a rising tail reads as "my clients improve" when
+    # it is one outlier. Truncate at the first index where fewer than half the
+    # scoring clients contributed, so every plotted point is representative.
+    scoring_clients = len(trend_points_by_index.get(0, []))
+    # Floor of 1, not 2: with a single scoring client every point is 100% of the
+    # cohort and is fully representative, so a floor of 2 would blank the chart
+    # for exactly the professional who has just taken on their first client.
+    min_sample = max(1, (scoring_clients + 1) // 2)
+    portfolio_score_trend: list[float] = []
+    for _, values in sorted(trend_points_by_index.items()):
+        if len(values) < min_sample:
+            break
+        portfolio_score_trend.append(round(sum(values) / len(values), 1))
+
+    return ClinicalPortfolioStatsRead(
+        total_assigned=total_assigned,
+        assessments_done=assessments_done,
+        active_routines=active_routines,
+        avg_improvement_points=(
+            round(sum(improvements) / len(improvements), 1) if improvements else None
+        ),
+        clients_improving=clients_improving,
+        clients_stable=clients_stable,
+        clients_need_attention=clients_need_attention,
+        skin_type_distribution=[
+            PortfolioDistributionSlice(
+                key=str(skin_type_id),
+                label=all_skin_types.get(skin_type_id) or "Unknown",
+                count=count,
+            )
+            for skin_type_id, count in sorted(skin_type_counts.items(), key=lambda kv: -kv[1])
+        ],
+        top_concerns=[
+            PortfolioDistributionSlice(
+                key=str(concern_id), label=all_concerns.get(concern_id) or "Unknown", count=count
+            )
+            for concern_id, count in sorted(concern_counts.items(), key=lambda kv: -kv[1])[:6]
+        ],
+        portfolio_score_trend=portfolio_score_trend,
+        recent_assessments=recent_assessments[:5],
+    )
 
 
 async def get_client_detail(
@@ -214,3 +438,90 @@ async def add_note(
         created_at=note.created_at,
         updated_at=note.updated_at,
     )
+
+
+# --- Routine-overwrite (M3R Phase 5 Task 4) ---
+# Thin, assignment-gated wrappers around the exact same single-writer routine
+# mutation functions the user's own routine editor calls (routines/service.py) —
+# a professional's edit reuses that one real mutation path with the client's
+# user_id, never a duplicated write. `add_step`/`update_step`/`delete_step` each
+# already call `await db.commit()` internally before returning, so the audit-log
+# row below is written and committed in a deliberately separate transaction
+# AFTER the routine mutation has already landed — `write_audit_log` itself only
+# flushes (admin/service.py), it never commits.
+
+_ROUTINE_OVERWRITE_ACTION = "routine_step_overwrite"
+
+
+async def search_client_products(
+    db: AsyncSession, professional_id: str, user_id: str, category: str, query: str
+) -> list[ProductRead]:
+    await _verify_assignment(db, professional_id, user_id)
+    return await routines_service.search_products_for_edit(db, user_id, category, query)
+
+
+async def add_client_routine_step(
+    db: AsyncSession,
+    professional_id: str,
+    user_id: str,
+    routine_id: int,
+    step_name: str,
+    product_id: int,
+) -> RoutineRead:
+    await _verify_assignment(db, professional_id, user_id)
+    result = await routines_service.add_step(db, user_id, routine_id, step_name, product_id)
+    await admin_service.write_audit_log(
+        db,
+        actor_user_id=professional_id,
+        action=_ROUTINE_OVERWRITE_ACTION,
+        # target_id here is the routine id (the new step's id isn't known/stable
+        # at this point) — target_type must match that id-space, not the
+        # step-scoped "routine_steps" used by update/delete below.
+        target_type="skincare_routines",
+        target_id=str(routine_id),
+        metadata={"client_user_id": user_id, "step_name": step_name, "product_id": product_id},
+    )
+    await db.commit()
+    return result
+
+
+async def update_client_routine_step(
+    db: AsyncSession,
+    professional_id: str,
+    user_id: str,
+    step_id: int,
+    step_name: str | None,
+    product_id: int | None,
+    usage_notes: str | None,
+) -> RoutineRead:
+    await _verify_assignment(db, professional_id, user_id)
+    result = await routines_service.update_step(
+        db, user_id, step_id, step_name, product_id, usage_notes
+    )
+    await admin_service.write_audit_log(
+        db,
+        actor_user_id=professional_id,
+        action=_ROUTINE_OVERWRITE_ACTION,
+        target_type="routine_steps",
+        target_id=str(step_id),
+        metadata={"client_user_id": user_id},
+    )
+    await db.commit()
+    return result
+
+
+async def delete_client_routine_step(
+    db: AsyncSession, professional_id: str, user_id: str, step_id: int
+) -> RoutineRead:
+    await _verify_assignment(db, professional_id, user_id)
+    result = await routines_service.delete_step(db, user_id, step_id)
+    await admin_service.write_audit_log(
+        db,
+        actor_user_id=professional_id,
+        action=_ROUTINE_OVERWRITE_ACTION,
+        target_type="routine_steps",
+        target_id=str(step_id),
+        metadata={"client_user_id": user_id},
+    )
+    await db.commit()
+    return result

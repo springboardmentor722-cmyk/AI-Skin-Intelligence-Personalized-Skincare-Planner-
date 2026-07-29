@@ -7,8 +7,8 @@ type RoutineRead = components["schemas"]["RoutineRead"];
 
 const QUERY_KEY = ["routines", "me"] as const;
 
-// Shared by every surface that renders a routine checklist (dashboard's
-// RoutineChecklistCard, the /routine screen) so there's one canonical
+// Shared by every surface that renders a routine checklist (the dashboard's
+// ChecklistStrip, check-in's RoutineChecklistCard) so there's one canonical
 // optimistic-update/rollback implementation, not a copy per screen. POSTs to
 // Milestone 2's real completion-tracking endpoint (backend/app/services/routines/
 // router.py) instead of tracking checked state client-side only.
@@ -40,6 +40,13 @@ export function useToggleRoutineStep() {
       if (context?.previous) {
         queryClient.setQueryData(QUERY_KEY, context.previous);
       }
+    },
+    // Without this, the dashboard's 30s routines poll (page.tsx) can land
+    // between onMutate and the POST response and overwrite the optimistic
+    // toggle with a stale server read — runs on both success and error (after
+    // any onError rollback) so the query is always resynced to the server.
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
     },
   });
 }

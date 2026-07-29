@@ -9,6 +9,7 @@ from collections.abc import AsyncGenerator
 
 import httpx
 import pytest
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.storage import build_key, upload
@@ -16,16 +17,24 @@ from app.core.storage import delete as delete_object
 from app.db.postgres import external_user_table
 from app.services.admin.service import (
     apply_verification_action,
+    assign_client,
     create_document,
     get_document_view_url,
     get_pending_verification_counts,
+    get_platform_counts,
     get_profile_for_review,
+    get_top_skin_concerns,
     list_audit_logs,
     list_verification_queue,
     write_audit_log,
 )
+from app.services.clinical_review.models import ConsultantClient
 from app.services.consultant_profile.models import ConsultantProfile
 from app.services.dermatologist_profile.models import DermatologistProfile
+from app.services.recommendations.models import Product
+from app.services.routines.models import Routine
+from app.services.scores.models import SkinScore
+from app.services.skin_profile.models import SkinProfile, SkinProfileConcern
 
 
 @pytest.fixture
@@ -280,6 +289,59 @@ async def test_write_audit_log_persists_expected_fields(
     assert entry.metadata_ == {"from": "user", "to": "consultant"}
 
 
+async def test_assign_client_creates_a_real_row_and_audit_log_entry(
+    db_session: AsyncSession, test_user_id: str, second_user_id: str
+) -> None:
+    """test_user_id plays the professional, second_user_id the client — bugs_report.md
+    2026-07-26 bug #5: this endpoint existed and worked, nothing had ever called it."""
+    # test_user_id doubles as both actor and professional here — audit_logs.
+    # actor_user_id and consultant_clients.consultant_id are separate columns with no
+    # rule against the same real user id satisfying both FKs.
+    await assign_client(
+        db_session,
+        actor_user_id=test_user_id,
+        professional_id=test_user_id,
+        user_id=second_user_id,
+    )
+
+    result = await db_session.execute(
+        select(ConsultantClient).where(
+            ConsultantClient.consultant_id == test_user_id,
+            ConsultantClient.user_id == second_user_id,
+        )
+    )
+    row = result.scalar_one()
+    assert row.status == "active"
+
+    logs, _total = await list_audit_logs(
+        db_session, action="consultant_client_assign", page=1, page_size=20
+    )
+    assert any(
+        log.actor_user_id == test_user_id and log.target_id == second_user_id
+        for log in logs
+    )
+
+
+async def test_assign_client_is_idempotent_on_a_repeat_assignment(
+    db_session: AsyncSession, test_user_id: str, second_user_id: str
+) -> None:
+    await assign_client(
+        db_session, actor_user_id=test_user_id, professional_id=test_user_id, user_id=second_user_id
+    )
+    await assign_client(
+        db_session, actor_user_id=test_user_id, professional_id=test_user_id, user_id=second_user_id
+    )
+
+    result = await db_session.execute(
+        select(ConsultantClient).where(
+            ConsultantClient.consultant_id == test_user_id,
+            ConsultantClient.user_id == second_user_id,
+        )
+    )
+    rows = result.scalars().all()
+    assert len(rows) == 1
+
+
 async def test_list_audit_logs_filters_by_action_and_paginates(
     db_session: AsyncSession, test_user_id: str, second_user_id: str
 ) -> None:
@@ -323,6 +385,36 @@ async def test_get_pending_verification_counts_reflects_real_rows(
 
     assert consultant_count >= 1
     assert dermatologist_count >= 1
+
+
+async def test_get_platform_counts_reflects_real_rows(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    db_session.add(SkinScore(user_id=test_user_id))
+    db_session.add(Routine(user_id=test_user_id, routine_type="AM", is_active=True))
+    db_session.add(Product())
+    await db_session.flush()
+
+    counts = await get_platform_counts(db_session)
+
+    assert counts.total_assessments >= 1
+    assert counts.active_routines >= 1
+    assert counts.total_products >= 1
+
+
+async def test_get_top_skin_concerns_counts_profiles_by_concern(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    profile = SkinProfile(user_id=test_user_id, skin_type_id=1)
+    db_session.add(profile)
+    await db_session.flush()
+    db_session.add(SkinProfileConcern(skin_profile_id=profile.skin_profile_id, concern_id=1))
+    await db_session.flush()
+
+    top_concerns = await get_top_skin_concerns(db_session)
+
+    assert any(row.count >= 1 for row in top_concerns)
+    assert all(row.concern_name for row in top_concerns)
 
 
 async def test_get_document_view_url_returns_a_working_presigned_url(

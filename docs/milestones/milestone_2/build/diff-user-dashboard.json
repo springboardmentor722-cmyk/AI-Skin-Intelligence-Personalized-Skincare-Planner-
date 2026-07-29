@@ -1,0 +1,11 @@
+{
+  "a": "docs/milestones/milestone_2/User.png",
+  "b": "docs/milestones/milestone_2/build/user-dashboard.png",
+  "mode": "structural",
+  "dilate": 2,
+  "edge_iou_pct": 13.31,
+  "structure_mismatch_pct": 86.69,
+  "missing_from_build_px": 160502,
+  "extra_in_build_px": 233403,
+  "diff_image": "docs/milestones/milestone_2/build/diff-user-dashboard.png"
+}

@@ -17,11 +17,21 @@ import { getSessionCookie } from "better-auth/cookies";
 // deprecated. Please use 'proxy' instead.").
 const PUBLIC_PATHS = ["/", "/login", "/signup", "/forgot-password", "/reset-password"];
 
+// Public marketing/legal route prefixes (bugs_report.md 2026-07-26, bug #6) — the
+// landing footer's Product/Company/Legal links (web/components/landing/
+// landing-footer.tsx) point at real pages under these prefixes now instead of
+// href="#"; without this, every one of those newly-real links would bounce a
+// signed-out visitor (the only audience that ever sees a public footer) straight to
+// /login, which is just a differently-shaped dead link.
+const PUBLIC_PREFIXES = ["/legal/", "/company/", "/product/"];
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const isPublic =
-    PUBLIC_PATHS.includes(pathname) || pathname.startsWith("/api/auth");
+    PUBLIC_PATHS.includes(pathname) ||
+    PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix)) ||
+    pathname.startsWith("/api/auth");
   if (isPublic) return NextResponse.next();
 
   const sessionCookie = getSessionCookie(request);

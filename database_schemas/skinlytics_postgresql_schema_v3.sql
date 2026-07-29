@@ -176,6 +176,19 @@ CREATE TABLE ingredient_skintype_avoid (
     UNIQUE (ingredient_id, skin_type_id)
 );
 
+-- Milestone 2 P7 (MILESTONE 2.docx §2, docs/DECISIONS.md ADR-026): the allergy list
+-- is structured ingredient ids, not free text, so P12's allergy detection can match
+-- against it directly. skin_profiles.allergies (TEXT) stays as-is, unchanged and
+-- deprecated (a pre-existing column, not dropped — no destructive migration), for
+-- any free-text note a structured ingredient id can't capture.
+CREATE TABLE skin_profile_allergies (
+    profile_allergy_id SERIAL PRIMARY KEY,
+    skin_profile_id INTEGER NOT NULL REFERENCES skin_profiles(skin_profile_id) ON DELETE CASCADE,
+    ingredient_id INTEGER NOT NULL REFERENCES ingredients(ingredient_id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (skin_profile_id, ingredient_id)
+);
+
 -- ============================================================
 -- ROUTINES & PRODUCTS
 -- ============================================================
@@ -191,6 +204,11 @@ CREATE TABLE skincare_routines (
     score_id INTEGER REFERENCES skin_assessments(score_id),  -- nullable, best-effort: the
         -- most recently computed score at generation time (Milestone 2 Step 1.1's
         -- "assessment_id" traceability; migration f2a6c1d09b3e)
+    skin_profile_id INTEGER REFERENCES skin_profiles(skin_profile_id),  -- M2-P11: which
+        -- profile *version* this routine was generated against — lets
+        -- get_or_generate_routines detect a re-assessment (a new profile version) and
+        -- regenerate, the same way a season change already regenerates Seasonal Care.
+        -- Nullable: routines generated before this column existed have no value here.
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -200,7 +218,14 @@ CREATE TABLE routine_steps (
     routine_id INTEGER NOT NULL REFERENCES skincare_routines(routine_id) ON DELETE CASCADE,
     step_order INTEGER,
     step_name VARCHAR(100),
+    category VARCHAR(50),  -- M2-P11: one of the 6 canonical categories (Cleansing,
+        -- Exfoliation, Treatment, Moisturizing, Sun Protection, Night Care) — distinct
+        -- from products.category (the real, smaller product taxonomy candidates are
+        -- drawn from; routines/constants.py maps between the two).
     instruction TEXT,
+    rationale TEXT,  -- M2-P11: why this product was chosen (concern match, category fit)
+    safety_flag VARCHAR(100),  -- M2-P11: which guardrail fired for this step, if any
+        -- (e.g. "soothing_substitution") — NULL when no guardrail intervened.
     duration_minutes INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -275,6 +300,35 @@ CREATE TABLE scoring_weights (
     )
 );
 
+CREATE TABLE ingredient_safety_config (
+    config_id SERIAL PRIMARY KEY,
+    avoid_deduction DECIMAL(5,2) NOT NULL DEFAULT 40.0,
+    caution_deduction DECIMAL(5,2) NOT NULL DEFAULT 15.0,
+    allergy_deduction DECIMAL(5,2) NOT NULL DEFAULT 50.0,
+    safe_threshold DECIMAL(5,2) NOT NULL DEFAULT 80.0,
+    warning_threshold DECIMAL(5,2) NOT NULL DEFAULT 50.0,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_safety_thresholds_ordered CHECK (safe_threshold > warning_threshold)
+);
+
+CREATE UNIQUE INDEX uq_ingredient_safety_config_one_active
+    ON ingredient_safety_config (is_active)
+    WHERE is_active = true;
+
+CREATE TABLE recommendation_weights (
+    weight_id SERIAL PRIMARY KEY,
+    concern_weight DECIMAL(4,2) NOT NULL DEFAULT 0.50,
+    skin_type_fit_weight DECIMAL(4,2) NOT NULL DEFAULT 0.35,
+    rating_weight DECIMAL(4,2) NOT NULL DEFAULT 0.15,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_recommendation_weights_sum CHECK (
+        concern_weight + skin_type_fit_weight + rating_weight = 1.00
+    )
+);
+CREATE UNIQUE INDEX uq_recommendation_weights_one_active ON recommendation_weights (is_active) WHERE is_active = true;
+
 CREATE TABLE skin_assessments (
     score_id SERIAL PRIMARY KEY,
     user_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
@@ -287,6 +341,21 @@ CREATE TABLE skin_assessments (
     weight_id INTEGER REFERENCES scoring_weights(weight_id),
     calculated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Milestone 2 P9 (MILESTONE 2.docx "4. Core Backend API Endpoints") — the
+-- immutable raw snapshot POST /api/v1/assessment/submit persists. Append-only:
+-- a re-assessment writes a new row, never an update. Separate from
+-- skin_assessments (the computed score row) and skin_profiles (the current
+-- profile) — this is the audit trail of what was actually submitted, verbatim.
+CREATE TABLE assessment_submissions (
+    submission_id SERIAL PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+    schema_version INTEGER NOT NULL DEFAULT 1,
+    raw_payload JSONB NOT NULL,
+    score_id INTEGER REFERENCES skin_assessments(score_id),
+    submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_assessment_submissions_user ON assessment_submissions(user_id);
 
 CREATE TABLE progress_reports (
     report_id SERIAL PRIMARY KEY,
@@ -303,6 +372,7 @@ CREATE TABLE progress_images (
     user_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
     image_url VARCHAR(255),
     image_stage VARCHAR(50),
+    skin_health_score_at_upload DECIMAL(5,2),
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -594,6 +664,13 @@ INSERT INTO scoring_weights
     (skin_condition_weight, lifestyle_weight, sleep_quality_weight,
      routine_adherence_weight, hydration_weight, is_active)
 VALUES (0.35, 0.20, 0.15, 0.20, 0.10, TRUE);
+
+INSERT INTO ingredient_safety_config
+    (avoid_deduction, caution_deduction, allergy_deduction, safe_threshold, warning_threshold, is_active)
+VALUES (40.0, 15.0, 50.0, 80.0, 50.0, TRUE);
+
+INSERT INTO recommendation_weights (concern_weight, skin_type_fit_weight, rating_weight, is_active)
+VALUES (0.50, 0.35, 0.15, TRUE);
 
 INSERT INTO skin_types (skin_type_name, description) VALUES
     ('Normal', 'Balanced oil and hydration'),

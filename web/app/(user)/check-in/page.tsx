@@ -7,10 +7,14 @@ import { Camera, Droplets, Moon } from "lucide-react";
 import { toast } from "sonner";
 
 import { RoutineChecklistCard } from "@/components/dashboard/routine-checklist-card";
+import { TrendChart } from "@/components/charts/trend-chart";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Slider } from "@/components/ui/slider";
 import { api } from "@/lib/api";
+import type { components } from "@/lib/api-types";
+
+type LifestyleLogRead = components["schemas"]["LifestyleLogRead"];
 
 const firstOf = (val: number | readonly number[]): number =>
   Array.isArray(val) ? val[0] : (val as number);
@@ -21,6 +25,8 @@ interface HydrationRestFormProps {
   initialWaterLiters: number;
   initialSleepHours: number;
   initialSleepQuality: number;
+  initialStressLevel: number;
+  initialSunHours: number;
   alreadyLoggedToday: boolean;
 }
 
@@ -32,12 +38,16 @@ function HydrationRestForm({
   initialWaterLiters,
   initialSleepHours,
   initialSleepQuality,
+  initialStressLevel,
+  initialSunHours,
   alreadyLoggedToday,
 }: HydrationRestFormProps) {
   const queryClient = useQueryClient();
   const [waterLiters, setWaterLiters] = useState(initialWaterLiters);
   const [sleepHours, setSleepHours] = useState(initialSleepHours);
   const [sleepQuality, setSleepQuality] = useState(initialSleepQuality);
+  const [stressLevel, setStressLevel] = useState(initialStressLevel);
+  const [sunHours, setSunHours] = useState(initialSunHours);
   const [loggedToday, setLoggedToday] = useState(alreadyLoggedToday);
 
   const logToday = useMutation({
@@ -48,6 +58,8 @@ function HydrationRestForm({
           water_intake_liters: waterLiters,
           sleep_hours: sleepHours,
           sleep_quality: sleepQuality,
+          stress_level: stressLevel,
+          environmental_exposure: { sun_hours: sunHours },
         },
       });
       if (error) throw new Error("Couldn't save today's check-in.");
@@ -112,6 +124,34 @@ function HydrationRestForm({
         />
       </div>
 
+      <div className="border-border border-t pt-5">
+        <p className="text-on-surface-variant mb-2 font-sans text-xs">
+          Stress level ({stressLevel}/10)
+        </p>
+        <Slider
+          min={1}
+          max={10}
+          step={1}
+          value={[stressLevel]}
+          onValueChange={(v) => setStressLevel(firstOf(v))}
+          aria-label="Stress level"
+        />
+      </div>
+
+      <div className="border-border border-t pt-5">
+        <p className="text-on-surface-variant mb-2 font-sans text-xs">
+          Sun exposure ({sunHours.toFixed(1)} hrs)
+        </p>
+        <Slider
+          min={0}
+          max={12}
+          step={0.5}
+          value={[sunHours]}
+          onValueChange={(v) => setSunHours(firstOf(v))}
+          aria-label="Sun exposure in hours"
+        />
+      </div>
+
       <Button disabled={logToday.isPending} onClick={() => logToday.mutate()}>
         {loggedToday ? "Update today's check-in" : "Log today"}
       </Button>
@@ -163,6 +203,24 @@ export default function CheckInPage() {
 
   const todayLog = lifestyleQuery.data?.find((log) => log.log_date === todayIso());
 
+  // Milestone 2 P7 — "the 30-day history the dashboard cards read from"
+  // (MILESTONE_2_MASTER_PROMPT.md P7): real data from the same GET
+  // /api/v1/lifestyle-logs/me the page already fetches (defaults to the last 30
+  // entries, skin_profile/service.py's list_recent_lifestyle_logs), not a fixture —
+  // future dashboard cards read the same endpoint.
+  const historySeries = (field: "sleep_hours" | "water_intake_liters") =>
+    [...(lifestyleQuery.data ?? [])]
+      .sort((a, b) => a.log_date.localeCompare(b.log_date))
+      .map((log: LifestyleLogRead) => ({
+        x: new Date(log.log_date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+        y: log[field] ?? 0,
+      }));
+  const historyState = lifestyleQuery.isLoading
+    ? "loading"
+    : (lifestyleQuery.data?.length ?? 0) === 0
+      ? "empty"
+      : "ready";
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -191,6 +249,8 @@ export default function CheckInPage() {
             initialWaterLiters={todayLog?.water_intake_liters ?? 0}
             initialSleepHours={todayLog?.sleep_hours ?? 7}
             initialSleepQuality={todayLog?.sleep_quality ?? 5}
+            initialStressLevel={todayLog?.stress_level ?? 5}
+            initialSunHours={todayLog?.environmental_exposure?.sun_hours ?? 0}
             alreadyLoggedToday={todayLog !== undefined}
           />
         )}
@@ -225,6 +285,34 @@ export default function CheckInPage() {
             Add today&apos;s photo
           </Button>
           <Button variant="ghost" size="sm" nativeButton={false} render={<Link href="/progress">View timeline</Link>} />
+        </div>
+      </div>
+
+      <div className="border-border bg-card rounded-2xl border p-6">
+        <h3 className="font-heading text-on-surface mb-4 text-sm font-semibold">
+          30-day history
+        </h3>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <div>
+            <p className="text-on-surface-variant mb-2 font-sans text-xs">Sleep hours</p>
+            <TrendChart
+              state={historyState}
+              series={historySeries("sleep_hours")}
+              seriesLabel="Sleep hours"
+              yDomain={[0, 12]}
+              emptyMessage="No check-ins logged yet."
+            />
+          </div>
+          <div>
+            <p className="text-on-surface-variant mb-2 font-sans text-xs">Water intake (L)</p>
+            <TrendChart
+              state={historyState}
+              series={historySeries("water_intake_liters")}
+              seriesLabel="Water intake"
+              yDomain={[0, 4]}
+              emptyMessage="No check-ins logged yet."
+            />
+          </div>
         </div>
       </div>
     </div>

@@ -8,11 +8,14 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { ScoreAdherenceChart } from "@/components/charts/score-adherence-chart";
+import { PhotoComparison } from "@/components/clinical-review/photo-comparison";
 import { SkinScoreRing } from "@/components/skin-score-ring";
 import { StateCard } from "@/components/state-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/lib/api";
+import { retryFor, widgetStateFor } from "@/lib/widget-state";
 
 // web/designs/wireframes/consultant-client-detail.html /
 // derm-patient-detail.html — real content only. The wireframes' "Diagnostic
@@ -49,6 +52,22 @@ export function ClientDetailView({ userId, backHref }: ClientDetailViewProps) {
       return data;
     },
   });
+
+  const analyticsQuery = useQuery({
+    queryKey: ["clinical-review", "client-analytics", userId],
+    queryFn: async () => {
+      const { data, error } = await api.GET("/api/v1/clients/{user_id}/analytics", {
+        params: { path: { user_id: userId } },
+      });
+      if (error) throw new Error("Couldn't load this client's progress timeline.");
+      return data;
+    },
+  });
+  const chartPoints = (analyticsQuery.data?.score_vs_adherence ?? []).map((p) => ({
+    date: p.date,
+    score: p.overall_score,
+    adherence: p.adherence_ratio,
+  }));
 
   const addNoteMutation = useMutation({
     mutationFn: async (text: string) => {
@@ -171,9 +190,21 @@ export function ClientDetailView({ userId, backHref }: ClientDetailViewProps) {
                     return (
                       <div key={routine.routine_id} className="flex items-center justify-between text-sm">
                         <span>{routine.routine_name}</span>
-                        <span className="font-geist tabular-nums">
-                          {completed}/{routine.steps.length} today
-                        </span>
+                        <div className="flex items-center gap-3">
+                          <span className="font-geist tabular-nums">
+                            {completed}/{routine.steps.length} today
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            nativeButton={false}
+                            render={
+                              <Link href={`${backHref}/${userId}/routines/${routine.routine_id}/edit`}>
+                                Edit routine
+                              </Link>
+                            }
+                          />
+                        </div>
                       </div>
                     );
                   })}
@@ -187,6 +218,23 @@ export function ClientDetailView({ userId, backHref }: ClientDetailViewProps) {
           )}
         </div>
       </div>
+
+      <div className="border-border bg-card rounded-2xl border p-6">
+        <h3 className="font-heading text-on-surface mb-4 text-lg font-semibold">
+          Progress timeline
+        </h3>
+        <ScoreAdherenceChart
+          state={widgetStateFor(analyticsQuery, chartPoints.length < 2)}
+          onRetry={retryFor(analyticsQuery)}
+          points={chartPoints}
+          emptyMessage="Not enough history yet to chart this client's progress."
+        />
+        <p className="text-on-surface-variant mt-4 font-sans text-xs">
+          AI-derived insights — not medical advice, not a clinical diagnosis.
+        </p>
+      </div>
+
+      <PhotoComparison userId={userId} />
 
       <div className="border-border bg-card rounded-2xl border p-6">
         <h3 className="font-heading text-on-surface mb-4 text-lg font-semibold">Clinical notes</h3>

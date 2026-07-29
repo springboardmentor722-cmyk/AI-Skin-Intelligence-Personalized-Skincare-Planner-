@@ -21,7 +21,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
-import { NAV_ITEMS, ROLE_LABELS, type Role } from "@/lib/nav-config";
+import { getSettingsHref, ROLE_LABELS, type Role } from "@/lib/nav-config";
 import { useCurrentUser } from "@/lib/use-current-user";
 
 interface NavUserProps {
@@ -41,7 +41,7 @@ export function NavUser({ role, fallbackName }: NavUserProps) {
   const router = useRouter();
   const { isMobile } = useSidebar();
   const user = useCurrentUser(fallbackName);
-  const settingsHref = NAV_ITEMS[role].find((item) => item.label === "Settings")?.href;
+  const settingsHref = getSettingsHref(role);
 
   const handleSignOut = async () => {
     await authClient.signOut();

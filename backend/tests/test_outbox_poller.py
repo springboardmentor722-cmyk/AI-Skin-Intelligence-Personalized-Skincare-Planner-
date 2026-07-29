@@ -56,8 +56,10 @@ async def test_process_pending_outbox_projects_a_product_to_es_and_vector_and_ma
     finally:
         vector.remove("products", vector_id)
         await get_mongo_db()["product_vectors_metadata"].delete_one({"product_id": product_id})
-        await get_elasticsearch().options(ignore_status=404).delete(
-            index="products_index", id=str(product_id)
+        await (
+            get_elasticsearch()
+            .options(ignore_status=404)
+            .delete(index="products_index", id=str(product_id))
         )
 
 
@@ -106,6 +108,8 @@ async def test_a_product_change_flushes_every_cached_recommendation_set(
     finally:
         vector.remove("products", vector_id)
         await get_mongo_db()["product_vectors_metadata"].delete_one({"product_id": product_id})
-        await get_elasticsearch().options(ignore_status=404).delete(
-            index="products_index", id=str(product_id)
+        await (
+            get_elasticsearch()
+            .options(ignore_status=404)
+            .delete(index="products_index", id=str(product_id))
         )

@@ -55,6 +55,15 @@ Generate/refresh the DB tables (user, session, account, verification, jwks):
 npx @better-auth/cli generate     # emits the SQL/schema — keep separate from Alembic
 npx @better-auth/cli migrate      # or apply directly
 ```
+**Confirmed against the live schema (2026-07-22, `web/tests/e2e/helpers.ts`):** the
+`session` table doesn't actually exist in this deployment's Postgres — `web/lib/auth.ts`
+wires a Redis-backed `secondaryStorage` (`web/lib/secondary-storage.ts`), and with no
+explicit `session: { storeSessionInDatabase: true }` override, Better Auth keeps
+sessions in Redis instead. The `generate`/`migrate` commands above were never run for
+`session` in this environment; only `user`/`account`/`verification`/`jwks` are real
+Postgres tables here. This doc's `auth.ts` code block above predates the
+`secondaryStorage` + rate-limit additions — `web/lib/auth.ts` itself is the current
+source of truth for the exact config.
 
 ## Backend — `backend/app/core/security.py` (validate, don't authenticate)
 ```python

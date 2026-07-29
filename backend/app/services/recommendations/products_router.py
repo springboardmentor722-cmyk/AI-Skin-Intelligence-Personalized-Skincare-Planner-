@@ -28,9 +28,7 @@ def _parse_ids(ids: str, *, min_count: int, max_count: int) -> list[int]:
     try:
         parsed = [int(part) for part in ids.split(",") if part.strip()]
     except ValueError as exc:
-        raise HTTPException(
-            status.HTTP_422_UNPROCESSABLE_CONTENT, "ids must be integers"
-        ) from exc
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "ids must be integers") from exc
     if not min_count <= len(parsed) <= max_count:
         raise HTTPException(
             status.HTTP_422_UNPROCESSABLE_CONTENT,

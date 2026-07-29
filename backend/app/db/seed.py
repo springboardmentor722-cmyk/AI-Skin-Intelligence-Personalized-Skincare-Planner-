@@ -22,12 +22,14 @@ this foundational reference data at all.
 """
 
 import asyncio
+import datetime
 from typing import TypedDict
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 
 from app.db.outbox import append_outbox
-from app.db.postgres import async_session_factory
+from app.db.postgres import async_session_factory, external_user_table
+from app.services.clinical_review import service as clinical_review_service
 from app.services.ingredients.models import (
     Ingredient,
     IngredientConcernTreats,
@@ -39,7 +41,11 @@ from app.services.recommendations.models import (
     ProductIngredient,
     ProductSkinType,
 )
+from app.services.routines import service as routines_service
+from app.services.scores import service as scores_service
+from app.services.scores.models import SkinScore
 from app.services.skin_profile import service as skin_profile_service
+from app.services.skin_profile.schemas import SkinProfileConcernInput, SkinProfileCreate
 
 
 class _ProductSeed(TypedDict, total=False):
@@ -58,7 +64,7 @@ _PRODUCTS: list[_ProductSeed] = [
     {
         "brand_name": "Lumina Labs",
         "product_name": "Gentle Foaming Cleanser",
-        "category": "Cleanser",
+        "category": "Face Wash",
         "price": 450,
         "volume_ml": 150,
         "skin_types": ["Normal", "Oily", "Combination"],
@@ -67,7 +73,7 @@ _PRODUCTS: list[_ProductSeed] = [
     {
         "brand_name": "Bare Basics",
         "product_name": "Cream Hydrating Cleanser",
-        "category": "Cleanser",
+        "category": "Face Wash",
         "price": 420,
         "volume_ml": 150,
         "skin_types": ["Dry", "Sensitive"],
@@ -76,7 +82,7 @@ _PRODUCTS: list[_ProductSeed] = [
     {
         "brand_name": "DermaCare Co",
         "product_name": "Micellar Cleansing Water",
-        "category": "Cleanser",
+        "category": "Face Wash",
         "price": 350,
         "volume_ml": 250,
         "skin_types": ["Normal", "Dry", "Oily", "Combination", "Sensitive"],
@@ -85,7 +91,7 @@ _PRODUCTS: list[_ProductSeed] = [
     {
         "brand_name": "Lumina Labs",
         "product_name": "2% Salicylic Acid Treatment",
-        "category": "Treatment",
+        "category": "Treatment Products",
         "price": 650,
         "volume_ml": 30,
         "skin_types": ["Oily", "Combination"],
@@ -95,7 +101,7 @@ _PRODUCTS: list[_ProductSeed] = [
     {
         "brand_name": "Lumina Labs",
         "product_name": "10% Niacinamide Serum",
-        "category": "Treatment",
+        "category": "Treatment Products",
         "price": 590,
         "volume_ml": 30,
         "skin_types": ["Oily", "Combination", "Normal"],
@@ -105,7 +111,7 @@ _PRODUCTS: list[_ProductSeed] = [
     {
         "brand_name": "DermaCare Co",
         "product_name": "Retinol 0.3% Night Treatment",
-        "category": "Treatment",
+        "category": "Treatment Products",
         "price": 890,
         "volume_ml": 30,
         "skin_types": ["Normal", "Combination"],
@@ -115,7 +121,7 @@ _PRODUCTS: list[_ProductSeed] = [
     {
         "brand_name": "Bare Basics",
         "product_name": "Hyaluronic Acid Serum",
-        "category": "Treatment",
+        "category": "Treatment Products",
         "price": 550,
         "volume_ml": 30,
         "skin_types": ["Normal", "Dry", "Oily", "Combination", "Sensitive"],
@@ -125,7 +131,7 @@ _PRODUCTS: list[_ProductSeed] = [
     {
         "brand_name": "Bare Basics",
         "product_name": "Centella Calming Serum",
-        "category": "Treatment",
+        "category": "Treatment Products",
         "price": 620,
         "volume_ml": 30,
         "skin_types": ["Sensitive"],
@@ -134,7 +140,7 @@ _PRODUCTS: list[_ProductSeed] = [
     {
         "brand_name": "Lumina Labs",
         "product_name": "Vitamin C Brightening Serum",
-        "category": "Treatment",
+        "category": "Treatment Products",
         "price": 750,
         "volume_ml": 30,
         "skin_types": ["Normal", "Combination", "Dry"],
@@ -144,7 +150,7 @@ _PRODUCTS: list[_ProductSeed] = [
     {
         "brand_name": "DermaCare Co",
         "product_name": "8% Glycolic Acid Night Exfoliant",
-        "category": "Treatment",
+        "category": "Treatment Products",
         "price": 720,
         "volume_ml": 30,
         "skin_types": ["Normal", "Oily", "Combination"],
@@ -154,7 +160,7 @@ _PRODUCTS: list[_ProductSeed] = [
     {
         "brand_name": "Bare Basics",
         "product_name": "Peptide Firming Serum",
-        "category": "Treatment",
+        "category": "Treatment Products",
         "price": 810,
         "volume_ml": 30,
         "skin_types": ["Normal", "Dry", "Combination"],
@@ -436,6 +442,192 @@ async def seed_products() -> int:
         return created
 
 
+class _DemoClientSeed(TypedDict):
+    name: str
+    email: str
+    skin_type: str
+    concern: str
+    severity: int
+
+
+# Milestone 2 P14 (MILESTONE_2_MASTER_PROMPT.md P14: "the seed uses the screenshot's
+# cast") — real skin_type/concern names only (backend/app/db seed migration's own 5
+# skin types, P6's 10 skin_concerns; no "Hair Fall & Dandruff" here, since that isn't
+# a real seeded concern — inventing one to match the mockup's roster copy verbatim
+# would be exactly the fabrication AGENTS.md §0.2 rules out).
+_DEMO_CLIENTS: list[_DemoClientSeed] = [
+    {
+        "name": "Ananya Verma",
+        "email": "ananya.verma@demo.skinlytics.local",
+        "skin_type": "Combination",
+        "concern": "Acne",
+        "severity": 7,
+    },
+    {
+        "name": "Priya Sharma",
+        "email": "priya.sharma@demo.skinlytics.local",
+        "skin_type": "Normal",
+        "concern": "Hyperpigmentation",
+        "severity": 6,
+    },
+    {
+        "name": "Meera Iyer",
+        "email": "meera.iyer@demo.skinlytics.local",
+        "skin_type": "Combination",
+        "concern": "Uneven Skin Tone",
+        "severity": 5,
+    },
+    {
+        "name": "Rohit Sharma",
+        "email": "rohit.sharma@demo.skinlytics.local",
+        "skin_type": "Oily",
+        "concern": "Oily Skin",
+        "severity": 6,
+    },
+    {
+        "name": "Kavya Nair",
+        "email": "kavya.nair@demo.skinlytics.local",
+        "skin_type": "Dry",
+        "concern": "Dry Skin",
+        "severity": 7,
+    },
+    {
+        "name": "Riya Singh",
+        "email": "riya.singh@demo.skinlytics.local",
+        "skin_type": "Oily",
+        "concern": "Acne",
+        "severity": 8,
+    },
+    {
+        "name": "Neha Gupta",
+        "email": "neha.gupta@demo.skinlytics.local",
+        "skin_type": "Sensitive",
+        "concern": "Sensitive Skin",
+        "severity": 6,
+    },
+]
+
+# demo-<slug> ids, not Better Auth-generated ones — these rows exist purely to be
+# real, FK-valid `user_id` targets for skin_profiles/skin_assessments/skincare_
+# routines/consultant_clients (same "direct user-table insert for a non-login-
+# capable row" pattern web/tests/e2e/helpers.ts's own test fixtures use); nobody
+# signs in as one, so no Better Auth account/session row exists for them.
+_DEMO_CLIENT_ID_PREFIX = "demo-client-"
+
+
+async def seed_demo_clients() -> int:
+    """30 days of real score history + a real routine per client, so the four
+    dashboards (and a professional's roster once assigned, seed_professional_
+    assignments below) render plausible values instead of an honest-but-empty
+    state. Idempotent — dedupe by email, same discipline as seed_ingredients/
+    seed_products above."""
+    async with async_session_factory() as db:
+        existing_result = await db.execute(
+            select(external_user_table.c.email).where(
+                external_user_table.c.email.in_([c["email"] for c in _DEMO_CLIENTS])
+            )
+        )
+        existing_emails = {row[0] for row in existing_result.all()}
+
+        skin_types = {
+            t.skin_type_name: t.skin_type_id for t in await skin_profile_service.list_skin_types(db)
+        }
+        concerns = {
+            c.concern_name: c.concern_id for c in await skin_profile_service.list_skin_concerns(db)
+        }
+
+        created = 0
+        for entry in _DEMO_CLIENTS:
+            if entry["email"] in existing_emails:
+                continue
+
+            user_id = _DEMO_CLIENT_ID_PREFIX + entry["email"].split("@")[0]
+            await db.execute(
+                external_user_table.insert().values(
+                    id=user_id, email=entry["email"], name=entry["name"], emailVerified=False
+                )
+            )
+            await db.commit()
+
+            await skin_profile_service.create_profile(
+                db,
+                user_id,
+                SkinProfileCreate(
+                    skin_type_id=skin_types[entry["skin_type"]],
+                    age_group="25-34",
+                    concerns=[
+                        SkinProfileConcernInput(
+                            concern_id=concerns[entry["concern"]],
+                            severity_rating=entry["severity"],
+                            priority_level=entry["severity"],
+                        )
+                    ],
+                ),
+            )
+            latest = await scores_service.compute_and_store_score(db, user_id)
+            await routines_service.get_or_generate_routines(db, user_id)
+
+            # Backdated history (same "insert real SkinScore rows directly, don't
+            # re-derive" pattern web/tests/e2e/user-journey.spec.ts already uses)
+            # so the roster's score_trend sparkline and the portfolio's trend
+            # analysis (app/ai/trend.py) have more than one real point to work
+            # with. A gentle real improvement slope, not a random walk.
+            base = latest.overall_score or 70.0
+            for days_ago, delta in ((21, -6.0), (14, -3.5), (7, -1.5)):
+                db.add(
+                    SkinScore(
+                        user_id=user_id,
+                        skin_condition_score=latest.skin_condition_score,
+                        lifestyle_score=latest.lifestyle_score,
+                        sleep_quality_score=latest.sleep_quality_score,
+                        hydration_score=latest.hydration_score,
+                        routine_adherence_score=latest.routine_adherence_score,
+                        overall_score=max(0.0, min(100.0, base + delta)),
+                        weight_id=None,
+                        calculated_at=datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
+                        - datetime.timedelta(days=days_ago),
+                    )
+                )
+            await db.commit()
+            created += 1
+
+        return created
+
+
+async def seed_professional_assignments() -> int:
+    """Assigns every seeded demo client to every REAL consultant/dermatologist
+    account already in the database at the time this runs — there's no way to
+    predict a real Better-Auth-created professional's user_id in advance (seed
+    data can't create a real, login-capable account; only a genuine signup +
+    role promotion can). Idempotent (create_assignment reactivates an existing
+    row rather than erroring) and safe to re-run after promoting a new
+    professional: `make seed` again picks them up."""
+    async with async_session_factory() as db:
+        # `external_user_table` (app/db/postgres.py) only declares id/email/name/
+        # emailVerified — the columns every FK-holding insert needs — not `role`,
+        # which nothing else in this codebase reads through that Core Table object.
+        # Raw SQL here rather than widening a shared table definition just for
+        # this one read.
+        professionals_result = await db.execute(
+            text("SELECT id FROM \"user\" WHERE role IN ('consultant', 'dermatologist')")
+        )
+        professional_ids = [row[0] for row in professionals_result.all()]
+
+        demo_clients_result = await db.execute(
+            select(external_user_table.c.id).where(
+                external_user_table.c.id.like(f"{_DEMO_CLIENT_ID_PREFIX}%")
+            )
+        )
+        demo_client_ids = [row[0] for row in demo_clients_result.all()]
+
+        assigned = 0
+        for professional_id in professional_ids:
+            for client_id in demo_client_ids:
+                await clinical_review_service.create_assignment(db, professional_id, client_id)
+                assigned += 1
+        return assigned
+
+
 async def main() -> None:
     # Ingredients first — seed_products() links product_ingredients against them.
     ingredients_created = await seed_ingredients()
@@ -445,6 +637,17 @@ async def main() -> None:
     )
     created = await seed_products()
     print(f"Seeded {created} new product(s) ({len(_PRODUCTS) - created} already present).")
+
+    clients_created = await seed_demo_clients()
+    print(
+        f"Seeded {clients_created} new demo client(s) "
+        f"({len(_DEMO_CLIENTS) - clients_created} already present)."
+    )
+    assigned = await seed_professional_assignments()
+    print(
+        f"Assigned demo clients to {assigned} professional-client pair(s) "
+        "(0 if no real consultant/dermatologist account exists yet — re-run after promoting one)."
+    )
 
 
 if __name__ == "__main__":

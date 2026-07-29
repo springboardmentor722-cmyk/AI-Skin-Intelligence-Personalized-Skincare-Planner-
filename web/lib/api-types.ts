@@ -249,6 +249,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/assessment/score/{score_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Score By Id */
+        get: operations["get_score_by_id_api_v1_assessment_score__score_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assessment/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit Assessment */
+        post: operations["submit_assessment_api_v1_assessment_submit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/routine": {
         parameters: {
             query?: never;
@@ -522,6 +556,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/ingredients/safety-score": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Get Safety Score */
+        post: operations["get_safety_score_api_v1_ingredients_safety_score_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ingredients/{ingredient_id}": {
         parameters: {
             query?: never;
@@ -586,6 +637,23 @@ export interface paths {
         put?: never;
         /** Upsert My Progress Log */
         post: operations["upsert_my_progress_log_api_v1_progress_me_logs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Notifications */
+        get: operations["get_my_notifications_api_v1_notifications_me_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1022,6 +1090,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/clients/me/portfolio-stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Portfolio Stats */
+        get: operations["get_my_portfolio_stats_api_v1_clients_me_portfolio_stats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/clients/{user_id}": {
         parameters: {
             query?: never;
@@ -1031,6 +1116,40 @@ export interface paths {
         };
         /** Get Client */
         get: operations["get_client_api_v1_clients__user_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/clients/{user_id}/analytics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Client Analytics */
+        get: operations["get_client_analytics_api_v1_clients__user_id__analytics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/clients/{user_id}/photos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Client Photos */
+        get: operations["get_client_photos_api_v1_clients__user_id__photos_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1057,6 +1176,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/clients/{user_id}/routines/products/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Search Client Products */
+        get: operations["search_client_products_api_v1_clients__user_id__routines_products_search_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/clients/{user_id}/routines/{routine_id}/steps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Client Routine Step */
+        post: operations["add_client_routine_step_api_v1_clients__user_id__routines__routine_id__steps_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/clients/{user_id}/routines/steps/{step_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Client Routine Step */
+        delete: operations["delete_client_routine_step_api_v1_clients__user_id__routines_steps__step_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Client Routine Step */
+        patch: operations["update_client_routine_step_api_v1_clients__user_id__routines_steps__step_id__patch"];
+        trace?: never;
+    };
     "/api/v1/weather-uv": {
         parameters: {
             query?: never;
@@ -1081,8 +1252,9 @@ export interface components {
         /**
          * AdherenceDay
          * @description One cell of the wireframe's "Routine Adherence" heat grid — real signal from
-         *     `routine_logs` via the routines service interface (`list_active_step_ids` +
-         *     `list_recent_routine_logs`), never fabricated.
+         *     `routine_logs` via the routines service interface (`list_historical_active_step_ids`
+         *     + `list_recent_routine_logs`), never fabricated. Judged against whatever routine
+         *     was actually assigned on that historical day, not today's active routine.
          */
         AdherenceDay: {
             /**
@@ -1099,6 +1271,24 @@ export interface components {
             range_label: string;
             /** User Count */
             user_count: number;
+        };
+        /** AllergyAlert */
+        AllergyAlert: {
+            /** Ingredient Id */
+            ingredient_id: number;
+            /** Ingredient Name */
+            ingredient_name: string;
+            /** Reason */
+            reason: string;
+            /** Confidence */
+            confidence: number;
+        };
+        /** AllergyIngredientRead */
+        AllergyIngredientRead: {
+            /** Ingredient Id */
+            ingredient_id: number;
+            /** Ingredient Name */
+            ingredient_name: string | null;
         };
         /** AnalyticsAdminRead */
         AnalyticsAdminRead: {
@@ -1117,6 +1307,9 @@ export interface components {
             score_vs_adherence: components["schemas"]["ScoreAdherencePoint"][];
             /** Correlations */
             correlations: components["schemas"]["CorrelationInsight"][];
+            compliance: components["schemas"]["CompliancePercentages"];
+            /** Photos */
+            photos: components["schemas"]["ProgressPhotoRead"][];
         };
         /** AppearancePreferenceRead */
         AppearancePreferenceRead: {
@@ -1160,6 +1353,113 @@ export interface components {
             density?: string | null;
             /** Motion Preference */
             motion_preference?: string | null;
+        };
+        /**
+         * AssessmentConcernInput
+         * @description Canonical concern entry (ADR-021 C4) — `id` matches a real
+         *     `skin_concerns.concern_id`, validated against the seeded table in the service
+         *     layer (a Pydantic-level enum can't express a lookup-table membership check).
+         */
+        AssessmentConcernInput: {
+            /** Id */
+            id: number;
+            /** Severity */
+            severity: number;
+        };
+        /** AssessmentLifestyleInput */
+        AssessmentLifestyleInput: {
+            /** Sleep Hours */
+            sleep_hours: number;
+            /** Water Intake Liters */
+            water_intake_liters: number;
+            /** Stress Level */
+            stress_level: number;
+            /**
+             * Sun Exposure
+             * @enum {string}
+             */
+            sun_exposure: "None" | "Low" | "Moderate" | "High";
+        };
+        /**
+         * AssessmentSubmitRequest
+         * @description Matches the P0-frozen contract exactly (docs/milestones/milestone_2/
+         *     M2_TASK_LEDGER.md M2-P08-T02, unit-tested in web/lib/__tests__/
+         *     assessment-payload.test.ts against the same worked example this backend's own
+         *     pytest suite uses). `skin_type` is validated against the real seeded
+         *     `skin_types.skin_type_name` values in the service layer, not a hardcoded
+         *     Literal — skin types are a lookup table, not a true enum (ADR-021 C1 added
+         *     "Normal" to the doc's original 4).
+         */
+        AssessmentSubmitRequest: {
+            /** Skin Type */
+            skin_type: string;
+            /** Age Group */
+            age_group?: string | null;
+            lifestyle: components["schemas"]["AssessmentLifestyleInput"];
+            /** Concerns */
+            concerns?: components["schemas"]["AssessmentConcernInput"][];
+            /**
+             * Acne Severity
+             * @deprecated
+             */
+            acne_severity?: number | null;
+            /**
+             * Hyperpigmentation Severity
+             * @deprecated
+             */
+            hyperpigmentation_severity?: number | null;
+            /**
+             * Dark Spots Severity
+             * @deprecated
+             */
+            dark_spots_severity?: number | null;
+            /**
+             * Dry Skin Severity
+             * @deprecated
+             */
+            dry_skin_severity?: number | null;
+            /**
+             * Oily Skin Severity
+             * @deprecated
+             */
+            oily_skin_severity?: number | null;
+            /**
+             * Sensitive Skin Severity
+             * @deprecated
+             */
+            sensitive_skin_severity?: number | null;
+            /**
+             * Wrinkles Severity
+             * @deprecated
+             */
+            wrinkles_severity?: number | null;
+            /**
+             * Fine Lines Severity
+             * @deprecated
+             */
+            fine_lines_severity?: number | null;
+            /**
+             * Redness Severity
+             * @deprecated
+             */
+            redness_severity?: number | null;
+            /**
+             * Uneven Skin Tone Severity
+             * @deprecated
+             */
+            uneven_skin_tone_severity?: number | null;
+        };
+        /** AssessmentSubmitResponse */
+        AssessmentSubmitResponse: {
+            /** Assessment Id */
+            assessment_id: number;
+            /** Submission Id */
+            submission_id: number;
+            /** Prioritized Concerns */
+            prioritized_concerns: components["schemas"]["PrioritizedConcernRead"][];
+            /** Risk Factors */
+            risk_factors: components["schemas"]["RiskFactorRead"][];
+            score: components["schemas"]["ScoreRead"];
         };
         /**
          * AuditLogCreate
@@ -1238,6 +1538,8 @@ export interface components {
         Body_upload_my_progress_photo_api_v1_progress_me_photos_post: {
             /** File */
             file: string;
+            /** Tag */
+            tag?: string | null;
         };
         /** ClientDetailRead */
         ClientDetailRead: {
@@ -1311,6 +1613,10 @@ export interface components {
             name: string | null;
             /** Email */
             email: string;
+            /** Age */
+            age: number | null;
+            /** Gender */
+            gender: string | null;
             /** Skin Type Name */
             skin_type_name: string | null;
             /** Primary Concern Name */
@@ -1323,6 +1629,63 @@ export interface components {
             score_trend: number[];
             /** Last Sync */
             last_sync: string | null;
+            /** Compliance Seven Day */
+            compliance_seven_day: number | null;
+            /** Compliance Thirty Day */
+            compliance_thirty_day: number | null;
+        };
+        /**
+         * ClinicalPortfolioStatsRead
+         * @description Milestone 2 P14 (ADR-024's deferred consequence, ADR-031's naming
+         *     precedent) — the real, computed replacement for
+         *     web/lib/fixtures/clinical-dashboard-fixtures.ts's KPI/donut/bars/trend/
+         *     stat-footer/recent-assessments blocks, aggregated once across a
+         *     professional's whole active roster (not paginated — a portfolio-wide stat,
+         *     unlike ClientListPage). `total_assigned` doubles as ClientListPage.meta.total
+         *     would, so a caller with only this response still knows the roster size.
+         *     No `upcoming_follow_ups` field: no scheduling/appointment concept exists
+         *     anywhere in database_schemas/ — fabricating one was explicitly out of scope
+         *     (AGENTS.md §0.2), the fixture's "Upcoming Follow-ups" card and 5th KPI have
+         *     no real replacement and are dropped by the frontend, not silently renamed.
+         */
+        ClinicalPortfolioStatsRead: {
+            /** Total Assigned */
+            total_assigned: number;
+            /** Assessments Done */
+            assessments_done: number;
+            /** Active Routines */
+            active_routines: number;
+            /** Avg Improvement Points */
+            avg_improvement_points: number | null;
+            /** Clients Improving */
+            clients_improving: number;
+            /** Clients Stable */
+            clients_stable: number;
+            /** Clients Need Attention */
+            clients_need_attention: number;
+            /** Skin Type Distribution */
+            skin_type_distribution: components["schemas"]["PortfolioDistributionSlice"][];
+            /** Top Concerns */
+            top_concerns: components["schemas"]["PortfolioDistributionSlice"][];
+            /** Portfolio Score Trend */
+            portfolio_score_trend: number[];
+            /** Recent Assessments */
+            recent_assessments: components["schemas"]["PortfolioRecentAssessment"][];
+        };
+        /**
+         * CompliancePercentages
+         * @description 7/30/90-day compliance percentages (completed / assigned steps) on top of
+         *     the same historically-corrected assignment data get_adherence_series uses.
+         *     None (not 0.0) when nothing was ever assigned in that window — an honest
+         *     empty state, never a fabricated 0%.
+         */
+        CompliancePercentages: {
+            /** Seven Day */
+            seven_day: number | null;
+            /** Thirty Day */
+            thirty_day: number | null;
+            /** Ninety Day */
+            ninety_day: number | null;
         };
         /** ConcernChangeRead */
         ConcernChangeRead: {
@@ -1593,7 +1956,8 @@ export interface components {
          * @description Admin dashboard (Branch 6) — real counts only, no invented KPIs. User-role
          *     counts come from Better Auth (web/app/api/admin/dashboard-stats/route.ts calls
          *     its own listUsers, not this endpoint) — this covers only what FastAPI actually
-         *     owns: the verification queue and the audit trail.
+         *     owns: the verification queue and the audit trail, platform counts, and the
+         *     top-concerns aggregate (Milestone 2 P4).
          */
         DashboardStats: {
             /** Pending Consultant Count */
@@ -1602,6 +1966,9 @@ export interface components {
             pending_dermatologist_count: number;
             /** Recent Activity */
             recent_activity: components["schemas"]["AuditLogRead"][];
+            platform_counts: components["schemas"]["PlatformCounts"];
+            /** Top Concerns */
+            top_concerns: components["schemas"]["TopConcernStat"][];
         };
         /**
          * DashboardTtiReport
@@ -1877,6 +2244,24 @@ export interface components {
             /** Reason */
             reason: string | null;
         };
+        /** InteractionWarning */
+        InteractionWarning: {
+            /** Ingredient Id A */
+            ingredient_id_a: number;
+            /** Ingredient Id B */
+            ingredient_id_b: number;
+            /** Ingredient Name A */
+            ingredient_name_a: string;
+            /** Ingredient Name B */
+            ingredient_name_b: string;
+            /**
+             * Verdict
+             * @enum {string}
+             */
+            verdict: "avoid" | "caution";
+            /** Reason */
+            reason: string | null;
+        };
         /** InteractionsRead */
         InteractionsRead: {
             /** Pairs */
@@ -1961,6 +2346,21 @@ export interface components {
              */
             achieved_on: string;
         };
+        /** NotificationRead */
+        NotificationRead: {
+            /** Notification Id */
+            notification_id: number;
+            /** Title */
+            title: string | null;
+            /** Message */
+            message: string | null;
+            /** Notification Type */
+            notification_type: string | null;
+            /** Is Read */
+            is_read: boolean;
+            /** Created At */
+            created_at: string | null;
+        };
         /** PageMeta */
         PageMeta: {
             /** Page */
@@ -1969,6 +2369,51 @@ export interface components {
             page_size: number;
             /** Total */
             total: number;
+        };
+        /**
+         * PlatformCounts
+         * @description Milestone 2 P4 — Admin dashboard's 3 additional real KPIs (Assessments
+         *     Completed, Active Routines, Total Products). Platform Revenue and System Uptime
+         *     have no real backing (no billing/payments processing, no uptime monitoring
+         *     service) and stay UI-layer fixtures — see docs/DECISIONS.md ADR-023, not
+         *     invented here.
+         */
+        PlatformCounts: {
+            /** Total Assessments */
+            total_assessments: number;
+            /** Active Routines */
+            active_routines: number;
+            /** Total Products */
+            total_products: number;
+        };
+        /** PortfolioDistributionSlice */
+        PortfolioDistributionSlice: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Count */
+            count: number;
+        };
+        /** PortfolioRecentAssessment */
+        PortfolioRecentAssessment: {
+            /** User Id */
+            user_id: string;
+            /** Name */
+            name: string | null;
+            /** Overall Score */
+            overall_score: number | null;
+            /** Calculated At */
+            calculated_at: string | null;
+        };
+        /** PrioritizedConcernRead */
+        PrioritizedConcernRead: {
+            /** Concern Id */
+            concern_id: number;
+            /** Severity */
+            severity: number;
+            /** Rank */
+            rank: number;
         };
         /** ProductAlternativesRead */
         ProductAlternativesRead: {
@@ -2129,6 +2574,8 @@ export interface components {
              * Format: date-time
              */
             uploaded_at: string;
+            /** Skin Health Score At Upload */
+            skin_health_score_at_upload: number | null;
             /** Url */
             url: string;
         };
@@ -2190,10 +2637,25 @@ export interface components {
         /** RecommendationRead */
         RecommendationRead: {
             product: components["schemas"]["ProductRead"];
-            /** Match Score */
-            match_score: number;
+            /** Match Percentage */
+            match_percentage: number;
             /** Reasons */
             reasons: string[];
+            /** Active Ingredient Tags */
+            active_ingredient_tags: string[];
+            /** Over Budget */
+            over_budget: boolean;
+            /** Alternative For Product Id */
+            alternative_for_product_id: number | null;
+        };
+        /** RiskFactorRead */
+        RiskFactorRead: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Description */
+            description: string;
         };
         /** RoutineProductRead */
         RoutineProductRead: {
@@ -2224,14 +2686,46 @@ export interface components {
             step_order: number | null;
             /** Step Name */
             step_name: string | null;
+            /** Category */
+            category?: string | null;
             /** Instruction */
             instruction: string | null;
+            /** Rationale */
+            rationale?: string | null;
+            /** Safety Flag */
+            safety_flag?: string | null;
             /** Duration Minutes */
             duration_minutes: number | null;
             /** Products */
             products: components["schemas"]["RoutineProductRead"][];
             /** Completed Today */
             completed_today: boolean;
+        };
+        /** SafetyScoreRead */
+        SafetyScoreRead: {
+            /** Score */
+            score: number;
+            /**
+             * Label
+             * @enum {string}
+             */
+            label: "Safe" | "Warning" | "Unsafe";
+            /** Confidence */
+            confidence: number;
+            /** Allergy Alerts */
+            allergy_alerts: components["schemas"]["AllergyAlert"][];
+            /** Interaction Warnings */
+            interaction_warnings: components["schemas"]["InteractionWarning"][];
+        };
+        /** SafetyScoreRequest */
+        SafetyScoreRequest: {
+            /** Ingredient Ids */
+            ingredient_ids: number[];
+            /**
+             * Routine Time
+             * @enum {string}
+             */
+            routine_time: "AM" | "PM";
         };
         /** ScoreAdherencePoint */
         ScoreAdherencePoint: {
@@ -2261,6 +2755,10 @@ export interface components {
             routine_adherence_score: number | null;
             /** Overall Score */
             overall_score: number | null;
+            /** Skin Age */
+            skin_age?: number | null;
+            /** Band */
+            band?: string | null;
             weights: components["schemas"]["ScoreWeightsRead"];
             /** Calculated At */
             calculated_at: string | null;
@@ -2310,6 +2808,8 @@ export interface components {
         SkinProfileConcernRead: {
             /** Concern Id */
             concern_id: number;
+            /** Concern Name */
+            concern_name: string | null;
             /** Severity Rating */
             severity_rating: number | null;
             /** Priority Level */
@@ -2327,6 +2827,8 @@ export interface components {
             sensitivities?: string | null;
             /** Concerns */
             concerns?: components["schemas"]["SkinProfileConcernInput"][];
+            /** Allergy Ingredient Ids */
+            allergy_ingredient_ids?: number[];
         };
         /** SkinProfileRead */
         SkinProfileRead: {
@@ -2342,6 +2844,8 @@ export interface components {
             sensitivities: string | null;
             /** Concerns */
             concerns: components["schemas"]["SkinProfileConcernRead"][];
+            /** Allergy Ingredients */
+            allergy_ingredients?: components["schemas"]["AllergyIngredientRead"][];
             /** Created At */
             created_at: string | null;
             /** Updated At */
@@ -2396,6 +2900,18 @@ export interface components {
             allergy_flag: boolean;
             /** Avoid Flag */
             avoid_flag: boolean;
+        };
+        /**
+         * TopConcernStat
+         * @description One row of the admin-wide top-concerns aggregate — count of skin profiles
+         *     reporting this concern, platform-wide (not one user's, unlike the Assessment
+         *     Engine's per-user prioritisation).
+         */
+        TopConcernStat: {
+            /** Concern Name */
+            concern_name: string;
+            /** Count */
+            count: number;
         };
         /** TrendInsightRead */
         TrendInsightRead: {
@@ -2971,6 +3487,70 @@ export interface operations {
             };
         };
     };
+    get_score_by_id_api_v1_assessment_score__score_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                score_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScoreRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    submit_assessment_api_v1_assessment_submit_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssessmentSubmitRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssessmentSubmitResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_my_routines_api_v1_routine_get: {
         parameters: {
             query?: never;
@@ -3214,7 +3794,9 @@ export interface operations {
     };
     get_my_recommendations_api_v1_recommendations_me_get: {
         parameters: {
-            query?: never;
+            query?: {
+                max_price?: number | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3228,6 +3810,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RecommendationRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -3490,6 +4081,41 @@ export interface operations {
             };
         };
     };
+    get_safety_score_api_v1_ingredients_safety_score_post: {
+        parameters: {
+            query?: {
+                client_user_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SafetyScoreRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SafetyScoreRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_ingredient_api_v1_ingredients__ingredient_id__get: {
         parameters: {
             query?: never;
@@ -3654,6 +4280,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_my_notifications_api_v1_notifications_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationRead"][];
                 };
             };
         };
@@ -4541,6 +5187,7 @@ export interface operations {
             query?: {
                 page?: number;
                 page_size?: number;
+                q?: string | null;
             };
             header?: never;
             path?: never;
@@ -4568,6 +5215,26 @@ export interface operations {
             };
         };
     };
+    get_my_portfolio_stats_api_v1_clients_me_portfolio_stats_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClinicalPortfolioStatsRead"];
+                };
+            };
+        };
+    };
     get_client_api_v1_clients__user_id__get: {
         parameters: {
             query?: never;
@@ -4586,6 +5253,68 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ClientDetailRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_client_analytics_api_v1_clients__user_id__analytics_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalyticsMeRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_client_photos_api_v1_clients__user_id__photos_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgressPhotosRead"];
                 };
             };
             /** @description Validation Error */
@@ -4655,6 +5384,144 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ConsultantNoteRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_client_products_api_v1_clients__user_id__routines_products_search_get: {
+        parameters: {
+            query: {
+                category: string;
+                q: string;
+            };
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_client_routine_step_api_v1_clients__user_id__routines__routine_id__steps_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+                routine_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StepCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoutineRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_client_routine_step_api_v1_clients__user_id__routines_steps__step_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+                step_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoutineRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_client_routine_step_api_v1_clients__user_id__routines_steps__step_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+                step_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StepUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoutineRead"];
                 };
             };
             /** @description Validation Error */

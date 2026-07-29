@@ -1,0 +1,11 @@
+{
+  "a": "docs/milestones/milestone_2/Derma.png",
+  "b": "docs/milestones/milestone_2/build/dermatologist-dashboard.png",
+  "mode": "structural",
+  "dilate": 2,
+  "edge_iou_pct": 12.01,
+  "structure_mismatch_pct": 87.99,
+  "missing_from_build_px": 187522,
+  "extra_in_build_px": 274906,
+  "diff_image": "docs/milestones/milestone_2/build/diff-dermatologist-dashboard.png"
+}

@@ -123,7 +123,14 @@ async def get_my_analytics(db: AsyncSession, user_id: str, days: int = 90) -> An
             "Water intake", "lifestyle_logs.water_intake_liters", water_liters, scores_for_water
         ),
     ]
-    return AnalyticsMeRead(score_vs_adherence=points, correlations=correlations)
+    compliance = await progress_service.get_compliance_percentages(db, user_id)
+    progress_photos_result = await progress_service.get_progress_photos(db, user_id)
+    return AnalyticsMeRead(
+        score_vs_adherence=points,
+        correlations=correlations,
+        compliance=compliance,
+        photos=progress_photos_result.photos,
+    )
 
 
 async def _get_recommendation_acceptance(mongo: Any) -> RecommendationAcceptanceRead:

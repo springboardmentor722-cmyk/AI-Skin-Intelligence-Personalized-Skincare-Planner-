@@ -1,19 +1,27 @@
 import datetime
 from typing import Any
 
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.mongo import get_mongo_db
 from app.db.outbox import append_outbox
 from app.db.redis import get_redis
+
+# Cross-service reference-table import, same established pattern
+# ingredients/service.py already uses in the other direction (imports
+# skin_profile.models.SkinType/SkinConcern directly) — Ingredient is a catalog/
+# reference table, not domain data this service would ever write.
+from app.services.ingredients.models import Ingredient
 from app.services.skin_profile.models import (
     SkinConcern,
     SkinProfile,
+    SkinProfileAllergy,
     SkinProfileConcern,
     SkinType,
 )
 from app.services.skin_profile.schemas import (
+    AllergyIngredientRead,
     LifestyleLogCreate,
     LifestyleLogRead,
     SkinProfileConcernRead,
@@ -27,18 +35,92 @@ async def list_skin_types(db: AsyncSession) -> list[SkinType]:
     return list(result.scalars().all())
 
 
+async def list_current_skin_types_for_users(
+    db: AsyncSession, user_ids: list[str]
+) -> dict[str, int]:
+    """Interface function (ADR-005) — Milestone 2 P14's clinical portfolio-stats
+    aggregate (clinical_review/service.py) reads a whole assigned-client cohort's
+    current skin_type_id through this in one query, never `skin_profiles`
+    directly. user_id -> skin_type_id."""
+    if not user_ids:
+        return {}
+    result = await db.execute(
+        select(SkinProfile.user_id, SkinProfile.skin_type_id).where(
+            SkinProfile.user_id.in_(user_ids),
+            SkinProfile.is_current.is_(True),
+            SkinProfile.is_deleted.is_(False),
+        )
+    )
+    return {row.user_id: row.skin_type_id for row in result.all()}
+
+
+async def count_concern_occurrences_for_users(
+    db: AsyncSession, user_ids: list[str]
+) -> dict[int, int]:
+    """Interface function (ADR-005) — the same cohort's current-profile concern
+    counts (concern_id -> number of assigned clients whose current profile lists
+    it), one query, for a portfolio-wide "top concerns" breakdown."""
+    if not user_ids:
+        return {}
+    result = await db.execute(
+        select(SkinProfileConcern.concern_id, func.count(func.distinct(SkinProfile.user_id)))
+        .join(SkinProfile, SkinProfile.skin_profile_id == SkinProfileConcern.skin_profile_id)
+        .where(
+            SkinProfile.user_id.in_(user_ids),
+            SkinProfile.is_current.is_(True),
+            SkinProfile.is_deleted.is_(False),
+        )
+        .group_by(SkinProfileConcern.concern_id)
+    )
+    return {row[0]: row[1] for row in result.all()}
+
+
+async def get_top_skin_concerns(db: AsyncSession, limit: int = 5) -> list[tuple[str, int]]:
+    """Interface function (ADR-005) — Admin's platform-wide concern-frequency KPI
+    (admin/service.py's get_top_skin_concerns) reads this, never `skin_profile_concerns`
+    directly. Distinct from count_concern_occurrences_for_users: that one is scoped to
+    a professional's assigned-client cohort, this is every current profile platform-wide."""
+    rows = (
+        await db.execute(
+            select(SkinConcern.concern_name, func.count(SkinProfileConcern.skin_profile_id))
+            .select_from(SkinProfileConcern)
+            .join(SkinConcern, SkinConcern.concern_id == SkinProfileConcern.concern_id)
+            .group_by(SkinConcern.concern_name)
+            .order_by(func.count(SkinProfileConcern.skin_profile_id).desc())
+            .limit(limit)
+        )
+    ).all()
+    return [(row[0], row[1]) for row in rows]
+
+
 async def list_skin_concerns(db: AsyncSession) -> list[SkinConcern]:
     result = await db.execute(select(SkinConcern))
     return list(result.scalars().all())
 
 
 async def _read_with_concerns(db: AsyncSession, profile: SkinProfile) -> SkinProfileRead:
+    # Joined for concern_name — _skin_condition_score needs it to collapse the
+    # seeded synonym pairs (Hyperpigmentation/Dark Spots, Wrinkles/Fine Lines) to a
+    # single deduction instead of double-counting the same underlying concern.
     result = await db.execute(
-        select(SkinProfileConcern).where(
-            SkinProfileConcern.skin_profile_id == profile.skin_profile_id
-        )
+        select(SkinProfileConcern, SkinConcern.concern_name)
+        .join(SkinConcern, SkinConcern.concern_id == SkinProfileConcern.concern_id)
+        .where(SkinProfileConcern.skin_profile_id == profile.skin_profile_id)
     )
-    concerns = list(result.scalars().all())
+    concerns = list(result.all())
+
+    # Milestone 2 P7 (docs/DECISIONS.md ADR-026) — structured allergy list, joined
+    # for the real ingredient name (id alone isn't useful to render).
+    allergy_result = await db.execute(
+        select(SkinProfileAllergy.ingredient_id, Ingredient.ingredient_name)
+        .join(Ingredient, Ingredient.ingredient_id == SkinProfileAllergy.ingredient_id)
+        .where(SkinProfileAllergy.skin_profile_id == profile.skin_profile_id)
+    )
+    allergy_ingredients = [
+        AllergyIngredientRead(ingredient_id=row.ingredient_id, ingredient_name=row.ingredient_name)
+        for row in allergy_result.all()
+    ]
+
     return SkinProfileRead(
         skin_profile_id=profile.skin_profile_id,
         skin_type_id=profile.skin_type_id,
@@ -48,11 +130,13 @@ async def _read_with_concerns(db: AsyncSession, profile: SkinProfile) -> SkinPro
         concerns=[
             SkinProfileConcernRead(
                 concern_id=c.concern_id,
+                concern_name=concern_name,
                 severity_rating=c.severity_rating,
                 priority_level=c.priority_level,
             )
-            for c in concerns
+            for c, concern_name in concerns
         ],
+        allergy_ingredients=allergy_ingredients,
         created_at=profile.created_at,
         updated_at=profile.updated_at,
     )
@@ -118,6 +202,17 @@ async def create_profile(
             )
         )
 
+    # Milestone 2 P7 (docs/DECISIONS.md ADR-026) — structured allergy list.
+    # De-duplicated: the model's UNIQUE(skin_profile_id, ingredient_id) would
+    # otherwise reject a caller that accidentally sent the same id twice.
+    for ingredient_id in dict.fromkeys(data.allergy_ingredient_ids):
+        db.add(
+            SkinProfileAllergy(
+                skin_profile_id=profile.skin_profile_id,
+                ingredient_id=ingredient_id,
+            )
+        )
+
     # M3-A: outbox row now, even though the worker's user_profiles_namespace consumer
     # doesn't land until M3-D's recommender — appending here means no re-derivation of
     # "what changed since" once that consumer exists (ADR-010).
@@ -126,7 +221,10 @@ async def create_profile(
     await db.commit()
     await db.refresh(profile)
 
-    await get_redis().delete(f"recommendation:cache:{user_id}")
+    # Must match recommendations/service.py's _CACHE_SCHEMA_VERSION-prefixed key
+    # (kept as a literal here, not an import, to avoid a circular import — that
+    # module already imports this one).
+    await get_redis().delete(f"recommendation:cache:v2:{user_id}")
 
     return await _read_with_concerns(db, profile)
 
@@ -158,4 +256,23 @@ async def upsert_lifestyle_log(user_id: str, data: LifestyleLogCreate) -> Lifest
 async def list_recent_lifestyle_logs(user_id: str, limit: int = 30) -> list[dict[str, Any]]:
     collection = get_mongo_db()[_LIFESTYLE_COLLECTION]
     cursor = collection.find({"user_id": user_id}).sort("log_date", -1).limit(limit)
+    return [doc async for doc in cursor]
+
+
+async def list_lifestyle_logs_since(user_id: str, days: int) -> list[dict[str, Any]]:
+    """Milestone 2 P7 — a real calendar-window query (`log_date >= cutoff`), not a
+    row-count `limit` (list_recent_lifestyle_logs above): the two aren't
+    equivalent once a user has missed days, and the Adherence sub-score
+    (scores/scoring_engine.py, wired in P10) needs an actual 14-day window, not
+    "however many of the last N documents happen to exist"."""
+    collection = get_mongo_db()[_LIFESTYLE_COLLECTION]
+    # Naive UTC, matching upsert_lifestyle_log's own log_date construction exactly
+    # (datetime.combine(date, time.min)) — comparing a naive cutoff against naive
+    # stored values, not mixing aware/naive.
+    cutoff = datetime.datetime.now(datetime.UTC).replace(tzinfo=None) - datetime.timedelta(
+        days=days
+    )
+    cursor = collection.find({"user_id": user_id, "log_date": {"$gte": cutoff}}).sort(
+        "log_date", -1
+    )
     return [doc async for doc in cursor]

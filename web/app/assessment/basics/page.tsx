@@ -5,6 +5,7 @@ import { MapPin, Info, Sparkles, Palette, TrendingUp, Droplet, Leaf } from "luci
 
 import { AssessmentShell } from "@/components/assessment/assessment-shell";
 import { useAssessment } from "@/lib/assessment/context";
+import { basicsStepSchema, firstStepError } from "@/lib/schemas/assessment";
 import { AGE_GROUPS } from "@/lib/schemas/skin-profile";
 import { cn } from "@/lib/utils";
 
@@ -37,11 +38,9 @@ export default function AssessmentBasicsPage() {
       backHref="/assessment"
       continueHref="/assessment/skin-type"
       onContinue={() => {
-        if (!state.ageGroup) {
-          setError("Select your age group to continue.");
-          return false;
-        }
-        setError(null);
+        const message = firstStepError(basicsStepSchema, { ageGroup: state.ageGroup });
+        setError(message);
+        return message === null;
       }}
     >
       <div className="mb-10">

@@ -1,19 +1,13 @@
 "use client";
 
-import { FlaskConical, AlertTriangle, Wand2, Minus, Plus } from "lucide-react";
+import { useRef, useState } from "react";
+import { Minus, Plus, Wand2 } from "lucide-react";
 
 import { AssessmentShell } from "@/components/assessment/assessment-shell";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
 import { useAssessment, type SunExposure } from "@/lib/assessment/context";
-import { cn, selectItems } from "@/lib/utils";
+import { firstStepError, lifestyleStepSchema } from "@/lib/schemas/assessment";
+import { cn } from "@/lib/utils";
 
 // Base UI's Slider supports multi-thumb range sliders, so onValueChange is typed to
 // accept either a single number or an array — these sliders are always single-thumb
@@ -21,40 +15,52 @@ import { cn, selectItems } from "@/lib/utils";
 const firstOf = (val: number | readonly number[]): number =>
   Array.isArray(val) ? val[0] : (val as number);
 
-const ALLERGY_OPTIONS = ["Fragrance", "Essential oils", "Lanolin", "Sulfates", "Nuts"];
+const SUN_EXPOSURE_OPTIONS: SunExposure[] = ["None", "Low", "Moderate", "High"];
 
-const SUN_EXPOSURE_OPTIONS: { value: SunExposure; label: string }[] = [
-  { value: "indoor", label: "Indoor / low" },
-  { value: "occasional", label: "Occasional" },
-  { value: "outdoor", label: "High / outdoor" },
-  { value: "intense", label: "Intense" },
-];
-
-const SLEEP_QUALITY_OPTIONS = ["Restful, uninterrupted", "Occasional waking", "Frequent insomnia"];
-const SLEEP_QUALITY_ITEMS = selectItems(SLEEP_QUALITY_OPTIONS);
-
-const STRESS_LABELS: Record<number, string> = { 1: "Low", 2: "Low", 3: "Calm", 4: "Mild", 5: "Moderate", 6: "Moderate", 7: "Elevated", 8: "High", 9: "High", 10: "Very high" };
-
-// web/designs/wireframes/assessment-step-4-lifestyle.html — the wireframe's "Primary
-// Environment" tag section is dropped: it's presented as read-only/derived data with
-// no clear source field (not in lifestyle_logs' documented schema), so it isn't built
-// rather than inventing a new field for it.
+// Milestone 2 P8 (MILESTONE 2.docx §"1. In-Built Visual Dataset & Wizard UI",
+// "Lifestyle Inputs: Simple numerical steps for sleep, daily water intake, and
+// environmental exposure") — Step 4, the exact 4 fields the payload contract needs
+// (sleep_hours, water_intake_liters, stress_level, sun_exposure). Allergies/
+// sensitivities/sleep-quality collected by an earlier build of this page are
+// removed: none are part of the P0-frozen payload, and now that the wizard submits
+// against a fixture (not the real skin-profile/lifestyle-log endpoints) they have
+// no consumer left — /profile's own forms (components/skin-profile/*) are the real
+// place to record them.
 export default function AssessmentLifestylePage() {
   const { state, update } = useAssessment();
+  const [error, setError] = useState<string | null>(null);
+  const sunExposureRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
-  const toggleAllergy = (allergy: string) => {
-    update({
-      allergies: state.allergies.includes(allergy)
-        ? state.allergies.filter((a) => a !== allergy)
-        : [...state.allergies, allergy],
-    });
+  // WAI-ARIA radiogroup pattern — arrow keys move both focus and selection, same
+  // roving-tabindex behavior as /assessment/skin-type's radiogroup.
+  const onSunExposureKeyDown = (e: React.KeyboardEvent, index: number) => {
+    if (!["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"].includes(e.key)) return;
+    e.preventDefault();
+    const dir = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : -1;
+    const next = (index + dir + SUN_EXPOSURE_OPTIONS.length) % SUN_EXPOSURE_OPTIONS.length;
+    update({ sunExposure: SUN_EXPOSURE_OPTIONS[next] });
+    sunExposureRefs.current[next]?.focus();
   };
 
   return (
-    <AssessmentShell step={4} backHref="/assessment/concerns" continueHref="/assessment/results">
+    <AssessmentShell
+      step={5}
+      backHref="/assessment/severity"
+      continueHref="/assessment/results"
+      onContinue={() => {
+        const message = firstStepError(lifestyleStepSchema, {
+          sleepHours: state.sleepHours,
+          waterLiters: state.waterLiters,
+          stressLevel: state.stressLevel,
+          sunExposure: state.sunExposure,
+        });
+        setError(message);
+        return message === null;
+      }}
+    >
       <div className="mb-10 text-center">
         <h1 className="font-heading text-on-surface text-3xl font-bold">
-          Sensitivities & lifestyle
+          Lifestyle & environment
         </h1>
         <p className="text-on-surface-variant mx-auto mt-2 max-w-xl font-sans">
           Our AI correlates environmental factors and internal stressors to build your
@@ -62,192 +68,120 @@ export default function AssessmentLifestylePage() {
         </p>
       </div>
 
-      <div className="border-border bg-card flex flex-col gap-10 rounded-2xl border p-6 md:p-10">
-        <section>
-          <div className="mb-4 flex items-center gap-2">
-            <FlaskConical className="text-secondary size-5" strokeWidth={1.5} />
-            <h2 className="font-heading text-on-surface text-lg font-semibold">
-              Known allergies
-            </h2>
-          </div>
-          <p className="text-on-surface-variant mb-3 font-sans text-sm">
-            Select any known ingredient allergies or irritants.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {ALLERGY_OPTIONS.map((allergy) => {
-              const selected = state.allergies.includes(allergy);
-              return (
+      <div className="border-border bg-card flex flex-col gap-8 rounded-2xl border p-6 md:p-10">
+        <div className="mb-2 flex items-center gap-2">
+          <Wand2 className="text-secondary size-5" strokeWidth={1.5} />
+          <h2 className="font-heading text-on-surface text-lg font-semibold">
+            Daily habits
+          </h2>
+        </div>
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-end justify-between">
+                <label className="font-sans text-sm font-semibold">
+                  Sleep hours per night
+                </label>
+                <span className="font-geist text-secondary text-xl font-semibold">
+                  {state.sleepHours}
+                  <span className="text-on-surface text-base">h</span>
+                </span>
+              </div>
+              <Slider
+                min={0}
+                max={24}
+                step={0.5}
+                value={[state.sleepHours]}
+                onValueChange={(v) => update({ sleepHours: firstOf(v) })}
+                aria-label="Sleep hours per night"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="font-sans text-sm font-semibold">
+                Daily water intake (litres)
+              </label>
+              <div className="bg-muted flex items-center justify-between rounded-xl p-3">
                 <button
-                  key={allergy}
                   type="button"
-                  onClick={() => toggleAllergy(allergy)}
-                  className={cn(
-                    "rounded-full border px-4 py-2 font-sans text-sm font-medium transition-all",
-                    selected
-                      ? "border-secondary text-secondary bg-secondary/5"
-                      : "border-border text-on-surface-variant hover:border-secondary"
-                  )}
+                  onClick={() => update({ waterLiters: Math.max(0, state.waterLiters - 0.25) })}
+                  aria-label="Decrease water intake"
+                  className="border-border bg-card flex size-10 items-center justify-center rounded-full border"
                 >
-                  {allergy}
+                  <Minus className="size-4" strokeWidth={1.5} />
                 </button>
-              );
-            })}
-          </div>
-        </section>
-
-        <hr className="border-border" />
-
-        <section>
-          <div className="mb-4 flex items-center gap-2">
-            <AlertTriangle className="text-secondary size-5" strokeWidth={1.5} />
-            <h2 className="font-heading text-on-surface text-lg font-semibold">
-              Dermal reactivity
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-            {(
-              [
-                { key: "reactsToActives", label: "Reacts to actives", body: "Stinging or redness when using retinol or vitamin C." },
-                { key: "sunSensitive", label: "Sun-sensitive", body: "Skin burns easily or reacts to direct UV exposure." },
-                { key: "rednessProne", label: "Redness-prone", body: "Chronic flushing or visible capillaries." },
-              ] as const
-            ).map((item) => (
-              <div key={item.key} className="bg-muted flex flex-col gap-2 rounded-xl p-4">
-                <div className="flex items-center justify-between">
-                  <span className="font-sans text-sm font-semibold">{item.label}</span>
-                  <Switch
-                    checked={state.sensitivities[item.key]}
-                    onCheckedChange={(checked) =>
-                      update({ sensitivities: { ...state.sensitivities, [item.key]: checked } })
-                    }
-                  />
-                </div>
-                <p className="text-on-surface-variant font-sans text-xs">{item.body}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <hr className="border-border" />
-
-        <section className="flex flex-col gap-8">
-          <div className="flex items-center gap-2">
-            <Wand2 className="text-secondary size-5" strokeWidth={1.5} />
-            <h2 className="font-heading text-on-surface text-lg font-semibold">
-              Lifestyle & environment
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-            <div className="flex flex-col gap-6">
-              <div className="flex flex-col gap-2">
-                <div className="flex items-end justify-between">
-                  <label className="font-sans text-sm font-semibold">Average sleep</label>
-                  <span className="font-geist text-secondary text-xl font-semibold">
-                    {state.sleepHours}
-                    <span className="text-on-surface text-base">h</span>
+                <div className="flex flex-col items-center">
+                  <span className="font-geist text-on-surface text-2xl font-semibold tabular-nums">
+                    {state.waterLiters.toFixed(2)}
+                  </span>
+                  <span className="text-on-surface-variant font-geist text-[10px] font-semibold tracking-[0.05em] uppercase">
+                    Litres
                   </span>
                 </div>
-                <Slider
-                  min={4}
-                  max={12}
-                  step={0.5}
-                  value={[state.sleepHours]}
-                  onValueChange={(v) => update({ sleepHours: firstOf(v) })}
-                />
-                <Select
-                  items={SLEEP_QUALITY_ITEMS}
-                  value={state.sleepQuality}
-                  onValueChange={(v) => update({ sleepQuality: v ?? SLEEP_QUALITY_OPTIONS[0] })}
+                <button
+                  type="button"
+                  onClick={() => update({ waterLiters: Math.min(10, state.waterLiters + 0.25) })}
+                  aria-label="Increase water intake"
+                  className="bg-secondary text-secondary-foreground flex size-10 items-center justify-center rounded-full"
                 >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sleep quality" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SLEEP_QUALITY_OPTIONS.map((option) => (
-                      <SelectItem key={option} value={option}>
-                        {option}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <label className="font-sans text-sm font-semibold">Daily water intake</label>
-                  <span className="text-on-surface-variant font-geist text-xs">Target: 8 glasses</span>
-                </div>
-                <div className="bg-muted flex items-center justify-between rounded-xl p-3">
-                  <button
-                    type="button"
-                    onClick={() => update({ waterGlasses: Math.max(0, state.waterGlasses - 1) })}
-                    className="border-border bg-card flex size-10 items-center justify-center rounded-full border"
-                  >
-                    <Minus className="size-4" strokeWidth={1.5} />
-                  </button>
-                  <div className="flex flex-col items-center">
-                    <span className="font-geist text-on-surface text-2xl font-semibold">
-                      {state.waterGlasses}
-                    </span>
-                    <span className="text-on-surface-variant font-geist text-[10px] font-semibold tracking-[0.05em] uppercase">
-                      Glasses
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => update({ waterGlasses: Math.min(20, state.waterGlasses + 1) })}
-                    className="bg-secondary text-secondary-foreground flex size-10 items-center justify-center rounded-full"
-                  >
-                    <Plus className="size-4" strokeWidth={1.5} />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-6">
-              <div className="flex flex-col gap-2">
-                <div className="flex items-end justify-between">
-                  <label className="font-sans text-sm font-semibold">Stress levels</label>
-                  <span className="bg-secondary/10 text-secondary font-geist rounded px-2 py-1 text-xs font-semibold">
-                    {STRESS_LABELS[state.stressLevel]}
-                  </span>
-                </div>
-                <Slider
-                  min={1}
-                  max={10}
-                  value={[state.stressLevel]}
-                  onValueChange={(v) => update({ stressLevel: firstOf(v) })}
-                />
-                <div className="text-on-surface-variant font-geist flex justify-between text-[10px] font-semibold tracking-[0.05em] uppercase">
-                  <span>Low calm</span>
-                  <span>High stress</span>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <label className="font-sans text-sm font-semibold">Sun exposure</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {SUN_EXPOSURE_OPTIONS.map((option) => (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => update({ sunExposure: option.value })}
-                      className={cn(
-                        "rounded-lg border p-2.5 text-center font-sans text-sm font-medium transition-colors",
-                        state.sunExposure === option.value
-                          ? "border-secondary text-secondary bg-secondary/5"
-                          : "border-border text-on-surface-variant"
-                      )}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
+                  <Plus className="size-4" strokeWidth={1.5} />
+                </button>
               </div>
             </div>
           </div>
-        </section>
+
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-end justify-between">
+                <label className="font-sans text-sm font-semibold">Stress level</label>
+                <span className="font-geist text-on-surface text-xl font-semibold tabular-nums">
+                  {state.stressLevel}/10
+                </span>
+              </div>
+              <Slider
+                min={1}
+                max={10}
+                value={[state.stressLevel]}
+                onValueChange={(v) => update({ stressLevel: firstOf(v) })}
+                aria-label="Stress level"
+              />
+              <div className="text-on-surface-variant font-geist flex justify-between text-[10px] font-semibold tracking-[0.05em] uppercase">
+                <span>Low calm</span>
+                <span>High stress</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="font-sans text-sm font-semibold">Sun exposure</label>
+              <div role="radiogroup" aria-label="Sun exposure" className="grid grid-cols-2 gap-2">
+                {SUN_EXPOSURE_OPTIONS.map((option, i) => (
+                  <button
+                    key={option}
+                    ref={(el) => {
+                      sunExposureRefs.current[i] = el;
+                    }}
+                    type="button"
+                    role="radio"
+                    aria-checked={state.sunExposure === option}
+                    tabIndex={state.sunExposure === option ? 0 : -1}
+                    onClick={() => update({ sunExposure: option })}
+                    onKeyDown={(e) => onSunExposureKeyDown(e, i)}
+                    className={cn(
+                      "rounded-lg border p-2.5 text-center font-sans text-sm font-medium transition-colors",
+                      state.sunExposure === option
+                        ? "border-secondary text-secondary bg-secondary/5"
+                        : "border-border text-on-surface-variant"
+                    )}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+      {error && <p className="text-destructive mt-3 text-xs">{error}</p>}
     </AssessmentShell>
   );
 }

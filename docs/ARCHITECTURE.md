@@ -96,7 +96,7 @@ service; everything else reads via interfaces or consumes derived projections.
 |---|---|---|---|---|
 | 1 | **User** | domain user profile, role glue to Better Auth; PG `user_appearance_preferences` (Phase 3 theme system — any role, not User-only) | identity tables (RO) | `/users` |
 | 2 | **Skin Profile** | PG `skin_profiles`, `skin_profile_concerns`; Mongo `lifestyle_logs`, `weather_uv_logs` | weather adapters | `/skin-profiles`, `/lifestyle-logs` |
-| 3 | **Skin Assessment** | Mongo `skin_assessments`; S3 scan images | AI interfaces | `/assessments` |
+| 3 | **Skin Assessment** | Mongo `skin_assessments`; S3 scan images | AI interfaces | `/assessments` |[^assessment-split]
 | 4 | **Routine Planner** | PG `skincare_routines` (renamed from `routines`, M2 rubric reconciliation — `PROGRESS.md`), `routine_steps`, step↔product links | profile, scoring, AI | `/routines` + rubric aliases `/routine`, `/routine/generate` |
 | 5 | **Ingredient Intelligence** | PG `ingredients` + junctions (`ingredient_concern_treats`, `ingredient_skintype_avoid`) | ES prose, vector sims | `/ingredients` |
 | 6 | **Product Recommendation** | PG `products`, `product_*` junctions; Redis rec cache | pipeline §10 | `/products`, `/recommendations` |
@@ -123,15 +123,35 @@ Notification (routine/product/hydration/sleep reminders, system notifications) �
 export, custom & scheduled) · Admin (users, content, system monitoring, data management,
 platform settings).
 
-**Implemented module map (as of M2):** the code dirs under `backend/app/services/` are
-`user`, `skin_profile`, `scores` (Skin Health Scoring + the assessment evaluate/score
-endpoints), `routines`, `ingredients` (service layer only; router lands M3),
-`recommendations`, `progress`, `admin`, `consultant_profile`, `dermatologist_profile`,
-plus two support modules not numbered in the table: `clinical_review` (consultant/
-dermatologist client review, shared by both roles) and `weather` (`/weather-uv`, backed
-by the OpenWeather/OpenUV adapters). The image-based Skin Assessment service (#3) and
-Notification/Analytics/Report (#9–11) are still to be built in M3–M4 — follow the
-ownership table above when building them. Full endpoint mapping: `AGENTS.md` §5.
+[^assessment-split]: This row describes the *planned* image/scan-based CV
+assessment (Mongo-backed, `skin_assessments` here means a document collection
+for scan metadata) — still unbuilt (M3–M4). The REAL, shipped M2 assessment
+flow (`POST /api/v1/assessment/submit`, survey-based: skin type + concern
+severities + lifestyle) lives in the `assessment` service (Postgres
+`assessment_submissions`, immutable audit rows) and is a different, already-
+real thing from this table row — see the module map below and `AGENTS.md` §5's
+`assessment` entry for its actual endpoints.
+
+**Implemented module map (as of M2 close-out, P14):** the code dirs under
+`backend/app/services/` are `user`, `skin_profile`, `assessment` (M2-P9's real
+`POST /assessment/submit` — validation, concern prioritization, risk factors,
+immutable `assessment_submissions` audit row), `scores` (Skin Health Scoring +
+the assessment evaluate/score endpoints), `routines` (M2-P11's canonical
+6-category pipeline + safety/interaction guardrails), `ingredients` (M2-P12: a
+real router — list/detail/suitability/interaction-check endpoints, ES-backed
+search with a PG fallback, structured-allergy + synonym matching wired into
+suitability, not service-layer-only as an earlier draft of this doc said),
+`recommendations`, `progress`, `admin`, `consultant_profile`,
+`dermatologist_profile`, plus two support modules not numbered in the table:
+`clinical_review` (consultant/dermatologist client review + portfolio-wide
+stats, shared by both roles, M2-P14) and `weather` (`/weather-uv`, backed by the
+OpenWeather/OpenUV adapters). `analytics` (#10) landed in M3-P3 as a genuine
+read-only aggregator (`GET /analytics/me` merges score timeline, 7/30/90-day
+compliance percentages, and progress-photo links; never a source of truth,
+never written to directly). The image-based Skin Assessment service (#3's
+scan/CV half), Notification (#9), and Report (#11) are still to be built in
+M3–M4 — follow the ownership table above when building them. Full endpoint
+mapping: `AGENTS.md` §5.
 
 **Async work** (report rendering, notification delivery, embedding jobs, ES/vector
 projection, weather polling) runs on an **arq worker** over the existing Redis, fed by a

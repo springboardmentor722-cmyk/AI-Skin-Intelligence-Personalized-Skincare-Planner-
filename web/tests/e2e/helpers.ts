@@ -1,7 +1,7 @@
 import { Pool } from "pg";
 import Redis from "ioredis";
 import { MongoClient } from "mongodb";
-import type { APIRequestContext } from "@playwright/test";
+import type { APIRequestContext, TestInfo } from "@playwright/test";
 
 // Branch 8 (feature/testing) — shared by every e2e file that signs a real account
 // up or in. This suite hits a real, shared backend (Postgres, Redis, MinIO) rather
@@ -18,6 +18,20 @@ export function pool(): Pool {
     connectionString:
       process.env.DATABASE_URL ?? "postgresql://skinlytics:skinlytics@localhost:5432/skinlytics",
   });
+}
+
+// Milestone 2 P13 finding: both `chromium-light` and `chromium-dark` projects
+// (playwright.config.ts) run every spec, including the P4/P5/P7 dashboard tests
+// that write a `docs/milestones/milestone_2/build/*.png` screenshot for
+// tools/vision's fidelity diff — both projects wrote the SAME literal path, so
+// whichever ran last (dark, by project array order) silently clobbered the
+// other. The build/*.png files were consequently all dark-mode captures being
+// diffed against the light-mode source PNGs (User.png/Admin.png/...), which
+// tools/vision/extract.py diff --structural correctly reported as a ~91%
+// mismatch — a real bug the P13 CI wiring surfaced, not a threshold to loosen.
+export function screenshotPath(testInfo: TestInfo, basePathWithoutExtension: string): string {
+  const suffix = testInfo.project.name === "chromium-dark" ? "-dark" : "";
+  return `${basePathWithoutExtension}${suffix}.png`;
 }
 
 export async function clearRateLimits(): Promise<void> {
@@ -59,11 +73,37 @@ export async function deleteTestUser(userId: string): Promise<void> {
       [userId]
     );
     await db.query("delete from skincare_routines where user_id = $1", [userId]);
+    // Real finding: a spec that leaves its `page` open past sign-out (never
+    // navigates away or closes it) can have a live client-side poll — e.g. the
+    // dashboard's own 30s routines refetch — fire in the background during this
+    // exact cleanup window and call the real "get-or-generate" routine endpoint,
+    // which recreates fresh skincare_routines rows for this user the instant it
+    // finds none. That reintroduces the very FK the two deletes above just
+    // cleared, and the skin_profiles delete below then fails on
+    // skincare_routines_skin_profile_id_fkey. Sweeping this same delete a second
+    // time closes that window without requiring every calling spec to also
+    // manage its page's lifecycle before cleanup.
+    await db.query(
+      "delete from routine_products where routine_id in (select routine_id from skincare_routines where user_id = $1)",
+      [userId]
+    );
+    await db.query(
+      "delete from routine_steps where routine_id in (select routine_id from skincare_routines where user_id = $1)",
+      [userId]
+    );
+    await db.query("delete from skincare_routines where user_id = $1", [userId]);
     await db.query(
       "delete from skin_profile_concerns where skin_profile_id in (select skin_profile_id from skin_profiles where user_id = $1)",
       [userId]
     );
     await db.query("delete from skin_profiles where user_id = $1", [userId]);
+    // Milestone 2 P14 — assessment_submissions.score_id references skin_assessments
+    // with no ON DELETE CASCADE (a deliberate, real FK: it's an immutable audit
+    // trail of what was actually submitted, database_schemas/..._v3.sql's own
+    // comment) — must delete before skin_assessments or the delete below violates
+    // assessment_submissions_score_id_fkey. First real e2e submit through the wizard
+    // that creates one of these rows for real (P8-P13 always went through a fixture).
+    await db.query("delete from assessment_submissions where user_id = $1", [userId]);
     await db.query("delete from skin_assessments where user_id = $1", [userId]);
     // No Postgres "session" table to clean up — Better Auth stores sessions in Redis
     // via `secondaryStorage` (web/lib/auth.ts), not the database (confirmed against

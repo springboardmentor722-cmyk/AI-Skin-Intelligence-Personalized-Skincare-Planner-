@@ -6,10 +6,12 @@ import { clearRateLimits, deleteTestUser, pool, promoteRole, signOut } from "./h
 // had been failing (or asserting things that were never quite true) ever since:
 // (1) proxy.ts's route protection (Milestone 1 audit) means every one of these routes
 // now requires a real signed-in session, not just a visit; (2) the M1 audit's
-// disabled-nav-item pattern (app-sidebar.tsx) means an unbuilt nav item renders as a
-// disabled <button>, never a real link — the original test asserted a link role/href
-// on "Clients", which has never been built. Rewritten against the actual current DOM
-// (verified live) rather than patched piecemeal.
+// disabled-nav-item pattern meant an unbuilt nav item rendered as a disabled
+// <button>, never a real link. Milestone 2 P2 replaced that pattern: every item is
+// now a real Link to a titled empty-state stub page (app-sidebar.tsx,
+// components/app-shell/coming-soon.tsx) — "zero href='#', zero dead links" — so a
+// role's full nav, built or not, is link-navigable. Rewritten against the actual
+// current DOM (verified live) rather than patched piecemeal.
 test.describe.configure({ mode: "serial" });
 
 async function signUpAndLand(
@@ -60,16 +62,16 @@ test.describe("app shell", () => {
       userId = await signUpAndLand(page, email, password);
       await page.goto("/dashboard");
 
-      // Dashboard/Products/Progress are built (real links); My Routine/Daily
-      // Check-in/Settings are disabled placeholders (app-sidebar.tsx) — all six stay
-      // visible per AGENTS.md's fixed nav list either way, this only asserts
-      // presence, not link-vs-button.
+      // Labels per lib/nav-config.ts's Milestone 2 P2 transcription of UI_SPEC.md §3
+      // ("Product Recommendations" was "Products", "Progress Tracking" was
+      // "Progress", "Lifestyle & Habits" was "Daily Check-in") — all real links now
+      // (P2 replaced the disabled-placeholder pattern with real stub pages).
       for (const label of [
         "Dashboard",
         "My Routine",
-        "Daily Check-in",
-        "Products",
-        "Progress",
+        "Lifestyle & Habits",
+        "Product Recommendations",
+        "Progress Tracking",
         "Settings",
       ]) {
         await expect(page.getByText(label, { exact: true }).first()).toBeVisible();

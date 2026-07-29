@@ -181,3 +181,152 @@ async def test_get_interactions_reports_unknown_for_an_uncurated_pair(
 
     assert result.pairs[0].verdict == "unknown"
     assert result.pairs[0].reason is None
+
+
+# --- Milestone 2 P12: structured allergy list + synonym matching (ADR-030) -----------
+# _NIACINAMIDE_ID's real ingredient_name is "Niacinamide"; _GLYCOLIC_ACID_ID's is
+# "Glycolic Acid" (backend/app/db/seed.py). Ascorbic Acid (Vitamin C) is id 3.
+_ASCORBIC_ACID_ID = 3
+
+
+async def test_get_suitability_flags_a_real_structured_allergy_by_exact_id(
+    db_session: AsyncSession,
+) -> None:
+    user_id = f"test-{uuid.uuid4().hex[:16]}"
+    await _create_test_user(db_session, user_id)
+    await create_profile(
+        db_session,
+        user_id,
+        SkinProfileCreate(skin_type_id=1, allergy_ingredient_ids=[_NIACINAMIDE_ID], concerns=[]),
+    )
+
+    result = await service.get_suitability_for_user(db_session, _NIACINAMIDE_ID, user_id)
+
+    assert result is not None
+    assert result.allergy_flag is True
+    assert result.suitable is False
+
+
+async def test_get_suitability_does_not_flag_an_unrelated_structured_allergy(
+    db_session: AsyncSession,
+) -> None:
+    user_id = f"test-{uuid.uuid4().hex[:16]}"
+    await _create_test_user(db_session, user_id)
+    await create_profile(
+        db_session,
+        user_id,
+        SkinProfileCreate(skin_type_id=1, allergy_ingredient_ids=[_NIACINAMIDE_ID], concerns=[]),
+    )
+
+    result = await service.get_suitability_for_user(db_session, _GLYCOLIC_ACID_ID, user_id)
+
+    assert result is not None
+    assert result.allergy_flag is False
+
+
+async def test_get_suitability_flags_a_free_text_allergy_via_a_known_synonym(
+    db_session: AsyncSession,
+) -> None:
+    """ "Vitamin C" is not a substring of "Ascorbic Acid" in either direction —
+    this only flags through the curated synonym group, proving an ambiguous
+    synonym still raises a flag rather than being silently missed."""
+    user_id = f"test-{uuid.uuid4().hex[:16]}"
+    await _create_test_user(db_session, user_id)
+    await _create_profile(db_session, user_id, allergies="Vitamin C")
+
+    result = await service.get_suitability_for_user(db_session, _ASCORBIC_ACID_ID, user_id)
+
+    assert result is not None
+    assert result.allergy_flag is True
+    assert result.suitable is False
+
+
+async def test_get_suitability_allergy_match_is_case_insensitive(
+    db_session: AsyncSession,
+) -> None:
+    user_id = f"test-{uuid.uuid4().hex[:16]}"
+    await _create_test_user(db_session, user_id)
+    await _create_profile(db_session, user_id, allergies="RETINOL")
+
+    result = await service.get_suitability_for_user(db_session, _RETINOL_ID, user_id)
+
+    assert result is not None
+    assert result.allergy_flag is True
+
+
+# --- Milestone 3 Phase 1: Safety Score Endpoint (config-driven thresholds) -------
+
+
+async def test_get_active_safety_config_returns_the_seeded_active_row(
+    db_session: AsyncSession,
+) -> None:
+    config = await service.get_active_safety_config(db_session)
+
+    assert config.is_active is True
+    assert 0 < float(config.warning_threshold) < float(config.safe_threshold) <= 100
+    assert float(config.avoid_deduction) > 0
+    assert float(config.caution_deduction) > 0
+    assert float(config.allergy_deduction) > 0
+
+
+async def test_compute_safety_score_flags_a_known_unsafe_pairing(
+    db_session: AsyncSession,
+) -> None:
+    user_id = f"safety-{uuid.uuid4()}"
+    await _create_test_user(db_session, user_id)
+    await _create_profile(db_session, user_id)
+
+    result = await service.compute_safety_score(
+        db_session, [_RETINOL_ID, _GLYCOLIC_ACID_ID], "PM", user_id
+    )
+
+    assert result.label in ("Warning", "Unsafe")
+    assert result.score < 100
+    assert len(result.interaction_warnings) == 1
+    warning = result.interaction_warnings[0]
+    assert warning.verdict == "avoid"
+    assert {warning.ingredient_id_a, warning.ingredient_id_b} == {
+        _RETINOL_ID,
+        _GLYCOLIC_ACID_ID,
+    }
+
+
+async def test_compute_safety_score_flags_allergy_via_free_text_synonym(
+    db_session: AsyncSession,
+) -> None:
+    user_id = f"safety-{uuid.uuid4()}"
+    await _create_test_user(db_session, user_id)
+    await _create_profile(db_session, user_id, allergies="Vitamin C")
+
+    result = await service.compute_safety_score(db_session, [_ASCORBIC_ACID_ID], "AM", user_id)
+
+    assert len(result.allergy_alerts) == 1
+    assert result.allergy_alerts[0].ingredient_id == _ASCORBIC_ACID_ID
+    assert result.score < 100
+
+
+async def test_compute_safety_score_clean_list_scores_safe(db_session: AsyncSession) -> None:
+    user_id = f"safety-{uuid.uuid4()}"
+    await _create_test_user(db_session, user_id)
+    await _create_profile(db_session, user_id)
+
+    result = await service.compute_safety_score(db_session, [_NIACINAMIDE_ID], "AM", user_id)
+
+    assert result.score == 100
+    assert result.label == "Safe"
+    assert result.allergy_alerts == []
+    assert result.interaction_warnings == []
+
+
+async def test_compute_safety_score_rejects_unknown_ingredient_id(
+    db_session: AsyncSession,
+) -> None:
+    user_id = f"safety-{uuid.uuid4()}"
+    await _create_test_user(db_session, user_id)
+    await _create_profile(db_session, user_id)
+
+    try:
+        await service.compute_safety_score(db_session, [999_999], "AM", user_id)
+        raise AssertionError("expected ValueError for unknown ingredient id")
+    except ValueError:
+        pass
