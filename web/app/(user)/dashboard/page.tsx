@@ -451,6 +451,8 @@ export default function UserDashboardPage() {
             onRetry={retryFor(analyticsQuery)}
             lines={latestInsight ? [latestInsight.summary] : undefined}
             emptyMessage="Log a few more check-ins to unlock your first insight."
+            emptyActionLabel="View All Insights"
+            emptyActionHref="/insights"
             actionLabel="View All Insights"
             actionHref="/insights"
           />
