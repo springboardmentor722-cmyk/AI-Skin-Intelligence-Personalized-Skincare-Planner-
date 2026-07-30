@@ -54,7 +54,7 @@ export function WidgetEmpty({
       </EmptyHeader>
       {actionLabel && actionHref && (
         <EmptyContent>
-          <Button size="sm" render={<a href={actionHref} />}>
+          <Button size="sm" nativeButton={false} render={<a href={actionHref} />}>
             {actionLabel}
           </Button>
         </EmptyContent>
