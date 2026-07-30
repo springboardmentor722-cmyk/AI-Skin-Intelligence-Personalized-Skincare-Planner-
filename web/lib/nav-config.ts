@@ -708,7 +708,7 @@ export interface TopbarConfig {
 export const ROLE_TOPBAR: Record<Role, TopbarConfig> = {
   user: {
     searchPlaceholder: null,
-    avatarCaption: "Premium User",
+    avatarCaption: "User",
     primaryActionLabel: null,
     primaryActionHref: null,
   },
