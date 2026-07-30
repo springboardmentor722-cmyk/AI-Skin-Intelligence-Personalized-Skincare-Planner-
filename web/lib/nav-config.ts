@@ -659,11 +659,16 @@ export const ROLE_ACTIVE_VARIANT: Record<Role, "solid" | "soft"> = {
 // Sidebar footer slot, MILESTONE_2_UI_SPEC.md §3 — per-role card, distinct wording
 // for consultant vs. dermatologist (deliberately not normalised into one string).
 export const ROLE_FOOTER: Record<Role, FooterConfig> = {
+  // No premium/billing tier exists in this app yet (docs/DECISIONS.md ADR-033) — this
+  // used to advertise "Upgrade to Premium" with a working button leading to a settings
+  // page with no premium content at all (bug_report.md 2026-07-30, bug #2). Reframed
+  // around Settings -> Appearance, a real shipped feature (8 palettes, light/dark/
+  // system), same "no actionLabel, description-only" shape the other three roles
+  // already use here so there's no dead-end button.
   user: {
     icon: Sparkles,
-    title: "Upgrade to Premium",
-    description: "Unlock AI insights, advanced reports & more.",
-    actionLabel: "Upgrade Now",
+    title: "Make It Yours",
+    description: "8 themes, light, dark, or system — tune it in Settings.",
     actionHref: "/settings",
   },
   consultant: {
