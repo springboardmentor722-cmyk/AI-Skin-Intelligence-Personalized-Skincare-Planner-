@@ -331,6 +331,16 @@ def test_routine_adherence_score_ignores_a_completed_step_no_longer_active() -> 
     assert _routine_adherence_score([1, 2], logs) == 0.0
 
 
+def test_routine_adherence_score_counts_unlogged_days_as_missed_not_excluded() -> None:
+    # Regression (bug_report.md 2026-07-30, bug #1): `scheduled` used to be
+    # len(step_ids) * len(logs), so a user who only opened the app 2 of the 14 window
+    # days (and did everything both times) scored 100% adherence — identical to
+    # someone logging honestly every day. Unlogged days shrank the denominator
+    # instead of counting as misses.
+    logs = [{"completed_steps": [{"routine_step_id": 1}, {"routine_step_id": 2}]}] * 2
+    assert _routine_adherence_score([1, 2], logs) == pytest.approx(2 / 14 * 100)
+
+
 # --- get_active_weights / compute_and_store_score — real DB round trip ---
 
 

@@ -198,6 +198,13 @@ def _routine_adherence_score(step_ids: list[int], logs: list[dict[str, Any]]) ->
     trailing window, is treated as full adherence — a brand-new user hasn't had
     the chance to skip anything yet, not a punitive or neutral guess.
 
+    `scheduled` is `len(step_ids) * ADHERENCE_WINDOW_DAYS` — the fixed window size,
+    not `len(logs)` (bug_report.md 2026-07-30, bug #1: a `routine_logs` document only
+    exists for days the user actually opened the checklist, so using `len(logs)` as
+    the denominator let unlogged days shrink the denominator instead of counting as
+    misses — someone who opened the app 2 of 14 days and did everything both times
+    scored 100%, same as someone logging honestly every day).
+
     Pure: takes the already-fetched active step ids and the already-fetched
     window of routine logs (`scores/service.py` does the Mongo/Postgres reads and
     the day-window math) — no I/O, no clock read, in this function."""
@@ -210,9 +217,7 @@ def _routine_adherence_score(step_ids: list[int], logs: list[dict[str, Any]]) ->
         for entry in log.get("completed_steps", [])
         if entry.get("routine_step_id") in active_step_ids
     )
-    scheduled = len(step_ids) * len(logs)
-    if not scheduled:
-        return constants.ADHERENCE_DEFAULT_WHEN_NO_DATA
+    scheduled = len(step_ids) * constants.ADHERENCE_WINDOW_DAYS
     return min(100.0, (completed_count / scheduled) * 100)
 
 
