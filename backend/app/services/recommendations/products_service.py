@@ -10,6 +10,7 @@ from app.services.ingredients.models import Ingredient, IngredientSkintypeAvoid
 from app.services.recommendations.models import (
     Product,
     ProductConcern,
+    ProductImage,
     ProductIngredient,
     ProductSkinType,
 )
@@ -194,6 +195,18 @@ async def get_product_detail(
     if product is None:
         return None
 
+    image_urls = (
+        (
+            await db.execute(
+                select(ProductImage.image_url)
+                .where(ProductImage.product_id == product_id)
+                .order_by(ProductImage.sort_order)
+            )
+        )
+        .scalars()
+        .all()
+    )
+
     ingredient_rows = (
         (
             await db.execute(
@@ -268,6 +281,7 @@ async def get_product_detail(
         category=product.category,
         product_url=product.product_url,
         image_url=await resolve_product_image_url(product.image_url),
+        image_urls=list(image_urls),
         price=float(product.price) if product.price is not None else None,
         currency=product.currency,
         volume_ml=product.volume_ml,

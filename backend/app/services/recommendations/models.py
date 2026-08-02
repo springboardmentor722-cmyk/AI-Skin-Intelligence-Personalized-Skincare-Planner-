@@ -5,6 +5,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Numeric,
+    String,
     Text,
     UniqueConstraint,
     func,
@@ -48,6 +49,25 @@ class Product(Base):
     is_active: Mapped[bool | None] = mapped_column(default=True)
     created_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
+
+
+class ProductImage(Base):
+    """Multiple images per product (ADR-043) — `Product.image_url` is a single
+    column and can't hold the 2+ URLs `yamqwe/sephora-products`' `images` column
+    carries per row. Unlike `Product.image_url` (an S3 key, ADR-040/041), these are
+    direct external URLs rendered as-is, never re-hosted — owner decision
+    2026-08-03 for this specific catalog subset."""
+
+    __tablename__ = "product_images"
+    __table_args__ = (
+        UniqueConstraint("product_id", "image_url"),
+        Index("ix_product_images_product_id", "product_id"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.product_id", ondelete="CASCADE"))
+    image_url: Mapped[str] = mapped_column(String(500))
+    sort_order: Mapped[int] = mapped_column(default=0)
 
 
 class ProductSkinType(Base):
