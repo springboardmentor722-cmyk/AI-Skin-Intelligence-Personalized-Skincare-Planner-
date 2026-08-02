@@ -1524,3 +1524,21 @@ case.
 mid-window are now numerically different (more correct) than before this fix — a
 one-time recalculation discontinuity, not a bug, if anyone diffs historical values
 against a pre-fix snapshot.
+
+## ADR-039 — Sidebar nav-item subtitle shrunk below the MILESTONE_2_UI_SPEC.md §2.2 spec
+
+**Status:** Accepted (owner review, 2026-08-02)
+**Context:** `MILESTONE_2_UI_SPEC.md` §2.2 documents the sidebar nav-item subtitle at
+12px/400 muted, transcribed verbatim from OCR'd wireframe screenshots and explicitly
+called out as "50% of the sidebar's visual mass, not optional decoration." Built exactly
+to that spec (`app-sidebar.tsx`), the owner reviewed the running app and judged the
+subtitle too visually dominant against the 14px/500 label — a live-app finding the
+static screenshot review didn't surface.
+**Decision:** Reduced the subtitle to `text-[10px] leading-tight opacity-60` (was
+`text-xs opacity-70`), overriding the documented spec. `MILESTONE_2_UI_SPEC.md` §1.4 and
+§2.2 updated in the same change to record the override rather than leaving the doc
+silently stale.
+**Consequences:** The sidebar no longer matches the original wireframe screenshots'
+literal subtitle size — a deliberate, owner-approved drift from `web/designs/wireframes/`
+for this one token. Any future wireframe-fidelity pass should treat this ADR as the
+reason, not re-inflate the subtitle back to 12px to "match the screenshot."

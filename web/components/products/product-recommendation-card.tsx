@@ -8,15 +8,17 @@ type RecommendationRead = components["schemas"]["RecommendationRead"];
 
 interface ProductRecommendationCardProps {
   recommendation: RecommendationRead;
-  /** Dashboard preview (3 cards) omits the full reasons list; the Recommendations
-   * screen's grid shows it in full — docs/WIREFRAMES.md screens 3 and 6 share this
-   * card but differ on density. */
+  /** Reserved for a future compact density; every current caller renders the full card. */
   compact?: boolean;
 }
 
-// Shared between the Dashboard's "Recommended for you" preview and the full Product
-// Recommendations screen (docs/WIREFRAMES.md screens 3 & 6) — one card, two densities,
-// so the two screens never visually drift from each other.
+// The full Product Recommendations screen's card (web/app/(user)/recommendations/page.tsx).
+// The Dashboard's "Recommended for you" widget uses the narrower, carousel-specific
+// dashboard/product-carousel.tsx instead — a genuinely different tile design (horizontal
+// scroll, rating/budget badges), not a candidate for merging into this one. This component
+// used to be unwired dead code with a comment falsely claiming both screens shared it
+// (found 2026-08-02 while fixing missing product images); the Recommendations screen had
+// its own drifted inline copy instead. Fixed by wiring the page onto this component.
 export function ProductRecommendationCard({
   recommendation,
   compact = false,
@@ -34,8 +36,11 @@ export function ProductRecommendationCard({
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
-          <div className="text-on-surface-variant/40 flex h-full w-full items-center justify-center">
-            <FlaskConical className="size-8" strokeWidth={1.5} />
+          <div className="bg-surface-container-low flex h-full w-full flex-col items-center justify-center gap-1.5">
+            <FlaskConical className="text-on-surface-variant/50 size-7" strokeWidth={1.5} />
+            <span className="font-geist text-on-surface-variant text-[10px] font-medium tracking-[0.05em] uppercase">
+              No photo yet
+            </span>
           </div>
         )}
         <MatchRing score={match_percentage} className="absolute top-2 right-2" />
