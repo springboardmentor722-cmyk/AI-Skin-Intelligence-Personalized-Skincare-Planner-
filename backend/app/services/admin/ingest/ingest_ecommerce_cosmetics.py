@@ -72,7 +72,9 @@ def _safe_number(value: Any) -> float | None:
     if pd.isna(value):
         return None
     try:
-        return float(value)
+        # Strip commas before parsing (182/2046 noofratings values are comma-formatted)
+        text = str(value).replace(",", "")
+        return float(text)
     except (TypeError, ValueError):
         return None
 

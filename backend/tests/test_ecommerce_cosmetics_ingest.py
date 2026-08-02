@@ -101,3 +101,16 @@ def test_normalize_rows_dedupes_by_brand_and_name() -> None:
     assert len(products) == 1
     assert len(rejected) == 1
     assert rejected[0]["reason"] == "duplicate brand+name"
+
+
+def test_normalize_rows_parses_comma_formatted_review_counts() -> None:
+    # 182/2046 real noofratings values are comma-formatted (e.g., "4,031", "14,611")
+    df = pd.DataFrame(
+        [_row(noofratings="4,031"), _row(product_name="Another", noofratings="14,611")]
+    )
+    products, rejected = normalize_rows(df)
+
+    assert not rejected
+    assert len(products) == 2
+    assert products[0]["review_count"] == 4031
+    assert products[1]["review_count"] == 14611
