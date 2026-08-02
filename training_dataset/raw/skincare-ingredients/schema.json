@@ -1,0 +1,7 @@
+{
+  "brand_name": {"dtype": "str", "nullable": false, "examples": ["Summer Fridays", "Glow Recipe"]},
+  "cosmetic_name": {"dtype": "str", "nullable": false, "examples": ["Lip Butter Balm for Hydration & Shine", "Watermelon Glow PHA + BHA Pore-Tight Toner"]},
+  "price": {"dtype": "str (USD, sometimes a range)", "nullable": false, "examples": ["$24.00 ", "$16.00 - $35.00"]},
+  "ingredients": {"dtype": "str (marketing prose, not a clean INCI list)", "nullable": true, "examples": ["-Watermelon Extract: Hydrates, soothes...\\n\\nOpuntia Ficus-Indica Extract, ..."]},
+  "Skin Type": {"dtype": "str (free text)", "nullable": true, "examples": ["Normal, Dry, Combination, and Oily"]}
+}
