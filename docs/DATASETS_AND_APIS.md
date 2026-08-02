@@ -77,6 +77,14 @@ class Adapter(Protocol):
   Idempotent (`make seed` safe to re-run).
 - **Licensing:** per dataset; record the source. Prices in ₹ with `currency` stored —
   convert once at ingest, not at read.
+- **Images:** the primary dataset (`nadyinky/sephora-products-and-skincare-reviews`)
+  has no image column at all. A second, smaller Kaggle scrape of the same retailer,
+  `yamqwe/sephora-products`, has real image URLs and is used *only* to backfill
+  `products.image_url` via `enrich_product_images.py` — exact normalized
+  (brand, product_name) match, no fuzzy scoring, each URL verified live before write
+  (ADR-040). Coverage is intentionally partial (~1.6% of the catalog as of 2026-08-02)
+  — products without a match keep the designed "No photo yet" placeholder rather than
+  a fabricated or guessed image link.
 
 ## 3. Ingredient database — INCIDecoder, COSDNA
 - **Sites:** `https://incidecoder.com`, `https://cosdna.com`
