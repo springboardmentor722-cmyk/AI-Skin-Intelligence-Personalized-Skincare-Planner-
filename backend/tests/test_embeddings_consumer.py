@@ -44,7 +44,7 @@ async def test_embed_and_upsert_product_lands_in_the_vector_store_and_mongo(
         assert sync_doc["vector_id"] == vector_id
         assert sync_doc["embedding_model"]
     finally:
-        vector.remove("products", vector_id)
+        await vector.remove("products", vector_id)
         await get_mongo_db()["product_vectors_metadata"].delete_one({"product_id": product_id})
 
 
@@ -78,14 +78,14 @@ async def test_embed_and_upsert_profile_lands_in_the_user_profiles_namespace(
         assert embedding is not None
         assert len(embedding) == 384
     finally:
-        vector.remove("user_profiles", vector_id)
+        await vector.remove("user_profiles", vector_id)
 
 
 async def test_embed_and_upsert_profile_removes_the_vector_when_no_current_profile_exists(
     db_session: AsyncSession, test_user_id: str
 ) -> None:
     vector_id = f"user_{test_user_id}"
-    vector.upsert("user_profiles", vector_id, [0.1] * 384, {"user_id": test_user_id}, dim=384)
+    await vector.upsert("user_profiles", vector_id, [0.1] * 384, {"user_id": test_user_id}, dim=384)
 
     await embed_and_upsert(db_session, get_mongo_db(), "profile", test_user_id)
 

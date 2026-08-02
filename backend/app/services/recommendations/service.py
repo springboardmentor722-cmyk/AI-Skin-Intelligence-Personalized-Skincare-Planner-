@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.ai.recommender import ContentBasedRecommender
 from app.ai.schemas import RecommendationFeatures
 from app.ai.suitability import RealIngredientSuitability
+from app.core.storage import get_presigned_url
 from app.db.mongo import get_mongo_db
 from app.db.redis import get_redis
 from app.services.ingredients.models import Ingredient, IngredientSkintypeAvoid
@@ -143,6 +144,30 @@ async def get_products_by_ids(db: AsyncSession, product_ids: list[int]) -> dict[
         return {}
     result = await db.execute(select(Product).where(Product.product_id.in_(product_ids)))
     return {p.product_id: p for p in result.scalars().all()}
+
+
+async def resolve_product_image_url(image_key: str | None) -> str | None:
+    """`Product.image_url`, when set, stores an S3 object key — every product image
+    is uploaded through the private storage adapter (`enrich_product_images.py`,
+    ADR-040), never a public URL (AGENTS.md: "every read via `get_presigned_url`").
+    Presigned URLs expire (`get_presigned_url`'s default 1h), so resolution happens
+    here, at read time, on every response — never once at ingest time, which would
+    silently go dead."""
+    return await get_presigned_url(image_key) if image_key else None
+
+
+async def resolve_product_read(product: Product) -> ProductRead:
+    """The one place every `ProductRead` gets built from an ORM `Product` — callers
+    across services (routines, ingredients, this module) use this instead of
+    `ProductRead.model_validate()` directly, so `image_url` resolution can't be
+    forgotten at a new call site."""
+    read = ProductRead.model_validate(product)
+    read.image_url = await resolve_product_image_url(read.image_url)
+    return read
+
+
+async def resolve_product_reads(products: list[Product]) -> list[ProductRead]:
+    return [await resolve_product_read(product) for product in products]
 
 
 async def list_concern_ids_for_products(
@@ -375,7 +400,7 @@ async def _apply_budget_cap(
 
         augmented.append(
             RecommendationRead(
-                product=ProductRead.model_validate(best),
+                product=await resolve_product_read(best),
                 match_percentage=match_percentage,
                 reasons=[
                     f"Cheaper alternative under your {max_price:.2f} "
@@ -509,7 +534,7 @@ async def get_recommendations(
         # --- Stage 3: serve + cache + persist ---
         results = [
             RecommendationRead(
-                product=ProductRead.model_validate(product),
+                product=await resolve_product_read(product),
                 match_percentage=round(score),
                 reasons=reasons,
                 active_ingredient_tags=sorted(

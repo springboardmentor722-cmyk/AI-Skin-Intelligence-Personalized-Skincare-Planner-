@@ -13,10 +13,10 @@ _DIM = 8
 
 
 @pytest.fixture
-def namespace() -> str:
+async def namespace() -> str:
     ns = f"test_{uuid.uuid4().hex[:12]}"
     yield ns
-    vector.clear(ns)
+    await vector.clear(ns)
 
 
 def _vec(seed: float) -> list[float]:
@@ -32,8 +32,8 @@ def _unit(hot_index: int) -> list[float]:
 
 
 async def test_upsert_then_search_finds_the_nearest_vector(namespace: str) -> None:
-    vector.upsert(namespace, "a", _unit(0), {"name": "near"}, dim=_DIM)
-    vector.upsert(namespace, "b", _unit(_DIM - 1), {"name": "far"}, dim=_DIM)
+    await vector.upsert(namespace, "a", _unit(0), {"name": "near"}, dim=_DIM)
+    await vector.upsert(namespace, "b", _unit(_DIM - 1), {"name": "far"}, dim=_DIM)
 
     query = _unit(0)
     query[1] = 0.1  # nudged slightly off-axis, still much closer to "a" than "b"
@@ -45,8 +45,8 @@ async def test_upsert_then_search_finds_the_nearest_vector(namespace: str) -> No
 
 
 async def test_upsert_is_idempotent_and_updates_metadata(namespace: str) -> None:
-    vector.upsert(namespace, "a", _vec(1.0), {"name": "v1"}, dim=_DIM)
-    vector.upsert(namespace, "a", _vec(1.0), {"name": "v2"}, dim=_DIM)
+    await vector.upsert(namespace, "a", _vec(1.0), {"name": "v1"}, dim=_DIM)
+    await vector.upsert(namespace, "a", _vec(1.0), {"name": "v2"}, dim=_DIM)
 
     assert vector.count(namespace) == 1
     results = vector.search(namespace, _vec(1.0), k=1, dim=_DIM)
@@ -54,8 +54,8 @@ async def test_upsert_is_idempotent_and_updates_metadata(namespace: str) -> None
 
 
 async def test_remove_deletes_the_vector(namespace: str) -> None:
-    vector.upsert(namespace, "a", _vec(1.0), {}, dim=_DIM)
-    vector.remove(namespace, "a")
+    await vector.upsert(namespace, "a", _vec(1.0), {}, dim=_DIM)
+    await vector.remove(namespace, "a")
 
     assert vector.count(namespace) == 0
 
@@ -65,7 +65,7 @@ async def test_get_vector_returns_the_stored_embedding(namespace: str) -> None:
     # vector — embeddings are computed only in the worker, never the request path
     # (milestone_3.md §8 "Inference flow").
     embedding = _unit(0)
-    vector.upsert(namespace, "a", embedding, {}, dim=_DIM)
+    await vector.upsert(namespace, "a", embedding, {}, dim=_DIM)
 
     assert vector.get_vector(namespace, "a") == pytest.approx(embedding)
 
@@ -75,9 +75,9 @@ async def test_get_vector_returns_none_for_a_missing_id(namespace: str) -> None:
 
 
 async def test_clear_wipes_the_namespace(namespace: str) -> None:
-    vector.upsert(namespace, "a", _vec(1.0), {}, dim=_DIM)
-    vector.upsert(namespace, "b", _vec(2.0), {}, dim=_DIM)
+    await vector.upsert(namespace, "a", _vec(1.0), {}, dim=_DIM)
+    await vector.upsert(namespace, "b", _vec(2.0), {}, dim=_DIM)
 
-    vector.clear(namespace)
+    await vector.clear(namespace)
 
     assert vector.count(namespace) == 0

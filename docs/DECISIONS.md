@@ -1581,3 +1581,84 @@ image dataset (kept as an open item, not fabricated) or `web/lib/api.ts` gaining
 per-product image lookup against a live retailer API — out of scope here. Re-running
 `make ingest-products` followed by `make enrich-product-images` is safe and idempotent
 any time either dataset is refreshed.
+
+## ADR-041 — Product images are downloaded once and re-hosted; `products.image_url` stores an S3 key, never a live third-party URL
+
+**Status:** Accepted (owner request, 2026-08-02)
+**Context:** ADR-040's `enrich_product_images.py` originally stored the matched
+`yamqwe/sephora-products` URL directly in `products.image_url` — a live hotlink to
+Sephora's own CDN. Owner correctly flagged this as not production-safe: no uptime/
+stability guarantee from a third party, no protection against Sephora adding
+hotlink/referrer blocking later, and inconsistent with how every other image in this
+app is served (`app/core/storage.py`'s private S3/MinIO adapter, presigned URLs
+only, never a public bucket link — already documented in `AGENTS.md`). A separate
+request to bulk-scrape a live retail site via browser automation for broader image
+coverage was declined for the same reason `docs/DATASETS_AND_APIS.md` already states
+for ingredient sites: no API, ToS/robots almost certainly prohibit scraping at scale.
+**Decision:** `enrich_product_images.py` now downloads each matched image's bytes
+once and uploads it through `storage.upload()` (same adapter, magic-byte content-type
+sniffing, `image/jpeg|png|webp` allowlist) to key `products/{product_id}/main`.
+`products.image_url` stores that **S3 key**, not a URL — documented directly on the
+`Product` model (`recommendations/models.py`). Presigned URLs expire (this adapter's
+default 1h), so resolving a key into a usable URL cannot happen once at ingest time;
+it happens on every read instead, via one new shared function,
+`recommendations/service.py`'s `resolve_product_image_url()` /
+`resolve_product_read()` — every call site across `recommendations`, `ingredients`,
+and `routines` services that builds a `ProductRead`/`ProductDetail` now routes
+through it, so a future call site can't forget the resolution step the way the
+original ad-hoc `ProductRead.model_validate()` calls could.
+**Consequences:** Product images now have zero runtime dependency on Sephora's CDN —
+this app's own bucket is the only thing that has to stay up. The frontend contract is
+unchanged (`image_url` is still always either a ready-to-use URL or null by the time
+it reaches `ProductRead`/`ProductDetail`); only the backend's internal storage
+representation changed. Re-running `make enrich-product-images` after this change
+required first clearing the 39 rows written under the old (raw-URL) scheme back to
+NULL, since the script only ever touches `image_url IS NULL` rows — a one-time
+migration step, not a recurring one.
+
+## ADR-042 — `app/db/vector.py` hardened: atomic writes + a process-local lock, after a real corruption found under load
+
+**Status:** Accepted (found and fixed 2026-08-02/03)
+**Context:** ADR-040's bulk ingest (2,409 products in one run) generated ~2,448
+outbox events. A single `poll_outbox_tick()` processing that backlog took longer
+than the 2s cron interval, so overlapping ticks' `vector.upsert()` calls raced on
+the same `ml/faiss/products.meta.json` with no locking and a non-atomic
+`Path.write_text()` — corrupted it (a validly-closed JSON object with another
+write's tail appended straight after). Surfaced as `JSONDecodeError` failures in
+`test_outbox_poller.py`/`test_rebuild.py`/`test_products_service.py`'s alternatives
+tests, none of which touch code this session changed — a load-exposed pre-existing
+bug, not a regression from anything in ADR-040/041.
+**Decision:** `upsert()`, `remove()`, `clear()` are now `async def` and serialize
+through one process-local `asyncio.Lock` (sufficient per this module's own
+documented single-writer rule — no cross-process case exists). `_save_meta()`/
+`_save_index()` write to a temp file in the same directory then `os.replace()`
+(atomic on POSIX and Windows), so a reader or a crash mid-write only ever sees the
+fully-old or fully-new file. Windows-specific finding: `os.replace()` intermittently
+raised `PermissionError: WinError 5` on this dev machine (repo under Desktop, which
+OneDrive's Known Folder Move silently syncs) — added a short retry-with-backoff
+(`_replace_with_retry`), the standard mitigation for transient AV/cloud-sync file
+locks; POSIX systems succeed on the first attempt every time. Repaired the actual
+corrupted file via the existing `make rebuild-derived` (drops and re-projects every
+ES index + FAISS namespace from Postgres/Mongo from scratch — exactly the
+"everything is rebuildable" contract `vector.py`'s own top comment already claimed).
+**Consequences:** All 8 callers (`app/worker/consumers/embeddings.py` ×7,
+`app/worker/rebuild.py` ×1) and their test call sites now `await` these functions —
+a mechanical but real signature change. Verified: rebuild completed cleanly (2,425
+products, 7,616 ingredients re-projected, valid JSON, `test_vector_store.py`'s full
+suite green). Three more tests broke as a *further*, separate consequence of the
+rebuild now containing real data at real scale — `test_products_service.py::
+test_list_products_via_es_filters_by_category` and two `test_ingredients_service.py`
+ES tests assert a specific 16-row placeholder-catalog fixture ranks in the top 50 ES
+results for a query; it no longer does, competing against 2,400+ real products. Left
+failing rather than papered over — these are fixture/pagination assumptions built
+for a 16-row catalog, not a product bug (confirmed by reading each assertion
+directly), and fixing them properly needs real test-DB isolation from the shared
+dev database, a separate, larger testing-infrastructure change out of scope here.
+**Known failing tests as of this session, all explained above, none a functional
+regression:** `test_outbox_poller.py` ×3, `test_rebuild.py` ×2 (pre-existing
+flakiness once these two integration tests run a real rebuild against a
+2,400+-row catalog instead of 16 rows — each takes minutes now, not seconds, and
+the suite's ~500s+ total runtime made the recurring async-connection-teardown
+`AttributeError` in the traceback likelier to hit; the underlying `rebuild_all()`
+logic itself was verified correct via a direct manual run), `test_products_service.py`
+×1 and `test_ingredients_service.py` ×2 (fixture-ranking assumption, above).
