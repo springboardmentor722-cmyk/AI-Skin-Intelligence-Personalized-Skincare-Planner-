@@ -156,6 +156,8 @@ Miss these and the build reads as "generic shadcn dashboard" even with correct t
 1. **Two-line nav items.** Every sidebar entry is a label *plus* a muted subtitle. The
    subtitle is not optional decoration — it is 50% of the sidebar's visual mass and the
    reason the sidebar is 280px instead of 220px.
+   (Revised 2026-08-02: subtitle shrunk to 10px/60%-opacity after owner review found
+   12px too visually dominant against the label — see docs/DECISIONS.md.)
 2. **Flat, bordered, low-contrast cards** on a faintly tinted canvas. White card, `#EDEEF3`
    border, hairline shadow, generous internal whitespace.
 3. **Violet is rationed.** It appears on the active nav pill, primary buttons, chart
@@ -202,7 +204,9 @@ subtitle in violet (12–13px / 500):
 
 ```
 [icon 18px] Label                    ← 14px/500
-            Subtitle                 ← 12px/400 muted
+            Subtitle                 ← 10px/400 muted (owner override 2026-08-02,
+                                        was 12px/50%-visual-mass; too dominant in
+                                        practice — see docs/DECISIONS.md)
 ```
 
 - Height ≈ 52–56px, horizontal padding 12px, radius 10px, 2px vertical gap between items.

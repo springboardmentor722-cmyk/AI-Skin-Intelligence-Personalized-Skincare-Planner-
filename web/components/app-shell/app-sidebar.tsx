@@ -109,7 +109,7 @@ export function AppSidebar({ role, userName }: AppSidebarProps) {
                         <span className="flex flex-col overflow-hidden group-data-[collapsible=icon]:hidden">
                           <span className="truncate">{item.label}</span>
                           {item.subtitle && (
-                            <span className="truncate text-xs font-normal opacity-70">
+                            <span className="truncate text-[10px] leading-tight font-normal opacity-60">
                               {item.subtitle}
                             </span>
                           )}
