@@ -69,6 +69,14 @@ async def _read_with_steps(db: AsyncSession, routine: Routine) -> RoutineRead:
 
     all_product_ids = [rp.product_id for rps in routine_products_by_step.values() for rp in rps]
     products_by_id = await recommendations_service.get_products_by_ids(db, all_product_ids)
+    # Resolved once per product here (not per step) so a product used in multiple
+    # steps doesn't get presigned redundantly, and so the nested comprehension below
+    # doesn't need an `await` (Product.image_url is an S3 key, ADR-040 — never a
+    # ready-to-use URL, so this can't be skipped).
+    product_reads_by_id = {
+        product_id: await recommendations_service.resolve_product_read(product)
+        for product_id, product in products_by_id.items()
+    }
 
     step_reads = [
         RoutineStepRead(
@@ -83,11 +91,11 @@ async def _read_with_steps(db: AsyncSession, routine: Routine) -> RoutineRead:
             completed_today=step.step_id in completed_today,
             products=[
                 RoutineProductRead(
-                    product=ProductRead.model_validate(products_by_id[rp.product_id]),
+                    product=product_reads_by_id[rp.product_id],
                     usage_notes=rp.usage_notes,
                 )
                 for rp in routine_products_by_step[step.step_id]
-                if rp.product_id in products_by_id
+                if rp.product_id in product_reads_by_id
             ],
         )
         for step in steps
@@ -788,4 +796,4 @@ async def search_products_for_edit(
         db, [p.product_id for p in name_matches], profile, None
     )
     matches = [p for p in name_matches if not suitability[p.product_id].any_allergy]
-    return [ProductRead.model_validate(p) for p in matches[:10]]
+    return await recommendations_service.resolve_product_reads(matches[:10])

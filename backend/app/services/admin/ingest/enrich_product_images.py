@@ -13,12 +13,19 @@ match here means showing a *different real product's* photo, which is worse than
 flask-icon placeholder it replaces. Expect a small match count (tens, not thousands):
 the two datasets only overlap where the same SKU happens to appear in both scrapes.
 
-Each matched URL is verified live (HTTP HEAD) before being written — the source
-dataset was scraped years ago and Sephora's CDN does drop images over time, so a
-match with no verification would trade one broken-image class for another.
+**Images are downloaded once and re-hosted through this app's own storage adapter
+(`app/core/storage.py`), never left as a live hotlink to Sephora's CDN** (ADR-041):
+a production deployment can't depend on a third party's CDN staying up, keeping the
+same file at the same path, or tolerating being hotlinked — and this app's storage
+objects are private-by-design (`AGENTS.md`: "every read via `get_presigned_url`,
+never a public bucket URL"), so `products.image_url` stores an **S3 object key**,
+not a URL at all; `recommendations/service.py`'s `resolve_product_image_url` turns
+that key into a fresh presigned URL at read time, every time (presigned URLs expire,
+so one can never be computed once and stored).
 
-Safe to re-run: only ever UPDATEs rows where `image_url IS NULL`, never overwrites
-an existing value.
+Safe to re-run: only ever touches rows where `image_url IS NULL`, never overwrites
+an existing value (a key already stored means that product's image already lives in
+this app's own bucket — nothing left to fetch from Sephora for it).
 """
 
 import csv
@@ -31,9 +38,15 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.core.storage import FileValidationError, upload
 from app.db.outbox import append_outbox
 from app.services.admin.ingest.products import KaggleCredentialsError
 from app.services.recommendations.models import Product
+
+# infra doc's own image allowlist (app/core/storage.py's VERIFICATION_DOCUMENT_
+# CONTENT_TYPES includes PDF too, which makes no sense for a product photo — this
+# pipeline needs its own narrower allowlist, not that one).
+_ALLOWED_IMAGE_CONTENT_TYPES = {"image/jpeg", "image/png", "image/webp"}
 
 _DATASET_SLUG = "yamqwe/sephora-products"
 _PRIMARY_CSV = "sephora.csv"
@@ -117,16 +130,20 @@ def find_image_matches(
     return matches
 
 
-def verify_url_live(url: str) -> bool:
-    """Best-effort HEAD check — a source-dataset image URL from a multi-year-old
-    scrape that no longer resolves would otherwise trade one broken-image class
-    (missing photo) for another (dead link), which is strictly worse."""
-    request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"}, method="HEAD")
+def download_image_bytes(url: str) -> bytes | None:
+    """Fetches the actual image, once, for re-hosting — not just a liveness check.
+    A source-dataset image URL from a multi-year-old scrape that no longer resolves
+    (or isn't actually an image anymore) returns None here rather than raising, so
+    one dead link doesn't abort the whole run."""
+    request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
     try:
         with urllib.request.urlopen(request, timeout=_REQUEST_TIMEOUT_SECONDS) as response:
-            return bool(response.status == 200)
+            if response.status != 200:
+                return None
+            data: bytes = response.read()
+            return data
     except (URLError, OSError, ValueError):
-        return False
+        return None
 
 
 async def run(db: AsyncSession) -> None:
@@ -139,21 +156,33 @@ async def run(db: AsyncSession) -> None:
         )
     )
     candidates = [(pid, brand or "", name or "") for pid, brand, name in result.all()]
-
     matches = find_image_matches(candidates, index)
-    verified = [(pid, url) for pid, url in matches if verify_url_live(url)]
 
-    for product_id, image_url in verified:
+    stored = 0
+    dead = 0
+    for product_id, source_url in matches:
+        data = download_image_bytes(source_url)
+        if data is None:
+            dead += 1
+            continue
+        key = f"products/{product_id}/main"
+        try:
+            stored_key = await upload(key, data, allowed_content_types=_ALLOWED_IMAGE_CONTENT_TYPES)
+        except FileValidationError:
+            dead += 1
+            continue
+
         product = await db.get(Product, product_id)
         assert product is not None
-        product.image_url = image_url
+        product.image_url = stored_key
         await append_outbox(db, "product", str(product_id), "upsert")
+        stored += 1
 
     await db.commit()
     print(
         f"Matched {len(matches)} product(s) against {_DATASET_SLUG} by exact "
-        f"brand+name, {len(verified)} had a live image URL and were updated "
-        f"({len(matches) - len(verified)} matched but the image link was dead)."
+        f"brand+name, {stored} were downloaded and re-hosted in this app's own "
+        f"storage ({dead} matched but the source image was dead or invalid)."
     )
 
 

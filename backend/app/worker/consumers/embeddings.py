@@ -50,7 +50,7 @@ async def _embed_product(db: AsyncSession, mongo: Any, product_id: int) -> None:
     doc = await build_product_document(db, product_id)
     vector_id = f"product_{product_id}"
     if doc is None:
-        vector.remove("products", vector_id)
+        await vector.remove("products", vector_id)
         await mongo["product_vectors_metadata"].delete_one({"product_id": product_id})
         return
 
@@ -71,7 +71,7 @@ async def _embed_product(db: AsyncSession, mongo: Any, product_id: int) -> None:
         "is_active": doc["is_active"],
         "embedding_model": model_name,
     }
-    vector.upsert("products", vector_id, embedding, metadata, dim=dim)
+    await vector.upsert("products", vector_id, embedding, metadata, dim=dim)
 
     now = datetime.datetime.now(datetime.UTC)
     await mongo["product_vectors_metadata"].update_one(
@@ -96,7 +96,7 @@ async def _embed_ingredient(db: AsyncSession, ingredient_id: int) -> None:
     doc = await build_ingredient_document(db, ingredient_id)
     vector_id = f"ingredient_{ingredient_id}"
     if doc is None:
-        vector.remove("ingredients", vector_id)
+        await vector.remove("ingredients", vector_id)
         return
 
     model_name, dim = NAMESPACE_EMBEDDING_MODELS["ingredients"]
@@ -109,14 +109,14 @@ async def _embed_ingredient(db: AsyncSession, ingredient_id: int) -> None:
         "category": doc["category"],
         "embedding_model": model_name,
     }
-    vector.upsert("ingredients", vector_id, embedding, metadata, dim=dim)
+    await vector.upsert("ingredients", vector_id, embedding, metadata, dim=dim)
 
 
 async def _embed_article(mongo: Any, article_id: int) -> None:
     doc = await build_article_document(mongo, article_id)
     vector_id = f"article_{article_id}"
     if doc is None:
-        vector.remove("knowledge_articles", vector_id)
+        await vector.remove("knowledge_articles", vector_id)
         return
 
     model_name, dim = NAMESPACE_EMBEDDING_MODELS["knowledge_articles"]
@@ -131,7 +131,7 @@ async def _embed_article(mongo: Any, article_id: int) -> None:
         "chunk": 0,
         "embedding_model": model_name,
     }
-    vector.upsert("knowledge_articles", vector_id, embedding, metadata, dim=dim)
+    await vector.upsert("knowledge_articles", vector_id, embedding, metadata, dim=dim)
 
 
 async def _embed_profile(db: AsyncSession, mongo: Any, user_id: str) -> None:
@@ -149,7 +149,7 @@ async def _embed_profile(db: AsyncSession, mongo: Any, user_id: str) -> None:
         )
     ).scalar_one_or_none()
     if profile is None:
-        vector.remove("user_profiles", vector_id)
+        await vector.remove("user_profiles", vector_id)
         return
 
     skin_type = await db.get(SkinType, profile.skin_type_id)
@@ -198,4 +198,4 @@ async def _embed_profile(db: AsyncSession, mongo: Any, user_id: str) -> None:
         "preferences": [routine_preference] if routine_preference else [],
         "embedding_model": model_name,
     }
-    vector.upsert("user_profiles", vector_id, embedding, metadata, dim=dim)
+    await vector.upsert("user_profiles", vector_id, embedding, metadata, dim=dim)

@@ -54,7 +54,7 @@ async def test_process_pending_outbox_projects_a_product_to_es_and_vector_and_ma
         ).scalar_one()
         assert row.processed_at is not None
     finally:
-        vector.remove("products", vector_id)
+        await vector.remove("products", vector_id)
         await get_mongo_db()["product_vectors_metadata"].delete_one({"product_id": product_id})
         await (
             get_elasticsearch()
@@ -106,7 +106,7 @@ async def test_a_product_change_flushes_every_cached_recommendation_set(
 
         assert await redis.get("recommendation:cache:some-other-user") is None
     finally:
-        vector.remove("products", vector_id)
+        await vector.remove("products", vector_id)
         await get_mongo_db()["product_vectors_metadata"].delete_one({"product_id": product_id})
         await (
             get_elasticsearch()

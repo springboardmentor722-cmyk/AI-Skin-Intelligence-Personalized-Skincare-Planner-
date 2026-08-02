@@ -27,6 +27,9 @@ from app.services.recommendations.service import (
     evaluate_products_suitability,
     list_avoided_ingredient_product_ids,
     list_concern_ids_for_products,
+    resolve_product_image_url,
+    resolve_product_read,
+    resolve_product_reads,
 )
 from app.services.skin_profile import service as skin_profile_service
 from app.services.skin_profile.models import SkinConcern, SkinType
@@ -177,7 +180,7 @@ async def _list_via_pg(
     result = await db.execute(
         query.order_by(Product.product_name).offset((page - 1) * page_size).limit(page_size)
     )
-    items = [ProductRead.model_validate(p) for p in result.scalars().all()]
+    items = await resolve_product_reads(list(result.scalars().all()))
     return ProductListPage(
         items=items,
         meta=ProductListMeta(page=page, page_size=page_size, total=total, source="fallback"),
@@ -264,7 +267,7 @@ async def get_product_detail(
         product_name=product.product_name,
         category=product.category,
         product_url=product.product_url,
-        image_url=product.image_url,
+        image_url=await resolve_product_image_url(product.image_url),
         price=float(product.price) if product.price is not None else None,
         currency=product.currency,
         volume_ml=product.volume_ml,
@@ -329,7 +332,7 @@ async def compare_products(db: AsyncSession, product_ids: list[int]) -> ProductC
         )
         items.append(
             ProductCompareItem(
-                product=ProductRead.model_validate(product),
+                product=await resolve_product_read(product),
                 ingredient_names=[name for name in ingredient_names if name is not None],
                 skin_types_supported=[name for name in skin_types if name is not None],
                 concerns_supported=[name for name in concerns if name is not None],
@@ -398,4 +401,4 @@ async def get_alternatives(
         return (-overlap, rank)
 
     ordered = sorted(candidates, key=sort_key)[:_MAX_ALTERNATIVES]
-    return ProductAlternativesRead(alternatives=[ProductRead.model_validate(p) for p in ordered])
+    return ProductAlternativesRead(alternatives=await resolve_product_reads(ordered))

@@ -30,6 +30,12 @@ class Product(Base):
     product_name: Mapped[str | None] = mapped_column(default=None)
     category: Mapped[str | None] = mapped_column(default=None)
     product_url: Mapped[str | None] = mapped_column(default=None)
+    # An S3 object key (this app's own private bucket), never a URL — ADR-040/041.
+    # Populated only by enrich_product_images.py, which downloads and re-hosts the
+    # image rather than storing a live link to a third-party CDN. Every reader must
+    # go through recommendations/service.py's resolve_product_image_url() /
+    # resolve_product_read() to turn this into a fresh presigned URL — never read
+    # this column directly into an API response.
     image_url: Mapped[str | None] = mapped_column(default=None)
     price: Mapped[float | None] = mapped_column(Numeric(10, 2), default=None)
     currency: Mapped[str | None] = mapped_column(default=None)

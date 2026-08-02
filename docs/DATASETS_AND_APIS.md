@@ -81,10 +81,15 @@ class Adapter(Protocol):
   has no image column at all. A second, smaller Kaggle scrape of the same retailer,
   `yamqwe/sephora-products`, has real image URLs and is used *only* to backfill
   `products.image_url` via `enrich_product_images.py` — exact normalized
-  (brand, product_name) match, no fuzzy scoring, each URL verified live before write
-  (ADR-040). Coverage is intentionally partial (~1.6% of the catalog as of 2026-08-02)
-  — products without a match keep the designed "No photo yet" placeholder rather than
-  a fabricated or guessed image link.
+  (brand, product_name) match, no fuzzy scoring. Each matched image is downloaded
+  once and re-hosted through this app's own private storage adapter
+  (`app/core/storage.py`) rather than kept as a live hotlink to Sephora's CDN —
+  `products.image_url` stores the resulting S3 key, resolved to a fresh presigned URL
+  on every read via `recommendations/service.py`'s `resolve_product_image_url()`
+  (ADR-040/041). Coverage is intentionally partial (~1.6% of the catalog as of
+  2026-08-02) — products without a match keep the designed "No photo yet" placeholder
+  rather than a fabricated or guessed image link. Bulk-scraping a live retail site for
+  broader coverage was considered and declined — same no-API/ToS reasoning as §3 below.
 
 ## 3. Ingredient database — INCIDecoder, COSDNA
 - **Sites:** `https://incidecoder.com`, `https://cosdna.com`
