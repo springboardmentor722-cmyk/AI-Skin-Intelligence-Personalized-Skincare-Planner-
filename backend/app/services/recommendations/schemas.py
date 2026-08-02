@@ -66,6 +66,10 @@ class ProductDetail(BaseModel):
     category: str | None
     product_url: str | None
     image_url: str | None
+    # Populated from product_images (ADR-043) for the catalog subset that has more
+    # than one photo (a carousel, web/components/products/product-image-carousel.tsx);
+    # empty for every other product, which falls back to the single image_url above.
+    image_urls: list[str]
     price: float | None
     currency: str | None
     volume_ml: int | None
