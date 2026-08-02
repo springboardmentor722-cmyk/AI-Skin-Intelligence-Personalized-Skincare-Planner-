@@ -87,6 +87,10 @@ def test_extract_brand_and_name_matches_three_word_brands() -> None:
         "Peter Thomas Roth",
         "Peter Thomas Roth Moisturizer 30ml",
     )
+    assert _extract_brand_and_name("BBB London Luscious Lash Oil 7.5ml") == (
+        "BBB London",
+        "BBB London Luscious Lash Oil 7.5ml",
+    )
 
 
 def test_extract_brand_and_name_matches_the_x_y_brands() -> None:

@@ -57,6 +57,7 @@ _KNOWN_MULTI_WORD_BRANDS = [
     "The Organic Pharmacy",
     "The Chemistry Brand",
     "Spa Magik Organiks",
+    "BBB London",
     # 2-word
     "La Roche-Posay",
     "L'Oréal Paris",
