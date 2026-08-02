@@ -1,0 +1,15 @@
+{
+  "name": "E-Commerce Cosmetics Dataset",
+  "source": "Kaggle",
+  "kaggle_url": "https://www.kaggle.com/datasets/devi5723/e-commerce-cosmetics-dataset",
+  "kaggle_slug": "devi5723/e-commerce-cosmetics-dataset",
+  "download_date": "2026-08-03",
+  "license": "MIT",
+  "file_count": 1,
+  "row_count": 12615,
+  "skincare_row_count": 2077,
+  "column_count": 15,
+  "columns": ["product_name", "website", "country", "category", "subcategory", "title-href", "price", "brand", "ingredients", "form", "type", "color", "size", "rating", "noofratings"],
+  "file_size_bytes": 7600800,
+  "notes": "Requires encoding='latin-1' - default UTF-8 raises UnicodeDecodeError. Real column names differ from the Kaggle page's prose description (size not quantity, noofratings not 'number of ratings') - verified from the actual header. Price is INR throughout regardless of source country."
+}
