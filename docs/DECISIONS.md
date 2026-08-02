@@ -1542,3 +1542,42 @@ silently stale.
 literal subtitle size — a deliberate, owner-approved drift from `web/designs/wireframes/`
 for this one token. Any future wireframe-fidelity pass should treat this ADR as the
 reason, not re-inflate the subtitle back to 12px to "match the screenshot."
+
+## ADR-040 — Real Sephora catalog ingested; product images backfilled from a second dataset via exact match only
+
+**Status:** Accepted (owner request, 2026-08-02)
+**Context:** The running app's `products` table held only `backend/app/db/seed.py`'s
+16-row fictional placeholder catalog (`Lumina Labs`, `Bare Basics`, `DermaCare Co` —
+made-up brands) — the real Kaggle ingest (`products.py`) was code-complete but had
+never actually been run against this DB, credential-blocked until `KAGGLE_USERNAME`/
+`KAGGLE_KEY` landed in `.env`. Separately, that real dataset
+(`nadyinky/sephora-products-and-skincare-reviews`) has no image column at all
+(confirmed by inspecting all 26 columns and sampled rows, not assumed) — see ADR
+history/conversation, 2026-08-02 — so real product images needed a second source.
+Researched 9 alternative Kaggle datasets total across two rounds; most had no image
+field either, and the one large one that did (`mfsoftworks/cosmetic-products`, ~10.7k
+rows) was overwhelmingly makeup with almost no real price data, unusable against this
+project's mandatory-field ingest gates. `yamqwe/sephora-products` (377 rows) was the
+only find with real, working image URLs and enough brand/name overlap with the primary
+catalog to be worth aligning.
+**Decision:** Ran `make ingest-products` for real — 2,409 real Sephora skincare
+products loaded (additive; the 16 placeholder rows are untouched, `load_into_database`
+already dedupes by natural key so nothing collided). Built a *separate* enrichment
+pipeline, `backend/app/services/admin/ingest/enrich_product_images.py`
+(`make enrich-product-images`), rather than folding image lookup into `products.py`,
+since it's a genuinely different source with a different (weaker) trust level. Matching
+is **exact normalized (brand_name, product_name) only, no fuzzy scoring** — deliberately
+strict, because a wrong match here means showing a *different real product's* photo,
+which is worse than the flask-icon placeholder it replaces. Every matched URL is
+verified live (HTTP HEAD, 200-only) before being written, since the source dataset is
+several years old and Sephora's CDN does drop images over time. Result: 39 of 2,409
+products (~1.6%) now have a real, verified `image_url`; the rest still show the
+designed "No photo yet" placeholder (ADR-039's sibling fix) — expected, not a bug, given
+how small the overlap between the two source scrapes actually is.
+**Consequences:** The product catalog is now real data end-to-end (browsable in
+`/products`, recommendable, ingredient-linked) instead of a 16-row placeholder. Image
+coverage is intentionally partial and will not grow without either a better-aligned
+image dataset (kept as an open item, not fabricated) or `web/lib/api.ts` gaining real
+per-product image lookup against a live retailer API — out of scope here. Re-running
+`make ingest-products` followed by `make enrich-product-images` is safe and idempotent
+any time either dataset is refreshed.
