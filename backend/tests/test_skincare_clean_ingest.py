@@ -89,6 +89,30 @@ def test_extract_brand_and_name_matches_three_word_brands() -> None:
     )
 
 
+def test_extract_brand_and_name_matches_the_x_y_brands() -> None:
+    assert _extract_brand_and_name("The INKEY List Snow Mushroom Hydrating") == (
+        "The INKEY List",
+        "The INKEY List Snow Mushroom Hydrating",
+    )
+    assert _extract_brand_and_name(
+        "The Organic Pharmacy Four Acid Peel Serum 30ml"
+    ) == (
+        "The Organic Pharmacy",
+        "The Organic Pharmacy Four Acid Peel Serum 30ml",
+    )
+
+
+def test_extract_brand_and_name_matches_special_char_brands() -> None:
+    assert _extract_brand_and_name("Sea Magik Sunsafe SPF50 Clear Spray 150ml") == (
+        "Sea Magik",
+        "Sea Magik Sunsafe SPF50 Clear Spray 150ml",
+    )
+    assert _extract_brand_and_name("Oh K! SOS Soothing Facial Balm 100ml") == (
+        "Oh K!",
+        "Oh K! SOS Soothing Facial Balm 100ml",
+    )
+
+
 def test_parse_gbp_price_strips_currency_symbol() -> None:
     assert _parse_gbp_price("£13.00") == 13.00
     assert _parse_gbp_price("£4.50") == 4.50

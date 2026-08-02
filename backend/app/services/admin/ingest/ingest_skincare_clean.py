@@ -53,6 +53,10 @@ _KNOWN_MULTI_WORD_BRANDS = [
     "Jo Malone London",
     "Neal's Yard Remedies",
     "REN Clean Skincare",
+    "The INKEY List",
+    "The Organic Pharmacy",
+    "The Chemistry Brand",
+    "Spa Magik Organiks",
     # 2-word
     "La Roche-Posay",
     "L'Oréal Paris",
@@ -85,6 +89,9 @@ _KNOWN_MULTI_WORD_BRANDS = [
     "Avant Skincare",
     "Pai Skincare",
     "Dr. PAWPAW",
+    "Sea Magik",
+    "Oh K!",
+    "L:A BRUKET",
 ]
 
 
