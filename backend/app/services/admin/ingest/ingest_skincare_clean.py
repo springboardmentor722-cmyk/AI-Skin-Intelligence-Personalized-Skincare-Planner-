@@ -44,6 +44,49 @@ _PRODUCT_TYPE_MAP: dict[str, str] = {
     "Peel": "Treatment Products",
 }
 
+# Real multi-word brands found in the dataset (verified 2026-08-03, longest-match-first).
+# Handles the common case where brand_name is multiple leading words in product_name.
+_KNOWN_MULTI_WORD_BRANDS = [
+    # 3-word, checked first (longest match wins)
+    "First Aid Beauty",
+    "Peter Thomas Roth",
+    "Jo Malone London",
+    "Neal's Yard Remedies",
+    "REN Clean Skincare",
+    # 2-word
+    "La Roche-Posay",
+    "L'Oréal Paris",
+    "Estée Lauder",
+    "Holika Holika",
+    "Elizabeth Arden",
+    "Sanctuary Spa",
+    "Molton Brown",
+    "Aromatherapy Associates",
+    "Bubble T",
+    "Liz Earle",
+    "Frank Body",
+    "Bondi Sands",
+    "Burt's Bees",
+    "Mama Mio",
+    "Erno Laszlo",
+    "Bobbi Brown",
+    "Indeed Labs",
+    "Manuka Doctor",
+    "Revolution Skincare",
+    "Eve Lom",
+    "Fade Out",
+    "By Terry",
+    "Sarah Chapman",
+    "Balance Me",
+    "Natura Bissé",
+    "Laura Mercier",
+    "Shea Moisture",
+    "Emma Hardie",
+    "Avant Skincare",
+    "Pai Skincare",
+    "Dr. PAWPAW",
+]
+
 
 def map_product_type(product_type: str | None) -> str:
     if product_type is None:
@@ -71,15 +114,20 @@ def download_dataset() -> Path:
 
 def _extract_brand_and_name(product_name: str) -> tuple[str, str]:
     """No brand_name column exists in this dataset - brand is always the leading
-    word(s) of product_name (real observed pattern: "CeraVe ...", "The Ordinary
-    ...", "Weleda ..."). Two-word brands starting with "The" are kept together
-    (the only real multi-word-leading-article brand observed); every other brand is
-    the single leading word - never guessed beyond what's mechanically extractable
-    from the string itself."""
+    word(s) of product_name. Longest-match-first against known multi-word brands,
+    then falls back to "The X" pattern, then single leading word."""
+    # Try known multi-word brands (longest first, already sorted in the list)
+    for brand in _KNOWN_MULTI_WORD_BRANDS:
+        if product_name.startswith(brand + " ") or product_name == brand:
+            return brand, product_name
+
+    # Fall back to "The X" pattern (two-word leading-article brand)
     words = product_name.split()
     if words and words[0] == "The" and len(words) > 1:
         return f"{words[0]} {words[1]}", product_name
-    return words[0], product_name
+
+    # Fall back to single leading word
+    return words[0] if words else "", product_name
 
 
 def _parse_gbp_price(raw: str | None) -> float | None:

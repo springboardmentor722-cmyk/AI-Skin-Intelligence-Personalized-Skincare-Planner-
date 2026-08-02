@@ -65,6 +65,30 @@ def test_extract_brand_and_name_falls_back_to_first_word() -> None:
     )
 
 
+def test_extract_brand_and_name_matches_two_word_brands() -> None:
+    assert _extract_brand_and_name("La Roche-Posay Effaclar H Moisturiser 40ml") == (
+        "La Roche-Posay",
+        "La Roche-Posay Effaclar H Moisturiser 40ml",
+    )
+    assert _extract_brand_and_name("Elizabeth Arden Advanced Ceramide Capsules") == (
+        "Elizabeth Arden",
+        "Elizabeth Arden Advanced Ceramide Capsules",
+    )
+
+
+def test_extract_brand_and_name_matches_three_word_brands() -> None:
+    assert _extract_brand_and_name(
+        "First Aid Beauty Ultra Repair Cream (56.7g)"
+    ) == (
+        "First Aid Beauty",
+        "First Aid Beauty Ultra Repair Cream (56.7g)",
+    )
+    assert _extract_brand_and_name("Peter Thomas Roth Moisturizer 30ml") == (
+        "Peter Thomas Roth",
+        "Peter Thomas Roth Moisturizer 30ml",
+    )
+
+
 def test_parse_gbp_price_strips_currency_symbol() -> None:
     assert _parse_gbp_price("£13.00") == 13.00
     assert _parse_gbp_price("£4.50") == 4.50
