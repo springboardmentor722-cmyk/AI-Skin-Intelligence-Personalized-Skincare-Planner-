@@ -1,14 +1,27 @@
-# Dataset expansion: 7 additional Kaggle product/ingredient sources
+# Dataset expansion: 5 additional Kaggle product/ingredient sources
 
 Status: approved for planning · Date: 2026-08-03 · Owner: Satya Sai Tharun Jekkamsetti
 
 ## Goal
 
-Add 7 new Kaggle product/ingredient datasets to `training_dataset/raw/`, and ingest
+Add 5 new Kaggle product/ingredient datasets to `training_dataset/raw/`, and ingest
 the skincare-relevant rows from each into the existing `products` /
 `product_ingredients` / `ingredients` Postgres tables, using the same pattern
 `backend/app/services/admin/ingest/products.py` already established for the Sephora
 dataset. No new architecture, no new schema, no fuzzy-matching layer.
+
+**Revision note (2026-08-03):** the original 7-dataset request included 4 dataset
+URLs that turned out not to exist under the given slugs, verified live via the
+Kaggle API and Kaggle dataset pages (not assumed) — `openfoodfacts/open-beauty-facts`,
+`stephaniefong/ulta-beauty-products`, `PromptCloudHQ/amazon-beauty-products`, and
+`ruchi798/skincare-products` all 404. The owner supplied 3 corrected replacement URLs;
+one (`openfoodfacts/openbeautyfacts`, no hyphens) is the real Open Beauty Facts
+dataset. The other two (`thaprinceali/sephora-product-case-study`,
+`melissamonfared/sephora-skincare-reviews`) are real but — per their own dataset
+descriptions — both republish the exact same `nadyinky/sephora-products-and-skincare-reviews`
+scrape already ingested as `MANIFEST.md` #1; the owner confirmed skipping both rather
+than spending a download+dedupe cycle on data already in Postgres. Net: 5 datasets,
+down from 7.
 
 ## Non-goals (explicitly dropped from the original ask, with reasons)
 
@@ -33,21 +46,19 @@ dataset. No new architecture, no new schema, no fuzzy-matching layer.
   existing accepted/rejected report (`training_dataset/processed/*_ingest_*.json`);
   aggregated into one `missing_data_report.md` instead of a parallel CSV pipeline.
 
-## Datasets (7, in build order — Priority 1 first, per owner's original list)
+## Datasets (5, real columns/license already verified live via Kaggle — 2026-08-03)
 
-| # | Dataset | Kaggle slug | Target folder |
-|---|---|---|---|
-| 5 | Open Beauty Facts | `openfoodfacts/open-beauty-facts` | `training_dataset/raw/open-beauty-facts/` |
-| 6 | Skincare Products Clean Dataset | `eward96/skincare-products-clean-dataset` | `training_dataset/raw/skincare-clean/` |
-| 7 | Skincare Products and Ingredients | `autumndyer/skincare-products-and-ingredients` | `training_dataset/raw/skincare-ingredients/` |
-| 8 | Ulta Beauty Products | `stephaniefong/ulta-beauty-products` | `training_dataset/raw/ulta/` |
-| 9 | Amazon Beauty Products | `PromptCloudHQ/amazon-beauty-products` | `training_dataset/raw/amazon/` |
-| 10 | E-Commerce Cosmetics Dataset | `devi5723/e-commerce-cosmetics-dataset` | `training_dataset/raw/ecommerce/` |
-| 11 | Skin Care Products Dataset | `ruchi798/skincare-products` | `training_dataset/raw/skincare-products/` |
+| # | Dataset | Kaggle slug | Target folder | Real columns (as verified) | License |
+|---|---|---|---|---|---|
+| 5 | Open Beauty Facts | `openfoodfacts/openbeautyfacts` | `training_dataset/raw/open-beauty-facts/` | 162-col TSV (`en.openbeautyfacts.org.products.tsv`); relevant: `code, url, product_name, generic_name, quantity, brands, categories, categories_tags, ingredients_text, image_url`. General Open Food/Beauty Facts schema — rows include non-cosmetic items (a chocolate product appeared in a raw sample), needs real category-tag filtering, not a guess. | Database: Open Database (ODbL), Contents: Database Contents (DbCL) |
+| 6 | Skincare Products Clean Dataset | `eward96/skincare-products-clean-dataset` | `training_dataset/raw/skincare-clean/` | `product_name, product_url, product_type, clean_ingreds, price` (GBP, lookfantastic.com scrape) — 5 cols, 1138 rows | Unknown (Kaggle page states "Unknown") |
+| 7 | Skincare Products and Ingredients | `autumndyer/skincare-products-and-ingredients` | `training_dataset/raw/skincare-ingredients/` | 5 separate files: `Paula_SUM_LIST.csv` (Paula's Choice ingredient data), `Paula_embedding_SUMLIST_before_422.csv` (embeddings — not product-shaped, skip), `Sephora_all_423.csv` (**likely another nadyinky-derivative — verify overlap in Phase 3 before ingesting, may reduce to Paula_SUM_LIST.csv only**), `binary_cosmetic_ingredient.csv` (product×ingredient flatten), `pre_alternatives.csv` (ingredient substitution pairs — not product-shaped, skip) | MIT |
+| 8 | E-Commerce Cosmetics Dataset | `devi5723/e-commerce-cosmetics-dataset` | `training_dataset/raw/ecommerce/` | `product_name, website, country, category, subcategory, title-href, price, brand, ingredients, form, type, color, quantity, rating, number_of_ratings` — 15 cols, ~12,244 rows scraped from Amazon/Flipkart/Sephora/Ulta (India). Real `category` column has a literal `skincare` value among 6 classes (eyes/face/lips/body/skincare/hair) — reliable filter signal, not guessed. | MIT |
+| 9 | Dermstore Skincare Products & Ingredients | `crawlfeeds/dermstore-skincare-products-and-ingredients-dataset` | `training_dataset/raw/dermstore/` | Single JSON file (`dermstore_data.json`, 683KB), ~100+ products: product name, brand, category, ingredients, skin concerns, description, ratings (some records) | CC BY 4.0 |
 
-(Numbering continues from `MANIFEST.md`'s existing 1–4.) Kaggle listing, license,
-column names, and row counts get verified live (Chrome extension) at the start of
-each dataset's phase, not assumed from the dataset title.
+(Numbering continues from `MANIFEST.md`'s existing 1–4.) Two datasets from the
+original ask were dropped as confirmed duplicates of already-ingested data — see the
+revision note above.
 
 ## Architecture
 
@@ -83,7 +94,7 @@ dataset only with mappings actually observed in that dataset's real values.
 untouched — it already does the cross-dataset "matching" by construction: the same
 brand+product landing from a second dataset is skipped, not double-inserted.
 
-## Per-dataset phase (repeated 7 times, each independently committable)
+## Per-dataset phase (repeated 5 times, each independently committable)
 
 1. `kaggle datasets download` into `training_dataset/raw/<slug>/`, unzip.
 2. Verify via Chrome extension: license, real column names, row count, missing-value
@@ -103,16 +114,16 @@ brand+product landing from a second dataset is skipped, not double-inserted.
    real entry (currently has zero mentions of any of these 7).
 9. Commit on a feature branch → merge to local `dev` → delete branch.
 
-## Cross-cutting artifacts (after all 7 phases)
+## Cross-cutting artifacts (after all 5 phases)
 
 - **`missing_data_report.md`** (`training_dataset/processed/`) — aggregates each
-  run's real accepted/rejected/rejection-reason counts across all 7 datasets (plus
-  the 2 existing ones) into one table. Generated from the existing per-run JSON
+  run's real accepted/rejected/rejection-reason counts across all 5 new datasets
+  (plus the 2 existing ones) into one table. Generated from the existing per-run JSON
   reports, not recomputed.
 - **`master_product_schema.md`** (`training_dataset/`) — documents the one real
   target shape (points at `database_schemas/` + the `Product`/`Ingredient` models as
   canonical) and includes each dataset's `column_mapping.json` inline as a per-source
-  section. Not a new schema — a map of 9 sources onto the existing one.
+  section. Not a new schema — a map of 7 sources onto the existing one.
 - **Link verification** — one script,
   `backend/app/services/admin/ingest/verify_product_links.py`: HEAD-request (with
   timeout, retry+backoff, concurrency cap) every distinct non-null
@@ -126,11 +137,13 @@ brand+product landing from a second dataset is skipped, not double-inserted.
 
 ## Docs updated in the same changes
 
-- `training_dataset/MANIFEST.md` — rows 5–11.
-- `docs/DATASETS_AND_APIS.md` — real entries for all 7 (currently absent entirely).
-- `docs/DECISIONS.md` — one ADR: "7 additional Kaggle product datasets ingested via
+- `training_dataset/MANIFEST.md` — rows 5–9.
+- `docs/DATASETS_AND_APIS.md` — real entries for all 5 (currently absent entirely).
+- `docs/DECISIONS.md` — one ADR: "5 additional Kaggle product datasets ingested via
   the existing per-dataset ingest-module pattern; exact-match dedupe only, no fuzzy
-  matching" (structural addition of new data sources, per AGENTS.md §6).
+  matching; 2 requested Sephora-derivative datasets and 3 nonexistent dataset URLs
+  from the original ask excluded" (structural addition of new data sources, per
+  AGENTS.md §6).
 - `PROGRESS.md` — real completed/remaining state per dataset, honestly reported (no
   dataset marked done unless its real ingest run actually completed).
 - `training_dataset/README.md` — its existing "Status" table gets a real row per
@@ -157,10 +170,14 @@ touched until explicitly requested after this session's work is reviewed.
 
 ## Open risks / things that can still block a phase
 
-- A dataset's real columns may not carry any reliable skincare-category signal (e.g.
-  general "Beauty" categories mixing makeup/haircare/skincare) — if so, the phase
-  stops and asks rather than guessing a category split (AGENTS.md §0.2).
-- Large datasets (e.g. Open Beauty Facts, Amazon Beauty Products) may be multi-GB —
-  confirm size before pulling, same caution `MANIFEST.md` already applies to ISIC-2019.
-- License terms differ per dataset; each phase's `dataset_info.json` records the real
-  license found on the Kaggle page, not an assumption.
+- Open Beauty Facts (162 cols, general Open Food/Beauty Facts schema) mixes
+  non-cosmetic rows in with cosmetics — real `categories`/`categories_tags` values
+  need inspection in Phase 1 to build a reliable skincare filter; if no reliable
+  signal exists, stop and ask rather than guessing a category split (AGENTS.md §0.2).
+- `autumndyer/skincare-products-and-ingredients`'s `Sephora_all_423.csv` file may
+  itself be another nadyinky-derivative (same risk as the two dropped datasets) —
+  confirmed by inspecting its actual columns/row overlap in that dataset's phase
+  before deciding whether to ingest it or skip it in favor of `Paula_SUM_LIST.csv`
+  only.
+- License terms differ per dataset (Unknown / MIT / CC BY 4.0 / ODbL — see table
+  above, already verified from real Kaggle pages, not assumed).
