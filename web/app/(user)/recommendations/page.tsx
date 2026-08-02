@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import { Layers, RotateCw, Sparkles, ThumbsDown, ThumbsUp, TriangleAlert, X } from "lucide-react";
 import { toast } from "sonner";
 
-import { MatchRing } from "@/components/products/match-ring";
+import { ProductRecommendationCard } from "@/components/products/product-recommendation-card";
 import { StateCard } from "@/components/state-card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -329,35 +329,7 @@ export default function RecommendationsPage() {
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
                 {sorted.map((rec) => (
                   <div key={rec.product.product_id} className="border-border bg-card rounded-2xl border p-4">
-                    <div className="bg-muted relative mb-3 aspect-square overflow-hidden rounded-lg">
-                      {rec.product.image_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element -- seeded/external product photos
-                        <img
-                          src={rec.product.image_url}
-                          alt={rec.product.product_name ?? "Product"}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <div className="text-on-surface-variant/40 flex h-full w-full items-center justify-center">
-                          <Sparkles className="size-8" strokeWidth={1.5} />
-                        </div>
-                      )}
-                      <MatchRing score={rec.match_percentage} className="absolute top-2 right-2" />
-                    </div>
-                    <h3 className="font-heading text-on-surface text-sm font-semibold">
-                      {rec.product.product_name}
-                    </h3>
-                    <p className="text-on-surface-variant font-sans text-xs">
-                      {rec.product.brand_name}
-                    </p>
-                    <p className="font-geist text-on-surface mt-1 text-sm tabular-nums">
-                      {formatPrice(rec.product.price, rec.product.currency)}
-                    </p>
-                    {rec.reasons.length > 0 && (
-                      <p className="text-on-surface-variant mt-2 font-sans text-xs">
-                        {rec.reasons[0]}
-                      </p>
-                    )}
+                    <ProductRecommendationCard recommendation={rec} />
                     <div className="mt-3 flex items-center justify-between gap-2">
                       <label className="text-on-surface-variant flex items-center gap-1.5 font-sans text-xs">
                         <Checkbox

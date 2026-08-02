@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRef } from "react";
-import { ChevronLeft, ChevronRight, Star } from "lucide-react";
+import { ChevronLeft, ChevronRight, FlaskConical, Star } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -62,8 +62,13 @@ export function ProductCarousel({
         {products.map((product) => (
           <div key={product.key} className="border-border bg-card w-36 shrink-0 rounded-xl border p-2">
             <div className="bg-muted relative mb-2 flex h-24 items-center justify-center overflow-hidden rounded-lg">
-              {product.imageUrl && (
+              {product.imageUrl ? (
                 <Image src={product.imageUrl} alt={product.name} fill className="object-contain" />
+              ) : (
+                <FlaskConical
+                  className="text-on-surface-variant/50 size-5"
+                  strokeWidth={1.5}
+                />
               )}
             </div>
             <p className="line-clamp-2 text-xs font-medium">{product.name}</p>
