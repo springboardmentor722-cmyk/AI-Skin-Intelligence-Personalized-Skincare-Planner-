@@ -80,6 +80,18 @@ async def test_export_normalized_ingredients_returns_real_sorted_names(
     db_session.add(Ingredient(ingredient_name="AAAA_Sort_Test_First"))
     await db_session.commit()
 
+    # Residual risk considered and ruled out: `ingredient_name` has a UNIQUE btree
+    # index (models.py), so an ORDER-BY-less version of this query could in theory
+    # get sorted output "for free" via an Index Only Scan, making this test blind
+    # to a deleted .order_by(). Confirmed via EXPLAIN (ANALYZE, BUFFERS) against the
+    # real dev DB (14,081-row `ingredients` table) 2026-08-03:
+    #   SELECT ingredient_name FROM ingredients ORDER BY ingredient_name;
+    #     -> Index Only Scan using ingredients_ingredient_name_key
+    #   SELECT ingredient_name FROM ingredients;  (no ORDER BY)
+    #     -> Seq Scan on ingredients
+    # The no-ORDER-BY plan is a Seq Scan (unordered heap order), not an Index Only
+    # Scan, so this reverse-insertion-order + index-position assertion reliably
+    # catches a removed ORDER BY in this environment.
     names = await export_normalized_ingredients(db_session)
 
     # Both ingredients must be present
