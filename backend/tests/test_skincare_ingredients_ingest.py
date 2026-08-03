@@ -51,6 +51,14 @@ def test_parse_skin_types_returns_empty_for_missing_value() -> None:
     assert _parse_skin_types(float("nan")) == []
 
 
+def test_parse_skin_types_drops_glued_malformed_fragments() -> None:
+    # Real messy source data: skin-type text runs directly into marketing prose
+    # with no separator — the glued fragment must not match, but valid
+    # comma-separated types before it still should.
+    raw = "Normal, Dry, Combination, and OilySkincare Concerns: Dryness"
+    assert _parse_skin_types(raw) == ["Combination", "Dry", "Normal"]
+
+
 def test_normalize_rows_accepts_a_valid_row() -> None:
     df = pd.DataFrame([_row()])
     products, rejected = normalize_rows(df)
