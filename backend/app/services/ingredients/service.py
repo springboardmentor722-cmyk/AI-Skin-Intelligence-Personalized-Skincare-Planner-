@@ -28,7 +28,7 @@ from app.services.ingredients.schemas import (
     SuitabilityRead,
 )
 from app.services.recommendations.models import Product, ProductIngredient
-from app.services.recommendations.schemas import ProductRead
+from app.services.recommendations.service import resolve_product_reads
 from app.services.skin_profile import service as skin_profile_service
 from app.services.skin_profile.models import SkinConcern, SkinType
 
@@ -212,7 +212,7 @@ async def get_ingredient_detail(
             AvoidForSkinType(skin_type_id=r[0], skin_type_name=r[1], reason=r[2])
             for r in avoid_rows
         ],
-        products=[ProductRead.model_validate(p) for p in products],
+        products=await resolve_product_reads(db, list(products)),
         education=education,
     )
 

@@ -10,6 +10,7 @@ from app.services.ingredients.models import Ingredient, IngredientSkintypeAvoid
 from app.services.recommendations.models import (
     Product,
     ProductConcern,
+    ProductImage,
     ProductIngredient,
     ProductSkinType,
 )
@@ -27,6 +28,9 @@ from app.services.recommendations.service import (
     evaluate_products_suitability,
     list_avoided_ingredient_product_ids,
     list_concern_ids_for_products,
+    resolve_product_image_url,
+    resolve_product_read,
+    resolve_product_reads,
 )
 from app.services.skin_profile import service as skin_profile_service
 from app.services.skin_profile.models import SkinConcern, SkinType
@@ -78,13 +82,20 @@ async def list_products(
     )
 
 
-def _product_read_from_es_source(source: dict[str, Any]) -> ProductRead:
+async def _product_read_from_es_source(source: dict[str, Any]) -> ProductRead:
+    # image_key is an S3 object key (ADR-040) that must be presigned fresh on every
+    # read, never baked into the ES document itself (es_projection.py's own comment
+    # on why: a presigned URL would go stale between outbox-triggered re-indexes).
+    # fallback_image_url (ADR-043) is already a live, non-expiring external URL.
+    image_url = await resolve_product_image_url(source.get("image_key")) or source.get(
+        "fallback_image_url"
+    )
     return ProductRead(
         product_id=source["product_id"],
         brand_name=source.get("brand_name"),
         product_name=source.get("product_name"),
         category=source.get("category"),
-        image_url=None,  # not part of products_index's documented mapping
+        image_url=image_url,
         price=source.get("price"),
         currency=source.get("currency"),
         spf_rating=source.get("spf_rating"),
@@ -133,7 +144,9 @@ async def _list_via_es(
         sort=[{"product_name.raw": "asc"}],
     )
     total = result["hits"]["total"]["value"]
-    items = [_product_read_from_es_source(hit["_source"]) for hit in result["hits"]["hits"]]
+    items = [
+        await _product_read_from_es_source(hit["_source"]) for hit in result["hits"]["hits"]
+    ]
     return ProductListPage(
         items=items,
         meta=ProductListMeta(page=page, page_size=page_size, total=total, source="elasticsearch"),
@@ -177,7 +190,7 @@ async def _list_via_pg(
     result = await db.execute(
         query.order_by(Product.product_name).offset((page - 1) * page_size).limit(page_size)
     )
-    items = [ProductRead.model_validate(p) for p in result.scalars().all()]
+    items = await resolve_product_reads(db, list(result.scalars().all()))
     return ProductListPage(
         items=items,
         meta=ProductListMeta(page=page, page_size=page_size, total=total, source="fallback"),
@@ -190,6 +203,18 @@ async def get_product_detail(
     product = await db.get(Product, product_id)
     if product is None:
         return None
+
+    image_urls = (
+        (
+            await db.execute(
+                select(ProductImage.image_url)
+                .where(ProductImage.product_id == product_id)
+                .order_by(ProductImage.sort_order)
+            )
+        )
+        .scalars()
+        .all()
+    )
 
     ingredient_rows = (
         (
@@ -264,7 +289,8 @@ async def get_product_detail(
         product_name=product.product_name,
         category=product.category,
         product_url=product.product_url,
-        image_url=product.image_url,
+        image_url=await resolve_product_image_url(product.image_url),
+        image_urls=list(image_urls),
         price=float(product.price) if product.price is not None else None,
         currency=product.currency,
         volume_ml=product.volume_ml,
@@ -329,7 +355,7 @@ async def compare_products(db: AsyncSession, product_ids: list[int]) -> ProductC
         )
         items.append(
             ProductCompareItem(
-                product=ProductRead.model_validate(product),
+                product=await resolve_product_read(db, product),
                 ingredient_names=[name for name in ingredient_names if name is not None],
                 skin_types_supported=[name for name in skin_types if name is not None],
                 concerns_supported=[name for name in concerns if name is not None],
@@ -398,4 +424,4 @@ async def get_alternatives(
         return (-overlap, rank)
 
     ordered = sorted(candidates, key=sort_key)[:_MAX_ALTERNATIVES]
-    return ProductAlternativesRead(alternatives=[ProductRead.model_validate(p) for p in ordered])
+    return ProductAlternativesRead(alternatives=await resolve_product_reads(db, ordered))

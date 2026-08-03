@@ -1542,3 +1542,278 @@ silently stale.
 literal subtitle size — a deliberate, owner-approved drift from `web/designs/wireframes/`
 for this one token. Any future wireframe-fidelity pass should treat this ADR as the
 reason, not re-inflate the subtitle back to 12px to "match the screenshot."
+
+## ADR-040 — Real Sephora catalog ingested; product images backfilled from a second dataset via exact match only
+
+**Status:** Accepted (owner request, 2026-08-02)
+**Context:** The running app's `products` table held only `backend/app/db/seed.py`'s
+16-row fictional placeholder catalog (`Lumina Labs`, `Bare Basics`, `DermaCare Co` —
+made-up brands) — the real Kaggle ingest (`products.py`) was code-complete but had
+never actually been run against this DB, credential-blocked until `KAGGLE_USERNAME`/
+`KAGGLE_KEY` landed in `.env`. Separately, that real dataset
+(`nadyinky/sephora-products-and-skincare-reviews`) has no image column at all
+(confirmed by inspecting all 26 columns and sampled rows, not assumed) — see ADR
+history/conversation, 2026-08-02 — so real product images needed a second source.
+Researched 9 alternative Kaggle datasets total across two rounds; most had no image
+field either, and the one large one that did (`mfsoftworks/cosmetic-products`, ~10.7k
+rows) was overwhelmingly makeup with almost no real price data, unusable against this
+project's mandatory-field ingest gates. `yamqwe/sephora-products` (377 rows) was the
+only find with real, working image URLs and enough brand/name overlap with the primary
+catalog to be worth aligning.
+**Decision:** Ran `make ingest-products` for real — 2,409 real Sephora skincare
+products loaded (additive; the 16 placeholder rows are untouched, `load_into_database`
+already dedupes by natural key so nothing collided). Built a *separate* enrichment
+pipeline, `backend/app/services/admin/ingest/enrich_product_images.py`
+(`make enrich-product-images`), rather than folding image lookup into `products.py`,
+since it's a genuinely different source with a different (weaker) trust level. Matching
+is **exact normalized (brand_name, product_name) only, no fuzzy scoring** — deliberately
+strict, because a wrong match here means showing a *different real product's* photo,
+which is worse than the flask-icon placeholder it replaces. Every matched URL is
+verified live (HTTP HEAD, 200-only) before being written, since the source dataset is
+several years old and Sephora's CDN does drop images over time. Result: 39 of 2,409
+products (~1.6%) now have a real, verified `image_url`; the rest still show the
+designed "No photo yet" placeholder (ADR-039's sibling fix) — expected, not a bug, given
+how small the overlap between the two source scrapes actually is.
+**Consequences:** The product catalog is now real data end-to-end (browsable in
+`/products`, recommendable, ingredient-linked) instead of a 16-row placeholder. Image
+coverage is intentionally partial and will not grow without either a better-aligned
+image dataset (kept as an open item, not fabricated) or `web/lib/api.ts` gaining real
+per-product image lookup against a live retailer API — out of scope here. Re-running
+`make ingest-products` followed by `make enrich-product-images` is safe and idempotent
+any time either dataset is refreshed.
+
+## ADR-041 — Product images are downloaded once and re-hosted; `products.image_url` stores an S3 key, never a live third-party URL
+
+**Status:** Accepted (owner request, 2026-08-02)
+**Context:** ADR-040's `enrich_product_images.py` originally stored the matched
+`yamqwe/sephora-products` URL directly in `products.image_url` — a live hotlink to
+Sephora's own CDN. Owner correctly flagged this as not production-safe: no uptime/
+stability guarantee from a third party, no protection against Sephora adding
+hotlink/referrer blocking later, and inconsistent with how every other image in this
+app is served (`app/core/storage.py`'s private S3/MinIO adapter, presigned URLs
+only, never a public bucket link — already documented in `AGENTS.md`). A separate
+request to bulk-scrape a live retail site via browser automation for broader image
+coverage was declined for the same reason `docs/DATASETS_AND_APIS.md` already states
+for ingredient sites: no API, ToS/robots almost certainly prohibit scraping at scale.
+**Decision:** `enrich_product_images.py` now downloads each matched image's bytes
+once and uploads it through `storage.upload()` (same adapter, magic-byte content-type
+sniffing, `image/jpeg|png|webp` allowlist) to key `products/{product_id}/main`.
+`products.image_url` stores that **S3 key**, not a URL — documented directly on the
+`Product` model (`recommendations/models.py`). Presigned URLs expire (this adapter's
+default 1h), so resolving a key into a usable URL cannot happen once at ingest time;
+it happens on every read instead, via one new shared function,
+`recommendations/service.py`'s `resolve_product_image_url()` /
+`resolve_product_read()` — every call site across `recommendations`, `ingredients`,
+and `routines` services that builds a `ProductRead`/`ProductDetail` now routes
+through it, so a future call site can't forget the resolution step the way the
+original ad-hoc `ProductRead.model_validate()` calls could.
+**Consequences:** Product images now have zero runtime dependency on Sephora's CDN —
+this app's own bucket is the only thing that has to stay up. The frontend contract is
+unchanged (`image_url` is still always either a ready-to-use URL or null by the time
+it reaches `ProductRead`/`ProductDetail`); only the backend's internal storage
+representation changed. Re-running `make enrich-product-images` after this change
+required first clearing the 39 rows written under the old (raw-URL) scheme back to
+NULL, since the script only ever touches `image_url IS NULL` rows — a one-time
+migration step, not a recurring one.
+
+## ADR-042 — `app/db/vector.py` hardened: atomic writes + a process-local lock, after a real corruption found under load
+
+**Status:** Accepted (found and fixed 2026-08-02/03)
+**Context:** ADR-040's bulk ingest (2,409 products in one run) generated ~2,448
+outbox events. A single `poll_outbox_tick()` processing that backlog took longer
+than the 2s cron interval, so overlapping ticks' `vector.upsert()` calls raced on
+the same `ml/faiss/products.meta.json` with no locking and a non-atomic
+`Path.write_text()` — corrupted it (a validly-closed JSON object with another
+write's tail appended straight after). Surfaced as `JSONDecodeError` failures in
+`test_outbox_poller.py`/`test_rebuild.py`/`test_products_service.py`'s alternatives
+tests, none of which touch code this session changed — a load-exposed pre-existing
+bug, not a regression from anything in ADR-040/041.
+**Decision:** `upsert()`, `remove()`, `clear()` are now `async def` and serialize
+through one process-local `asyncio.Lock` (sufficient per this module's own
+documented single-writer rule — no cross-process case exists). `_save_meta()`/
+`_save_index()` write to a temp file in the same directory then `os.replace()`
+(atomic on POSIX and Windows), so a reader or a crash mid-write only ever sees the
+fully-old or fully-new file. Windows-specific finding: `os.replace()` intermittently
+raised `PermissionError: WinError 5` on this dev machine (repo under Desktop, which
+OneDrive's Known Folder Move silently syncs) — added a short retry-with-backoff
+(`_replace_with_retry`), the standard mitigation for transient AV/cloud-sync file
+locks; POSIX systems succeed on the first attempt every time. Repaired the actual
+corrupted file via the existing `make rebuild-derived` (drops and re-projects every
+ES index + FAISS namespace from Postgres/Mongo from scratch — exactly the
+"everything is rebuildable" contract `vector.py`'s own top comment already claimed).
+**Consequences:** All 8 callers (`app/worker/consumers/embeddings.py` ×7,
+`app/worker/rebuild.py` ×1) and their test call sites now `await` these functions —
+a mechanical but real signature change. Verified: rebuild completed cleanly (2,425
+products, 7,616 ingredients re-projected, valid JSON, `test_vector_store.py`'s full
+suite green). Three more tests broke as a *further*, separate consequence of the
+rebuild now containing real data at real scale — `test_products_service.py::
+test_list_products_via_es_filters_by_category` and two `test_ingredients_service.py`
+ES tests assert a specific 16-row placeholder-catalog fixture ranks in the top 50 ES
+results for a query; it no longer does, competing against 2,400+ real products. Left
+failing rather than papered over — these are fixture/pagination assumptions built
+for a 16-row catalog, not a product bug (confirmed by reading each assertion
+directly), and fixing them properly needs real test-DB isolation from the shared
+dev database, a separate, larger testing-infrastructure change out of scope here.
+**Known failing tests as of this session, all explained above, none a functional
+regression:** `test_outbox_poller.py` ×3, `test_rebuild.py` ×2 (pre-existing
+flakiness once these two integration tests run a real rebuild against a
+2,400+-row catalog instead of 16 rows — each takes minutes now, not seconds, and
+the suite's ~500s+ total runtime made the recurring async-connection-teardown
+`AttributeError` in the traceback likelier to hit; the underlying `rebuild_all()`
+logic itself was verified correct via a direct manual run), `test_products_service.py`
+×1 and `test_ingredients_service.py` ×2 (fixture-ranking assumption, above).
+
+## ADR-043 — 3 additional Kaggle product datasets ingested; 2 more landed raw-only (5 total) after real inspection found no usable signal
+
+**Status:** Accepted (owner request, 2026-08-03)
+**Context:** The dataset layer needed expansion beyond the 4 datasets in
+`training_dataset/MANIFEST.md`. An initial 7-dataset request included 4 URLs that
+turned out not to exist (verified live via the Kaggle API and dataset pages, not
+assumed) and 2 real-but-duplicate datasets (both explicitly republish the
+already-ingested `nadyinky` Sephora scrape, per their own dataset descriptions).
+**Decision:** Ingested 3 real, non-duplicate, product-shaped datasets via the
+existing per-dataset ingest-module pattern (`products.py`'s shape, now sharing
+`_shared.py`'s DB-loading logic, extracted for this purpose): Skincare Products
+Clean Dataset (`eward96`, 1,138/1,138 rows accepted), E-Commerce Cosmetics Dataset
+skincare rows only (`devi5723`, 1,838 new of 2,077 skincare rows — 140 already
+present, 10,637 rejected — non-skincare rows plus a few missing-mandatory-field/
+duplicate rows within the skincare subset), and `Sephora_all_423.csv` from
+`autumndyer`'s dataset (1,051 new of 2,179 rows — 1,125 already present, 3 rejected;
+the other 4 files in that dataset aren't product-shaped). Exact-match
+`(brand_name, product_name)` dedupe only — no fuzzy matching, consistent with the
+`enrich_product_images.py` precedent (ADR-040). The shared-loader extraction
+(`_shared.py`) also fixed a real latent within-batch natural-key dedupe bug in
+`load_into_database`: it only checked the initial DB read, not keys created earlier
+in the same loop, so two accepted rows sharing a natural key within one run could
+double-insert — now tracked as the loop proceeds.
+
+Landed 2 more datasets raw-only, no ingest module: Open Beauty Facts (no `price`
+field exists anywhere in the dataset — fails the mandatory-field gate every other
+dataset here honors) and Dermstore Skincare Products & Ingredients (only 126 rows,
+not skincare-exclusive, no reliable category signal beyond a useless per-product
+breadcrumb).
+
+Two cross-cutting scripts were also built and run for real against the ingested
+data: `generate_dataset_reports.py` (`make generate-dataset-reports`) aggregates
+every ingest module's already-written run reports into
+`training_dataset/processed/missing_data_report.md`, gathers every dataset's
+`column_mapping.json` into `training_dataset/master_product_schema.md`, and exports
+the live `ingredients` table to `training_dataset/processed/normalized_ingredients.csv`
+— needed 4 fix rounds before its DB-sortedness test actually verified what it
+claimed (ended up requiring a live `EXPLAIN` plan check against real Postgres to
+rule out a coincidental Index-Only-Scan false pass). `verify_product_links.py`
+(product-link health check) needed 3 fix rounds fixing real infrastructure bugs in
+the verification script itself — it originally checked the wrong DB column
+(`products.image_url`, an S3 key per ADR-041, not an HTTP URL), sent no `User-Agent`
+header (causing blanket 403s from Sephora/Ulta CDNs regardless of real link health),
+and used HTTP HEAD (which Ulta's WAF blanket-403s regardless of real resource
+state, confirmed by a live HEAD→403/GET→404 flip on identical URLs) — before its
+output could be trusted. Final run: 1,136/1,136 real product image URLs healthy;
+4,155 product page URLs checked, 2,248 broken (1,051 Sephora bot-protection 403s
+that may still be live pages — full browser automation would be needed to confirm,
+out of scope; 665 genuine stale 404s across Ulta/lookfantastic; 532 requests failed
+against one defunct partner subdomain, `sephora.nnnow.com`, DNS NXDOMAIN).
+
+Other real bugs found and fixed along the way, worth recording honestly rather than
+smoothing over (AGENTS.md §0.2): the `eward96` brand-extraction needed 3 fix rounds
+to build a complete real-data-grounded multi-word brand list (La Roche-Posay, Estée
+Lauder, etc. — 44 real brands, not a guessed handful); the `devi5723` ingest module
+had a silent data-loss bug where comma-formatted review counts (e.g. `"1,234"`)
+parsed as `None` instead of the real number, contradicting the never-defaulted
+data-fidelity principle every other field in this pipeline follows.
+**Consequences:** `products`/`ingredients`/`product_ingredients` gained 4,027 real
+new products (1,138 + 1,838 + 1,051) across 3 sources — 6,699 total products,
+14,081 total ingredients as of this session. `training_dataset/MANIFEST.md` grows
+to 9 entries. Two Kaggle datasets sit in `training_dataset/raw/` fully documented as
+landing-only rather than force-fit through a pipeline that would reject 100% of
+their rows or need an invented category classifier. 2,248 of the catalog's product
+URLs are now known-broken (mostly Sephora bot-protection and one dead partner
+subdomain) — a real, currently-unaddressed data-quality gap this ADR records rather
+than silently carries forward; re-verifying with browser automation or dropping the
+dead `sephora.nnnow.com` links outright are both explicitly deferred, not decided
+here.
+
+**Known gaps (found on final whole-branch review, 2026-08-03, documented not fixed):**
+`_shared.py`'s `load_into_database` keys its cross-batch duplicate check on
+`(entry["brand_name"], entry["product_name"])` case-**sensitively**, but every
+module built in this ADR (`ingest_skincare_clean.py`, `ingest_ecommerce_cosmetics.py`,
+`ingest_skincare_ingredients.py`) does its own within-batch dedupe using `.lower()`
+on both fields. A row that differs only in case from an already-loaded product
+therefore passes the loader's check as "new" even though it's the same product
+under different casing. Verified against the live DB: **62 case-only duplicate
+product pairs** among products this branch added, and **29 brands now exist under
+2+ casings** (e.g. `alpyn beauty` product_id 90 vs `Alpyn Beauty` product_id 11898,
+same product, different price). Separately, **4 pre-existing exact-case duplicate
+pairs** (same brand_name/product_name string, inserted twice, predating this
+branch's within-batch dedupe fix) are also still live in the DB, uncleaned. Fixing
+the loader's key (case-fold on lookup while preserving original casing on insert,
+plus a one-off cleanup migration for the 62+4 existing pairs) is a real ingest
+behavior change and is deferred pending owner sign-off, not fixed in this pass.
+
+## ADR-044 — Product image coverage expanded: 3 real, wired-but-unused gaps closed instead of any new scraping
+
+**Status:** Accepted (owner request, 2026-08-04)
+**Context:** Only 34/6,699 products had a real `products.image_url` — ADR-040's
+enrichment last ran when the catalog was 2,409 rows (39 matched then); datasets #5/
+#6/#7 (ADR-043) grew it to 6,699 without ever re-running image enrichment against
+the larger set. Separately, two real, code-level gaps were hiding images that
+already existed: (1) `ingest_sephora_images_catalog.py`'s ~278 products only ever
+populate `product_images` (ADR-043's live-hotlink exception), never
+`products.image_url` — but every `ProductRead` builder except `ProductDetail`
+(dashboard cards, `/products` grid, compare, alternatives) only ever read the
+latter, so those products' real photos were visible on their own detail page and
+nowhere else. (2) `products_service.py`'s `_product_read_from_es_source` hardcoded
+`image_url=None` because `products_index` had no image field at all — and
+`list_products()` prefers Elasticsearch whenever it's up, so browsing/searching the
+catalog showed zero images for *any* product, real or not, whenever ES was healthy
+(true for most of this session).
+**Decision:** Fixed all three, no fabricated or scraped data:
+1. `recommendations/service.py`'s `resolve_product_read(s)` now takes `db` and
+   falls back to the first `product_images` row (batched, one query for the whole
+   list) when `products.image_url` is null — same fallback `ProductDetail` already
+   used, extended to every other call site (routines, ingredients, products_service,
+   recommendations). Caught and fixed a real N+1 regression this introduced in
+   `routines/service.py`'s per-product-id loop (102 vs the guardrail's <100 queries,
+   `test_first_time_generation_does_not_n_plus_one_per_category`) by batching that
+   call site through `resolve_product_reads` instead of looping `resolve_product_read`.
+2. `es_projection.py`'s `products_index` mapping gained two fields, not one:
+   `image_key` (the raw S3 key, presigned fresh on every read — baking a presigned
+   URL into a document that's only rebuilt on outbox events would go stale within
+   its 1h expiry) and `fallback_image_url` (already a live, non-expiring URL, stored
+   as-is). `database_schemas/skinlytics_elasticsearch_schema_v2.txt` updated to
+   match; `_product_read_from_es_source` now resolves both at read time instead of
+   hardcoding null.
+3. Re-audited all 9 datasets in `training_dataset/MANIFEST.md` for unused real image
+   columns rather than requesting a new one. Found two already-downloaded,
+   landing-only-for-product-ingest sources with real images: #8 Open Beauty Facts
+   (1,352/4,304 rows have `image_url`) and #9 Dermstore (126/126 rows have
+   `images`). `enrich_product_images.py` now loops all three sources — yamqwe
+   (ADR-040) first, then these two — each pass only touching rows the previous pass
+   left NULL, same exact-match-only discipline (no fuzzy scoring) and
+   download-once-and-rehost rule (ADR-041) as before.
+**Consequences:** Re-running the (now 3-source) pipeline against the grown catalog
+matched 256 new products via yamqwe, 1 via Dermstore, 0 via Open Beauty Facts (0 dead
+links) — `products.image_url` coverage went from 34 to **291/6,699 (~4.3%)**, up
+from ADR-040's original 39/2,409 (~1.6%). Zero rows currently rely on the
+`product_images`-only fallback (every product with a gallery image also now has a
+matched singular `image_url`, since `ingest_sephora_images_catalog.py`'s products
+came from the same yamqwe dataset this pass re-matched against) — the fallback is
+real, tested, and load-bearing for the next time these two population paths
+diverge, not dead code. Elasticsearch's `products_index` was fully rebuilt
+(`python -m app.worker.rebuild`, 6,699/6,699 documents) to pick up the new mapping.
+**Found and fixed along the way, not the point of this ADR:** the local dev
+`python -m app.worker.rebuild` run raced with the live `worker` Docker container —
+both processes write to the same host-mounted `ml/faiss/*.meta.json` file with no
+cross-process lock (ADR-042's `asyncio.Lock` is process-local only), which
+Windows's `os.replace` semantics turn into a transient `JSONDecodeError` (one
+process reads mid-write) or a hard `PermissionError: WinError 5` (concurrent
+`os.replace` targets). Worked around by stopping the `worker` container for the
+duration of the manual rebuild, not a code fix — a real cross-process locking gap
+in `app/db/vector.py`, left open for a future session.
+**Known, accepted gap (unchanged from ADR-040):** 95.7% of the catalog still has no
+real photo. Open Beauty Facts matched zero rows this run — a real result, not a
+bug: it's a general community beauty database with different brand-naming
+conventions (comma-joined co-brands, casing) than this catalog, and exact-match
+discipline means it simply doesn't overlap here, not that the code is broken.
+Further growth needs either a better-aligned dataset or a live retailer image API —
+still explicitly out of scope, still not filled by scraping or fabrication.

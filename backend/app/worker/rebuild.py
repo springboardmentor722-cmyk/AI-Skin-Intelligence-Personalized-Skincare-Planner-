@@ -29,7 +29,7 @@ async def _clear_all() -> None:
     for namespace in _NAMESPACES:
         # vector.clear() only removes files for a namespace it already knows the name
         # of — no per-vector_id loop needed, the whole namespace's files are dropped.
-        vector.clear(namespace)
+        await vector.clear(namespace)
 
 
 async def rebuild_all() -> dict[str, int]:

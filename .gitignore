@@ -78,6 +78,7 @@ graphify-out/
 /CLAUDE.md
 /PROGRESS.md
 /bug_report.md
+/bugs_report.md
 /Skinlytics_Antigravity_Stitch_Extraction_Prompt_Pack.md
 /docs/AGENT_WORKFLOW.md
 /docs/Skinlytics_Stitch_UI_Prompt_Pack_v2.md
@@ -100,3 +101,6 @@ Thumbs.db
 logs/
 
 credentials.md
+
+# --- Local git worktrees (subagent-driven-development isolation) ---
+/.worktrees/

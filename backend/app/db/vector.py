@@ -1,5 +1,10 @@
+import asyncio
+import contextlib
 import hashlib
 import json
+import os
+import tempfile
+import time
 from pathlib import Path
 from typing import Any
 
@@ -14,6 +19,19 @@ from app.core.config import settings
 # {namespace}.meta.json (FAISS itself stores only vectors, not metadata or string
 # ids). Only app/worker/ ever calls upsert/remove/clear (ADR-005 single-writer rule);
 # everything is rebuildable from PG/Mongo by re-running the projection from scratch.
+#
+# Production-readiness finding (ADR-042): a bulk ingest (2,409 products in one run)
+# made a single poll_outbox_tick() take longer than the 2s cron interval, so
+# overlapping ticks' upsert() calls raced on the same meta.json with no locking and
+# no atomic write — corrupted it (a validly-closed JSON object with another write's
+# tail appended straight after, caught by test_rebuild.py/test_outbox_poller.py
+# failing with JSONDecodeError). Fixed by serializing every mutation through
+# `_lock` (this module's single writer, so a process-local asyncio.Lock is
+# sufficient — no cross-process case exists per the single-writer rule above) and
+# making every write atomic (temp file + os.replace, both in the same directory so
+# the replace is same-filesystem) so a crash or an unexpected race mid-write can
+# never leave a half-written file instead of just losing that one update.
+_lock = asyncio.Lock()
 
 
 def _dir() -> Path:
@@ -43,8 +61,40 @@ def _load_meta(namespace: str) -> dict[str, dict[str, Any]]:
     return json.loads(path.read_text(encoding="utf-8"))  # type: ignore[no-any-return]
 
 
+def _replace_with_retry(tmp_name: str, path: Path) -> None:
+    """`os.replace` observed failing with `PermissionError: WinError 5` on this
+    Windows dev machine (repo lives under Desktop, which OneDrive's "Known Folder
+    Move" silently syncs even though the path string doesn't say so) — a real-time
+    AV/sync scan transiently locking the just-written temp file. A few short retries
+    is the standard, well-known mitigation for this exact class of Windows file lock;
+    POSIX systems will simply succeed on the first attempt every time."""
+    delays = (0.05, 0.1, 0.2, 0.4)
+    for delay in delays:
+        try:
+            os.replace(tmp_name, path)
+            return
+        except PermissionError:
+            time.sleep(delay)
+    os.replace(tmp_name, path)  # last attempt — let the real error surface if it fails
+
+
+def _atomic_write_bytes(path: Path, data: bytes) -> None:
+    """Write-to-temp-then-`os.replace` — `os.replace` is atomic on both POSIX and
+    Windows, so a reader (or a crash) only ever sees the fully-old or fully-new file,
+    never a torn write from an in-progress one."""
+    fd, tmp_name = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "wb") as f:
+            f.write(data)
+        _replace_with_retry(tmp_name, path)
+    except BaseException:
+        with contextlib.suppress(OSError):
+            os.remove(tmp_name)
+        raise
+
+
 def _save_meta(namespace: str, meta: dict[str, dict[str, Any]]) -> None:
-    _meta_path(namespace).write_text(json.dumps(meta), encoding="utf-8")
+    _atomic_write_bytes(_meta_path(namespace), json.dumps(meta).encode("utf-8"))
 
 
 def _load_index(namespace: str, dim: int) -> faiss.IndexIDMap2:
@@ -55,10 +105,19 @@ def _load_index(namespace: str, dim: int) -> faiss.IndexIDMap2:
 
 
 def _save_index(namespace: str, index: faiss.IndexIDMap2) -> None:
-    faiss.write_index(index, str(_index_path(namespace)))
+    path = _index_path(namespace)
+    fd, tmp_name = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.", suffix=".tmp")
+    os.close(fd)  # faiss.write_index wants a path, not a file object — just the name
+    try:
+        faiss.write_index(index, tmp_name)
+        _replace_with_retry(tmp_name, path)
+    except BaseException:
+        with contextlib.suppress(OSError):
+            os.remove(tmp_name)
+        raise
 
 
-def upsert(
+async def upsert(
     namespace: str, vector_id: str, embedding: list[float], metadata: dict[str, Any], dim: int
 ) -> None:
     """Idempotent — re-upserting the same vector_id replaces both its embedding and
@@ -67,34 +126,37 @@ def upsert(
     Similarity is inner-product (`IndexFlatIP`), i.e. cosine similarity — callers
     MUST pass unit-normalized embeddings (`TextEmbedder` normalizes before returning,
     app/ai/embedder.py) or "nearest" stops meaning anything directional."""
-    index = _load_index(namespace, dim)
-    meta = _load_meta(namespace)
-    faiss_id = _faiss_id(vector_id)
+    async with _lock:
+        index = _load_index(namespace, dim)
+        meta = _load_meta(namespace)
+        faiss_id = _faiss_id(vector_id)
 
-    if vector_id in meta:
-        # faiss's own stubs type remove_ids as wanting an IDSelector, but its actual
-        # runtime implementation accepts a plain ndarray of ids directly (the
-        # documented, common usage) — a stub imprecision, not a real type error.
+        if vector_id in meta:
+            # faiss's own stubs type remove_ids as wanting an IDSelector, but its
+            # actual runtime implementation accepts a plain ndarray of ids directly
+            # (the documented, common usage) — a stub imprecision, not a real type
+            # error.
+            index.remove_ids(np.array([faiss_id], dtype=np.int64))  # type: ignore[arg-type]
+
+        embedding_array = np.array([embedding], dtype=np.float32)
+        id_array = np.array([faiss_id], dtype=np.int64)
+        index.add_with_ids(embedding_array, id_array)
+        meta[vector_id] = {"faiss_id": faiss_id, "metadata": metadata}
+
+        _save_index(namespace, index)
+        _save_meta(namespace, meta)
+
+
+async def remove(namespace: str, vector_id: str) -> None:
+    async with _lock:
+        meta = _load_meta(namespace)
+        if vector_id not in meta:
+            return
+        faiss_id = meta.pop(vector_id)["faiss_id"]
+        index = _load_index(namespace, dim=1)  # dim unused on an existing loaded index
         index.remove_ids(np.array([faiss_id], dtype=np.int64))  # type: ignore[arg-type]
-
-    embedding_array = np.array([embedding], dtype=np.float32)
-    id_array = np.array([faiss_id], dtype=np.int64)
-    index.add_with_ids(embedding_array, id_array)
-    meta[vector_id] = {"faiss_id": faiss_id, "metadata": metadata}
-
-    _save_index(namespace, index)
-    _save_meta(namespace, meta)
-
-
-def remove(namespace: str, vector_id: str) -> None:
-    meta = _load_meta(namespace)
-    if vector_id not in meta:
-        return
-    faiss_id = meta.pop(vector_id)["faiss_id"]
-    index = _load_index(namespace, dim=1)  # dim unused on an existing loaded index
-    index.remove_ids(np.array([faiss_id], dtype=np.int64))  # type: ignore[arg-type]
-    _save_index(namespace, index)
-    _save_meta(namespace, meta)
+        _save_index(namespace, index)
+        _save_meta(namespace, meta)
 
 
 def get_vector(namespace: str, vector_id: str) -> list[float] | None:
@@ -137,8 +199,9 @@ def get_metadata(namespace: str, vector_id: str) -> dict[str, Any] | None:
     return entry["metadata"] if entry else None
 
 
-def clear(namespace: str) -> None:
+async def clear(namespace: str) -> None:
     """Wipes a namespace entirely — used before a full rebuild so stale vectors from
     since-deleted rows never linger."""
-    _index_path(namespace).unlink(missing_ok=True)
-    _meta_path(namespace).unlink(missing_ok=True)
+    async with _lock:
+        _index_path(namespace).unlink(missing_ok=True)
+        _meta_path(namespace).unlink(missing_ok=True)

@@ -251,6 +251,17 @@ CREATE TABLE products (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- ADR-043: multiple images per product (products.image_url is a single S3-key
+-- column, ADR-040/041, and can't hold this). Direct external URLs, rendered
+-- as-is, never re-hosted -- owner decision 2026-08-03 for this catalog subset.
+CREATE TABLE product_images (
+    id SERIAL PRIMARY KEY,
+    product_id INTEGER NOT NULL REFERENCES products(product_id) ON DELETE CASCADE,
+    image_url VARCHAR(500) NOT NULL,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    UNIQUE (product_id, image_url)
+);
+
 CREATE TABLE product_ingredients (
     id SERIAL PRIMARY KEY,
     product_id INTEGER NOT NULL REFERENCES products(product_id) ON DELETE CASCADE,

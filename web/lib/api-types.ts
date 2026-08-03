@@ -2449,6 +2449,8 @@ export interface components {
             product_url: string | null;
             /** Image Url */
             image_url: string | null;
+            /** Image Urls */
+            image_urls: string[];
             /** Price */
             price: number | null;
             /** Currency */

@@ -1,0 +1,7 @@
+{
+  "product_name": {"dtype": "str", "nullable": false, "unique_count": 1138, "examples": ["The Ordinary Natural Moisturising Factors + HA 30ml", "CeraVe Facial Moisturising Lotion SPF 25 52ml", "CeraVe Moisturising Cream 50ml"]},
+  "product_url": {"dtype": "str", "nullable": false, "unique_count": 1126, "examples": ["https://www.lookfantastic.com/the-ordinary-natural-moisturising-factors-ha-30ml/11396687.html"]},
+  "product_type": {"dtype": "str", "nullable": false, "unique_count": 14, "examples": ["Moisturiser", "Serum", "Mask"]},
+  "clean_ingreds": {"dtype": "str (python-list-literal)", "nullable": false, "unique_count": 1071, "examples": ["['capric triglyceride', 'cetyl alcohol', 'propanediol']"]},
+  "price": {"dtype": "str (GBP, £-prefixed)", "nullable": false, "unique_count": 213, "examples": ["£5.20", "£13.00", "£22.00"]}
+}

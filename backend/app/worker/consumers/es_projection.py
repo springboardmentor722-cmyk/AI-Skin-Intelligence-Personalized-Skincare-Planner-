@@ -11,6 +11,7 @@ from app.services.recommendations.models import (
     ProductIngredient,
     ProductSkinType,
 )
+from app.services.recommendations.service import resolve_fallback_gallery_urls
 from app.services.skin_profile.models import SkinConcern, SkinType
 
 # Mappings verbatim from skinlytics_elasticsearch_schema_v2.txt — ES documents are
@@ -26,6 +27,15 @@ _PRODUCTS_MAPPING = {
         "product_name": {"type": "text", "fields": {"raw": {"type": "keyword"}}},
         "category": {"type": "keyword"},
         "description": {"type": "text"},
+        # Two fields, not one, because they need different read-time handling
+        # (products_service.py's _product_read_from_es_source): image_key is an S3
+        # object key (ADR-040) that must be presigned fresh on every read — a
+        # presigned URL baked in here would go stale within its 1h expiry, since ES
+        # documents are only rebuilt on outbox events, not every read.
+        # fallback_image_url (ADR-043's product_images exception) is already a live,
+        # non-expiring external URL — safe to store and return as-is.
+        "image_key": {"type": "keyword"},
+        "fallback_image_url": {"type": "keyword"},
         "ingredients": {"type": "text", "fields": {"raw": {"type": "keyword"}}},
         "skin_types_supported": {"type": "keyword"},
         "concerns_supported": {"type": "keyword"},
@@ -136,11 +146,17 @@ async def build_product_document(db: AsyncSession, product_id: int) -> dict[str,
         .all()
     )
 
+    fallback_image_url = None
+    if product.image_url is None:
+        fallback_image_url = (await resolve_fallback_gallery_urls(db, [product_id])).get(product_id)
+
     return {
         "product_id": product.product_id,
         "brand_name": product.brand_name,
         "product_name": product.product_name,
         "category": product.category,
+        "image_key": product.image_url,
+        "fallback_image_url": fallback_image_url,
         "ingredients": list(ingredients),
         "skin_types_supported": list(skin_types),
         "concerns_supported": list(concerns),

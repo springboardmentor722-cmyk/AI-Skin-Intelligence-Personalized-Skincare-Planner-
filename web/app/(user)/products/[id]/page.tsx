@@ -8,11 +8,11 @@ import {
   CircleCheck,
   RotateCw,
   ShieldAlert,
-  ShoppingBag,
   Star,
   TriangleAlert,
 } from "lucide-react";
 
+import { ProductImageCarousel } from "@/components/products/product-image-carousel";
 import { StateCard } from "@/components/state-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -97,18 +97,11 @@ export default function ProductDetailPage() {
       />
 
       <div className="border-border bg-card flex flex-col gap-4 rounded-2xl border p-6 md:flex-row md:items-start">
-        <div className="bg-muted flex size-32 shrink-0 items-center justify-center overflow-hidden rounded-2xl">
-          {product.image_url ? (
-            // eslint-disable-next-line @next/next/no-img-element -- seeded/external product photo
-            <img
-              src={product.image_url}
-              alt={product.product_name ?? "Product"}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <ShoppingBag className="text-on-surface-variant/40 size-10" strokeWidth={1.5} />
-          )}
-        </div>
+        <ProductImageCarousel
+          imageUrls={product.image_urls}
+          fallbackUrl={product.image_url}
+          alt={product.product_name ?? "Product"}
+        />
         <div className="flex-1">
           {product.category && <Badge variant="secondary">{product.category}</Badge>}
           <h1 className="font-heading text-on-surface mt-2 text-2xl font-bold">

@@ -1,0 +1,187 @@
+"""backend/app/services/admin/ingest/generate_dataset_reports.py - pure functions
+that read already-written per-run JSON reports and column_mapping.json files, no
+network/DB required for these two functions (the ingredients export needs a real
+DB session, tested separately)."""
+
+import csv
+import json
+from pathlib import Path
+
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.services.admin.ingest.generate_dataset_reports import (
+    build_master_schema_markdown,
+    build_missing_data_report,
+    export_normalized_ingredients,
+    write_normalized_ingredients_csv,
+)
+
+
+def test_build_missing_data_report_aggregates_real_run_reports(tmp_path: Path) -> None:
+    report_dir = tmp_path / "processed"
+    report_dir.mkdir()
+    (report_dir / "skincare_clean_ingest_20260803T120000Z.json").write_text(
+        json.dumps(
+            {
+                "source": "kaggle:eward96/skincare-products-clean-dataset",
+                "accepted_count": 1100,
+                "rejected_count": 38,
+            }
+        )
+    )
+    (report_dir / "ecommerce_cosmetics_ingest_20260803T120500Z.json").write_text(
+        json.dumps(
+            {
+                "source": "kaggle:devi5723/e-commerce-cosmetics-dataset",
+                "accepted_count": 1900,
+                "rejected_count": 177,
+            }
+        )
+    )
+
+    markdown = build_missing_data_report(report_dir)
+
+    assert "eward96/skincare-products-clean-dataset" in markdown
+    assert "1100" in markdown
+    assert "devi5723/e-commerce-cosmetics-dataset" in markdown
+    assert "1900" in markdown
+
+
+def test_build_missing_data_report_handles_no_reports(tmp_path: Path) -> None:
+    report_dir = tmp_path / "processed"
+    report_dir.mkdir()
+
+    markdown = build_missing_data_report(report_dir)
+
+    assert "No ingest reports found" in markdown
+
+
+def test_build_missing_data_report_dedupes_by_latest_manifest_per_dataset(
+    tmp_path: Path,
+) -> None:
+    # Fix-round re-runs leave multiple timestamped manifests for the same dataset -
+    # only the chronologically newest one's numbers should survive into the aggregate.
+    report_dir = tmp_path / "processed"
+    report_dir.mkdir()
+    (report_dir / "skincare_clean_ingest_20260802T210547Z.json").write_text(
+        json.dumps(
+            {
+                "source": "kaggle:eward96/skincare-products-clean-dataset",
+                "accepted_count": 500,
+                "rejected_count": 638,
+            }
+        )
+    )
+    (report_dir / "skincare_clean_ingest_20260803T223631Z.json").write_text(
+        json.dumps(
+            {
+                "source": "kaggle:eward96/skincare-products-clean-dataset",
+                "accepted_count": 1138,
+                "rejected_count": 0,
+            }
+        )
+    )
+
+    markdown = build_missing_data_report(report_dir)
+
+    assert markdown.count("eward96/skincare-products-clean-dataset") == 1
+    assert "1138" in markdown
+    assert "500" not in markdown
+    assert "638" not in markdown
+
+
+def test_build_missing_data_report_footnotes_datasets_with_no_manifest(
+    tmp_path: Path,
+) -> None:
+    report_dir = tmp_path / "processed"
+    report_dir.mkdir()
+    (report_dir / "skincare_clean_ingest_20260803T120000Z.json").write_text(
+        json.dumps(
+            {
+                "source": "kaggle:eward96/skincare-products-clean-dataset",
+                "accepted_count": 1138,
+                "rejected_count": 0,
+            }
+        )
+    )
+
+    markdown = build_missing_data_report(report_dir)
+
+    assert "No manifest on disk for:" in markdown
+    assert "products" in markdown.split("No manifest on disk for:")[1]
+
+
+def test_build_master_schema_markdown_includes_each_dataset_mapping(tmp_path: Path) -> None:
+    raw_dir = tmp_path / "raw"
+    (raw_dir / "skincare-clean").mkdir(parents=True)
+    (raw_dir / "skincare-clean" / "column_mapping.json").write_text(
+        json.dumps({"product_name": "product_name", "price": "price"})
+    )
+
+    markdown = build_master_schema_markdown(raw_dir)
+
+    assert "skincare-clean" in markdown
+    assert "product_name" in markdown
+
+
+async def test_export_normalized_ingredients_returns_real_sorted_names(
+    db_session: AsyncSession,
+) -> None:
+    from app.services.ingredients.models import Ingredient
+
+    # Use unambiguous test names: alphabetically far apart, clear under any collation
+    # Insert in reverse alphabetical order to ensure ORDER BY is actually being used
+    # (without ORDER BY, these could come back as ZZZZ, AAAA)
+    db_session.add(Ingredient(ingredient_name="ZZZZ_Sort_Test_Last"))
+    db_session.add(Ingredient(ingredient_name="AAAA_Sort_Test_First"))
+    await db_session.commit()
+
+    # Residual risk considered and ruled out: `ingredient_name` has a UNIQUE btree
+    # index (models.py), so an ORDER-BY-less version of this query could in theory
+    # get sorted output "for free" via an Index Only Scan, making this test blind
+    # to a deleted .order_by(). Confirmed via EXPLAIN (ANALYZE, BUFFERS) against the
+    # real dev DB (14,081-row `ingredients` table) 2026-08-03:
+    #   SELECT ingredient_name FROM ingredients ORDER BY ingredient_name;
+    #     -> Index Only Scan using ingredients_ingredient_name_key
+    #   SELECT ingredient_name FROM ingredients;  (no ORDER BY)
+    #     -> Seq Scan on ingredients
+    # The no-ORDER-BY plan is a Seq Scan (unordered heap order), not an Index Only
+    # Scan, so this reverse-insertion-order + index-position assertion reliably
+    # catches a removed ORDER BY in this environment.
+    names = await export_normalized_ingredients(db_session)
+
+    # Both ingredients must be present
+    assert "AAAA_Sort_Test_First" in names
+    assert "ZZZZ_Sort_Test_Last" in names
+
+    # ORDER BY ingredient_name must be working: AAAA comes before ZZZZ always.
+    # Without ORDER BY, these could appear in insertion order (ZZZZ then AAAA)
+    # or arbitrary scan order, causing this to fail. With ORDER BY, they're sorted.
+    assert names.index("AAAA_Sort_Test_First") < names.index("ZZZZ_Sort_Test_Last")
+
+
+def test_write_normalized_ingredients_csv_writes_header_and_rows(tmp_path: Path) -> None:
+    output_path = tmp_path / "processed" / "normalized_ingredients.csv"
+
+    result_path = write_normalized_ingredients_csv(["Glycerin", "Water"], output_path)
+
+    content = result_path.read_text()
+    assert content == "ingredient_name\nGlycerin\nWater\n"
+
+
+def test_write_normalized_ingredients_csv_round_trips_comma_containing_name(
+    tmp_path: Path,
+) -> None:
+    # Real ingredient names include legitimate INCI names with commas (e.g.
+    # "1,2-Hexanediol") - a hand-rolled "\n".join() writer previously split this
+    # into two spurious fields; csv.writer must quote it back into one field.
+    output_path = tmp_path / "processed" / "normalized_ingredients.csv"
+
+    result_path = write_normalized_ingredients_csv(
+        ["1,2-Hexanediol", "Water"], output_path
+    )
+
+    with result_path.open(newline="", encoding="utf-8") as f:
+        rows = list(csv.reader(f))
+
+    assert rows == [["ingredient_name"], ["1,2-Hexanediol"], ["Water"]]
