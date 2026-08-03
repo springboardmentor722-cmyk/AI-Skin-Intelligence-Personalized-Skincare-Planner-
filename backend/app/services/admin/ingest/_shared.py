@@ -103,9 +103,12 @@ async def load_product_associations(
 ) -> tuple[int, int]:
     """Idempotent - populates product_skin_types/product_concerns for every
     accepted product from this ingest, keyed by the same (brand_name, product_name)
-    natural key load_into_database uses. ADR-010: every product whose association
-    set actually changes gets its own outbox row, same as load_into_database's own
-    upserts."""
+    natural key load_into_database uses. ADR-010: the ES product document
+    (build_product_document) reads skin_types_supported/concerns_supported from
+    these same junction rows - every product whose association set actually
+    changes here needs its own outbox row too, same as load_into_database's own
+    upserts, or a fresh environment/re-run indexes it with permanently empty ES
+    fields."""
     skin_type_id_by_name: dict[str, int] = dict(
         (await db.execute(select(SkinType.skin_type_name, SkinType.skin_type_id))).all()  # type: ignore[arg-type]
     )
@@ -188,6 +191,7 @@ def write_ingest_report(
                 "rejected_count": len(rejected),
             },
             indent=2,
-        )
+        ),
+        encoding="utf-8",
     )
     return report_path

@@ -103,6 +103,22 @@ def test_normalize_rows_dedupes_by_brand_and_name() -> None:
     assert rejected[0]["reason"] == "duplicate brand+name"
 
 
+def test_normalize_rows_collapses_embedded_newlines_in_ingredients() -> None:
+    # 35 real ingredient names in this dataset have embedded \n/\r that a plain
+    # .strip() per comma-fragment doesn't remove (e.g. "Iron Oxides (Ci 77499)]\n\nCasino: Talc").
+    df = pd.DataFrame(
+        [_row(ingredients="Water (Aqua),\nGlycerin\r\n, Iron Oxides (Ci 77499)]\n\nCasino: Talc")]
+    )
+    products, rejected = normalize_rows(df)
+
+    assert not rejected
+    assert products[0]["ingredients"] == [
+        "Water (Aqua)",
+        "Glycerin",
+        "Iron Oxides (Ci 77499)] Casino: Talc",
+    ]
+
+
 def test_normalize_rows_parses_comma_formatted_review_counts() -> None:
     # 182/2046 real noofratings values are comma-formatted (e.g., "4,031", "14,611")
     df = pd.DataFrame(

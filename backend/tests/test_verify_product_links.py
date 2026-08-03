@@ -24,3 +24,17 @@ def test_classify_check_results_returns_empty_when_all_ok() -> None:
     results = [("https://example.com/a.jpg", 200), ("https://example.com/b.jpg", 301)]
 
     assert classify_check_results(results) == []
+
+
+def test_classify_check_results_treats_skipped_non_http_url_as_not_broken() -> None:
+    # A non-HTTP(S) URL (e.g. an S3 key) is pre-filtered before any request is made
+    # and must not be counted alongside a genuine request failure (both used to
+    # collapse to (url, None) -> "request failed").
+    results: list[tuple[str, int | str | None]] = [
+        ("s3://bucket/key.jpg", "skipped"),
+        ("https://example.com/error.jpg", None),  # request raised, no status code
+    ]
+
+    broken = classify_check_results(results)
+
+    assert broken == [("https://example.com/error.jpg", "request failed")]

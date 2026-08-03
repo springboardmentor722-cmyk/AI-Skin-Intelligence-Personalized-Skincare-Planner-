@@ -3,6 +3,7 @@ that read already-written per-run JSON reports and column_mapping.json files, no
 network/DB required for these two functions (the ingredients export needs a real
 DB session, tested separately)."""
 
+import csv
 import json
 from pathlib import Path
 
@@ -53,6 +54,61 @@ def test_build_missing_data_report_handles_no_reports(tmp_path: Path) -> None:
     markdown = build_missing_data_report(report_dir)
 
     assert "No ingest reports found" in markdown
+
+
+def test_build_missing_data_report_dedupes_by_latest_manifest_per_dataset(
+    tmp_path: Path,
+) -> None:
+    # Fix-round re-runs leave multiple timestamped manifests for the same dataset -
+    # only the chronologically newest one's numbers should survive into the aggregate.
+    report_dir = tmp_path / "processed"
+    report_dir.mkdir()
+    (report_dir / "skincare_clean_ingest_20260802T210547Z.json").write_text(
+        json.dumps(
+            {
+                "source": "kaggle:eward96/skincare-products-clean-dataset",
+                "accepted_count": 500,
+                "rejected_count": 638,
+            }
+        )
+    )
+    (report_dir / "skincare_clean_ingest_20260803T223631Z.json").write_text(
+        json.dumps(
+            {
+                "source": "kaggle:eward96/skincare-products-clean-dataset",
+                "accepted_count": 1138,
+                "rejected_count": 0,
+            }
+        )
+    )
+
+    markdown = build_missing_data_report(report_dir)
+
+    assert markdown.count("eward96/skincare-products-clean-dataset") == 1
+    assert "1138" in markdown
+    assert "500" not in markdown
+    assert "638" not in markdown
+
+
+def test_build_missing_data_report_footnotes_datasets_with_no_manifest(
+    tmp_path: Path,
+) -> None:
+    report_dir = tmp_path / "processed"
+    report_dir.mkdir()
+    (report_dir / "skincare_clean_ingest_20260803T120000Z.json").write_text(
+        json.dumps(
+            {
+                "source": "kaggle:eward96/skincare-products-clean-dataset",
+                "accepted_count": 1138,
+                "rejected_count": 0,
+            }
+        )
+    )
+
+    markdown = build_missing_data_report(report_dir)
+
+    assert "No manifest on disk for:" in markdown
+    assert "products" in markdown.split("No manifest on disk for:")[1]
 
 
 def test_build_master_schema_markdown_includes_each_dataset_mapping(tmp_path: Path) -> None:
@@ -111,3 +167,21 @@ def test_write_normalized_ingredients_csv_writes_header_and_rows(tmp_path: Path)
 
     content = result_path.read_text()
     assert content == "ingredient_name\nGlycerin\nWater\n"
+
+
+def test_write_normalized_ingredients_csv_round_trips_comma_containing_name(
+    tmp_path: Path,
+) -> None:
+    # Real ingredient names include legitimate INCI names with commas (e.g.
+    # "1,2-Hexanediol") - a hand-rolled "\n".join() writer previously split this
+    # into two spurious fields; csv.writer must quote it back into one field.
+    output_path = tmp_path / "processed" / "normalized_ingredients.csv"
+
+    result_path = write_normalized_ingredients_csv(
+        ["1,2-Hexanediol", "Water"], output_path
+    )
+
+    with result_path.open(newline="", encoding="utf-8") as f:
+        rows = list(csv.reader(f))
+
+    assert rows == [["ingredient_name"], ["1,2-Hexanediol"], ["Water"]]

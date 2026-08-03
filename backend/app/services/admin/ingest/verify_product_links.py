@@ -33,13 +33,16 @@ _HEADERS = {
 }
 
 
+_SKIPPED = "skipped"  # non-HTTP(S) URL, never attempted - not a request failure
+
+
 async def _check_one(
     client: httpx.AsyncClient, url: str, semaphore: asyncio.Semaphore
-) -> tuple[str, int | None]:
+) -> tuple[str, int | str | None]:
     async with semaphore:
         # Pre-filter: reject non-HTTP(S) URLs (e.g. S3 keys, relative paths)
         if not url.startswith(("http://", "https://")):
-            return url, None
+            return url, _SKIPPED
         for attempt in range(_MAX_RETRIES + 1):
             try:
                 # Use GET instead of HEAD: some WAFs (e.g., Ulta) block HEAD but allow GET.
@@ -55,25 +58,27 @@ async def _check_one(
         return url, None
 
 
-async def check_urls(urls: list[str]) -> list[tuple[str, int | None]]:
+async def check_urls(urls: list[str]) -> list[tuple[str, int | str | None]]:
     semaphore = asyncio.Semaphore(_MAX_CONCURRENCY)
     async with httpx.AsyncClient(headers=_HEADERS) as client:
         return await asyncio.gather(*[_check_one(client, url, semaphore) for url in urls])
 
 
-def classify_check_results(results: list[tuple[str, int | None]]) -> list[tuple[str, Any]]:
+def classify_check_results(results: list[tuple[str, int | str | None]]) -> list[tuple[str, Any]]:
     broken: list[tuple[str, Any]] = []
     for url, status in results:
+        if status == _SKIPPED:
+            continue
         if status is None:
             broken.append((url, "request failed"))
-        elif status >= 400:
+        elif isinstance(status, int) and status >= 400:
             broken.append((url, status))
     return broken
 
 
 def _write_broken_csv(broken: list[tuple[str, Any]], output_path: Path) -> Path:
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    with output_path.open("w", newline="") as f:
+    with output_path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(["url", "status"])
         writer.writerows(broken)
@@ -86,7 +91,7 @@ async def run(db: AsyncSession, processed_dir: Path) -> None:
     # (ADR-043), which this script verifies instead.
     image_urls_result = (
         await db.execute(
-            select(ProductImage.image_url).distinct()
+            select(ProductImage.image_url).where(ProductImage.image_url.is_not(None)).distinct()
         )
     ).scalars().all()
     image_urls: list[str] = [url for url in image_urls_result if url is not None]

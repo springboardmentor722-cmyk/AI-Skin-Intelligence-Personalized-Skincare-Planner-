@@ -4,7 +4,9 @@ summary, and each dataset's column_mapping.json into one master-schema doc. Read
 existing artifacts only - never recomputes accepted/rejected counts itself, so the
 numbers always match what a real ingest run actually printed."""
 
+import csv
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -13,28 +15,58 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.services.ingredients.models import Ingredient
 
+# report_name values every ingest module's write_ingest_report() call uses
+# (see grep of "report_name=" across this package) - kept here only to footnote
+# a dataset with no manifest on disk at all, not to validate anything else.
+_KNOWN_REPORT_PREFIXES = (
+    "products",
+    "skincare_clean",
+    "ecommerce_cosmetics",
+    "skincare_ingredients",
+)
+
+_REPORT_FILENAME_RE = re.compile(r"^(.+)_ingest_\d{8}T\d{6}Z$")
+
 
 def build_missing_data_report(report_dir: Path) -> str:
-    reports: list[dict[str, Any]] = []
+    # Re-running an ingest module leaves multiple timestamped manifests behind for
+    # the same dataset (fix-round re-runs, etc.) - keep only the newest per dataset,
+    # or Accepted/Rejected totals double- or quadruple-count. glob() sorted
+    # lexicographically also sorts each dataset's own timestamps chronologically,
+    # so a later dict write below always overwrites an earlier manifest for the
+    # same prefix.
+    reports_by_prefix: dict[str, dict[str, Any]] = {}
     for path in sorted(report_dir.glob("*_ingest_*.json")):
-        reports.append(json.loads(path.read_text(encoding="utf-8")))
+        match = _REPORT_FILENAME_RE.match(path.stem)
+        prefix = match.group(1) if match else path.stem
+        reports_by_prefix[prefix] = json.loads(path.read_text(encoding="utf-8"))
 
-    if not reports:
+    if not reports_by_prefix:
         return "# Missing Data Report\n\nNo ingest reports found in this directory yet.\n"
 
     lines = [
         "# Missing Data Report",
         "",
         "Aggregated from real per-run ingest reports in `training_dataset/processed/`"
-        " — every number here is copied from an actual completed run, never recomputed.",
+        " — every number here is copied from an actual completed run, never recomputed."
+        " Only the newest manifest per dataset is counted.",
         "",
         "| Source | Accepted | Rejected | Ingested At |",
         "|---|---|---|---|",
     ]
-    for report in reports:
+    for report in reports_by_prefix.values():
         lines.append(
             f"| {report['source']} | {report['accepted_count']} | "
             f"{report['rejected_count']} | {report.get('ingested_at', '?')} |"
+        )
+
+    missing = [prefix for prefix in _KNOWN_REPORT_PREFIXES if prefix not in reports_by_prefix]
+    if missing:
+        lines.append("")
+        lines.append(
+            f"**No manifest on disk for:** {', '.join(missing)} — these dataset(s) have"
+            " no `*_ingest_*.json` report in `training_dataset/processed/`, so they're"
+            " omitted above rather than silently shown as zero."
         )
     return "\n".join(lines) + "\n"
 
@@ -74,8 +106,13 @@ async def export_normalized_ingredients(db: AsyncSession) -> list[str]:
 
 def write_normalized_ingredients_csv(ingredient_names: list[str], output_path: Path) -> Path:
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    lines = ["ingredient_name"] + ingredient_names
-    output_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    # Real ingredient names contain commas (legit INCI names like "1,2-Hexanediol"),
+    # embedded newlines, and double quotes - hand-rolled "\n".join() corrupts all
+    # three. csv.writer quotes/escapes correctly (same pattern as verify_product_links.py).
+    with output_path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["ingredient_name"])
+        writer.writerows([name] for name in ingredient_names)
     return output_path
 
 

@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.services.admin.ingest._shared import (
+    MAX_INGREDIENT_NAME_LENGTH,
     load_into_database,
     load_product_associations,
     write_ingest_report,
@@ -88,7 +89,10 @@ def _parse_ingredients(raw: Any) -> list[str]:
     text = _safe_str(raw)
     if not text:
         return []
-    return [part.strip() for part in text.split(",") if part.strip() and len(part.strip()) <= 150]
+    # Collapse embedded newlines/whitespace within a fragment (35 real ingredient
+    # names in this dataset have embedded \n/\r that .strip() alone doesn't remove).
+    parts = [re.sub(r"\s+", " ", part).strip() for part in text.split(",")]
+    return [part for part in parts if part and len(part) <= MAX_INGREDIENT_NAME_LENGTH]
 
 
 def normalize_rows(df: pd.DataFrame) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
