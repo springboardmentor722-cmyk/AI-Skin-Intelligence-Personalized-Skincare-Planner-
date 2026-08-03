@@ -15,6 +15,13 @@
 #   * user_search_logs_index: added results_count and an ILM note.
 #   * Added keyword sub-fields on names for exact-match filtering and
 #     aggregations (text alone cannot be aggregated).
+#   * products_index: added image_key + fallback_image_url (image coverage
+#     expansion) — two fields, not one, because they need different read-time
+#     handling (backend/app/services/recommendations/products_service.py's
+#     _product_read_from_es_source): image_key is an S3 object key that must be
+#     presigned fresh on every read (a presigned URL baked in here would go
+#     stale between outbox-triggered re-indexes); fallback_image_url is already
+#     a live, non-expiring external URL and is returned as-is.
 
 ====================================================
 1. products_index
@@ -29,6 +36,8 @@ PUT products_index
       "product_name":         { "type": "text", "fields": { "raw": { "type": "keyword" } } },
       "category":             { "type": "keyword" },
       "description":          { "type": "text" },
+      "image_key":            { "type": "keyword" },
+      "fallback_image_url":   { "type": "keyword" },
       "ingredients":          { "type": "text", "fields": { "raw": { "type": "keyword" } } },
       "skin_types_supported": { "type": "keyword" },
       "concerns_supported":   { "type": "keyword" },

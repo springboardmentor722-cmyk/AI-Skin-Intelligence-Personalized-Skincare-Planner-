@@ -72,11 +72,14 @@ async def _read_with_steps(db: AsyncSession, routine: Routine) -> RoutineRead:
     # Resolved once per product here (not per step) so a product used in multiple
     # steps doesn't get presigned redundantly, and so the nested comprehension below
     # doesn't need an `await` (Product.image_url is an S3 key, ADR-040 — never a
-    # ready-to-use URL, so this can't be skipped).
-    product_reads_by_id = {
-        product_id: await recommendations_service.resolve_product_read(product)
-        for product_id, product in products_by_id.items()
-    }
+    # ready-to-use URL, so this can't be skipped). Batched through resolve_product_reads
+    # in one call (not looped per product) so the product_images fallback query stays
+    # one query for the whole set, not one per product missing an image_url.
+    product_ids_ordered = list(products_by_id.keys())
+    product_reads_ordered = await recommendations_service.resolve_product_reads(
+        db, [products_by_id[product_id] for product_id in product_ids_ordered]
+    )
+    product_reads_by_id = dict(zip(product_ids_ordered, product_reads_ordered, strict=True))
 
     step_reads = [
         RoutineStepRead(
@@ -796,4 +799,4 @@ async def search_products_for_edit(
         db, [p.product_id for p in name_matches], profile, None
     )
     matches = [p for p in name_matches if not suitability[p.product_id].any_allergy]
-    return await recommendations_service.resolve_product_reads(matches[:10])
+    return await recommendations_service.resolve_product_reads(db, matches[:10])

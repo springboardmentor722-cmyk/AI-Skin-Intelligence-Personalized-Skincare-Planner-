@@ -2,16 +2,26 @@
 # nadyinky/sephora-products-and-skincare-reviews (this pipeline's primary catalog
 # source, products.py) has no image column at all; researched 9 alternative Kaggle
 # datasets before finding one usable for real (not fabricated) image backfill.
+# Extended 2026-08-04 (ADR-044): the catalog grew from 2,409 to 6,699 rows (datasets
+# #5/#6/#7) since this last ran, and a re-audit of all 9 datasets in
+# training_dataset/MANIFEST.md found two more already-downloaded, unused sources with
+# real image columns — #8 Open Beauty Facts and #9 Dermstore — landing-only for
+# product ingest (wrong shape/coverage to be a primary catalog source) but perfectly
+# usable here, same exact-match-only discipline.
 """One-off enrichment — `make enrich-product-images` /
 `python -m app.services.admin.ingest.enrich_product_images`.
 
 Backfills `products.image_url` for rows the primary ingest (`products.py`) leaves
-NULL, by matching against `yamqwe/sephora-products` — a separate, smaller Kaggle
-scrape of the same retailer that happens to carry real image URLs. Matching is exact
-normalized (brand_name, product_name) only — no fuzzy scoring — because a wrong
+NULL, by matching against three sources in turn — `yamqwe/sephora-products` (a
+separate, smaller Kaggle scrape of the same retailer), then the already-downloaded,
+unused-for-product-ingest Dermstore and Open Beauty Facts datasets (training_dataset/
+MANIFEST.md #9/#8) — each pass only sees rows the previous pass left NULL. Matching is
+exact normalized (brand_name, product_name) only — no fuzzy scoring — because a wrong
 match here means showing a *different real product's* photo, which is worse than the
-flask-icon placeholder it replaces. Expect a small match count (tens, not thousands):
-the two datasets only overlap where the same SKU happens to appear in both scrapes.
+flask-icon placeholder it replaces. Expect a small match count relative to the
+catalog: real coverage is bounded by how often the exact same (brand, product) pair
+happens to appear in both this catalog and one of these independently-scraped
+sources — never inflated by loosening the match.
 
 **Images are downloaded once and re-hosted through this app's own storage adapter
 (`app/core/storage.py`), never left as a live hotlink to Sephora's CDN** (ADR-041):
@@ -29,6 +39,7 @@ this app's own bucket — nothing left to fetch from Sephora for it).
 """
 
 import csv
+import json
 import re
 import urllib.request
 from pathlib import Path
@@ -52,6 +63,12 @@ _DATASET_SLUG = "yamqwe/sephora-products"
 _PRIMARY_CSV = "sephora.csv"
 _RAW_DIR = Path(__file__).resolve().parents[5] / "training_dataset" / "raw" / "sephora-images"
 _REQUEST_TIMEOUT_SECONDS = 10
+
+_TRAINING_DATASET_RAW = Path(__file__).resolve().parents[5] / "training_dataset" / "raw"
+_DERMSTORE_JSON_PATH = _TRAINING_DATASET_RAW / "dermstore" / "dermstore_data.json"
+_OPEN_BEAUTY_FACTS_TSV_PATH = (
+    _TRAINING_DATASET_RAW / "open-beauty-facts" / "en.openbeautyfacts.org.products.tsv"
+)
 
 
 def download_dataset() -> Path:
@@ -115,6 +132,55 @@ def build_image_index(csv_path: Path) -> dict[tuple[str, str], str]:
     return index
 
 
+def clean_dermstore_image_url(raw: str) -> str | None:
+    """training_dataset/raw/dermstore/dermstore_data.json's `images` field is a
+    comma-joined string of 1+ CDN URLs — takes the first, same "one representative
+    photo, not the whole gallery" choice as clean_image_url above."""
+    if not raw:
+        return None
+    first = raw.split(",")[0].strip()
+    return first or None
+
+
+def build_image_index_dermstore(json_path: Path) -> dict[tuple[str, str], str]:
+    """training_dataset/MANIFEST.md #9 — 126 rows, already downloaded, landing-only
+    for product ingest (too small and not skincare-exclusive to be a primary catalog
+    source, per its own dataset_info.json) but every row carries a real image — an
+    unused, real image source this pipeline was missing until 2026-08-04 (ADR-044)."""
+    with open(json_path, encoding="utf-8") as f:
+        rows = json.load(f)
+    index: dict[tuple[str, str], str] = {}
+    for row in rows:
+        image_url = clean_dermstore_image_url(row.get("images", ""))
+        brand = row.get("brand", "")
+        name = row.get("title", "")
+        if not image_url or not brand or not name:
+            continue
+        index[(normalize(brand), normalize(name))] = image_url
+    return index
+
+
+def build_image_index_open_beauty_facts(tsv_path: Path) -> dict[tuple[str, str], str]:
+    """training_dataset/MANIFEST.md #8 — 4,304 rows, already downloaded, landing-only
+    for product ingest (no price field at all, fails every other dataset's
+    mandatory-field gate; dominated by non-skincare categories) but 1,352 rows carry a
+    real `image_url`. Co-branded rows (OpenFoodFacts' own comma-joined `brands`
+    convention, e.g. "Revlon,Colorsilk") normalize to a string no real catalog brand
+    equals, so they never match — not a special case, just the same exact-match
+    discipline as the other two sources applied to this dataset's actual noise."""
+    index: dict[tuple[str, str], str] = {}
+    with open(tsv_path, encoding="utf-8", newline="") as f:
+        csv.field_size_limit(10_000_000)
+        for row in csv.DictReader(f, delimiter="\t"):
+            image_url = (row.get("image_url") or "").strip()
+            brand = row.get("brands", "")
+            name = row.get("product_name", "")
+            if not image_url or not brand or not name:
+                continue
+            index[(normalize(brand), normalize(name))] = image_url
+    return index
+
+
 def find_image_matches(
     products: list[tuple[int, str, str]], index: dict[tuple[str, str], str]
 ) -> list[tuple[int, str]]:
@@ -147,42 +213,68 @@ def download_image_bytes(url: str) -> bytes | None:
 
 
 async def run(db: AsyncSession) -> None:
-    csv_path = download_dataset()
-    index = build_image_index(csv_path)
+    yamqwe_csv = download_dataset()
+    # Priority order: yamqwe first (same retailer as the primary catalog, highest
+    # trust), then the two local, already-downloaded, real-but-smaller sources. Each
+    # source only ever sees rows the previous one left NULL (fresh query per source),
+    # so this stays exactly as idempotent/re-runnable as the single-source version.
+    sources: list[tuple[str, dict[tuple[str, str], str]]] = [
+        (_DATASET_SLUG, build_image_index(yamqwe_csv)),
+        (
+            "dermstore (training_dataset/raw/dermstore)",
+            build_image_index_dermstore(_DERMSTORE_JSON_PATH),
+        ),
+        (
+            "openbeautyfacts (training_dataset/raw/open-beauty-facts)",
+            build_image_index_open_beauty_facts(_OPEN_BEAUTY_FACTS_TSV_PATH),
+        ),
+    ]
 
-    result = await db.execute(
-        select(Product.product_id, Product.brand_name, Product.product_name).where(
-            Product.image_url.is_(None)
+    total_stored = 0
+    total_dead = 0
+    for source_name, index in sources:
+        result = await db.execute(
+            select(Product.product_id, Product.brand_name, Product.product_name).where(
+                Product.image_url.is_(None)
+            )
         )
-    )
-    candidates = [(pid, brand or "", name or "") for pid, brand, name in result.all()]
-    matches = find_image_matches(candidates, index)
+        candidates = [(pid, brand or "", name or "") for pid, brand, name in result.all()]
+        matches = find_image_matches(candidates, index)
 
-    stored = 0
-    dead = 0
-    for product_id, source_url in matches:
-        data = download_image_bytes(source_url)
-        if data is None:
-            dead += 1
-            continue
-        key = f"products/{product_id}/main"
-        try:
-            stored_key = await upload(key, data, allowed_content_types=_ALLOWED_IMAGE_CONTENT_TYPES)
-        except FileValidationError:
-            dead += 1
-            continue
+        stored = 0
+        dead = 0
+        for product_id, source_url in matches:
+            data = download_image_bytes(source_url)
+            if data is None:
+                dead += 1
+                continue
+            key = f"products/{product_id}/main"
+            try:
+                stored_key = await upload(
+                    key, data, allowed_content_types=_ALLOWED_IMAGE_CONTENT_TYPES
+                )
+            except FileValidationError:
+                dead += 1
+                continue
 
-        product = await db.get(Product, product_id)
-        assert product is not None
-        product.image_url = stored_key
-        await append_outbox(db, "product", str(product_id), "upsert")
-        stored += 1
+            product = await db.get(Product, product_id)
+            assert product is not None
+            product.image_url = stored_key
+            await append_outbox(db, "product", str(product_id), "upsert")
+            stored += 1
 
-    await db.commit()
+        await db.commit()
+        print(
+            f"{source_name}: matched {len(matches)} product(s) by exact brand+name, "
+            f"{stored} were downloaded and re-hosted in this app's own storage "
+            f"({dead} matched but the source image was dead or invalid)."
+        )
+        total_stored += stored
+        total_dead += dead
+
     print(
-        f"Matched {len(matches)} product(s) against {_DATASET_SLUG} by exact "
-        f"brand+name, {stored} were downloaded and re-hosted in this app's own "
-        f"storage ({dead} matched but the source image was dead or invalid)."
+        f"Total: {total_stored} product(s) backfilled across all sources, "
+        f"{total_dead} dead matches."
     )
 
 

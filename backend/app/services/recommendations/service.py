@@ -15,6 +15,7 @@ from app.services.ingredients.models import Ingredient, IngredientSkintypeAvoid
 from app.services.recommendations.models import (
     Product,
     ProductConcern,
+    ProductImage,
     ProductIngredient,
     ProductRecommendation,
     ProductSkinType,
@@ -156,18 +157,47 @@ async def resolve_product_image_url(image_key: str | None) -> str | None:
     return await get_presigned_url(image_key) if image_key else None
 
 
-async def resolve_product_read(product: Product) -> ProductRead:
+async def resolve_fallback_gallery_urls(
+    db: AsyncSession, product_ids: list[int]
+) -> dict[int, str]:
+    """First `product_images` row per product (ADR-043), for products with no
+    `products.image_url` of their own — e.g. the ~278 rows
+    `ingest_sephora_images_catalog.py` added, which only ever populate this table
+    (an explicit owner exception to ADR-041: rendered live, never re-hosted). Same
+    fallback `ProductDetail`/`product-image-carousel.tsx` already use for the
+    detail page, extended here to every other `ProductRead` call site so these
+    products aren't only visible on their own page."""
+    if not product_ids:
+        return {}
+    result = await db.execute(
+        select(ProductImage.product_id, ProductImage.image_url)
+        .where(ProductImage.product_id.in_(product_ids))
+        .order_by(ProductImage.product_id, ProductImage.sort_order)
+    )
+    first_by_product: dict[int, str] = {}
+    for product_id, image_url in result.all():
+        first_by_product.setdefault(product_id, image_url)
+    return first_by_product
+
+
+async def resolve_product_read(db: AsyncSession, product: Product) -> ProductRead:
     """The one place every `ProductRead` gets built from an ORM `Product` — callers
     across services (routines, ingredients, this module) use this instead of
     `ProductRead.model_validate()` directly, so `image_url` resolution can't be
     forgotten at a new call site."""
-    read = ProductRead.model_validate(product)
-    read.image_url = await resolve_product_image_url(read.image_url)
-    return read
+    return (await resolve_product_reads(db, [product]))[0]
 
 
-async def resolve_product_reads(products: list[Product]) -> list[ProductRead]:
-    return [await resolve_product_read(product) for product in products]
+async def resolve_product_reads(db: AsyncSession, products: list[Product]) -> list[ProductRead]:
+    reads = [ProductRead.model_validate(product) for product in products]
+    for read in reads:
+        read.image_url = await resolve_product_image_url(read.image_url)
+    missing_ids = [read.product_id for read in reads if read.image_url is None]
+    fallback = await resolve_fallback_gallery_urls(db, missing_ids)
+    for read in reads:
+        if read.image_url is None:
+            read.image_url = fallback.get(read.product_id)
+    return reads
 
 
 async def list_concern_ids_for_products(
@@ -400,7 +430,7 @@ async def _apply_budget_cap(
 
         augmented.append(
             RecommendationRead(
-                product=await resolve_product_read(best),
+                product=await resolve_product_read(db, best),
                 match_percentage=match_percentage,
                 reasons=[
                     f"Cheaper alternative under your {max_price:.2f} "
@@ -534,7 +564,7 @@ async def get_recommendations(
         # --- Stage 3: serve + cache + persist ---
         results = [
             RecommendationRead(
-                product=await resolve_product_read(product),
+                product=await resolve_product_read(db, product),
                 match_percentage=round(score),
                 reasons=reasons,
                 active_ingredient_tags=sorted(

@@ -1749,3 +1749,71 @@ branch's within-batch dedupe fix) are also still live in the DB, uncleaned. Fixi
 the loader's key (case-fold on lookup while preserving original casing on insert,
 plus a one-off cleanup migration for the 62+4 existing pairs) is a real ingest
 behavior change and is deferred pending owner sign-off, not fixed in this pass.
+
+## ADR-044 — Product image coverage expanded: 3 real, wired-but-unused gaps closed instead of any new scraping
+
+**Status:** Accepted (owner request, 2026-08-04)
+**Context:** Only 34/6,699 products had a real `products.image_url` — ADR-040's
+enrichment last ran when the catalog was 2,409 rows (39 matched then); datasets #5/
+#6/#7 (ADR-043) grew it to 6,699 without ever re-running image enrichment against
+the larger set. Separately, two real, code-level gaps were hiding images that
+already existed: (1) `ingest_sephora_images_catalog.py`'s ~278 products only ever
+populate `product_images` (ADR-043's live-hotlink exception), never
+`products.image_url` — but every `ProductRead` builder except `ProductDetail`
+(dashboard cards, `/products` grid, compare, alternatives) only ever read the
+latter, so those products' real photos were visible on their own detail page and
+nowhere else. (2) `products_service.py`'s `_product_read_from_es_source` hardcoded
+`image_url=None` because `products_index` had no image field at all — and
+`list_products()` prefers Elasticsearch whenever it's up, so browsing/searching the
+catalog showed zero images for *any* product, real or not, whenever ES was healthy
+(true for most of this session).
+**Decision:** Fixed all three, no fabricated or scraped data:
+1. `recommendations/service.py`'s `resolve_product_read(s)` now takes `db` and
+   falls back to the first `product_images` row (batched, one query for the whole
+   list) when `products.image_url` is null — same fallback `ProductDetail` already
+   used, extended to every other call site (routines, ingredients, products_service,
+   recommendations). Caught and fixed a real N+1 regression this introduced in
+   `routines/service.py`'s per-product-id loop (102 vs the guardrail's <100 queries,
+   `test_first_time_generation_does_not_n_plus_one_per_category`) by batching that
+   call site through `resolve_product_reads` instead of looping `resolve_product_read`.
+2. `es_projection.py`'s `products_index` mapping gained two fields, not one:
+   `image_key` (the raw S3 key, presigned fresh on every read — baking a presigned
+   URL into a document that's only rebuilt on outbox events would go stale within
+   its 1h expiry) and `fallback_image_url` (already a live, non-expiring URL, stored
+   as-is). `database_schemas/skinlytics_elasticsearch_schema_v2.txt` updated to
+   match; `_product_read_from_es_source` now resolves both at read time instead of
+   hardcoding null.
+3. Re-audited all 9 datasets in `training_dataset/MANIFEST.md` for unused real image
+   columns rather than requesting a new one. Found two already-downloaded,
+   landing-only-for-product-ingest sources with real images: #8 Open Beauty Facts
+   (1,352/4,304 rows have `image_url`) and #9 Dermstore (126/126 rows have
+   `images`). `enrich_product_images.py` now loops all three sources — yamqwe
+   (ADR-040) first, then these two — each pass only touching rows the previous pass
+   left NULL, same exact-match-only discipline (no fuzzy scoring) and
+   download-once-and-rehost rule (ADR-041) as before.
+**Consequences:** Re-running the (now 3-source) pipeline against the grown catalog
+matched 256 new products via yamqwe, 1 via Dermstore, 0 via Open Beauty Facts (0 dead
+links) — `products.image_url` coverage went from 34 to **291/6,699 (~4.3%)**, up
+from ADR-040's original 39/2,409 (~1.6%). Zero rows currently rely on the
+`product_images`-only fallback (every product with a gallery image also now has a
+matched singular `image_url`, since `ingest_sephora_images_catalog.py`'s products
+came from the same yamqwe dataset this pass re-matched against) — the fallback is
+real, tested, and load-bearing for the next time these two population paths
+diverge, not dead code. Elasticsearch's `products_index` was fully rebuilt
+(`python -m app.worker.rebuild`, 6,699/6,699 documents) to pick up the new mapping.
+**Found and fixed along the way, not the point of this ADR:** the local dev
+`python -m app.worker.rebuild` run raced with the live `worker` Docker container —
+both processes write to the same host-mounted `ml/faiss/*.meta.json` file with no
+cross-process lock (ADR-042's `asyncio.Lock` is process-local only), which
+Windows's `os.replace` semantics turn into a transient `JSONDecodeError` (one
+process reads mid-write) or a hard `PermissionError: WinError 5` (concurrent
+`os.replace` targets). Worked around by stopping the `worker` container for the
+duration of the manual rebuild, not a code fix — a real cross-process locking gap
+in `app/db/vector.py`, left open for a future session.
+**Known, accepted gap (unchanged from ADR-040):** 95.7% of the catalog still has no
+real photo. Open Beauty Facts matched zero rows this run — a real result, not a
+bug: it's a general community beauty database with different brand-naming
+conventions (comma-joined co-brands, casing) than this catalog, and exact-match
+discipline means it simply doesn't overlap here, not that the code is broken.
+Further growth needs either a better-aligned dataset or a live retailer image API —
+still explicitly out of scope, still not filled by scraping or fabrication.

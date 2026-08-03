@@ -212,7 +212,7 @@ async def get_ingredient_detail(
             AvoidForSkinType(skin_type_id=r[0], skin_type_name=r[1], reason=r[2])
             for r in avoid_rows
         ],
-        products=await resolve_product_reads(list(products)),
+        products=await resolve_product_reads(db, list(products)),
         education=education,
     )
 

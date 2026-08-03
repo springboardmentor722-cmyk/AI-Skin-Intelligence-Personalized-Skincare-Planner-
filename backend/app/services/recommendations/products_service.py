@@ -82,13 +82,20 @@ async def list_products(
     )
 
 
-def _product_read_from_es_source(source: dict[str, Any]) -> ProductRead:
+async def _product_read_from_es_source(source: dict[str, Any]) -> ProductRead:
+    # image_key is an S3 object key (ADR-040) that must be presigned fresh on every
+    # read, never baked into the ES document itself (es_projection.py's own comment
+    # on why: a presigned URL would go stale between outbox-triggered re-indexes).
+    # fallback_image_url (ADR-043) is already a live, non-expiring external URL.
+    image_url = await resolve_product_image_url(source.get("image_key")) or source.get(
+        "fallback_image_url"
+    )
     return ProductRead(
         product_id=source["product_id"],
         brand_name=source.get("brand_name"),
         product_name=source.get("product_name"),
         category=source.get("category"),
-        image_url=None,  # not part of products_index's documented mapping
+        image_url=image_url,
         price=source.get("price"),
         currency=source.get("currency"),
         spf_rating=source.get("spf_rating"),
@@ -137,7 +144,9 @@ async def _list_via_es(
         sort=[{"product_name.raw": "asc"}],
     )
     total = result["hits"]["total"]["value"]
-    items = [_product_read_from_es_source(hit["_source"]) for hit in result["hits"]["hits"]]
+    items = [
+        await _product_read_from_es_source(hit["_source"]) for hit in result["hits"]["hits"]
+    ]
     return ProductListPage(
         items=items,
         meta=ProductListMeta(page=page, page_size=page_size, total=total, source="elasticsearch"),
@@ -181,7 +190,7 @@ async def _list_via_pg(
     result = await db.execute(
         query.order_by(Product.product_name).offset((page - 1) * page_size).limit(page_size)
     )
-    items = await resolve_product_reads(list(result.scalars().all()))
+    items = await resolve_product_reads(db, list(result.scalars().all()))
     return ProductListPage(
         items=items,
         meta=ProductListMeta(page=page, page_size=page_size, total=total, source="fallback"),
@@ -346,7 +355,7 @@ async def compare_products(db: AsyncSession, product_ids: list[int]) -> ProductC
         )
         items.append(
             ProductCompareItem(
-                product=await resolve_product_read(product),
+                product=await resolve_product_read(db, product),
                 ingredient_names=[name for name in ingredient_names if name is not None],
                 skin_types_supported=[name for name in skin_types if name is not None],
                 concerns_supported=[name for name in concerns if name is not None],
@@ -415,4 +424,4 @@ async def get_alternatives(
         return (-overlap, rank)
 
     ordered = sorted(candidates, key=sort_key)[:_MAX_ALTERNATIVES]
-    return ProductAlternativesRead(alternatives=await resolve_product_reads(ordered))
+    return ProductAlternativesRead(alternatives=await resolve_product_reads(db, ordered))
