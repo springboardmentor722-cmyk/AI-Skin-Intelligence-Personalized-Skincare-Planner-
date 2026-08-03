@@ -222,6 +222,10 @@ class ProductRecommendationOut(BaseModel):
     description: str
     match_score: int
     matched_concerns: list[str]
+    rating: Optional[float] = 4.5
+    budget_flag: Optional[str] = "Within Budget"
+    is_above_budget: Optional[bool] = False
+
 
 
 class RecommendationsOut(BaseModel):

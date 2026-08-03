@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from typing import Optional
 from app.auth import get_current_user
 from app.database import get_db, get_mongo_db
 from app import models, schemas
@@ -11,6 +12,7 @@ router = APIRouter(prefix="/api/recommendations", tags=["Recommendations"])
 
 @router.get("/", response_model=schemas.RecommendationsOut)
 def get_my_recommendations(
+    max_price: Optional[float] = None,
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -50,20 +52,176 @@ def get_my_recommendations(
             )
 
     skin_type = profile.skin_type.value
-    concerns = parse_concerns(profile.skin_concerns)
+    user_concerns = parse_concerns(profile.skin_concerns)
+    user_concerns_set = {c.strip().lower() for c in user_concerns}
 
-    recommendations = get_recommendations(
-        skin_type=skin_type,
-        skin_concerns=profile.skin_concerns,
-        products=products,
-        ingredients=ingredients,
-    )
+    # 1. Fetch user allergies & sensitivities
+    allergies = []
+    sensitivities = []
+    if profile.allergies:
+        allergies = [a.strip().lower() for a in profile.allergies.replace("[", "").replace("]", "").replace('"', "").split(",") if a.strip()]
+    if profile.skin_sensitivities:
+        sensitivities = [s.strip().lower() for s in profile.skin_sensitivities.replace("[", "").replace("]", "").replace('"', "").split(",") if s.strip()]
+    allergens_set = set(allergies + sensitivities)
+
+    # 2. Fetch user's current routine active ingredients to check conflicts
+    routine_actives = set()
+    user_rec = mongo.recommendations.find_one({"user_id": current_user.id})
+    if user_rec:
+        for p_id in user_rec.get("product_ids", []):
+            try:
+                from bson import ObjectId
+                p = mongo.products.find_one({"_id": ObjectId(p_id)})
+            except Exception:
+                p = mongo.products.find_one({"id": p_id})
+            if p:
+                p_ingredients = p.get("key_ingredients", []) or p.get("key_active_ingredients", [])
+                for ing in p_ingredients:
+                    routine_actives.add(ing.strip().lower())
+
+    # Map database ingredients knowledge base for conflict checks
+    db_ingredients = list(mongo.ingredients.find())
+    db_ingredients_map = {i.get("name").lower(): i for i in db_ingredients if i.get("name")}
+
+    # Get active ingredients in the current routine normalized to ingredient names
+    routine_actives_db_names = set()
+    for act in routine_actives:
+        for db_name, db_ing in db_ingredients_map.items():
+            if db_name in act or act in db_name:
+                routine_actives_db_names.add(db_ing.get("name"))
+
+    filtered_recs = []
+
+    for prod in products:
+        p_name = prod.get("name", "")
+        p_brand = prod.get("brand", "")
+        p_desc = prod.get("description", "")
+        p_category = prod.get("category", "")
+        p_suitable_types = [t.strip().lower() for t in prod.get("suitable_skin_types", [])]
+        p_key_ingredients = prod.get("key_ingredients", []) or prod.get("key_active_ingredients", [])
+        p_price = float(prod.get("price_inr") or prod.get("price") or 0.0)
+        p_rating = float(prod.get("rating") or 4.5)
+
+        # A. Safety Gate: Allergies & Sensitivities (Hard Filter)
+        contains_allergen = False
+        all_text = f"{p_name} {p_brand} {p_desc} {' '.join(p_key_ingredients)}".lower()
+        for allergen in allergens_set:
+            if allergen in all_text:
+                contains_allergen = True
+                break
+        if contains_allergen:
+            continue
+
+        # B. Safety Gate: Chemical Conflict Matrix (Hard Filter)
+        # Find active ingredient categories in this product
+        prod_actives_db_names = set()
+        for ing in p_key_ingredients:
+            ing_lower = ing.strip().lower()
+            for db_name, db_ing in db_ingredients_map.items():
+                if db_name in ing_lower or ing_lower in db_name:
+                    prod_actives_db_names.add(db_ing.get("name"))
+
+        has_unsafe_clash = False
+        for p_active in prod_actives_db_names:
+            for r_active in routine_actives_db_names:
+                conflict = mongo.conflict_matrix.find_one({
+                    "$or": [
+                        {"active_1": p_active, "active_2": r_active},
+                        {"active_1": r_active, "active_2": p_active}
+                    ],
+                    "severity": "unsafe"
+                })
+                if conflict:
+                    has_unsafe_clash = True
+                    break
+            if has_unsafe_clash:
+                break
+        if has_unsafe_clash:
+            continue
+
+        # C. Weighted Suitability Score
+        # Skin Type Fit (35 points)
+        skin_type_score = 35 if skin_type.lower() in p_suitable_types else 0
+
+        # Target Concern Match (50 points)
+        concern_score = 0
+        matched_concerns = []
+        if user_concerns_set:
+            # Check what concerns the product's active ingredients address
+            addressed_concerns = set()
+            for p_active in prod_actives_db_names:
+                db_ing = db_ingredients_map.get(p_active.lower())
+                if db_ing:
+                    for c in db_ing.get("target_concerns", []):
+                        addressed_concerns.add(c.lower())
+            
+            matches = user_concerns_set.intersection(addressed_concerns)
+            matched_concerns = sorted(list(matches))
+            if addressed_concerns:
+                concern_score = (len(matches) / len(user_concerns_set)) * 50
+        else:
+            concern_score = 50
+
+        # Rating (15 points)
+        rating_score = (p_rating / 5.0) * 15
+
+        match_score = int(concern_score + skin_type_score + rating_score)
+
+        filtered_recs.append({
+            "id": str(prod["_id"]),
+            "name": p_name,
+            "brand": p_brand,
+            "category": p_category,
+            "suitable_skin_types": prod.get("suitable_skin_types", []),
+            "key_ingredients": p_key_ingredients,
+            "price_inr": p_price,
+            "description": p_desc,
+            "match_score": match_score,
+            "matched_concerns": matched_concerns,
+            "rating": p_rating,
+            "is_above_budget": False,
+            "budget_flag": "Within Budget"
+        })
+
+    # Sort primarily by match score descending
+    filtered_recs.sort(key=lambda x: -x["match_score"])
+
+    # D. Budget Filter & Alternatives
+    final_recs = []
+    if max_price is not None:
+        above_budget_recs = []
+        within_budget_recs = []
+        for r in filtered_recs:
+            if r["price_inr"] > max_price:
+                r["is_above_budget"] = True
+                r["budget_flag"] = "Exceeds Budget"
+                above_budget_recs.append(r)
+            else:
+                within_budget_recs.append(r)
+
+        # Identify lower-priced alternatives (with similar actives) for above-budget recommendations
+        alternative_ids = set()
+        for ab in above_budget_recs[:3]:  # Top 3 above budget matches
+            ab_actives = set(ab["key_ingredients"])
+            # Find a within-budget product that shares at least one active ingredient
+            for wb in within_budget_recs:
+                if set(wb["key_ingredients"]).intersection(ab_actives):
+                    wb["budget_flag"] = f"Budget Alternative for {ab['name']}"
+                    alternative_ids.add(wb["id"])
+
+        final_recs = within_budget_recs + [ab for ab in above_budget_recs if ab["id"] in alternative_ids or ab["match_score"] > 80]
+    else:
+        final_recs = filtered_recs
+
+    # Keep list sorted by match_score
+    final_recs.sort(key=lambda x: (-x["match_score"], x["price_inr"]))
 
     return schemas.RecommendationsOut(
         skin_type=skin_type,
-        skin_concerns=concerns,
-        recommendations=recommendations,
+        skin_concerns=user_concerns,
+        recommendations=final_recs,
     )
+
 
 
 @router.post("/", status_code=201)

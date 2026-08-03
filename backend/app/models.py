@@ -262,3 +262,17 @@ class ProfessionalMessage(Base):
     consultant = relationship("User", foreign_keys=[consultant_id])
     dermatologist = relationship("User", foreign_keys=[dermatologist_id])
 
+
+class ProgressPhoto(Base):
+    __tablename__ = "progress_photos"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    cloud_url = Column(String(500), nullable=False)
+    uploaded_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    skin_health_score = Column(Integer, nullable=True)
+    tag = Column(String(50), nullable=True)  # "Baseline", "Week 4", etc.
+
+    user = relationship("User", backref="progress_photos")
+
+
