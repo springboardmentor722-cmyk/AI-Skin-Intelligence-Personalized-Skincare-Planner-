@@ -73,19 +73,23 @@ async def test_export_normalized_ingredients_returns_real_sorted_names(
 ) -> None:
     from app.services.ingredients.models import Ingredient
 
-    # Use unique ingredient names unlikely to already exist in the test DB
-    db_session.add(Ingredient(ingredient_name="ZebraIngredientsTest_Unique_Alpha"))
-    db_session.add(Ingredient(ingredient_name="ZebraIngredientsTest_Unique_Zulu"))
+    # Use unambiguous test names: alphabetically far apart, clear under any collation
+    # Insert in reverse alphabetical order to ensure ORDER BY is actually being used
+    # (without ORDER BY, these could come back as ZZZZ, AAAA)
+    db_session.add(Ingredient(ingredient_name="ZZZZ_Sort_Test_Last"))
+    db_session.add(Ingredient(ingredient_name="AAAA_Sort_Test_First"))
     await db_session.commit()
 
     names = await export_normalized_ingredients(db_session)
 
-    # Verify deterministic ordering: query twice should yield same order (ORDER BY present)
-    names_again = await export_normalized_ingredients(db_session)
-    assert names == names_again
-    # Should include our test ingredients
-    assert "ZebraIngredientsTest_Unique_Alpha" in names
-    assert "ZebraIngredientsTest_Unique_Zulu" in names
+    # Both ingredients must be present
+    assert "AAAA_Sort_Test_First" in names
+    assert "ZZZZ_Sort_Test_Last" in names
+
+    # ORDER BY ingredient_name must be working: AAAA comes before ZZZZ always.
+    # Without ORDER BY, these could appear in insertion order (ZZZZ then AAAA)
+    # or arbitrary scan order, causing this to fail. With ORDER BY, they're sorted.
+    assert names.index("AAAA_Sort_Test_First") < names.index("ZZZZ_Sort_Test_Last")
 
 
 def test_write_normalized_ingredients_csv_writes_header_and_rows(tmp_path: Path) -> None:
