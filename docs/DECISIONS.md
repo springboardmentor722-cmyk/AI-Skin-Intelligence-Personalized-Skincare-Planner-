@@ -1663,7 +1663,7 @@ the suite's ~500s+ total runtime made the recurring async-connection-teardown
 logic itself was verified correct via a direct manual run), `test_products_service.py`
 ×1 and `test_ingredients_service.py` ×2 (fixture-ranking assumption, above).
 
-## ADR-043 — 5 additional Kaggle product datasets ingested; 2 landed raw-only after real inspection found no usable signal
+## ADR-043 — 3 additional Kaggle product datasets ingested; 2 more landed raw-only (5 total) after real inspection found no usable signal
 
 **Status:** Accepted (owner request, 2026-08-03)
 **Context:** The dataset layer needed expansion beyond the 4 datasets in
@@ -1717,7 +1717,7 @@ against one defunct partner subdomain, `sephora.nnnow.com`, DNS NXDOMAIN).
 Other real bugs found and fixed along the way, worth recording honestly rather than
 smoothing over (AGENTS.md §0.2): the `eward96` brand-extraction needed 3 fix rounds
 to build a complete real-data-grounded multi-word brand list (La Roche-Posay, Estée
-Lauder, etc. — ~40 real brands, not a guessed handful); the `devi5723` ingest module
+Lauder, etc. — 44 real brands, not a guessed handful); the `devi5723` ingest module
 had a silent data-loss bug where comma-formatted review counts (e.g. `"1,234"`)
 parsed as `None` instead of the real number, contradicting the never-defaulted
 data-fidelity principle every other field in this pipeline follows.
@@ -1732,3 +1732,20 @@ subdomain) — a real, currently-unaddressed data-quality gap this ADR records r
 than silently carries forward; re-verifying with browser automation or dropping the
 dead `sephora.nnnow.com` links outright are both explicitly deferred, not decided
 here.
+
+**Known gaps (found on final whole-branch review, 2026-08-03, documented not fixed):**
+`_shared.py`'s `load_into_database` keys its cross-batch duplicate check on
+`(entry["brand_name"], entry["product_name"])` case-**sensitively**, but every
+module built in this ADR (`ingest_skincare_clean.py`, `ingest_ecommerce_cosmetics.py`,
+`ingest_skincare_ingredients.py`) does its own within-batch dedupe using `.lower()`
+on both fields. A row that differs only in case from an already-loaded product
+therefore passes the loader's check as "new" even though it's the same product
+under different casing. Verified against the live DB: **62 case-only duplicate
+product pairs** among products this branch added, and **29 brands now exist under
+2+ casings** (e.g. `alpyn beauty` product_id 90 vs `Alpyn Beauty` product_id 11898,
+same product, different price). Separately, **4 pre-existing exact-case duplicate
+pairs** (same brand_name/product_name string, inserted twice, predating this
+branch's within-batch dedupe fix) are also still live in the DB, uncleaned. Fixing
+the loader's key (case-fold on lookup while preserving original casing on insert,
+plus a one-off cleanup migration for the 62+4 existing pairs) is a real ingest
+behavior change and is deferred pending owner sign-off, not fixed in this pass.
