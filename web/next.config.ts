@@ -121,6 +121,34 @@ const securityHeaders = [
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(self)" },
 ];
 
+// Product/progress/verification images resolve to presigned URLs from the S3-compatible
+// adapter (backend/app/core/storage.py) — MinIO in dev, real S3/Azure Blob in prod, same
+// `S3_ENDPOINT_URL` env var either way (AGENTS.md §5, §9: "env-var keys only", no code
+// change between environments). next/image refuses any host not on its allowlist, so that
+// allowlist has to track the same env var rather than a hardcoded "localhost:9000" that
+// would silently stop matching the moment endpoint, port, or bucket changes.
+function s3ImageRemotePattern(): NonNullable<NextConfig["images"]>["remotePatterns"] {
+  const endpoint = process.env.S3_ENDPOINT_URL;
+  const bucket = process.env.S3_BUCKET_NAME;
+  if (!endpoint || !bucket) return [];
+  try {
+    const url = new URL(endpoint);
+    return [
+      {
+        protocol: url.protocol.replace(":", "") as "http" | "https",
+        hostname: url.hostname,
+        port: url.port,
+        // Path-style addressing (storage.py's `addressing_style: "path"`): bucket is the
+        // first path segment. Scoped to this bucket, not `/**`, so the allowlist doesn't
+        // widen into "trust any path on this host".
+        pathname: `/${bucket}/**`,
+      },
+    ];
+  } catch {
+    return [];
+  }
+}
+
 const nextConfig: NextConfig = {
   // Next infers the workspace root by walking up for lockfiles, and on a machine
   // with a stray package-lock.json in the home directory it picked that instead
@@ -131,6 +159,15 @@ const nextConfig: NextConfig = {
   // developer machine.
   turbopack: { root: path.resolve(__dirname) },
   env: publicRuntimeEnv(),
+  images: {
+    remotePatterns: s3ImageRemotePattern(),
+    // Next 16 breaking change: refuses to fetch any upstream host that resolves to a
+    // private/loopback IP (docs/upgrading/version-16.md "Local IP Restriction") unless
+    // explicitly opted in. Dev's MinIO is exactly that (`localhost` -> 127.0.0.1) — safe
+    // to allow because `remotePatterns` above already locks fetches to this app's own
+    // configured S3 host/port/bucket, not any private address.
+    dangerouslyAllowLocalIP: true,
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
