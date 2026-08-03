@@ -91,6 +91,59 @@ class Adapter(Protocol):
   rather than a fabricated or guessed image link. Bulk-scraping a live retail site for
   broader coverage was considered and declined — same no-API/ToS reasoning as §3 below.
 
+### Additional Kaggle product datasets (2026-08-03 expansion, ADR-043)
+An initial 7-dataset expansion request was checked live against the Kaggle API and
+dataset pages before any download: 4 of the 7 URLs didn't exist, and 2 real datasets
+turned out to be republishes of the already-ingested `nadyinky` Sephora scrape (per
+their own dataset descriptions) — neither downloaded. Of the remaining 3, all were
+real, non-duplicate, product-shaped, and ingested via the same pipeline shape
+`products.py` established (download → normalize → idempotent upsert through the
+shared loader, `backend/app/services/admin/ingest/_shared.py`), exact
+`(brand_name, product_name)` dedupe only, no fuzzy matching:
+- **Skincare Products Clean Dataset** (`eward96/skincare-products-clean-dataset`) —
+  1,138 lookfantastic.com-scraped products, GBP pricing (`£`-prefixed, requires
+  `encoding="latin-1"`). No `brand_name` column — brand extracted from
+  `product_name`'s leading word(s) against a known-brand list built from this
+  dataset's own real distinct leading words. `backend/app/services/admin/ingest/
+  ingest_skincare_clean.py`, `make ingest-skincare-clean`. All 1,138 rows accepted,
+  0 rejected.
+- **E-Commerce Cosmetics Dataset** (`devi5723/e-commerce-cosmetics-dataset`) — 12,615
+  total rows, filtered to `category == "skincare"` only (2,077 rows; the other 5 real
+  categories — body/lips/eyes/face/hair — are rejected, never guessed into skincare).
+  INR pricing, requires `encoding="latin-1"`. `ingest_ecommerce_cosmetics.py`,
+  `make ingest-ecommerce-cosmetics`. 1,838 new products loaded (140 already present
+  as cross-dataset duplicates, 10,637 rejected — non-skincare rows plus a handful of
+  missing-mandatory-field/duplicate rows within the skincare subset).
+- **Skincare Products and Ingredients**
+  (`autumndyer/skincare-products-and-ingredients`) — only `Sephora_all_423.csv`
+  ingested (2,179 rows); confirmed a genuinely independent Sephora scrape from
+  `nadyinky`'s (entirely different field set, no `product_id`/`brand_id`). The
+  dataset's other 4 files (an ingredient dictionary, embeddings, a redundant
+  ingredient join, substitution pairs) aren't product-catalog-shaped and have no
+  ingest module. No category column in this source — every accepted row is
+  `category = "uncategorized"`. `ingredients` field is unparsed marketing prose, not
+  a clean INCI list — left `[]` for every row rather than guessed. `Skin Type`
+  free-text column mapped to the 5 real seeded skin-type names.
+  `ingest_skincare_ingredients.py`, `make ingest-skincare-ingredients`. 1,051 new
+  products loaded (1,125 already present as duplicates of `nadyinky`/other sources,
+  3 rejected for missing mandatory fields).
+
+Together these 3 datasets added 4,027 new products (1,138 + 1,838 + 1,051) beyond the
+existing catalog.
+
+Two more datasets from the same expansion request were downloaded and inspected but
+landed **raw-only, no ingest module**, because real inspection found no usable
+mandatory-field/category signal (`training_dataset/raw/`, `MANIFEST.md` rows 8–9):
+- **Open Beauty Facts** (`openfoodfacts/openbeautyfacts`) — no `price` field exists
+  anywhere in the dataset (an Open Food Facts-style nutrition schema, not a retail
+  one) — fails the mandatory-field gate every other dataset here honors. Also
+  dominated by non-skincare categories (hair/soap/toothpaste/nail-polish/perfume).
+- **Dermstore Skincare Products & Ingredients** — only 126 rows and not
+  skincare-exclusive (includes a hair comb, candles, hair straighteners, LED devices,
+  makeup); its `category` field is a useless per-product breadcrumb (126 unique
+  values, effectively one per product) with no reliable skincare/not-skincare signal
+  — building a keyword classifier here would be guessing (AGENTS.md §0.2).
+
 ## 3. Ingredient database — INCIDecoder, COSDNA
 - **Sites:** `https://incidecoder.com`, `https://cosdna.com`
 - **Use:** authoritative ingredient facts (INCI names, functions, irritancy) to enrich
