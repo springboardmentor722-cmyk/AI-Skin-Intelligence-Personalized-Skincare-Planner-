@@ -42,8 +42,12 @@ async def _check_one(
             return url, None
         for attempt in range(_MAX_RETRIES + 1):
             try:
-                response = await client.head(url, timeout=_TIMEOUT_SECONDS, follow_redirects=True)
-                return url, response.status_code
+                # Use GET instead of HEAD: some WAFs (e.g., Ulta) block HEAD but allow GET.
+                # stream() avoids downloading full response body.
+                async with client.stream(
+                    "GET", url, timeout=_TIMEOUT_SECONDS, follow_redirects=True
+                ) as response:
+                    return url, response.status_code
             except httpx.HTTPError:
                 if attempt == _MAX_RETRIES:
                     return url, None
