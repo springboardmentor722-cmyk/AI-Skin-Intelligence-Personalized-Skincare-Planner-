@@ -18,6 +18,20 @@ _TIMEOUT_SECONDS = 10.0
 _MAX_CONCURRENCY = 10
 _MAX_RETRIES = 2
 
+# Realistic browser headers to avoid 403 Forbidden responses on CDNs/retailers
+# (some retailers reject headerless clients as bots).
+_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    ),
+    "Accept": (
+        "text/html,application/xhtml+xml,application/xml;q=0.9,"
+        "image/avif,image/webp,*/*;q=0.8"
+    ),
+    "Accept-Language": "en-US,en;q=0.9",
+}
+
 
 async def _check_one(
     client: httpx.AsyncClient, url: str, semaphore: asyncio.Semaphore
@@ -39,7 +53,7 @@ async def _check_one(
 
 async def check_urls(urls: list[str]) -> list[tuple[str, int | None]]:
     semaphore = asyncio.Semaphore(_MAX_CONCURRENCY)
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(headers=_HEADERS) as client:
         return await asyncio.gather(*[_check_one(client, url, semaphore) for url in urls])
 
 
