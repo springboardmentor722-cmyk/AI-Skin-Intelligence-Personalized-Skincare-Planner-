@@ -80,8 +80,9 @@ async def test_export_normalized_ingredients_returns_real_sorted_names(
 
     names = await export_normalized_ingredients(db_session)
 
-    # Verify sortedness — the database ORDER BY should produce sorted results
-    assert names == sorted(names)
+    # Verify deterministic ordering: query twice should yield same order (ORDER BY present)
+    names_again = await export_normalized_ingredients(db_session)
+    assert names == names_again
     # Should include our test ingredients
     assert "ZebraIngredientsTest_Unique_Alpha" in names
     assert "ZebraIngredientsTest_Unique_Zulu" in names

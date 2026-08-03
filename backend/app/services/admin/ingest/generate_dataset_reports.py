@@ -69,7 +69,7 @@ async def export_normalized_ingredients(db: AsyncSession) -> list[str]:
     a new normalization pass."""
     query = select(Ingredient.ingredient_name).order_by(Ingredient.ingredient_name)
     result = await db.execute(query)
-    return sorted(result.scalars().all())
+    return list(result.scalars().all())
 
 
 def write_normalized_ingredients_csv(ingredient_names: list[str], output_path: Path) -> Path:
