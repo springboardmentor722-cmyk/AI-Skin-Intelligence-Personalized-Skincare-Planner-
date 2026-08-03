@@ -1,7 +1,7 @@
-"""Checks every distinct non-null products.image_url/product_url currently in
-Postgres - not raw CSVs, so overlapping URLs across the 5 ingested datasets are
-each checked once. Run manually (make verify-product-links), never part of an
-ingest run - network flakiness shouldn't block ingestion."""
+"""Checks every distinct non-null products.product_url and product_images.image_url
+currently in Postgres - not raw CSVs, so overlapping URLs across the 5 ingested
+datasets are each checked once. Run manually (make verify-product-links), never part
+of an ingest run - network flakiness shouldn't block ingestion."""
 
 import asyncio
 import csv
@@ -12,7 +12,7 @@ import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.services.recommendations.models import Product
+from app.services.recommendations.models import Product, ProductImage
 
 _TIMEOUT_SECONDS = 10.0
 _MAX_CONCURRENCY = 10
@@ -23,6 +23,9 @@ async def _check_one(
     client: httpx.AsyncClient, url: str, semaphore: asyncio.Semaphore
 ) -> tuple[str, int | None]:
     async with semaphore:
+        # Pre-filter: reject non-HTTP(S) URLs (e.g. S3 keys, relative paths)
+        if not url.startswith(("http://", "https://")):
+            return url, None
         for attempt in range(_MAX_RETRIES + 1):
             try:
                 response = await client.head(url, timeout=_TIMEOUT_SECONDS, follow_redirects=True)
@@ -60,11 +63,12 @@ def _write_broken_csv(broken: list[tuple[str, Any]], output_path: Path) -> Path:
 
 
 async def run(db: AsyncSession, processed_dir: Path) -> None:
+    # ADR-040/041: products.image_url stores S3 object keys (e.g. "products/123/main"),
+    # not HTTP URLs. The real checkable external image URLs live in ProductImage table
+    # (ADR-043), which this script verifies instead.
     image_urls_result = (
         await db.execute(
-            select(Product.image_url)
-            .where(Product.image_url.is_not(None))
-            .distinct()
+            select(ProductImage.image_url).distinct()
         )
     ).scalars().all()
     image_urls: list[str] = [url for url in image_urls_result if url is not None]
