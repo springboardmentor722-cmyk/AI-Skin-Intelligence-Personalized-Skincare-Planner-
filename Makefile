@@ -2,7 +2,7 @@
 # Targets that depend on backend/ or web/ guard themselves with a clear message
 # until those scaffolds exist (tracked in PROGRESS.md) instead of failing silently.
 
-.PHONY: dev up down migrate seed ingest-knowledge ingest-products enrich-product-images ingest-sephora-images-catalog ingest-skincare-clean ingest-skincare-ingredients ingest-ecommerce-cosmetics test lint typecheck eval graph openapi worker rebuild-derived generate-dataset-reports
+.PHONY: dev up down migrate seed ingest-knowledge ingest-products enrich-product-images ingest-sephora-images-catalog ingest-skincare-clean ingest-skincare-ingredients ingest-ecommerce-cosmetics test lint typecheck eval graph openapi worker rebuild-derived generate-dataset-reports verify-product-links
 
 up:
 	docker compose up -d
@@ -136,4 +136,11 @@ generate-dataset-reports:
 		cd backend && uv run python -m app.services.admin.ingest.generate_dataset_reports; \
 	else \
 		echo "backend/ does not exist yet — nothing to generate."; \
+	fi
+
+verify-product-links:
+	@if [ -d backend ]; then \
+		cd backend && uv run python -m app.services.admin.ingest.verify_product_links; \
+	else \
+		echo "backend/ does not exist yet — nothing to verify."; \
 	fi
