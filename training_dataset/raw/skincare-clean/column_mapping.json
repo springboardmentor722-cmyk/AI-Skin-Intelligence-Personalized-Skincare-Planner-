@@ -1,0 +1,8 @@
+{
+  "product_name": "product_name (also source of brand_name via leading-word extraction)",
+  "product_url": "product_url",
+  "product_type": "category (via _PRODUCT_TYPE_MAP)",
+  "clean_ingreds": "ingredients (python-list-literal parse, title-cased)",
+  "price": "price (£ stripped), currency hardcoded 'GBP'",
+  "_unmapped_target_fields": ["image_url", "volume_ml", "rating", "review_count", "skin_type_names", "concern_names"]
+}

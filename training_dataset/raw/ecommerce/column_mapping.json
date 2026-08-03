@@ -1,0 +1,14 @@
+{
+  "product_name": "product_name",
+  "brand": "brand_name",
+  "subcategory": "category (via _SUBCATEGORY_MAP, only within category=='skincare')",
+  "title-href": "product_url",
+  "price": "price, currency hardcoded 'INR'",
+  "ingredients": "ingredients (comma-split, 150-char cap)",
+  "size": "volume_ml (bare-digit strings only)",
+  "rating": "rating",
+  "noofratings": "review_count",
+  "_filter": "category == 'skincare' only; other rows rejected as 'not a skincare product'",
+  "_unmapped_target_fields": ["image_url", "skin_type_names", "concern_names"],
+  "_unused_source_columns": ["website", "country", "form", "type", "color"]
+}

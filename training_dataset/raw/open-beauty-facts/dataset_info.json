@@ -1,0 +1,14 @@
+{
+  "name": "Open Beauty Facts",
+  "source": "Kaggle",
+  "kaggle_url": "https://www.kaggle.com/datasets/openfoodfacts/openbeautyfacts",
+  "kaggle_slug": "openfoodfacts/openbeautyfacts",
+  "download_date": "2026-08-03",
+  "license": "Database: Open Database License (ODbL), Contents: Database Contents License (DbCL)",
+  "file_count": 1,
+  "row_count": 4304,
+  "column_count": 162,
+  "file_size_bytes": 12317416,
+  "status": "landing only - no ingest module",
+  "reason": "No price field exists anywhere in this dataset (Open Food Facts' nutrition-style schema, not a retail dataset) - every row would fail the same brand_name/product_name/price mandatory-field gate every other dataset in this pipeline honors. Also dominated by hair/soap/toothpaste/nail-polish/perfume categories (French-heavy crowdsourced data); skincare ('Visage') is a small minority, with 39-69% missingness on category/ingredients/image fields. Owner-confirmed 2026-08-03: land raw only."
+}

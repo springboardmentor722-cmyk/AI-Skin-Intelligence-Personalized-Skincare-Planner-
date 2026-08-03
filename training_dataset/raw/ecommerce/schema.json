@@ -1,0 +1,9 @@
+{
+  "category": {"dtype": "str", "nullable": false, "unique_count": 6, "examples": ["skincare", "body", "lips"]},
+  "subcategory": {"dtype": "str", "nullable": false, "unique_count": 8, "note": "within category==skincare only", "examples": ["serum", "moisturizer", "cleanser"]},
+  "price": {"dtype": "float64 (INR)", "nullable": true, "null_count_in_skincare": 2, "examples": [3100.0, 1633.38]},
+  "ingredients": {"dtype": "str", "nullable": true, "null_count_in_skincare": 401, "examples": ["Aqua (Water), Glycerin (Vegetable), Lauryl Glucoside."]},
+  "size": {"dtype": "str (bare digits)", "nullable": true, "null_count_in_skincare": 105, "examples": ["75", "50"]},
+  "rating": {"dtype": "str (numeric)", "nullable": true, "null_count_in_skincare": 31, "examples": ["4.16"]},
+  "noofratings": {"dtype": "str (numeric)", "nullable": true, "null_count_in_skincare": 31, "examples": ["14"]}
+}

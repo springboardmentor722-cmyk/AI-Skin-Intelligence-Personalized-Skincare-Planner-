@@ -1,0 +1,13 @@
+{
+  "name": "Dermstore Skincare Products & Ingredients Dataset",
+  "source": "Kaggle",
+  "kaggle_url": "https://www.kaggle.com/datasets/crawlfeeds/dermstore-skincare-products-and-ingredients-dataset",
+  "kaggle_slug": "crawlfeeds/dermstore-skincare-products-and-ingredients-dataset",
+  "download_date": "2026-08-03",
+  "license": "CC BY 4.0",
+  "file_count": 1,
+  "row_count": 126,
+  "file_size_bytes": 682812,
+  "status": "landing only - no ingest module",
+  "reason": "Only 126 rows and not skincare-exclusive - includes a hair comb, candles, hair straighteners, LED devices, foundation makeup. The 'category' field is a useless per-product breadcrumb ('Brands / X / Y', 126 unique values, one per product). 'range'/'skin_type_and_concerns' fields are 58-65% null with no reliable skincare/not-skincare signal - building a keyword classifier here would be guessing (AGENTS.md §0.2). Owner-confirmed 2026-08-03: land raw only."
+}

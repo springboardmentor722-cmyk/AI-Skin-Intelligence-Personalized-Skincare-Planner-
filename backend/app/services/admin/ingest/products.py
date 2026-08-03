@@ -27,26 +27,20 @@ change.
 """
 
 import ast
-import datetime
-import json
 import re
 from pathlib import Path
 from typing import Any
 
 import pandas as pd
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.db.outbox import append_outbox
-from app.services.ingredients.models import Ingredient
-from app.services.recommendations.models import (
-    Product,
-    ProductConcern,
-    ProductIngredient,
-    ProductSkinType,
+from app.services.admin.ingest._shared import (
+    MAX_INGREDIENT_NAME_LENGTH,
+    load_into_database,
+    load_product_associations,
+    write_ingest_report,
 )
-from app.services.skin_profile.models import SkinConcern, SkinType
 
 _DATASET_SLUG = "nadyinky/sephora-products-and-skincare-reviews"
 _PRIMARY_CSV = "product_info.csv"
@@ -167,9 +161,6 @@ def parse_highlights(highlights_raw: str | None) -> tuple[list[str], list[str]]:
     return sorted(set(skin_types)), sorted(set(concerns))
 
 
-_MAX_INGREDIENT_NAME_LENGTH = 150  # ingredients.ingredient_name is VARCHAR(150)
-
-
 def _parse_ingredients(raw: Any) -> list[str]:
     """docs/DATASETS_AND_APIS.md §2's own rule: "INCI lists are messy — strip
     parentheticals, split on commas, canonicalize casing". The real Sephora dataset
@@ -196,7 +187,7 @@ def _parse_ingredients(raw: Any) -> list[str]:
         for chunk in without_parens.split(",")
         for p in chunk.split(";")
     ]
-    return [p for p in parts if p and 1 < len(p) <= _MAX_INGREDIENT_NAME_LENGTH]
+    return [p for p in parts if p and 1 < len(p) <= MAX_INGREDIENT_NAME_LENGTH]
 
 
 def _parse_size_ml(raw: Any) -> int | None:
@@ -280,166 +271,21 @@ def normalize_rows(df: pd.DataFrame) -> tuple[list[dict[str, Any]], list[dict[st
     return products, rejected
 
 
-async def load_into_database(db: AsyncSession, products: list[dict[str, Any]]) -> int:
-    """Idempotent upsert — same pattern as backend/app/db/seed.py: check-then-insert
-    on the natural key (brand_name, product_name), never a blind re-insert."""
-    existing_result = await db.execute(select(Product.brand_name, Product.product_name))
-    existing_products = {(b, n) for b, n in existing_result.all()}
-
-    existing_ingredients_result = await db.execute(select(Ingredient.ingredient_name))
-    ingredient_ids: dict[str, int] = {}
-    for name in existing_ingredients_result.scalars().all():
-        result = await db.execute(
-            select(Ingredient.ingredient_id).where(Ingredient.ingredient_name == name)
-        )
-        ingredient_ids[name] = result.scalar_one()
-
-    created = 0
-    for entry in products:
-        key = (entry["brand_name"], entry["product_name"])
-        if key in existing_products:
-            continue
-
-        product = Product(
-            brand_name=entry["brand_name"],
-            product_name=entry["product_name"],
-            category=entry["category"],
-            product_url=entry["product_url"],
-            image_url=entry["image_url"],
-            price=entry["price"],
-            currency=entry["currency"],
-            volume_ml=entry["volume_ml"],
-            rating=entry["rating"],
-            review_count=entry["review_count"],
-        )
-        db.add(product)
-        await db.flush()
-        await append_outbox(db, "product", str(product.product_id), "upsert")
-
-        # dict.fromkeys dedupes while preserving order — a single product's own INCI
-        # list can repeat the same canonicalized ingredient name (e.g. two entries
-        # that both title-case to "Water"), which otherwise tries to insert the same
-        # (product_id, ingredient_id) pair twice and hits product_ingredients' unique
-        # constraint. Found live: the real Sephora dataset triggers this on its first
-        # full run, no fixture ever exercised it.
-        for ingredient_name in dict.fromkeys(entry["ingredients"]):
-            if ingredient_name not in ingredient_ids:
-                ingredient = Ingredient(ingredient_name=ingredient_name)
-                db.add(ingredient)
-                await db.flush()
-                await append_outbox(db, "ingredient", str(ingredient.ingredient_id), "upsert")
-                ingredient_ids[ingredient_name] = ingredient.ingredient_id
-            db.add(
-                ProductIngredient(
-                    product_id=product.product_id,
-                    ingredient_id=ingredient_ids[ingredient_name],
-                )
-            )
-
-        created += 1
-
-    await db.commit()
-    return created
-
-
-async def load_product_associations(
-    db: AsyncSession, products: list[dict[str, Any]]
-) -> tuple[int, int]:
-    """Idempotent - populates product_skin_types/product_concerns for every
-    accepted product from this ingest (whether just-created or already present
-    from an earlier run), keyed by the same (brand_name, product_name) natural
-    key load_into_database uses. Real data only: skin_type_names/concern_names
-    come from parse_highlights' honest mapping, never fabricated here."""
-    skin_type_id_by_name: dict[str, int] = dict(
-        (await db.execute(select(SkinType.skin_type_name, SkinType.skin_type_id))).all()  # type: ignore[arg-type]
-    )
-    concern_id_by_name: dict[str, int] = dict(
-        (await db.execute(select(SkinConcern.concern_name, SkinConcern.concern_id))).all()  # type: ignore[arg-type]
-    )
-    product_id_by_key = {
-        (brand_name, product_name): product_id
-        for product_id, brand_name, product_name in (
-            await db.execute(
-                select(Product.product_id, Product.brand_name, Product.product_name)
-            )
-        ).all()
-    }
-    existing_skin_type_pairs = {
-        (product_id, skin_type_id)
-        for product_id, skin_type_id in (
-            await db.execute(select(ProductSkinType.product_id, ProductSkinType.skin_type_id))
-        ).all()
-    }
-    existing_concern_pairs = {
-        (product_id, concern_id)
-        for product_id, concern_id in (
-            await db.execute(select(ProductConcern.product_id, ProductConcern.concern_id))
-        ).all()
-    }
-
-    skin_type_created = 0
-    concern_created = 0
-    # ADR-010: the ES product document (build_product_document) reads
-    # skin_types_supported/concerns_supported from these same junction rows —
-    # every product whose association set actually changes here needs its own
-    # outbox row too, same as load_into_database's own upserts, or a fresh
-    # environment/re-run indexes it with permanently empty ES fields.
-    changed_product_ids: set[int] = set()
-    for entry in products:
-        product_id = product_id_by_key.get((entry["brand_name"], entry["product_name"]))
-        if product_id is None:
-            continue
-        for name in entry.get("skin_type_names", []):
-            skin_type_id = skin_type_id_by_name.get(name)
-            if skin_type_id is None or (product_id, skin_type_id) in existing_skin_type_pairs:
-                continue
-            db.add(ProductSkinType(product_id=product_id, skin_type_id=skin_type_id))
-            existing_skin_type_pairs.add((product_id, skin_type_id))
-            skin_type_created += 1
-            changed_product_ids.add(product_id)
-        for name in entry.get("concern_names", []):
-            concern_id = concern_id_by_name.get(name)
-            if concern_id is None or (product_id, concern_id) in existing_concern_pairs:
-                continue
-            db.add(ProductConcern(product_id=product_id, concern_id=concern_id))
-            existing_concern_pairs.add((product_id, concern_id))
-            concern_created += 1
-            changed_product_ids.add(product_id)
-
-    for product_id in changed_product_ids:
-        await append_outbox(db, "product", str(product_id), "upsert")
-
-    await db.commit()
-    return skin_type_created, concern_created
-
-
-def write_ingest_report(products: list[dict[str, Any]], rejected: list[dict[str, Any]]) -> Path:
-    _REPORT_DIR.mkdir(parents=True, exist_ok=True)
-    timestamp = datetime.datetime.now(datetime.UTC).strftime("%Y%m%dT%H%M%SZ")
-    report_path = _REPORT_DIR / f"products_ingest_{timestamp}.json"
-    report_path.write_text(
-        json.dumps(
-            {
-                "source": f"kaggle:{_DATASET_SLUG}",
-                "source_url": f"https://www.kaggle.com/datasets/{_DATASET_SLUG}",
-                "license": _LICENSE_NOTE,
-                "ingested_at": timestamp,
-                "accepted_count": len(products),
-                "rejected_count": len(rejected),
-            },
-            indent=2,
-        )
-    )
-    return report_path
-
-
 async def run(db: AsyncSession) -> None:
     csv_path = download_dataset()
     df = pd.read_csv(csv_path)
     products, rejected = normalize_rows(df)
     created = await load_into_database(db, products)
     skin_type_created, concern_created = await load_product_associations(db, products)
-    report_path = write_ingest_report(products, rejected)
+    report_path = write_ingest_report(
+        products,
+        rejected,
+        report_dir=_REPORT_DIR,
+        report_name="products",
+        source=f"kaggle:{_DATASET_SLUG}",
+        source_url=f"https://www.kaggle.com/datasets/{_DATASET_SLUG}",
+        license_note=_LICENSE_NOTE,
+    )
     print(
         f"Ingested {created} new product(s) ({len(products) - created} already present, "
         f"{len(rejected)} rejected). Associations: {skin_type_created} skin-type link(s), "

@@ -1,0 +1,14 @@
+{
+  "name": "Skincare Products and Ingredients (Sephora_all_423.csv only)",
+  "source": "Kaggle",
+  "kaggle_url": "https://www.kaggle.com/datasets/autumndyer/skincare-products-and-ingredients",
+  "kaggle_slug": "autumndyer/skincare-products-and-ingredients",
+  "download_date": "2026-08-03",
+  "license": "MIT",
+  "file_count": 5,
+  "ingested_file": "Sephora_all_423.csv",
+  "ingested_row_count": 2179,
+  "ingested_column_count": 20,
+  "other_files_landing_only": ["Paula_SUM_LIST.csv", "Paula_embedding_SUMLIST_before_422.csv", "binary_cosmetic_ingredient.csv", "pre_alternatives.csv"],
+  "notes": "Confirmed independent from the already-ingested nadyinky Sephora dataset (entirely different field set: no product_id/brand_id, narrative about/Skincare Concerns text, num_customer). The other 4 files are not product-catalog-shaped: Paula_SUM_LIST.csv is a 26,087-row ingredient dictionary (no products), Paula_embedding is embeddings, binary_cosmetic_ingredient.csv is a redundant product×ingredient flatten, pre_alternatives.csv is ingredient-substitution pairs. Landed raw only, no ingest module."
+}

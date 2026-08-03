@@ -1,0 +1,11 @@
+{
+  "brand_name": "brand_name",
+  "cosmetic_name": "product_name",
+  "cosmetic_link": "product_url",
+  "price": "price (low end of range if a range), currency hardcoded 'USD'",
+  "Skin Type": "skin_type_names (matched against known seeded skin-type names)",
+  "_deliberately_unparsed": {"ingredients": "marketing prose, not a clean INCI list - no reliable split point, left [] rather than guessed"},
+  "category": "always 'uncategorized' - no category/product-type column exists in this source",
+  "_unmapped_target_fields": ["image_url", "volume_ml", "rating", "review_count", "concern_names"],
+  "_unused_source_columns": ["num_customer", "reviews", "recommended", "What it is", "Skincare Concerns", "Formulation", "Benefits", "Highlighted Ingredients", "Ingredient Callouts", "What Else You Need to Know", "Clinical Results", "clean_ingredients", "new_ingredients"]
+}

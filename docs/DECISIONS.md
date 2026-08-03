@@ -1662,3 +1662,90 @@ the suite's ~500s+ total runtime made the recurring async-connection-teardown
 `AttributeError` in the traceback likelier to hit; the underlying `rebuild_all()`
 logic itself was verified correct via a direct manual run), `test_products_service.py`
 ×1 and `test_ingredients_service.py` ×2 (fixture-ranking assumption, above).
+
+## ADR-043 — 3 additional Kaggle product datasets ingested; 2 more landed raw-only (5 total) after real inspection found no usable signal
+
+**Status:** Accepted (owner request, 2026-08-03)
+**Context:** The dataset layer needed expansion beyond the 4 datasets in
+`training_dataset/MANIFEST.md`. An initial 7-dataset request included 4 URLs that
+turned out not to exist (verified live via the Kaggle API and dataset pages, not
+assumed) and 2 real-but-duplicate datasets (both explicitly republish the
+already-ingested `nadyinky` Sephora scrape, per their own dataset descriptions).
+**Decision:** Ingested 3 real, non-duplicate, product-shaped datasets via the
+existing per-dataset ingest-module pattern (`products.py`'s shape, now sharing
+`_shared.py`'s DB-loading logic, extracted for this purpose): Skincare Products
+Clean Dataset (`eward96`, 1,138/1,138 rows accepted), E-Commerce Cosmetics Dataset
+skincare rows only (`devi5723`, 1,838 new of 2,077 skincare rows — 140 already
+present, 10,637 rejected — non-skincare rows plus a few missing-mandatory-field/
+duplicate rows within the skincare subset), and `Sephora_all_423.csv` from
+`autumndyer`'s dataset (1,051 new of 2,179 rows — 1,125 already present, 3 rejected;
+the other 4 files in that dataset aren't product-shaped). Exact-match
+`(brand_name, product_name)` dedupe only — no fuzzy matching, consistent with the
+`enrich_product_images.py` precedent (ADR-040). The shared-loader extraction
+(`_shared.py`) also fixed a real latent within-batch natural-key dedupe bug in
+`load_into_database`: it only checked the initial DB read, not keys created earlier
+in the same loop, so two accepted rows sharing a natural key within one run could
+double-insert — now tracked as the loop proceeds.
+
+Landed 2 more datasets raw-only, no ingest module: Open Beauty Facts (no `price`
+field exists anywhere in the dataset — fails the mandatory-field gate every other
+dataset here honors) and Dermstore Skincare Products & Ingredients (only 126 rows,
+not skincare-exclusive, no reliable category signal beyond a useless per-product
+breadcrumb).
+
+Two cross-cutting scripts were also built and run for real against the ingested
+data: `generate_dataset_reports.py` (`make generate-dataset-reports`) aggregates
+every ingest module's already-written run reports into
+`training_dataset/processed/missing_data_report.md`, gathers every dataset's
+`column_mapping.json` into `training_dataset/master_product_schema.md`, and exports
+the live `ingredients` table to `training_dataset/processed/normalized_ingredients.csv`
+— needed 4 fix rounds before its DB-sortedness test actually verified what it
+claimed (ended up requiring a live `EXPLAIN` plan check against real Postgres to
+rule out a coincidental Index-Only-Scan false pass). `verify_product_links.py`
+(product-link health check) needed 3 fix rounds fixing real infrastructure bugs in
+the verification script itself — it originally checked the wrong DB column
+(`products.image_url`, an S3 key per ADR-041, not an HTTP URL), sent no `User-Agent`
+header (causing blanket 403s from Sephora/Ulta CDNs regardless of real link health),
+and used HTTP HEAD (which Ulta's WAF blanket-403s regardless of real resource
+state, confirmed by a live HEAD→403/GET→404 flip on identical URLs) — before its
+output could be trusted. Final run: 1,136/1,136 real product image URLs healthy;
+4,155 product page URLs checked, 2,248 broken (1,051 Sephora bot-protection 403s
+that may still be live pages — full browser automation would be needed to confirm,
+out of scope; 665 genuine stale 404s across Ulta/lookfantastic; 532 requests failed
+against one defunct partner subdomain, `sephora.nnnow.com`, DNS NXDOMAIN).
+
+Other real bugs found and fixed along the way, worth recording honestly rather than
+smoothing over (AGENTS.md §0.2): the `eward96` brand-extraction needed 3 fix rounds
+to build a complete real-data-grounded multi-word brand list (La Roche-Posay, Estée
+Lauder, etc. — 44 real brands, not a guessed handful); the `devi5723` ingest module
+had a silent data-loss bug where comma-formatted review counts (e.g. `"1,234"`)
+parsed as `None` instead of the real number, contradicting the never-defaulted
+data-fidelity principle every other field in this pipeline follows.
+**Consequences:** `products`/`ingredients`/`product_ingredients` gained 4,027 real
+new products (1,138 + 1,838 + 1,051) across 3 sources — 6,699 total products,
+14,081 total ingredients as of this session. `training_dataset/MANIFEST.md` grows
+to 9 entries. Two Kaggle datasets sit in `training_dataset/raw/` fully documented as
+landing-only rather than force-fit through a pipeline that would reject 100% of
+their rows or need an invented category classifier. 2,248 of the catalog's product
+URLs are now known-broken (mostly Sephora bot-protection and one dead partner
+subdomain) — a real, currently-unaddressed data-quality gap this ADR records rather
+than silently carries forward; re-verifying with browser automation or dropping the
+dead `sephora.nnnow.com` links outright are both explicitly deferred, not decided
+here.
+
+**Known gaps (found on final whole-branch review, 2026-08-03, documented not fixed):**
+`_shared.py`'s `load_into_database` keys its cross-batch duplicate check on
+`(entry["brand_name"], entry["product_name"])` case-**sensitively**, but every
+module built in this ADR (`ingest_skincare_clean.py`, `ingest_ecommerce_cosmetics.py`,
+`ingest_skincare_ingredients.py`) does its own within-batch dedupe using `.lower()`
+on both fields. A row that differs only in case from an already-loaded product
+therefore passes the loader's check as "new" even though it's the same product
+under different casing. Verified against the live DB: **62 case-only duplicate
+product pairs** among products this branch added, and **29 brands now exist under
+2+ casings** (e.g. `alpyn beauty` product_id 90 vs `Alpyn Beauty` product_id 11898,
+same product, different price). Separately, **4 pre-existing exact-case duplicate
+pairs** (same brand_name/product_name string, inserted twice, predating this
+branch's within-batch dedupe fix) are also still live in the DB, uncleaned. Fixing
+the loader's key (case-fold on lookup while preserving original casing on insert,
+plus a one-off cleanup migration for the 62+4 existing pairs) is a real ingest
+behavior change and is deferred pending owner sign-off, not fixed in this pass.

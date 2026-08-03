@@ -11,13 +11,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.db.outbox import Outbox
+from app.services.admin.ingest._shared import (
+    load_into_database,
+    load_product_associations,
+)
 from app.services.admin.ingest.products import (
     KaggleCredentialsError,
     _parse_ingredients,
     _parse_size_ml,
     download_dataset,
-    load_into_database,
-    load_product_associations,
     map_tertiary_category,
     normalize_rows,
     parse_highlights,
@@ -304,6 +306,49 @@ async def test_load_product_associations_appends_an_outbox_event_when_associatio
     await load_product_associations(db_session, products)
     rows_after = (await _outbox_rows_for_product()).scalars().all()
     assert len(rows_after) == 2
+
+
+async def test_load_into_database_dedupes_within_batch_by_natural_key(
+    db_session: AsyncSession,
+) -> None:
+    # Two accepted rows that share (brand_name, product_name) but differ in a field
+    # load_into_database's key doesn't cover (volume_ml) - normalize_rows' own
+    # dedupe key includes volume_ml so it wouldn't catch this; load_into_database
+    # must still only create one product for the shared natural key.
+    products = [
+        {
+            "brand_name": "Test Brand 4",
+            "product_name": "Test Batch Dup Product",
+            "category": "Serum",
+            "product_url": None,
+            "image_url": None,
+            "price": 10.0,
+            "currency": "USD",
+            "volume_ml": 30,
+            "ingredients": [],
+            "rating": None,
+            "review_count": None,
+            "skin_type_names": [],
+            "concern_names": [],
+        },
+        {
+            "brand_name": "Test Brand 4",
+            "product_name": "Test Batch Dup Product",
+            "category": "Serum",
+            "product_url": None,
+            "image_url": None,
+            "price": 10.0,
+            "currency": "USD",
+            "volume_ml": 50,
+            "ingredients": [],
+            "rating": None,
+            "review_count": None,
+            "skin_type_names": [],
+            "concern_names": [],
+        },
+    ]
+    created = await load_into_database(db_session, products)
+    assert created == 1
 
 
 def test_download_dataset_raises_clear_error_without_credentials(
