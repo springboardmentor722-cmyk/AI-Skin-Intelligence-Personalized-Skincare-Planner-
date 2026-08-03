@@ -17,7 +17,7 @@ from app.services.ingredients.models import Ingredient
 def build_missing_data_report(report_dir: Path) -> str:
     reports: list[dict[str, Any]] = []
     for path in sorted(report_dir.glob("*_ingest_*.json")):
-        reports.append(json.loads(path.read_text()))
+        reports.append(json.loads(path.read_text(encoding="utf-8")))
 
     if not reports:
         return "# Missing Data Report\n\nNo ingest reports found in this directory yet.\n"
@@ -54,7 +54,7 @@ def build_master_schema_markdown(raw_dir: Path) -> str:
     ]
     for mapping_path in sorted(raw_dir.glob("*/column_mapping.json")):
         dataset_slug = mapping_path.parent.name
-        mapping = json.loads(mapping_path.read_text())
+        mapping = json.loads(mapping_path.read_text(encoding="utf-8"))
         lines.append(f"## {dataset_slug}")
         lines.append("")
         lines.append("```json")
@@ -69,7 +69,7 @@ async def export_normalized_ingredients(db: AsyncSession) -> list[str]:
     a new normalization pass."""
     query = select(Ingredient.ingredient_name).order_by(Ingredient.ingredient_name)
     result = await db.execute(query)
-    return list(result.scalars().all())
+    return sorted(result.scalars().all())
 
 
 def write_normalized_ingredients_csv(ingredient_names: list[str], output_path: Path) -> Path:
@@ -87,10 +87,12 @@ async def main() -> None:
     processed_dir = repo_root / "training_dataset" / "processed"
 
     missing_data_md = build_missing_data_report(processed_dir)
-    (processed_dir / "missing_data_report.md").write_text(missing_data_md)
+    (processed_dir / "missing_data_report.md").write_text(missing_data_md, encoding="utf-8")
 
     master_schema_md = build_master_schema_markdown(raw_dir)
-    (repo_root / "training_dataset" / "master_product_schema.md").write_text(master_schema_md)
+    (repo_root / "training_dataset" / "master_product_schema.md").write_text(
+        master_schema_md, encoding="utf-8"
+    )
 
     async with async_session_factory() as db:
         ingredient_names = await export_normalized_ingredients(db)

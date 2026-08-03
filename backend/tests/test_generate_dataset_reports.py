@@ -80,10 +80,9 @@ async def test_export_normalized_ingredients_returns_real_sorted_names(
 
     names = await export_normalized_ingredients(db_session)
 
-    # Should return a non-empty list
-    assert isinstance(names, list)
-    assert len(names) > 0
-    # Should include our test ingredients (database-sorted, not re-sorted by Python)
+    # Verify sortedness — the database ORDER BY should produce sorted results
+    assert names == sorted(names)
+    # Should include our test ingredients
     assert "ZebraIngredientsTest_Unique_Alpha" in names
     assert "ZebraIngredientsTest_Unique_Zulu" in names
 
