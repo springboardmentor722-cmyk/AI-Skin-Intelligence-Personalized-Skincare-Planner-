@@ -1,0 +1,58 @@
+# ===============================
+# Python
+# ===============================
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Environment variables
+.env
+*.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Pytest
+.pytest_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs
+*.log
+
+# ===============================
+# Backend uploads
+# ===============================
+
+backend/uploads/
+
+# ===============================
+# VS Code
+# ===============================
+
+.vscode/
+
+# ===============================
+# Operating System
+# ===============================
+
+.DS_Store
+Thumbs.db
+
+# ===============================
+# Node.js
+# (frontend has its own .gitignore,
+# but keeping these here is harmless)
+# ===============================
+
+node_modules/
+build/
+coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

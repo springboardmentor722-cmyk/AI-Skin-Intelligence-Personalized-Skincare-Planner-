@@ -1,0 +1,22 @@
+concern_name,description,severity_level
+Acne,Medical skin condition: Acne,Moderate
+Actinic Keratosis,Medical skin condition: Actinic Keratosis,Moderate
+Benign Tumors,Medical skin condition: Benign Tumors,Moderate
+Bullous,Medical skin condition: Bullous,Moderate
+Candidiasis,Medical skin condition: Candidiasis,Moderate
+Drug Eruption,Medical skin condition: Drug Eruption,Moderate
+Eczema,Medical skin condition: Eczema,Moderate
+Infestations and Bites,Medical skin condition: Infestations and Bites,Moderate
+Lichen,Medical skin condition: Lichen,Moderate
+Lupus,Medical skin condition: Lupus,Moderate
+Moles,Medical skin condition: Moles,Moderate
+Psoriasis,Medical skin condition: Psoriasis,Moderate
+Rosacea,Medical skin condition: Rosacea,Moderate
+Seborrheic Keratoses,Medical skin condition: Seborrheic Keratoses,Moderate
+Skin Cancer,Medical skin condition: Skin Cancer,Moderate
+Sun and Sunlight Damage,Medical skin condition: Sun and Sunlight Damage,Moderate
+Tinea,Medical skin condition: Tinea,Moderate
+Normal Skin,Medical skin condition: Normal Skin,Moderate
+Vascular Tumors,Medical skin condition: Vascular Tumors,Moderate
+Vasculitis,Medical skin condition: Vasculitis,Moderate
+Vitiligo,Medical skin condition: Vitiligo,Moderate

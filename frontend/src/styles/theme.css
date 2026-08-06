@@ -1,0 +1,186 @@
+/* Rose Gold Skincare Theme */
+
+:root {
+  /* Primary Colors - Rose Gold */
+  --primary-rose: #B76E79;
+  --primary-light: #D4A5A0;
+  --primary-dark: #8B5A5E;
+  
+  /* Accent Colors */
+  --gold-accent: #D4AF37;
+  --cream-bg: #FFF8F6;
+  --white: #FFFFFF;
+  --text-dark: #4A4A4A;
+  --text-light: #8B8B8B;
+  
+  /* Status Colors */
+  --success: #6B9E7E;
+  --warning: #E8B4A8;
+  --danger: #C85A54;
+  --info: #A8C9D4;
+  
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #B76E79 0%, #D4A5A0 100%);
+  --gradient-light: linear-gradient(135deg, #FFF8F6 0%, #F5E6E1 100%);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', 'Poppins', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--cream-bg);
+  color: var(--text-dark);
+  line-height: 1.6;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  color: var(--primary-dark);
+}
+
+h1 {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+h2 {
+  font-size: 32px;
+  margin-bottom: 15px;
+}
+
+h3 {
+  font-size: 24px;
+  margin-bottom: 12px;
+}
+
+p {
+  font-size: 16px;
+  color: var(--text-light);
+  margin-bottom: 10px;
+}
+
+/* Buttons */
+.btn {
+  padding: 12px 30px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 16px;
+}
+
+.btn-primary {
+  background: var(--gradient-primary);
+  color: var(--white);
+  box-shadow: 0 4px 15px rgba(183, 110, 121, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(183, 110, 121, 0.4);
+}
+
+.btn-secondary {
+  background: var(--white);
+  color: var(--primary-rose);
+  border: 2px solid var(--primary-rose);
+}
+
+.btn-secondary:hover {
+  background: var(--cream-bg);
+  box-shadow: 0 4px 15px rgba(183, 110, 121, 0.2);
+}
+
+.btn-accent {
+  background: var(--gold-accent);
+  color: var(--white);
+}
+
+.btn-accent:hover {
+  background: #C4960B;
+}
+
+/* Form Elements */
+input, select, textarea {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid #E8D4D0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color 0.3s;
+  background: var(--white);
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--primary-rose);
+  box-shadow: 0 0 0 3px rgba(183, 110, 121, 0.1);
+}
+
+input::placeholder {
+  color: var(--text-light);
+}
+
+/* Cards */
+.card {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 8px 25px rgba(183, 110, 121, 0.15);
+  transform: translateY(-4px);
+}
+
+/* Containers */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.container-sm {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Utilities */
+.text-center {
+  text-align: center;
+}
+
+.text-gold {
+  color: var(--gold-accent);
+}
+
+.text-rose {
+  color: var(--primary-rose);
+}
+
+.mt-2 { margin-top: 20px; }
+.mb-2 { margin-bottom: 20px; }
+.mt-4 { margin-top: 40px; }
+.mb-4 { margin-bottom: 40px; }
+
+.flex {
+  display: flex;
+  gap: 20px;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
