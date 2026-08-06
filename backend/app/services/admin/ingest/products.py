@@ -115,8 +115,15 @@ def map_tertiary_category(tertiary_category: str | None) -> str:
 # skin_types.skin_type_name / skin_concerns.concern_name values. Confirmed by
 # inspecting the real column's actual value distribution (2,003 of 2,420 Skincare
 # rows have a non-null highlights value) — phrases with no clean match (e.g. "Good
-# for: Pores", no "Sensitive" phrase at all) are deliberately left unmapped, never
-# guessed (AGENTS.md §0.2).
+# for: Pores") are deliberately left unmapped, never guessed (AGENTS.md §0.2).
+#
+# No "Sensitive"-labeled phrase exists anywhere in the dataset's 112 unique highlight
+# values (checked exhaustively, not assumed). "Fragrance Free" and "Hypoallergenic"
+# are used as the Sensitive-skin signal instead — real, literal phrases present in
+# the data (283 and 54 Skincare rows respectively, 321 rows combined), not invented
+# text, and standard dermatological proxies for sensitive-skin suitability. Owner
+# confirmed this proxy mapping in-session (2026-08-06) given no literal alternative
+# exists — see AGENTS.md §0.2 on flagging assumptions rather than guessing silently.
 _SKIN_TYPE_HIGHLIGHT_MAP: dict[str, list[str]] = {
     "Best for Combination Skin": ["Combination"],
     "Best for Dry Skin": ["Dry"],
@@ -124,6 +131,8 @@ _SKIN_TYPE_HIGHLIGHT_MAP: dict[str, list[str]] = {
     "Best for Normal Skin": ["Normal"],
     "Best for Oily Skin": ["Oily"],
     "Best for Oily, Combo, Normal Skin": ["Oily", "Combination", "Normal"],
+    "Fragrance Free": ["Sensitive"],
+    "Hypoallergenic": ["Sensitive"],
 }
 
 _CONCERN_HIGHLIGHT_MAP: dict[str, list[str]] = {
