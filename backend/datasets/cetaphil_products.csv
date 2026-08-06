@@ -1,0 +1,12 @@
+product_id,name,brand,category,skin_type,concern,ingredients,description,price,rating,image_url
+
+P0001,Cetaphil Gentle Skin Cleanser,Cetaphil,Cleanser,"Dry,Sensitive,Normal","Dryness,Sensitivity","Water;Glycerin;Niacinamide;Panthenol","Gentle soap-free cleanser for sensitive and dry skin.",549,4.8,
+P0002,Cetaphil Oily Skin Cleanser,Cetaphil,Cleanser,"Oily,Combination","Acne,Oil Control","Glycerin;Niacinamide;Panthenol","Foaming cleanser that removes excess oil without drying.",620,4.7,
+P0003,Cetaphil Moisturising Cream,Cetaphil,Moisturizer,"Dry,Sensitive","Dryness","Glycerin;Sweet Almond Oil;Vitamin E","Rich moisturizing cream for very dry and sensitive skin.",780,4.8,
+P0004,Cetaphil Moisturising Lotion,Cetaphil,Moisturizer,"Normal,Dry","Hydration","Glycerin;Panthenol;Vitamin E","Daily lightweight moisturizer for face and body.",699,4.7,
+P0005,Cetaphil DAM Daily Advance Ultra Hydrating Lotion,Cetaphil,Moisturizer,"Dry,Sensitive","Dryness,Sensitivity","Shea Butter;Glycerin;Vitamin E","Deep hydration lotion designed for dry skin.",895,4.9,
+P0006,Cetaphil Sun SPF50+ Light Gel,Cetaphil,Sunscreen,"All","Sun Damage","Vitamin E;Glycerin","Lightweight broad-spectrum sunscreen SPF50+.",995,4.7,
+P0007,Cetaphil Sun SPF30,Cetaphil,Sunscreen,"All","Sun Damage","Vitamin E","Daily sun protection lotion SPF30.",799,4.6,
+P0008,Cetaphil Bright Healthy Radiance Cleanser,Cetaphil,Cleanser,"Normal,Combination","Pigmentation,Dullness","Niacinamide;Sea Daffodil Extract","Brightening facial cleanser for uneven skin tone.",845,4.6,
+P0009,Cetaphil Healthy Radiance Perfecting Serum,Cetaphil,Serum,"All","Pigmentation,Dark Spots","Niacinamide;Sea Daffodil Extract","Brightening serum to improve skin radiance.",1499,4.8,
+P0010,Cetaphil Bright Healthy Radiance Night Comfort Cream,Cetaphil,Night Cream,"Dry,Normal","Pigmentation,Dryness","Niacinamide;Vitamin E","Night cream that hydrates while improving skin tone.",1599,4.8,

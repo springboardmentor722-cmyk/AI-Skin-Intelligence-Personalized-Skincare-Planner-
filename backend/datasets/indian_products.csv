@@ -1,0 +1,590 @@
+product_id,product_name,brand_name,category,skin_type,skin_concern,ingredients,description,usage,price,rating,image_url,product_url
+
+
+P0001,Minimalist 2% Salicylic Acid Cleanser,Minimalist,Cleanser,Oily,Acne,"Salicylic Acid; Zinc PCA; Glycerin","Daily acne control face cleanser","Morning & Night",299,4.7,minimalist_salicylic_cleanser.jpg,https://beminimalist.co/
+P0002,Minimalist Vitamin C 10% Face Serum,Minimalist,Serum,All,Pigmentation,"Vitamin C; Acetyl Glucosamine","Brightening antioxidant serum","Morning",699,4.6,minimalist_vitamin_c_serum.jpg,https://beminimalist.co/
+P0003,Minimalist Niacinamide 5% Serum,Minimalist,Serum,Oily,Open Pores,"Niacinamide; Hyaluronic Acid","Oil balancing serum","Morning & Night",599,4.7,minimalist_niacinamide5.jpg,https://beminimalist.co/
+P0004,Minimalist Hyaluronic Acid Serum,Minimalist,Serum,Dry,Hydration,"Hyaluronic Acid; Panthenol","Deep hydration serum","Morning & Night",599,4.8,minimalist_hyaluronic.jpg,https://beminimalist.co/
+P0005,Minimalist Ceramide Moisturizer,Minimalist,Moisturizer,Dry,Barrier Repair,"Ceramides; Oat Extract","Barrier strengthening moisturizer","Morning & Night",349,4.8,minimalist_ceramide.jpg,https://beminimalist.co/
+P0006,The Derma Co 1% Hyaluronic Sunscreen,The Derma Co.,Sunscreen,All,Sun Protection,"Hyaluronic Acid; SPF 50","Hydrating broad spectrum sunscreen","Morning",499,4.6,dermaco_hyaluronic_sunscreen.jpg,https://thedermaco.com/
+P0007,The Derma Co Salicylic Face Wash,The Derma Co.,Face Wash,Oily,Acne,"Salicylic Acid; Witch Hazel","Deep cleansing acne face wash","Morning & Night",299,4.5,dermaco_salicylic_facewash.jpg,https://thedermaco.com/
+P0008,The Derma Co Kojic Acid Cream,The Derma Co.,Cream,All,Dark Spots,"Kojic Acid; Alpha Arbutin","Dark spot reduction cream","Night",549,4.5,dermaco_kojic_cream.jpg,https://thedermaco.com/
+P0009,The Derma Co C-Cinamide Serum,The Derma Co.,Serum,All,Pigmentation,"Vitamin C; Niacinamide","Glow boosting serum","Morning",699,4.6,dermaco_ccinamide.jpg,https://thedermaco.com/
+P0010,Dot & Key Watermelon Cooling Moisturizer,Dot & Key,Moisturizer,Combination,Hydration,"Watermelon Extract; Hyaluronic Acid","Lightweight gel moisturizer","Morning & Night",495,4.7,dotkey_watermelon_moisturizer.jpg,https://www.dotandkey.com/
+P0011,Dot & Key Cica Calming Face Wash,Dot & Key,Face Wash,Sensitive,Redness,"Cica; Green Tea; Aloe Vera","Gentle calming face wash for sensitive skin","Morning & Night",345,4.6,dotkey_cica_facewash.jpg,https://www.dotandkey.com/
+P0012,Dot & Key Vitamin C Sunscreen SPF50,Dot & Key,Sunscreen,All,Sun Protection,"Vitamin C; SPF 50; Niacinamide","Brightening sunscreen with broad spectrum protection","Morning",495,4.7,dotkey_vitc_sunscreen.jpg,https://www.dotandkey.com/
+P0013,Dot & Key Rice Water Toner,Dot & Key,Toner,All,Dullness,"Rice Water; Niacinamide","Hydrating and brightening toner","Morning & Night",395,4.5,dotkey_ricewater_toner.jpg,https://www.dotandkey.com/
+P0014,Dot & Key Barrier Repair Cream,Dot & Key,Moisturizer,Dry,Barrier Repair,"Ceramides; Peptides","Repairs damaged skin barrier","Morning & Night",595,4.8,dotkey_barrier_repair.jpg,https://www.dotandkey.com/
+P0015,Dot & Key Strawberry Lip Balm,Dot & Key,Lip Care,All,Dry Lips,"Shea Butter; Vitamin E","Moisturizing lip balm","Anytime",249,4.7,dotkey_lipbalm.jpg,https://www.dotandkey.com/
+P0016,Foxtale Daily Duet Cleanser,Foxtale,Cleanser,Combination,Daily Care,"Amino Acids; Glycerin","Gentle everyday cleanser","Morning & Night",349,4.6,foxtale_daily_cleanser.jpg,https://foxtale.in/
+P0017,Foxtale Glow Sunscreen SPF50,Foxtale,Sunscreen,All,Sun Protection,"SPF 50; Niacinamide","Invisible finish sunscreen","Morning",595,4.7,foxtale_glow_sunscreen.jpg,https://foxtale.in/
+P0018,Foxtale Hydrating Moisturizer,Foxtale,Moisturizer,Dry,Hydration,"Ceramides; Squalane","Deep hydration moisturizer","Morning & Night",495,4.6,foxtale_moisturizer.jpg,https://foxtale.in/
+P0019,Plum Green Tea Face Wash,Plum,Face Wash,Oily,Acne,"Green Tea; Glycolic Acid","Oil control face wash","Morning & Night",345,4.7,plum_greentea_facewash.jpg,https://plumgoodness.com/
+P0020,Plum Green Tea Toner,Plum,Toner,Oily,Open Pores,"Green Tea; Glycolic Acid","Refreshing pore minimizing toner","Morning & Night",390,4.6,plum_greentea_toner.jpg,https://plumgoodness.com/
+P0021,Plum Vitamin C Serum,Plum,Serum,All,Pigmentation,"Vitamin C; Kakadu Plum","Glow enhancing serum","Morning",790,4.7,plum_vitc_serum.jpg,https://plumgoodness.com/
+P0022,Dr. Sheth's Ceramide Sunscreen,Dr. Sheth's,Sunscreen,Sensitive,Sun Protection,"Ceramides; SPF 50","Barrier-friendly sunscreen","Morning",549,4.8,drsheths_ceramide_sunscreen.jpg,https://drsheths.com/
+P0023,Dr. Sheth's Haldi & Hyaluronic Serum,Dr. Sheth's,Serum,Dry,Hydration,"Turmeric; Hyaluronic Acid","Hydrating antioxidant serum","Morning & Night",699,4.6,drsheths_haldi_serum.jpg,https://drsheths.com/
+P0024,Aqualogica Glow+ Dewy Sunscreen,Aqualogica,Sunscreen,All,Sun Protection,"Papaya; Vitamin C","Lightweight dewy sunscreen","Morning",499,4.7,aqualogica_glow_sunscreen.jpg,https://aqualogica.in/
+P0025,Aqualogica Hydrate+ Gel Moisturizer,Aqualogica,Moisturizer,Combination,Hydration,"Coconut Water; Hyaluronic Acid","Oil-free hydrating moisturizer","Morning & Night",449,4.6,aqualogica_hydrate_gel.jpg,https://aqualogica.in/
+
+P0026,Cetaphil Gentle Skin Cleanser,Cetaphil,Cleanser,Sensitive,Sensitivity,"Glycerin; Niacinamide; Panthenol","Soap-free gentle daily cleanser","Morning & Night",399,4.8,cetaphil_gentle_skin_cleanser.jpg,https://www.cetaphil.in/
+P0027,Cetaphil Moisturising Lotion,Cetaphil,Moisturizer,Dry,Dryness,"Glycerin; Vitamin E","Daily lightweight moisturizer","Morning & Night",499,4.8,cetaphil_moisturising_lotion.jpg,https://www.cetaphil.in/
+P0028,Cetaphil Bright Healthy Radiance Serum,Cetaphil,Serum,All,Pigmentation,"Niacinamide; Sea Daffodil","Brightening face serum","Morning",1299,4.7,cetaphil_bright_radiance_serum.jpg,https://www.cetaphil.in/
+P0029,Cetaphil Sun SPF50 Light Gel,Cetaphil,Sunscreen,All,Sun Protection,"Vitamin E; SPF Filters","Broad spectrum sunscreen","Morning",899,4.7,cetaphil_sun_spf50.jpg,https://www.cetaphil.in/
+P0030,Cetaphil Hydrating Foaming Cream Cleanser,Cetaphil,Cleanser,Dry,Hydration,"Glycerin; Aloe Vera","Creamy hydrating cleanser","Morning & Night",699,4.8,cetaphil_hydrating_cleanser.jpg,https://www.cetaphil.in/
+
+P0031,CeraVe Hydrating Cleanser,CeraVe,Cleanser,Dry,Hydration,"Ceramides; Hyaluronic Acid","Hydrating facial cleanser","Morning & Night",1199,4.9,cerave_hydrating_cleanser.jpg,https://www.cerave.com/
+P0032,CeraVe Foaming Facial Cleanser,CeraVe,Cleanser,Oily,Acne,"Ceramides; Niacinamide","Foaming cleanser for oily skin","Morning & Night",1199,4.8,cerave_foaming_cleanser.jpg,https://www.cerave.com/
+P0033,CeraVe Moisturizing Cream,CeraVe,Moisturizer,Dry,Dryness,"Ceramides; Hyaluronic Acid","Rich moisturizing cream","Morning & Night",1499,4.9,cerave_moisturizing_cream.jpg,https://www.cerave.com/
+P0034,CeraVe PM Facial Moisturizing Lotion,CeraVe,Moisturizer,Combination,Barrier Repair,"Ceramides; Niacinamide","Night facial moisturizer","Night",1699,4.8,cerave_pm_lotion.jpg,https://www.cerave.com/
+P0035,CeraVe Resurfacing Retinol Serum,CeraVe,Serum,Oily,Acne Marks,"Retinol; Ceramides","Retinol serum for post-acne marks","Night",1999,4.8,cerave_retinol_serum.jpg,https://www.cerave.com/
+
+P0036,Bioderma Sensibio H2O,Bioderma,Cleanser,Sensitive,Sensitivity,"Micellar Technology","Micellar cleansing water","Morning & Night",899,4.8,bioderma_sensibio_h2o.jpg,https://www.bioderma.com/
+P0037,Bioderma Atoderm Creme,Bioderma,Moisturizer,Dry,Dryness,"Niacinamide; Glycerin","Ultra nourishing moisturizer","Morning & Night",999,4.8,bioderma_atoderm_creme.jpg,https://www.bioderma.com/
+P0038,Bioderma Sebium Gel Moussant,Bioderma,Cleanser,Oily,Acne,"Zinc Sulfate","Purifying foaming cleanser","Morning & Night",1099,4.7,bioderma_sebium_gel.jpg,https://www.bioderma.com/
+P0039,Bioderma Pigmentbio Night Renewer,Bioderma,Cream,All,Pigmentation,"Vitamin C; Hexapeptide","Night brightening cream","Night",1999,4.7,bioderma_pigmentbio_night.jpg,https://www.bioderma.com/
+P0040,Bioderma Photoderm MAX SPF50+,Bioderma,Sunscreen,All,Sun Protection,"SPF Filters; Vitamin E","High protection sunscreen","Morning",1499,4.8,bioderma_photoderm_spf50.jpg,https://www.bioderma.com/
+
+P0041,Simple Refreshing Face Wash,Simple,Cleanser,Sensitive,Sensitivity,"Pro Vitamin B5; Vitamin E","Soap-free refreshing face wash","Morning & Night",325,4.7,simple_refreshing_facewash.jpg,https://www.simpleskincare.in/
+P0042,Simple Hydrating Light Moisturizer,Simple,Moisturizer,Combination,Hydration,"Vitamin B5; Glycerin","Lightweight moisturizer","Morning & Night",399,4.7,simple_light_moisturizer.jpg,https://www.simpleskincare.in/
+P0043,Simple Kind To Skin Micellar Water,Simple,Cleanser,Sensitive,Makeup Removal,"Micellar Water","Gentle makeup remover","Night",399,4.8,simple_micellar_water.jpg,https://www.simpleskincare.in/
+P0044,Simple Booster Serum 3% Hyaluronic Acid,Simple,Serum,Dry,Hydration,"Hyaluronic Acid","Hydrating facial serum","Morning & Night",699,4.6,simple_hyaluronic_serum.jpg,https://www.simpleskincare.in/
+P0045,Simple Daily Skin Detox Purifying Face Wash,Simple,Cleanser,Oily,Acne,"Witch Hazel; Zinc","Purifying cleanser","Morning & Night",349,4.6,simple_detox_facewash.jpg,https://www.simpleskincare.in/
+
+P0046,Neutrogena Hydro Boost Water Gel,Neutrogena,Moisturizer,Dry,Hydration,"Hyaluronic Acid","Oil-free hydration gel","Morning & Night",999,4.8,neutrogena_hydro_boost.jpg,https://www.neutrogena.com/
+P0047,Neutrogena Deep Clean Face Wash,Neutrogena,Cleanser,Oily,Acne,"Salicylic Acid","Deep cleansing face wash","Morning & Night",299,4.7,neutrogena_deep_clean.jpg,https://www.neutrogena.com/
+P0048,Neutrogena Ultra Sheer SPF50+,Neutrogena,Sunscreen,All,Sun Protection,"Helioplex Technology","Ultra light sunscreen","Morning",699,4.8,neutrogena_ultrasheer_spf50.jpg,https://www.neutrogena.com/
+P0049,Neutrogena Bright Boost Serum,Neutrogena,Serum,All,Dullness,"Neoglucosamine","Radiance boosting serum","Morning",1299,4.6,neutrogena_bright_boost.jpg,https://www.neutrogena.com/
+P0050,Neutrogena Oil-Free Acne Wash,Neutrogena,Cleanser,Oily,Acne,"Salicylic Acid","Daily acne face wash","Morning & Night",499,4.7,neutrogena_acne_wash.jpg,https://www.neutrogena.com/
+
+P0051,Foxtale Daily Duet Cleanser,Foxtale,Cleanser,Combination,Daily Cleansing,"Amino Acids; Glycerin","Gentle everyday cleanser","Morning & Night",349,4.7,foxtale_daily_duet_cleanser.jpg,https://foxtale.in/
+P0052,Foxtale Vitamin C Serum,Foxtale,Serum,All,Pigmentation,"Vitamin C; Ferulic Acid","Brightening serum","Morning",595,4.7,foxtale_vitamin_c_serum.jpg,https://foxtale.in/
+P0053,Foxtale Ceramide Moisturizer,Foxtale,Moisturizer,Dry,Barrier Repair,"Ceramides; Squalane","Barrier repair moisturizer","Morning & Night",445,4.8,foxtale_ceramide_moisturizer.jpg,https://foxtale.in/
+P0054,Foxtale Dewy Sunscreen SPF70,Foxtale,Sunscreen,All,Sun Protection,"SPF Filters; Niacinamide","High protection sunscreen","Morning",595,4.8,foxtale_sunscreen_spf70.jpg,https://foxtale.in/
+P0055,Foxtale Overnight Glow Mask,Foxtale,Mask,All,Dullness,"Vitamin C; Lactic Acid","Glow overnight mask","Night",545,4.7,foxtale_glow_mask.jpg,https://foxtale.in/
+
+P0056,Aqualogica Glow+ Dewy Sunscreen,Aqualogica,Sunscreen,All,Sun Protection,"Vitamin C; Papaya","Hydrating sunscreen","Morning",499,4.8,aqualogica_glow_sunscreen.jpg,https://aqualogica.in/
+P0057,Aqualogica Hydrate+ Gel Moisturizer,Aqualogica,Moisturizer,Dry,Hydration,"Hyaluronic Acid","Gel moisturizer","Morning & Night",399,4.7,aqualogica_hydrate_moisturizer.jpg,https://aqualogica.in/
+P0058,Aqualogica Radiance+ Serum,Aqualogica,Serum,All,Dullness,"Vitamin C","Radiance serum","Morning",599,4.7,aqualogica_radiance_serum.jpg,https://aqualogica.in/
+P0059,Aqualogica Watermelon Face Wash,Aqualogica,Cleanser,Combination,Hydration,"Watermelon Extract","Refreshing cleanser","Morning & Night",349,4.6,aqualogica_watermelon_facewash.jpg,https://aqualogica.in/
+P0060,Aqualogica Glow+ Sleeping Mask,Aqualogica,Mask,All,Glow,"Papaya; Hyaluronic Acid","Sleeping mask","Night",499,4.6,aqualogica_sleeping_mask.jpg,https://aqualogica.in/
+
+P0061,Dr. Sheth's Ceramide & Vitamin C Sunscreen,Dr. Sheth's,Sunscreen,All,Sun Protection,"Ceramides; Vitamin C","Daily sunscreen","Morning",499,4.8,drsheths_ceramide_sunscreen.jpg,https://drsheths.com/
+P0062,Dr. Sheth's Cica & Ceramide Cleanser,Dr. Sheth's,Cleanser,Sensitive,Sensitivity,"Cica; Ceramides","Gentle cleanser","Morning & Night",349,4.8,drsheths_cica_cleanser.jpg,https://drsheths.com/
+P0063,Dr. Sheth's Haldi & Hyaluronic Face Wash,Dr. Sheth's,Cleanser,Dry,Hydration,"Turmeric; Hyaluronic Acid","Hydrating cleanser","Morning & Night",349,4.7,drsheths_haldi_facewash.jpg,https://drsheths.com/
+P0064,Dr. Sheth's Kesar & Kojic Serum,Dr. Sheth's,Serum,All,Pigmentation,"Kojic Acid; Saffron","Pigmentation serum","Night",699,4.7,drsheths_kojic_serum.jpg,https://drsheths.com/
+P0065,Dr. Sheth's Ceramide Moisturizer,Dr. Sheth's,Moisturizer,Dry,Barrier Repair,"Ceramides","Barrier moisturizer","Morning & Night",399,4.8,drsheths_ceramide_moisturizer.jpg,https://drsheths.com/
+
+P0066,Deconstruct Brightening Serum,Deconstruct,Serum,All,Pigmentation,"Niacinamide; Alpha Arbutin","Brightening serum","Night",599,4.7,deconstruct_brightening_serum.jpg,https://thedeconstruct.in/
+P0067,Deconstruct Clearing Serum,Deconstruct,Serum,Oily,Acne,"Salicylic Acid","Acne serum","Night",599,4.7,deconstruct_clearing_serum.jpg,https://thedeconstruct.in/
+P0068,Deconstruct Gel Moisturizer,Deconstruct,Moisturizer,Combination,Hydration,"Ceramides","Gel moisturizer","Morning & Night",399,4.7,deconstruct_gel_moisturizer.jpg,https://thedeconstruct.in/
+P0069,Deconstruct Hydrating Face Wash,Deconstruct,Cleanser,Dry,Hydration,"Hyaluronic Acid","Hydrating face wash","Morning & Night",349,4.6,deconstruct_facewash.jpg,https://thedeconstruct.in/
+P0070,Deconstruct Gel Sunscreen SPF55,Deconstruct,Sunscreen,All,Sun Protection,"SPF Filters","Gel sunscreen","Morning",499,4.7,deconstruct_sunscreen.jpg,https://thedeconstruct.in/
+
+P0071,Re'equil Oil Free Moisturizer,Re'equil,Moisturizer,Oily,Hydration,"Ceramides","Oil free moisturizer","Morning & Night",460,4.7,reequil_oilfree_moisturizer.jpg,https://www.reequil.com/
+P0072,Re'equil Ultra Matte Sunscreen SPF50,Re'equil,Sunscreen,Oily,Sun Protection,"SPF Filters","Matte sunscreen","Morning",695,4.9,reequil_ultramatte_sunscreen.jpg,https://www.reequil.com/
+P0073,Re'equil Ceramide Moisturizer,Re'equil,Moisturizer,Dry,Barrier Repair,"Ceramides","Barrier repair moisturizer","Morning & Night",495,4.8,reequil_ceramide_moisturizer.jpg,https://www.reequil.com/
+P0074,Re'equil Fruit AHA Face Wash,Re'equil,Cleanser,Combination,Dullness,"Fruit AHAs","Exfoliating cleanser","Morning",390,4.6,reequil_aha_facewash.jpg,https://www.reequil.com/
+P0075,Re'equil Pitstop Face Cleanser,Re'equil,Cleanser,Oily,Oil Control,"Tea Tree","Oil control cleanser","Morning & Night",395,4.7,reequil_pitstop_cleanser.jpg,https://www.reequil.com/
+
+P0076,Fixderma Shadow SPF50 Gel,Fixderma,Sunscreen,All,Sun Protection,"SPF Filters; Vitamin E","Gel sunscreen with broad spectrum protection","Morning",695,4.8,fixderma_shadow_spf50.jpg,https://www.fixderma.com/
+P0077,Fixderma Moisturizing Lotion,Fixderma,Moisturizer,Dry,Dryness,"Ceramides; Glycerin","Daily moisturizing lotion","Morning & Night",495,4.7,fixderma_moisturizer.jpg,https://www.fixderma.com/
+P0078,Fixderma Salyzap Face Wash,Fixderma,Cleanser,Oily,Acne,"Salicylic Acid","Anti-acne cleanser","Morning & Night",425,4.7,fixderma_salyzap_facewash.jpg,https://www.fixderma.com/
+P0079,Fixderma Vitamin C Serum,Fixderma,Serum,All,Pigmentation,"Vitamin C","Brightening serum","Morning",795,4.7,fixderma_vitamin_c.jpg,https://www.fixderma.com/
+P0080,Fixderma Barrier Repair Cream,Fixderma,Moisturizer,Sensitive,Barrier Repair,"Ceramides","Barrier repair cream","Night",695,4.8,fixderma_barrier_repair.jpg,https://www.fixderma.com/
+
+P0081,Conscious Chemist Hydro+ Moisturizer,Conscious Chemist,Moisturizer,Dry,Hydration,"Hyaluronic Acid","Hydrating moisturizer","Morning & Night",499,4.8,cc_hydro_moisturizer.jpg,https://consciouschemist.com/
+P0082,Conscious Chemist Berry Bright Sunscreen,Conscious Chemist,Sunscreen,All,Sun Protection,"SPF Filters","Daily sunscreen","Morning",599,4.8,cc_berry_sunscreen.jpg,https://consciouschemist.com/
+P0083,Conscious Chemist Trubiom Serum,Conscious Chemist,Serum,Oily,Acne,"Niacinamide","Acne control serum","Night",649,4.7,cc_trubiom_serum.jpg,https://consciouschemist.com/
+P0084,Conscious Chemist Cleanser,Conscious Chemist,Cleanser,Combination,Daily Cleansing,"Amino Acids","Gentle cleanser","Morning & Night",399,4.7,cc_cleanser.jpg,https://consciouschemist.com/
+P0085,Conscious Chemist Barrier Cream,Conscious Chemist,Moisturizer,Sensitive,Barrier Repair,"Ceramides","Barrier repair moisturizer","Night",549,4.8,cc_barrier_cream.jpg,https://consciouschemist.com/
+
+P0086,Chemist at Play Brightening Face Wash,Chemist at Play,Cleanser,All,Pigmentation,"Vitamin C","Brightening cleanser","Morning & Night",349,4.6,cap_facewash.jpg,https://chemistatplay.com/
+P0087,Chemist at Play Body Lotion,Chemist at Play,Moisturizer,Dry,Dryness,"Niacinamide","Body moisturizer","Morning",449,4.7,cap_body_lotion.jpg,https://chemistatplay.com/
+P0088,Chemist at Play Sunscreen SPF50,Chemist at Play,Sunscreen,All,Sun Protection,"SPF Filters","Daily sunscreen","Morning",499,4.7,cap_sunscreen.jpg,https://chemistatplay.com/
+P0089,Chemist at Play Acne Serum,Chemist at Play,Serum,Oily,Acne,"Salicylic Acid","Acne serum","Night",599,4.7,cap_acne_serum.jpg,https://chemistatplay.com/
+P0090,Chemist at Play Ceramide Cream,Chemist at Play,Moisturizer,Dry,Barrier Repair,"Ceramides","Barrier repair cream","Night",599,4.8,cap_ceramide_cream.jpg,https://chemistatplay.com/
+
+P0091,Earth Rhythm Matcha Cleanser,Earth Rhythm,Cleanser,Oily,Oil Control,"Matcha","Oil balancing cleanser","Morning & Night",399,4.6,er_matcha_cleanser.jpg,https://earthrhythm.com/
+P0092,Earth Rhythm Phyto Ceramide Cream,Earth Rhythm,Moisturizer,Dry,Barrier Repair,"Ceramides","Ceramide moisturizer","Night",599,4.8,er_ceramide_cream.jpg,https://earthrhythm.com/
+P0093,Earth Rhythm Sunscreen SPF50,Earth Rhythm,Sunscreen,All,Sun Protection,"SPF Filters","Broad spectrum sunscreen","Morning",599,4.7,er_sunscreen.jpg,https://earthrhythm.com/
+P0094,Earth Rhythm Vitamin C Serum,Earth Rhythm,Serum,All,Pigmentation,"Vitamin C","Brightening serum","Morning",699,4.7,er_vitamin_c.jpg,https://earthrhythm.com/
+P0095,Earth Rhythm Hydrating Gel,Earth Rhythm,Moisturizer,Combination,Hydration,"Hyaluronic Acid","Hydrating gel","Morning & Night",549,4.7,er_hydrating_gel.jpg,https://earthrhythm.com/
+
+P0096,COSRX Low pH Good Morning Cleanser,COSRX,Cleanser,Combination,Daily Cleansing,"Tea Tree; BHA","Low pH cleanser","Morning",999,4.9,cosrx_goodmorning_cleanser.jpg,https://www.cosrx.com/
+P0097,COSRX Advanced Snail 96 Essence,COSRX,Essence,All,Barrier Repair,"Snail Mucin","Repairing essence","Morning & Night",1450,4.9,cosrx_snail_essence.jpg,https://www.cosrx.com/
+P0098,COSRX Advanced Snail 92 Cream,COSRX,Moisturizer,Dry,Hydration,"Snail Mucin","Hydrating cream","Morning & Night",1599,4.9,cosrx_snail_cream.jpg,https://www.cosrx.com/
+P0099,COSRX Aloe Soothing Sun Cream,COSRX,Sunscreen,All,Sun Protection,"Aloe Vera","Soothing sunscreen","Morning",1250,4.8,cosrx_aloe_suncream.jpg,https://www.cosrx.com/
+P0100,COSRX BHA Blackhead Power Liquid,COSRX,Toner,Oily,Blackheads,"Betaine Salicylate","Exfoliating toner","Night",1499,4.9,cosrx_bha_liquid.jpg,https://www.cosrx.com/
+
+P0101,Simple Kind To Skin Refreshing Face Wash,Simple,Cleanser,Sensitive,Daily Cleansing,"Pro-Vitamin B5; Vitamin E","Gentle soap-free face wash","Morning & Night",349,4.7,simple_refreshing_face_wash.jpg,https://www.simple.co.uk/
+P0102,Simple Hydrating Light Moisturiser,Simple,Moisturizer,Dry,Hydration,"Vitamin E; Glycerin","Daily lightweight moisturizer","Morning & Night",425,4.6,simple_light_moisturiser.jpg,https://www.simple.co.uk/
+P0103,Simple Soothing Facial Toner,Simple,Toner,Sensitive,Redness,"Chamomile; Witch Hazel","Alcohol-free facial toner","Morning & Night",399,4.5,simple_soothing_toner.jpg,https://www.simple.co.uk/
+P0104,Simple Booster Hyaluronic Acid Serum,Simple,Serum,Dry,Hydration,"Hyaluronic Acid","Deep hydration serum","Morning & Night",699,4.6,simple_hyaluronic_serum.jpg,https://www.simple.co.uk/
+P0105,Simple Daily Skin Detox Wash,Simple,Cleanser,Oily,Oil Control,"Thyme; Zinc","Purifying facial cleanser","Morning & Night",399,4.5,simple_skin_detox_wash.jpg,https://www.simple.co.uk/
+P0106,Aveeno Daily Moisturizing Lotion,Aveeno,Moisturizer,Dry,Dryness,"Colloidal Oatmeal","Daily nourishing moisturizer","Morning & Night",899,4.8,aveeno_daily_moisturizing_lotion.jpg,https://www.aveeno.com/
+P0107,Aveeno Calm + Restore Cleanser,Aveeno,Cleanser,Sensitive,Redness,"Oat Extract","Ultra-gentle cleanser","Morning & Night",999,4.8,aveeno_calm_restore_cleanser.jpg,https://www.aveeno.com/
+P0108,Aveeno Positively Radiant Cleanser,Aveeno,Cleanser,Combination,Dullness,"Soy Extract","Brightening cleanser","Morning",899,4.6,aveeno_radiant_cleanser.jpg,https://www.aveeno.com/
+P0109,Aveeno Oat Gel Moisturizer,Aveeno,Moisturizer,Sensitive,Hydration,"Oat; Feverfew","Hydrating gel moisturizer","Morning & Night",1199,4.8,aveeno_oat_gel_moisturizer.jpg,https://www.aveeno.com/
+P0110,Aveeno Protect + Hydrate SPF50,Aveeno,Sunscreen,All,Sun Protection,"SPF 50","Hydrating sunscreen","Morning",1299,4.7,aveeno_protect_hydrate_spf50.jpg,https://www.aveeno.com/
+P0111,Sebamed Clear Face Cleansing Foam,Sebamed,Cleanser,Oily,Acne,"Panthenol","Foaming acne cleanser","Morning & Night",699,4.7,sebamed_clear_face_foam.jpg,https://www.sebamed.com/
+P0112,Sebamed Clear Face Care Gel,Sebamed,Moisturizer,Oily,Acne,"Aloe Vera","Oil-free face gel","Morning & Night",749,4.8,sebamed_face_care_gel.jpg,https://www.sebamed.com/
+P0113,Sebamed Anti-Dry Night Cream,Sebamed,Moisturizer,Dry,Dryness,"Vitamin E","Repairing night cream","Night",899,4.7,sebamed_anti_dry_night_cream.jpg,https://www.sebamed.com/
+P0114,Sebamed Face & Body Wash,Sebamed,Cleanser,Sensitive,Sensitive Skin,"Allantoin","Soap-free cleansing wash","Morning & Night",649,4.6,sebamed_face_body_wash.jpg,https://www.sebamed.com/
+P0115,Sebamed Multi Protect Sun Lotion SPF50,Sebamed,Sunscreen,All,Sun Protection,"SPF 50","Daily UV protection","Morning",1099,4.7,sebamed_sun_lotion_spf50.jpg,https://www.sebamed.com/
+P0116,Eucerin Advanced Repair Cream,Eucerin,Moisturizer,Dry,Very Dry Skin,"Ceramides; Urea","Intense repair moisturizer","Morning & Night",1499,4.8,eucerin_advanced_repair_cream.jpg,https://www.eucerin.com/
+P0117,Eucerin DermatoClean Cleanser,Eucerin,Cleanser,Sensitive,Daily Cleansing,"APG Complex","Gentle cleansing lotion","Morning & Night",1299,4.7,eucerin_dermatoclean_cleanser.jpg,https://www.eucerin.com/
+P0118,Eucerin Sun Gel SPF50,Eucerin,Sunscreen,Oily,Sun Protection,"SPF 50","Oil-control sunscreen","Morning",1599,4.8,eucerin_sun_gel_spf50.jpg,https://www.eucerin.com/
+P0119,Eucerin Hyaluron-Filler Serum,Eucerin,Serum,All,Fine Lines,"Hyaluronic Acid","Anti-aging serum","Night",1899,4.8,eucerin_hyaluron_filler_serum.jpg,https://www.eucerin.com/
+P0120,Eucerin Even Pigment Perfector,Eucerin,Serum,All,Pigmentation,"Thiamidol","Pigmentation correcting serum","Night",1999,4.7,eucerin_even_pigment_perfector.jpg,https://www.eucerin.com/
+P0121,Fixderma Shadow SPF30 Gel,Fixderma,Sunscreen,Oily,Sun Protection,"SPF 30","Lightweight sunscreen gel","Morning",695,4.6,fixderma_shadow_spf30_gel.jpg,https://www.fixderma.com/
+P0122,Fixderma Moisturizing Lotion,Fixderma,Moisturizer,Dry,Hydration,"Shea Butter","Daily moisturizing lotion","Morning & Night",599,4.5,fixderma_moisturizing_lotion.jpg,https://www.fixderma.com/
+P0123,Fixderma Salyzap Face Wash,Fixderma,Cleanser,Oily,Acne,"Salicylic Acid","Acne control face wash","Morning & Night",475,4.7,fixderma_salyzap_face_wash.jpg,https://www.fixderma.com/
+P0124,Fixderma Nigrifix Cream,Fixderma,Cream,All,Pigmentation,"Lactic Acid; Urea","Pigmentation reduction cream","Night",695,4.6,fixderma_nigrifix_cream.jpg,https://www.fixderma.com/
+P0125,Fixderma VitiSoothe Gel,Fixderma,Gel,Sensitive,Redness,"Aloe Vera","Soothing skin gel","Morning & Night",625,4.5,fixderma_vitisoothe_gel.jpg,https://www.fixderma.com/
+
+P0126,Dr. Sheth's Ceramide & Vitamin C Sunscreen,Dr. Sheth's,Sunscreen,All,Sun Protection,"Ceramides; Vitamin C; SPF 50","Brightening sunscreen with ceramides","Morning",849,4.8,dr_sheths_ceramide_vitc_sunscreen.jpg,https://www.drsheths.com/
+P0127,Dr. Sheth's Haldi & Hyaluronic Face Wash,Dr. Sheth's,Cleanser,Combination,Dullness,"Turmeric; Hyaluronic Acid","Hydrating brightening face wash","Morning & Night",399,4.6,dr_sheths_haldi_facewash.jpg,https://www.drsheths.com/
+P0128,Dr. Sheth's Centella & Niacinamide Serum,Dr. Sheth's,Serum,Oily,Acne Marks,"Centella; Niacinamide","Calming serum for acne-prone skin","Night",799,4.7,dr_sheths_centella_serum.jpg,https://www.drsheths.com/
+P0129,Dr. Sheth's Ceramide Moisturizer,Dr. Sheth's,Moisturizer,Dry,Barrier Repair,"Ceramides; Squalane","Barrier strengthening moisturizer","Morning & Night",699,4.8,dr_sheths_ceramide_moisturizer.jpg,https://www.drsheths.com/
+P0130,Dr. Sheth's Gulab & Glycolic Toner,Dr. Sheth's,Toner,Combination,Pigmentation,"Rose Water; Glycolic Acid","Exfoliating glow toner","Night",599,4.5,dr_sheths_glycolic_toner.jpg,https://www.drsheths.com/
+P0131,Pilgrim Squalane Glow Moisturizer,Pilgrim,Moisturizer,Dry,Dullness,"Squalane; Vitamin C","Glow boosting moisturizer","Morning & Night",650,4.7,pilgrim_squalane_glow_moisturizer.jpg,https://discoverpilgrim.com/
+P0132,Pilgrim Red Vine Face Wash,Pilgrim,Cleanser,Combination,Anti Aging,"Red Vine Extract","Refreshing anti-aging cleanser","Morning & Night",395,4.5,pilgrim_red_vine_facewash.jpg,https://discoverpilgrim.com/
+P0133,Pilgrim Retinol Night Cream,Pilgrim,Cream,All,Fine Lines,"Retinol; Hyaluronic Acid","Night repair cream","Night",695,4.8,pilgrim_retinol_night_cream.jpg,https://discoverpilgrim.com/
+P0134,Pilgrim Vitamin C Face Serum,Pilgrim,Serum,All,Pigmentation,"Vitamin C; Kakadu Plum","Brightening serum","Morning",695,4.7,pilgrim_vitamin_c_serum.jpg,https://discoverpilgrim.com/
+P0135,Pilgrim SPF50 Invisible Sunscreen,Pilgrim,Sunscreen,All,Sun Protection,"SPF 50","Invisible finish sunscreen","Morning",595,4.6,pilgrim_invisible_sunscreen.jpg,https://discoverpilgrim.com/
+P0136,Earth Rhythm Phyto Ceramide Moisturizer,Earth Rhythm,Moisturizer,Dry,Barrier Repair,"Ceramides; Oat Lipids","Barrier repair moisturizer","Morning & Night",699,4.6,earthrhythm_phyto_ceramide_moisturizer.jpg,https://earthrhythm.com/
+P0137,Earth Rhythm Matcha Face Cleanser,Earth Rhythm,Cleanser,Oily,Oil Control,"Matcha; Green Tea","Purifying cleanser","Morning & Night",499,4.5,earthrhythm_matcha_cleanser.jpg,https://earthrhythm.com/
+P0138,Earth Rhythm Vitamin C Serum,Earth Rhythm,Serum,All,Dullness,"Vitamin C","Daily glow serum","Morning",749,4.6,earthrhythm_vitamin_c_serum.jpg,https://earthrhythm.com/
+P0139,Earth Rhythm SPF50 Mineral Sunscreen,Earth Rhythm,Sunscreen,Sensitive,Sun Protection,"Zinc Oxide","Mineral sunscreen","Morning",699,4.5,earthrhythm_mineral_sunscreen.jpg,https://earthrhythm.com/
+P0140,Earth Rhythm Hyaluronic Toner,Earth Rhythm,Toner,Dry,Hydration,"Hyaluronic Acid","Hydrating toner","Morning & Night",499,4.4,earthrhythm_hyaluronic_toner.jpg,https://earthrhythm.com/
+P0141,Conscious Chemist Hydro+ Moisturizer,Conscious Chemist,Moisturizer,Dry,Hydration,"Ceramides; Panthenol","Deep hydration moisturizer","Morning & Night",699,4.7,consciouschemist_hydro_moisturizer.jpg,https://consciouschemist.com/
+P0142,Conscious Chemist Berry Bright Face Wash,Conscious Chemist,Cleanser,Combination,Dullness,"Berry Extract","Glow enhancing cleanser","Morning & Night",399,4.5,consciouschemist_berry_facewash.jpg,https://consciouschemist.com/
+P0143,Conscious Chemist Trubiom Pigmentation Serum,Conscious Chemist,Serum,All,Pigmentation,"Tranexamic Acid; Niacinamide","Pigmentation correction serum","Night",899,4.8,consciouschemist_trubiom_serum.jpg,https://consciouschemist.com/
+P0144,Conscious Chemist Invisible Sunscreen SPF50,Conscious Chemist,Sunscreen,Oily,Sun Protection,"SPF 50","Lightweight sunscreen","Morning",799,4.8,consciouschemist_invisible_sunscreen.jpg,https://consciouschemist.com/
+P0145,Conscious Chemist Ceramide Barrier Cream,Conscious Chemist,Cream,Sensitive,Barrier Repair,"Ceramides","Barrier strengthening cream","Night",799,4.7,consciouschemist_barrier_cream.jpg,https://consciouschemist.com/
+P0146,Foxtale Daily Duet Cleanser,Foxtale,Cleanser,Combination,Daily Cleansing,"Amino Acids","Gentle foaming cleanser","Morning & Night",349,4.7,foxtale_daily_duet_cleanser.jpg,https://foxtale.in/
+P0147,Foxtale Super Glow Moisturizer,Foxtale,Moisturizer,All,Dullness,"Vitamin C; Niacinamide","Glow moisturizer","Morning",595,4.6,foxtale_super_glow_moisturizer.jpg,https://foxtale.in/
+P0148,Foxtale Vitamin C Serum,Foxtale,Serum,All,Pigmentation,"Vitamin C","Brightening facial serum","Morning",645,4.7,foxtale_vitamin_c_serum.jpg,https://foxtale.in/
+P0149,Foxtale Dewy Sunscreen SPF70,Foxtale,Sunscreen,Dry,Sun Protection,"SPF 70","Hydrating sunscreen","Morning",695,4.8,foxtale_dewy_sunscreen_spf70.jpg,https://foxtale.in/
+P0150,Foxtale Hydrating Toner,Foxtale,Toner,Dry,Hydration,"Hyaluronic Acid","Daily hydrating toner","Morning & Night",499,4.5,foxtale_hydrating_toner.jpg,https://foxtale.in/
+
+P0151,Aqualogica Glow+ Dewy Sunscreen,Aqualogica,Sunscreen,All,Dullness,"Vitamin C; Papaya Extract; SPF 50","Hydrating glow sunscreen","Morning",699,4.8,aqualogica_glow_dewy_sunscreen.jpg,https://aqualogica.in/
+P0152,Aqualogica Hydrate+ Face Wash,Aqualogica,Cleanser,Dry,Hydration,"Hyaluronic Acid; Coconut Water","Hydrating daily face wash","Morning & Night",399,4.6,aqualogica_hydrate_facewash.jpg,https://aqualogica.in/
+P0153,Aqualogica Radiance+ Serum,Aqualogica,Serum,All,Pigmentation,"Vitamin C; Niacinamide","Glow enhancing serum","Morning",799,4.7,aqualogica_radiance_serum.jpg,https://aqualogica.in/
+P0154,Aqualogica Hydrate+ Gel Moisturizer,Aqualogica,Moisturizer,Dry,Hydration,"Hyaluronic Acid; Coconut Water","Gel moisturizer for dry skin","Morning & Night",599,4.7,aqualogica_hydrate_moisturizer.jpg,https://aqualogica.in/
+P0155,Aqualogica Refresh+ Toner,Aqualogica,Toner,Combination,Hydration,"Watermelon; Niacinamide","Refreshing facial toner","Morning & Night",499,4.5,aqualogica_refresh_toner.jpg,https://aqualogica.in/
+
+P0156,Dot & Key Watermelon Cooling Sunscreen,Dot & Key,Sunscreen,All,Sun Protection,"Watermelon; SPF 50","Cooling gel sunscreen","Morning",695,4.8,dotkey_watermelon_sunscreen.jpg,https://www.dotandkey.com/
+P0157,Dot & Key Cica Face Wash,Dot & Key,Cleanser,Sensitive,Redness,"Centella Asiatica","Calming face cleanser","Morning & Night",395,4.6,dotkey_cica_facewash.jpg,https://www.dotandkey.com/
+P0158,Dot & Key Vitamin C Serum,Dot & Key,Serum,All,Pigmentation,"Vitamin C; Kakadu Plum","Brightening serum","Morning",845,4.7,dotkey_vitamin_c_serum.jpg,https://www.dotandkey.com/
+P0159,Dot & Key Barrier Repair Moisturizer,Dot & Key,Moisturizer,Sensitive,Barrier Repair,"Ceramides; Panthenol","Barrier strengthening cream","Morning & Night",645,4.8,dotkey_barrier_moisturizer.jpg,https://www.dotandkey.com/
+P0160,Dot & Key Rice Water Toner,Dot & Key,Toner,All,Dullness,"Rice Water; Niacinamide","Glow boosting toner","Morning & Night",545,4.6,dotkey_ricewater_toner.jpg,https://www.dotandkey.com/
+
+P0161,Deconstruct Brightening Face Wash,Deconstruct,Cleanser,Combination,Pigmentation,"Niacinamide","Brightening cleanser","Morning & Night",349,4.5,deconstruct_brightening_facewash.jpg,https://thedeconstruct.in/
+P0162,Deconstruct Clearing Serum,Deconstruct,Serum,Oily,Acne,"Salicylic Acid; Niacinamide","Acne clearing serum","Night",699,4.8,deconstruct_clearing_serum.jpg,https://thedeconstruct.in/
+P0163,Deconstruct Hydrating Moisturizer,Deconstruct,Moisturizer,Dry,Hydration,"Ceramides; Hyaluronic Acid","Daily moisturizer","Morning & Night",549,4.6,deconstruct_hydrating_moisturizer.jpg,https://thedeconstruct.in/
+P0164,Deconstruct Gel Sunscreen SPF55,Deconstruct,Sunscreen,Oily,Sun Protection,"SPF 55","Lightweight gel sunscreen","Morning",749,4.7,deconstruct_gel_sunscreen.jpg,https://thedeconstruct.in/
+P0165,Deconstruct Gentle Exfoliating Toner,Deconstruct,Toner,Combination,Uneven Texture,"Lactic Acid","Weekly exfoliating toner","Night",599,4.5,deconstruct_exfoliating_toner.jpg,https://thedeconstruct.in/
+
+P0166,Re'equil Oil Free Moisturizer,Re'equil,Moisturizer,Oily,Oil Control,"Ceramides; Aloe Vera","Oil-free moisturizer","Morning & Night",460,4.7,reequil_oilfree_moisturizer.jpg,https://www.reequil.com/
+P0167,Re'equil Fruit AHA Face Wash,Re'equil,Cleanser,Combination,Dullness,"Fruit AHAs","Mild exfoliating cleanser","Morning & Night",390,4.5,reequil_fruit_aha_facewash.jpg,https://www.reequil.com/
+P0168,Re'equil Ceramide Cream,Re'equil,Cream,Dry,Barrier Repair,"Ceramides","Barrier repair cream","Night",690,4.8,reequil_ceramide_cream.jpg,https://www.reequil.com/
+P0169,Re'equil Ultra Matte Sunscreen,Re'equil,Sunscreen,Oily,Sun Protection,"SPF 50","Ultra matte sunscreen","Morning",780,4.9,reequil_ultramatte_sunscreen.jpg,https://www.reequil.com/
+P0170,Re'equil Pore Refining Toner,Re'equil,Toner,Oily,Open Pores,"Niacinamide","Pore minimizing toner","Morning & Night",520,4.6,reequil_pore_toner.jpg,https://www.reequil.com/
+
+P0171,Plum Green Tea Face Wash,Plum,Cleanser,Oily,Acne,"Green Tea; Glycolic Acid","Oil control face wash","Morning & Night",345,4.7,plum_green_tea_facewash.jpg,https://plumgoodness.com/
+P0172,Plum Vitamin C Face Serum,Plum,Serum,All,Pigmentation,"Vitamin C; Mandarin Extract","Brightening facial serum","Morning",790,4.7,plum_vitamin_c_serum.jpg,https://plumgoodness.com/
+P0173,Plum Green Tea Oil-Free Moisturizer,Plum,Moisturizer,Oily,Oil Control,"Green Tea","Oil-free moisturizer","Morning & Night",475,4.6,plum_green_tea_moisturizer.jpg,https://plumgoodness.com/
+P0174,Plum Chamomile Face Mist,Plum,Toner,Sensitive,Redness,"Chamomile","Soothing face mist","Anytime",395,4.5,plum_chamomile_face_mist.jpg,https://plumgoodness.com/
+P0175,Plum SPF50 Gel Sunscreen,Plum,Sunscreen,All,Sun Protection,"SPF 50","Lightweight gel sunscreen","Morning",675,4.8,plum_spf50_gel_sunscreen.jpg,https://plumgoodness.com/
+
+P0176,CeraVe Foaming Facial Cleanser,CeraVe,Cleanser,Oily,Acne,"Ceramides; Niacinamide","Foaming cleanser for normal to oily skin","Morning & Night",15.99,4.9,cerave_foaming_facial_cleanser.jpg,https://www.cerave.com/
+P0177,CeraVe Hydrating Facial Cleanser,CeraVe,Cleanser,Dry,Hydration,"Ceramides; Hyaluronic Acid","Hydrating cleanser for normal to dry skin","Morning & Night",15.99,4.9,cerave_hydrating_facial_cleanser.jpg,https://www.cerave.com/
+P0178,CeraVe Moisturizing Cream,CeraVe,Moisturizer,Dry,Barrier Repair,"Ceramides; Hyaluronic Acid","Rich moisturizing cream","Morning & Night",18.99,4.9,cerave_moisturizing_cream.jpg,https://www.cerave.com/
+P0179,CeraVe Daily Moisturizing Lotion,CeraVe,Moisturizer,All,Hydration,"Ceramides; Hyaluronic Acid","Lightweight daily moisturizer","Morning & Night",17.99,4.8,cerave_daily_moisturizing_lotion.jpg,https://www.cerave.com/
+P0180,CeraVe AM Facial Moisturizing Lotion SPF30,CeraVe,Sunscreen,All,Sun Protection,"Ceramides; SPF 30","Day moisturizer with SPF","Morning",19.99,4.8,cerave_am_spf30.jpg,https://www.cerave.com/
+
+P0181,La Roche-Posay Effaclar Purifying Cleanser,La Roche-Posay,Cleanser,Oily,Acne,"Zinc PCA","Purifying gel cleanser","Morning & Night",16.99,4.8,laroche_effaclar_cleanser.jpg,https://www.laroche-posay.us/
+P0182,La Roche-Posay Toleriane Hydrating Cleanser,La Roche-Posay,Cleanser,Sensitive,Hydration,"Ceramides; Niacinamide","Gentle hydrating cleanser","Morning & Night",16.99,4.9,laroche_toleriane_cleanser.jpg,https://www.laroche-posay.us/
+P0183,La Roche-Posay Cicaplast Baume B5,La Roche-Posay,Cream,Sensitive,Barrier Repair,"Panthenol; Madecassoside","Barrier repair balm","Morning & Night",18.99,4.9,laroche_cicaplast_b5.jpg,https://www.laroche-posay.us/
+P0184,La Roche-Posay Anthelios SPF50 Fluid,La Roche-Posay,Sunscreen,All,Sun Protection,"SPF 50","Ultra-light sunscreen fluid","Morning",32.99,4.9,laroche_anthelios_spf50.jpg,https://www.laroche-posay.us/
+P0185,La Roche-Posay Hyalu B5 Serum,La Roche-Posay,Serum,All,Fine Lines,"Hyaluronic Acid; Vitamin B5","Hydrating anti-aging serum","Night",39.99,4.8,laroche_hyalu_b5_serum.jpg,https://www.laroche-posay.us/
+
+P0186,Bioderma Sensibio H2O Micellar Water,Bioderma,Cleanser,Sensitive,Makeup Removal,"Micellar Technology","Gentle cleansing water","Evening",15.99,4.9,bioderma_sensibio_h2o.jpg,https://www.bioderma.us/
+P0187,Bioderma Sebium Gel Moussant,Bioderma,Cleanser,Oily,Acne,"Zinc Sulfate","Purifying foaming gel","Morning & Night",14.99,4.7,bioderma_sebium_gel.jpg,https://www.bioderma.us/
+P0188,Bioderma Atoderm Intensive Baume,Bioderma,Moisturizer,Dry,Barrier Repair,"Niacinamide","Ultra nourishing balm","Morning & Night",24.99,4.8,bioderma_atoderm_baume.jpg,https://www.bioderma.us/
+P0189,Bioderma Photoderm Max SPF50,Bioderma,Sunscreen,All,Sun Protection,"SPF 50","High protection sunscreen","Morning",22.99,4.8,bioderma_photoderm_spf50.jpg,https://www.bioderma.us/
+P0190,Bioderma Pigmentbio C-Concentrate,Bioderma,Serum,All,Pigmentation,"Vitamin C","Pigmentation correcting serum","Night",34.99,4.7,bioderma_pigmentbio_serum.jpg,https://www.bioderma.us/
+
+P0191,COSRX Low pH Good Morning Cleanser,COSRX,Cleanser,Combination,Daily Cleansing,"Tea Tree Oil; BHA","Low pH daily cleanser","Morning & Night",13.99,4.9,cosrx_lowph_cleanser.jpg,https://www.cosrx.com/
+P0192,COSRX Advanced Snail 96 Essence,COSRX,Essence,Dry,Barrier Repair,"Snail Mucin","Hydrating repair essence","Morning & Night",25.99,4.9,cosrx_snail96_essence.jpg,https://www.cosrx.com/
+P0193,COSRX Advanced Snail 92 Cream,COSRX,Moisturizer,Dry,Hydration,"Snail Mucin","Deep hydration cream","Morning & Night",26.99,4.8,cosrx_snail92_cream.jpg,https://www.cosrx.com/
+P0194,COSRX BHA Blackhead Power Liquid,COSRX,Serum,Oily,Blackheads,"Betaine Salicylate","Blackhead treatment","Night",22.99,4.8,cosrx_bha_power_liquid.jpg,https://www.cosrx.com/
+P0195,COSRX Aloe Soothing Sun Cream SPF50,COSRX,Sunscreen,All,Sun Protection,"Aloe Vera; SPF 50","Soothing sunscreen","Morning",18.99,4.8,cosrx_aloe_suncream.jpg,https://www.cosrx.com/
+
+P0196,Neutrogena Hydro Boost Water Gel,Neutrogena,Moisturizer,Dry,Hydration,"Hyaluronic Acid","Water gel moisturizer","Morning & Night",19.99,4.8,neutrogena_hydroboost_watergel.jpg,https://www.neutrogena.com/
+P0197,Neutrogena Hydro Boost Cleanser,Neutrogena,Cleanser,Dry,Hydration,"Hyaluronic Acid","Hydrating gel cleanser","Morning & Night",12.99,4.7,neutrogena_hydroboost_cleanser.jpg,https://www.neutrogena.com/
+P0198,Neutrogena Oil-Free Acne Wash,Neutrogena,Cleanser,Oily,Acne,"Salicylic Acid","Acne treatment cleanser","Morning & Night",11.99,4.7,neutrogena_oilfree_acnewash.jpg,https://www.neutrogena.com/
+P0199,Neutrogena Ultra Sheer Dry Touch SPF50,Neutrogena,Sunscreen,All,Sun Protection,"SPF 50","Dry touch sunscreen","Morning",14.99,4.8,neutrogena_ultrasheer_spf50.jpg,https://www.neutrogena.com/
+P0200,Neutrogena Rapid Wrinkle Repair Serum,Neutrogena,Serum,All,Fine Lines,"Retinol","Anti-aging retinol serum","Night",29.99,4.7,neutrogena_wrinkle_repair_serum.jpg,https://www.neutrogena.com/
+
+P0201,The Ordinary Niacinamide 10% + Zinc 1%,The Ordinary,Serum,Oily,Open Pores,"Niacinamide; Zinc PCA","High-strength vitamin and mineral blemish formula","Morning & Night",6.50,4.8,theordinary_niacinamide10_zinc1.jpg,https://theordinary.com/
+P0202,The Ordinary Hyaluronic Acid 2% + B5,The Ordinary,Serum,Dry,Hydration,"Hyaluronic Acid; Vitamin B5","Multi-depth hydration support serum","Morning & Night",8.90,4.8,theordinary_hyaluronic2_b5.jpg,https://theordinary.com/
+P0203,The Ordinary Salicylic Acid 2% Solution,The Ordinary,Serum,Oily,Acne,"Salicylic Acid","Targeted blemish treatment serum","Night",6.80,4.7,theordinary_salicylic2_solution.jpg,https://theordinary.com/
+P0204,The Ordinary Natural Moisturizing Factors + HA,The Ordinary,Moisturizer,All,Hydration,"Amino Acids; Hyaluronic Acid","Surface hydration moisturizer","Morning & Night",7.50,4.8,theordinary_nmf_ha.jpg,https://theordinary.com/
+P0205,The Ordinary Glycolic Acid 7% Toning Solution,The Ordinary,Toner,Combination,Dullness,"Glycolic Acid","Exfoliating toner for brighter skin","Night",10.50,4.8,theordinary_glycolic7_toner.jpg,https://theordinary.com/
+
+P0206,Innisfree Green Tea Amino Cleanser,Innisfree,Cleanser,Combination,Hydration,"Green Tea Extract","Hydrating amino acid cleanser","Morning & Night",12.00,4.7,innisfree_greentea_amino_cleanser.jpg,https://www.innisfree.com/
+P0207,Innisfree Green Tea Seed Serum,Innisfree,Serum,Dry,Hydration,"Green Tea; Hyaluronic Acid","Hydrating green tea serum","Morning & Night",28.00,4.8,innisfree_greentea_seed_serum.jpg,https://www.innisfree.com/
+P0208,Innisfree Cherry Blossom Jelly Cream,Innisfree,Moisturizer,Combination,Dullness,"Cherry Blossom Extract","Brightening jelly cream","Morning & Night",24.00,4.7,innisfree_cherryblossom_jellycream.jpg,https://www.innisfree.com/
+P0209,Innisfree Volcanic Pore Clay Mask,Innisfree,Mask,Oily,Open Pores,"Jeju Volcanic Clusters","Deep pore cleansing mask","2-3 Times Weekly",18.00,4.8,innisfree_volcanic_claymask.jpg,https://www.innisfree.com/
+P0210,Innisfree Daily UV Defense Sunscreen SPF36,Innisfree,Sunscreen,All,Sun Protection,"SPF 36","Daily lightweight sunscreen","Morning",18.00,4.7,innisfree_dailyuv_spf36.jpg,https://www.innisfree.com/
+
+P0211,Beauty of Joseon Green Plum Cleanser,Beauty of Joseon,Cleanser,Combination,Daily Cleansing,"Green Plum; Mung Bean","Refreshing gel cleanser","Morning & Night",14.00,4.8,boj_greenplum_cleanser.jpg,https://beautyofjoseon.com/
+P0212,Beauty of Joseon Glow Serum,Beauty of Joseon,Serum,Combination,Acne Marks,"Propolis; Niacinamide","Glow boosting serum","Morning & Night",17.00,4.9,boj_glow_serum.jpg,https://beautyofjoseon.com/
+P0213,Beauty of Joseon Revive Serum,Beauty of Joseon,Serum,All,Fine Lines,"Ginseng; Snail Mucin","Revitalizing anti-aging serum","Night",17.00,4.8,boj_revive_serum.jpg,https://beautyofjoseon.com/
+P0214,Beauty of Joseon Dynasty Cream,Beauty of Joseon,Moisturizer,Dry,Barrier Repair,"Rice Bran Water; Ginseng","Rich nourishing cream","Morning & Night",24.00,4.9,boj_dynasty_cream.jpg,https://beautyofjoseon.com/
+P0215,Beauty of Joseon Relief Sun SPF50+,Beauty of Joseon,Sunscreen,All,Sun Protection,"Rice Extract; SPF50+","Moisturizing sunscreen","Morning",18.00,4.9,boj_reliefsun_spf50.jpg,https://beautyofjoseon.com/
+
+P0216,Isntree Hyaluronic Acid Cleanser,Isntree,Cleanser,Dry,Hydration,"Hyaluronic Acid","Gentle hydrating cleanser","Morning & Night",15.00,4.7,isntree_hyaluronic_cleanser.jpg,https://isntree.com/
+P0217,Isntree Green Tea Fresh Toner,Isntree,Toner,Oily,Oil Control,"Green Tea Extract","Balancing facial toner","Morning & Night",18.00,4.8,isntree_greentea_toner.jpg,https://isntree.com/
+P0218,Isntree Hyaluronic Acid Toner Plus,Isntree,Toner,Dry,Hydration,"5 Types Hyaluronic Acid","Deep hydration toner","Morning & Night",20.00,4.8,isntree_hyaluronic_tonerplus.jpg,https://isntree.com/
+P0219,Isntree Hyaluronic Acid Aqua Gel Cream,Isntree,Moisturizer,Dry,Hydration,"Hyaluronic Acid","Lightweight gel cream","Morning & Night",23.00,4.8,isntree_aquagel_cream.jpg,https://isntree.com/
+P0220,Isntree Watery Sun Gel SPF50+,Isntree,Sunscreen,All,Sun Protection,"SPF50+; Hyaluronic Acid","Hydrating sunscreen gel","Morning",24.00,4.9,isntree_waterysungel_spf50.jpg,https://isntree.com/
+
+P0221,Round Lab Birch Juice Cleanser,Round Lab,Cleanser,Dry,Hydration,"Birch Sap","Hydrating facial cleanser","Morning & Night",16.00,4.8,roundlab_birch_cleanser.jpg,https://roundlab.com/
+P0222,Round Lab Birch Juice Moisturizing Cream,Round Lab,Moisturizer,Dry,Hydration,"Birch Sap; Hyaluronic Acid","Deep hydration cream","Morning & Night",28.00,4.9,roundlab_birch_moisturizer.jpg,https://roundlab.com/
+P0223,Round Lab Dokdo Toner,Round Lab,Toner,Combination,Sensitive Skin,"Deep Sea Water","Mineral-rich hydrating toner","Morning & Night",20.00,4.9,roundlab_dokdo_toner.jpg,https://roundlab.com/
+P0224,Round Lab Dokdo Cleanser,Round Lab,Cleanser,Sensitive,Daily Cleansing,"Deep Sea Water","Gentle foaming cleanser","Morning & Night",16.00,4.8,roundlab_dokdo_cleanser.jpg,https://roundlab.com/
+P0225,Round Lab Birch Juice Sun Cream SPF50+,Round Lab,Sunscreen,All,Sun Protection,"SPF50+; Birch Sap","Hydrating sun cream","Morning",26.00,4.9,roundlab_birch_suncream.jpg,https://roundlab.com/
+
+P0226,Anua Heartleaf Quercetinol Cleanser,Anua,Cleanser,Sensitive,Redness,"Heartleaf Extract; Quercetin","Gentle soothing gel cleanser","Morning & Night",18.00,4.9,anua_heartleaf_cleanser.jpg,https://anua.kr/
+P0227,Anua Heartleaf 77 Soothing Toner,Anua,Toner,Sensitive,Redness,"77% Heartleaf Extract","Calming facial toner","Morning & Night",22.00,4.9,anua_heartleaf77_toner.jpg,https://anua.kr/
+P0228,Anua Niacinamide 10% + TXA Serum,Anua,Serum,All,Pigmentation,"Niacinamide; Tranexamic Acid","Brightening serum for uneven skin tone","Night",24.00,4.8,anua_niacinamide_txa_serum.jpg,https://anua.kr/
+P0229,Anua Heartleaf 70 Daily Lotion,Anua,Moisturizer,Combination,Barrier Repair,"Heartleaf Extract; Ceramides","Lightweight soothing lotion","Morning & Night",24.00,4.8,anua_heartleaf70_lotion.jpg,https://anua.kr/
+P0230,Anua Airy Sun Cream SPF50+,Anua,Sunscreen,All,Sun Protection,"SPF50+; Heartleaf Extract","Lightweight moisturizing sunscreen","Morning",22.00,4.9,anua_airy_suncream.jpg,https://anua.kr/
+
+P0231,SKIN1004 Madagascar Centella Ampoule,SKIN1004,Serum,Sensitive,Barrier Repair,"Centella Asiatica Extract","Pure centella calming ampoule","Morning & Night",19.00,4.9,skin1004_centella_ampoule.jpg,https://skin1004.com/
+P0232,SKIN1004 Madagascar Centella Cleanser,SKIN1004,Cleanser,Sensitive,Daily Cleansing,"Centella Asiatica","Gentle foaming cleanser","Morning & Night",15.00,4.8,skin1004_centella_cleanser.jpg,https://skin1004.com/
+P0233,SKIN1004 Hyalu-Cica Blue Serum,SKIN1004,Serum,Dry,Hydration,"Hyaluronic Acid; Centella","Hydrating soothing serum","Morning & Night",24.00,4.8,skin1004_hyalucica_serum.jpg,https://skin1004.com/
+P0234,SKIN1004 Centella Soothing Cream,SKIN1004,Moisturizer,Sensitive,Barrier Repair,"Centella; Ceramides","Barrier repair moisturizer","Morning & Night",23.00,4.8,skin1004_centella_cream.jpg,https://skin1004.com/
+P0235,SKIN1004 Hyalu-Cica Water Fit Sun Serum,SKIN1004,Sunscreen,All,Sun Protection,"SPF50+; Hyaluronic Acid","Hydrating sunscreen serum","Morning",22.00,4.9,skin1004_waterfit_sunserum.jpg,https://skin1004.com/
+
+P0236,Torriden Dive-In Low Molecular Cleanser,Torriden,Cleanser,Dry,Hydration,"Low Molecular Hyaluronic Acid","Hydrating facial cleanser","Morning & Night",16.00,4.8,torriden_divein_cleanser.jpg,https://torriden.com/
+P0237,Torriden Dive-In Toner,Torriden,Toner,Dry,Hydration,"5D Hyaluronic Acid","Deep hydration toner","Morning & Night",19.00,4.9,torriden_divein_toner.jpg,https://torriden.com/
+P0238,Torriden Dive-In Serum,Torriden,Serum,Dry,Hydration,"5D Hyaluronic Acid","Intense hydration serum","Morning & Night",23.00,4.9,torriden_divein_serum.jpg,https://torriden.com/
+P0239,Torriden Dive-In Soothing Cream,Torriden,Moisturizer,Dry,Barrier Repair,"Ceramides; Hyaluronic Acid","Hydrating soothing cream","Morning & Night",24.00,4.8,torriden_divein_cream.jpg,https://torriden.com/
+P0240,Torriden Balanceful Sun Cream SPF50+,Torriden,Sunscreen,All,Sun Protection,"SPF50+","Daily moisturizing sunscreen","Morning",21.00,4.8,torriden_balanceful_suncream.jpg,https://torriden.com/
+
+P0241,Goodal Green Tangerine Vita C Cleanser,Goodal,Cleanser,Combination,Dullness,"Green Tangerine Extract","Brightening cleanser","Morning & Night",15.00,4.7,goodal_vitac_cleanser.jpg,https://www.goodal.com/
+P0242,Goodal Green Tangerine Vita C Toner,Goodal,Toner,All,Pigmentation,"Vitamin C","Brightening toner","Morning & Night",20.00,4.8,goodal_vitac_toner.jpg,https://www.goodal.com/
+P0243,Goodal Green Tangerine Vita C Dark Spot Serum,Goodal,Serum,All,Pigmentation,"Vitamin C; Niacinamide","Dark spot correcting serum","Morning",26.00,4.9,goodal_darkspot_serum.jpg,https://www.goodal.com/
+P0244,Goodal Green Tangerine Vita C Cream,Goodal,Moisturizer,All,Dullness,"Vitamin C","Glow enhancing moisturizer","Morning & Night",25.00,4.8,goodal_vitac_cream.jpg,https://www.goodal.com/
+P0245,Goodal Mild Protect Sun Cream SPF50+,Goodal,Sunscreen,All,Sun Protection,"SPF50+","Lightweight UV protection","Morning",20.00,4.8,goodal_suncream.jpg,https://www.goodal.com/
+
+P0246,Klairs Rich Moist Foaming Cleanser,Klairs,Cleanser,Dry,Hydration,"Amino Acids","Gentle hydrating cleanser","Morning & Night",18.00,4.8,klairs_richmoist_cleanser.jpg,https://www.klairscosmetics.com/
+P0247,Klairs Supple Preparation Facial Toner,Klairs,Toner,Sensitive,Hydration,"Botanical Extracts","Hydrating balancing toner","Morning & Night",21.00,4.9,klairs_supple_toner.jpg,https://www.klairscosmetics.com/
+P0248,Klairs Freshly Juiced Vitamin Drop,Klairs,Serum,All,Pigmentation,"Vitamin C","Brightening antioxidant serum","Morning",23.00,4.8,klairs_vitamin_drop.jpg,https://www.klairscosmetics.com/
+P0249,Klairs Rich Moist Soothing Cream,Klairs,Moisturizer,Dry,Barrier Repair,"Ceramides; Shea Butter","Deep moisturizing cream","Morning & Night",26.00,4.9,klairs_soothing_cream.jpg,https://www.klairscosmetics.com/
+P0250,Klairs All-day Airy Sunscreen SPF50+,Klairs,Sunscreen,All,Sun Protection,"SPF50+","Lightweight daily sunscreen","Morning",24.00,4.8,klairs_airy_sunscreen.jpg,https://www.klairscosmetics.com/
+
+P0251,Purito Defence Barrier pH Cleanser,Purito,Cleanser,Sensitive,Barrier Repair,"Centella Asiatica; Tea Tree","Low pH gentle facial cleanser","Morning & Night",16.00,4.8,purito_barrier_ph_cleanser.jpg,https://purito.com/
+P0252,Purito Centella Unscented Toner,Purito,Toner,Sensitive,Redness,"Centella Asiatica; Panthenol","Fragrance-free soothing toner","Morning & Night",19.00,4.9,purito_centella_unscented_toner.jpg,https://purito.com/
+P0253,Purito Centella Unscented Serum,Purito,Serum,Sensitive,Barrier Repair,"Centella Asiatica; Ceramides","Calming barrier repair serum","Morning & Night",22.00,4.9,purito_centella_unscented_serum.jpg,https://purito.com/
+P0254,Purito B5 Panthenol Re-barrier Cream,Purito,Moisturizer,Dry,Barrier Repair,"Panthenol; Squalane","Barrier strengthening moisturizer","Morning & Night",24.00,4.8,purito_b5_panthenol_cream.jpg,https://purito.com/
+P0255,Purito Daily Soft Touch Sunscreen SPF50+,Purito,Sunscreen,All,Sun Protection,"SPF50+; Centella","Moisturizing daily sunscreen","Morning",21.00,4.8,purito_softtouch_sunscreen.jpg,https://purito.com/
+
+P0256,Pyunkang Yul Low pH Cleansing Foam,Pyunkang Yul,Cleanser,Sensitive,Daily Cleansing,"Tea Tree; Centella","Gentle low pH cleansing foam","Morning & Night",15.00,4.8,pyunkangyul_lowph_cleanser.jpg,https://pyunkangyul.com/
+P0257,Pyunkang Yul Essence Toner,Pyunkang Yul,Toner,Dry,Hydration,"Astragalus Root Extract","Deep hydrating essence toner","Morning & Night",18.00,4.9,pyunkangyul_essence_toner.jpg,https://pyunkangyul.com/
+P0258,Pyunkang Yul Moisture Serum,Pyunkang Yul,Serum,Dry,Hydration,"Olive Oil; Coptis Japonica","Hydrating facial serum","Morning & Night",23.00,4.8,pyunkangyul_moisture_serum.jpg,https://pyunkangyul.com/
+P0259,Pyunkang Yul Nutrition Cream,Pyunkang Yul,Moisturizer,Dry,Barrier Repair,"Shea Butter; Astragalus","Rich nourishing cream","Morning & Night",25.00,4.8,pyunkangyul_nutrition_cream.jpg,https://pyunkangyul.com/
+P0260,Pyunkang Yul ATO Mild Sun Cream SPF50+,Pyunkang Yul,Sunscreen,Sensitive,Sun Protection,"SPF50+","Gentle mineral sunscreen","Morning",22.00,4.7,pyunkangyul_ato_suncream.jpg,https://pyunkangyul.com/
+
+P0261,Haruharu Wonder Black Rice Cleanser,Haruharu Wonder,Cleanser,Combination,Daily Cleansing,"Black Rice Extract","Hydrating antioxidant cleanser","Morning & Night",16.00,4.8,haruharu_blackrice_cleanser.jpg,https://haruharuwonder.com/
+P0262,Haruharu Wonder Black Rice Toner,Haruharu Wonder,Toner,All,Hydration,"Fermented Black Rice","Hydrating antioxidant toner","Morning & Night",19.00,4.9,haruharu_blackrice_toner.jpg,https://haruharuwonder.com/
+P0263,Haruharu Wonder Black Rice Hyaluronic Serum,Haruharu Wonder,Serum,Dry,Hydration,"Black Rice; Hyaluronic Acid","Deep hydration serum","Morning & Night",24.00,4.8,haruharu_blackrice_serum.jpg,https://haruharuwonder.com/
+P0264,Haruharu Wonder Black Rice Cream,Haruharu Wonder,Moisturizer,Dry,Barrier Repair,"Black Rice Extract","Firming nourishing cream","Morning & Night",26.00,4.8,haruharu_blackrice_cream.jpg,https://haruharuwonder.com/
+P0265,Haruharu Wonder Airyfit Sunscreen SPF50+,Haruharu Wonder,Sunscreen,All,Sun Protection,"SPF50+","Lightweight UV protection","Morning",22.00,4.8,haruharu_airyfit_sunscreen.jpg,https://haruharuwonder.com/
+
+P0266,Banila Co Clean It Zero Original,Banila Co,Cleansing Balm,All,Makeup Removal,"Papaya Extract; Acerola","Oil-based cleansing balm","Evening",22.00,4.9,banilaco_cleanitzero_original.jpg,https://banilausa.com/
+P0267,Banila Co Dear Hydration Toner,Banila Co,Toner,Dry,Hydration,"Pink Cactus Water","Hydrating toner","Morning & Night",18.00,4.7,banilaco_hydration_toner.jpg,https://banilausa.com/
+P0268,Banila Co Miss Flower & Mr Honey Serum,Banila Co,Serum,Dry,Nourishment,"Honey Extract","Nourishing glow serum","Morning & Night",26.00,4.7,banilaco_honey_serum.jpg,https://banilausa.com/
+P0269,Banila Co Dear Hydration Cream,Banila Co,Moisturizer,Dry,Hydration,"Pink Cactus Water","Moisturizing facial cream","Morning & Night",27.00,4.8,banilaco_hydration_cream.jpg,https://banilausa.com/
+P0270,Banila Co Hello Sunny Essence Sun Stick SPF50+,Banila Co,Sunscreen,All,Sun Protection,"SPF50+","Portable sunscreen stick","Morning",24.00,4.8,banilaco_sunstick_spf50.jpg,https://banilausa.com/
+
+P0271,Etude SoonJung pH 6.5 Whip Cleanser,Etude,Cleanser,Sensitive,Barrier Repair,"Panthenol; Madecassoside","Gentle whipped cleanser","Morning & Night",15.00,4.8,etude_soonjung_whip_cleanser.jpg,https://www.etude.com/
+P0272,Etude SoonJung Relief Toner,Etude,Toner,Sensitive,Redness,"Panthenol","Low-irritation soothing toner","Morning & Night",18.00,4.8,etude_soonjung_toner.jpg,https://www.etude.com/
+P0273,Etude SoonJung 2x Barrier Cream,Etude,Moisturizer,Sensitive,Barrier Repair,"Panthenol; Madecassoside","Barrier strengthening cream","Morning & Night",24.00,4.9,etude_soonjung_barrier_cream.jpg,https://www.etude.com/
+P0274,Etude Moistfull Collagen Serum,Etude,Serum,Dry,Fine Lines,"Hydrolyzed Collagen","Firming collagen serum","Night",25.00,4.7,etude_moistfull_collagen_serum.jpg,https://www.etude.com/
+P0275,Etude Sunprise Mild Airy Finish SPF50+,Etude,Sunscreen,Oily,Sun Protection,"SPF50+","Lightweight mineral sunscreen","Morning",18.00,4.8,etude_sunprise_spf50.jpg,https://www.etude.com/
+
+P0276,Laneige Multi Deep-Clean Cleanser,Laneige,Cleanser,Combination,Daily Cleansing,"Papaya Enzyme; Amino Acids","Deep cleansing foaming face wash","Morning & Night",18.00,4.8,laneige_multideep_cleanser.jpg,https://www.laneige.com/
+P0277,Laneige Cream Skin Refiner,Laneige,Toner,Dry,Hydration,"White Leaf Tea Water","Cream-toner hybrid for deep hydration","Morning & Night",33.00,4.9,laneige_cream_skin_refiner.jpg,https://www.laneige.com/
+P0278,Laneige Water Bank Blue Hyaluronic Serum,Laneige,Serum,Dry,Hydration,"Blue Hyaluronic Acid","Intensive hydrating facial serum","Morning & Night",42.00,4.9,laneige_waterbank_serum.jpg,https://www.laneige.com/
+P0279,Laneige Water Bank Blue Hyaluronic Cream,Laneige,Moisturizer,Dry,Barrier Repair,"Blue Hyaluronic Acid; Squalane","Deep moisturizing cream","Morning & Night",39.00,4.8,laneige_waterbank_cream.jpg,https://www.laneige.com/
+P0280,Laneige Radian-C Sun Cream SPF50+,Laneige,Sunscreen,All,Sun Protection,"Vitamin C; SPF50+","Brightening sunscreen","Morning",32.00,4.8,laneige_radianc_suncream.jpg,https://www.laneige.com/
+
+P0281,I'm From Mugwort Gel Cleanser,I'm From,Cleanser,Sensitive,Redness,"Mugwort Extract","Soothing gel cleanser","Morning & Night",18.00,4.8,imfrom_mugwort_cleanser.jpg,https://imfrom.co.kr/
+P0282,I'm From Rice Toner,I'm From,Toner,Dry,Dullness,"Rice Extract","Brightening hydrating toner","Morning & Night",28.00,4.9,imfrom_rice_toner.jpg,https://imfrom.co.kr/
+P0283,I'm From Mugwort Essence,I'm From,Essence,Sensitive,Redness,"100% Mugwort Extract","Calming facial essence","Morning & Night",32.00,4.9,imfrom_mugwort_essence.jpg,https://imfrom.co.kr/
+P0284,I'm From Rice Cream,I'm From,Moisturizer,Dry,Brightening,"Rice Bran Extract","Brightening nourishing cream","Morning & Night",30.00,4.8,imfrom_rice_cream.jpg,https://imfrom.co.kr/
+P0285,I'm From Vitamin Tree Water-Gel,I'm From,Moisturizer,Combination,Dullness,"Vitamin Tree Leaf Water","Refreshing gel moisturizer","Morning & Night",27.00,4.7,imfrom_vitamintree_gel.jpg,https://imfrom.co.kr/
+
+P0286,Some By Mi AHA BHA PHA Miracle Cleanser,Some By Mi,Cleanser,Oily,Acne,"AHA; BHA; PHA","Exfoliating acne cleanser","Morning & Night",16.00,4.8,somebymi_miracle_cleanser.jpg,https://somebymi.com/
+P0287,Some By Mi Miracle Toner,Some By Mi,Toner,Oily,Acne,"AHA; BHA; PHA; Tea Tree","Daily exfoliating toner","Morning & Night",20.00,4.9,somebymi_miracle_toner.jpg,https://somebymi.com/
+P0288,Some By Mi Miracle Serum,Some By Mi,Serum,Oily,Acne,"Tea Tree; Centella","Acne calming serum","Morning & Night",24.00,4.8,somebymi_miracle_serum.jpg,https://somebymi.com/
+P0289,Some By Mi Miracle Cream,Some By Mi,Cream,Oily,Acne Marks,"Centella; Tea Tree","Repair cream for acne-prone skin","Night",22.00,4.8,somebymi_miracle_cream.jpg,https://somebymi.com/
+P0290,Some By Mi Truecica Aqua Sunscreen SPF50+,Some By Mi,Sunscreen,Sensitive,Sun Protection,"Truecica; SPF50+","Soothing sunscreen","Morning",21.00,4.8,somebymi_truecica_sunscreen.jpg,https://somebymi.com/
+
+P0291,Mediheal Tea Tree Cleansing Foam,Mediheal,Cleanser,Oily,Acne,"Tea Tree Extract","Purifying cleansing foam","Morning & Night",14.00,4.7,mediheal_teatree_cleanser.jpg,https://mediheal.com/
+P0292,Mediheal Tea Tree Toner Pads,Mediheal,Toner,Oily,Acne,"Tea Tree; Centella","Daily exfoliating toner pads","Morning & Night",24.00,4.8,mediheal_teatree_tonerpads.jpg,https://mediheal.com/
+P0293,Mediheal N.M.F Ampoule Serum,Mediheal,Serum,Dry,Hydration,"Hyaluronic Acid","Deep hydration ampoule","Morning & Night",26.00,4.8,mediheal_nmf_serum.jpg,https://mediheal.com/
+P0294,Mediheal Baobab Soothing Cream,Mediheal,Moisturizer,Dry,Hydration,"Baobab Extract","Moisture-lock cream","Morning & Night",24.00,4.7,mediheal_baobab_cream.jpg,https://mediheal.com/
+P0295,Mediheal UV Defense Sunscreen SPF50+,Mediheal,Sunscreen,All,Sun Protection,"SPF50+","Daily UV protection","Morning",20.00,4.7,mediheal_uv_sunscreen.jpg,https://mediheal.com/
+
+P0296,Paula's Choice Perfectly Balanced Cleanser,Paula's Choice,Cleanser,Combination,Daily Cleansing,"Green Tea","Gentle balancing cleanser","Morning & Night",21.00,4.8,paulaschoice_balanced_cleanser.jpg,https://www.paulaschoice.com/
+P0297,Paula's Choice Skin Balancing Toner,Paula's Choice,Toner,Combination,Oil Control,"Niacinamide","Balancing facial toner","Morning & Night",25.00,4.8,paulaschoice_balancing_toner.jpg,https://www.paulaschoice.com/
+P0298,Paula's Choice 10% Niacinamide Booster,Paula's Choice,Serum,Oily,Open Pores,"Niacinamide","Concentrated pore minimizing serum","Morning & Night",49.00,4.9,paulaschoice_niacinamide_booster.jpg,https://www.paulaschoice.com/
+P0299,Paula's Choice Omega+ Complex Moisturizer,Paula's Choice,Moisturizer,Dry,Barrier Repair,"Omega Fatty Acids; Ceramides","Rich nourishing moisturizer","Morning & Night",37.00,4.8,paulaschoice_omega_moisturizer.jpg,https://www.paulaschoice.com/
+P0300,Paula's Choice Youth-Extending Daily Hydrating Fluid SPF50,Paula's Choice,Sunscreen,All,Sun Protection,"SPF50; Antioxidants","Lightweight hydrating sunscreen","Morning",35.00,4.9,paulaschoice_spf50_fluid.jpg,https://www.paulaschoice.com/
+
+P0301,COS De BAHA Azelaic Acid 10 Serum,COS De BAHA,Serum,Sensitive,Redness,"Azelaic Acid; Niacinamide","Brightening and redness reducing serum","Night",16.00,4.8,cosdebaha_azelaic10_serum.jpg,https://www.cosdebaha.com/
+P0302,COS De BAHA Tranexamic Acid Serum,COS De BAHA,Serum,All,Pigmentation,"Tranexamic Acid; Niacinamide","Dark spot correcting serum","Night",17.00,4.8,cosdebaha_tranexamic_serum.jpg,https://www.cosdebaha.com/
+P0303,COS De BAHA Niacinamide 10 Serum,COS De BAHA,Serum,Oily,Open Pores,"Niacinamide; Zinc PCA","Oil balancing facial serum","Morning & Night",15.00,4.7,cosdebaha_niacinamide10.jpg,https://www.cosdebaha.com/
+P0304,COS De BAHA Hyaluronic Acid Serum,COS De BAHA,Serum,Dry,Hydration,"Hyaluronic Acid","Deep hydration serum","Morning & Night",15.00,4.8,cosdebaha_hyaluronic_serum.jpg,https://www.cosdebaha.com/
+P0305,COS De BAHA Vitamin C MSM Serum,COS De BAHA,Serum,All,Dullness,"Vitamin C; MSM","Brightening antioxidant serum","Morning",18.00,4.8,cosdebaha_vitaminc_msm.jpg,https://www.cosdebaha.com/
+
+P0306,By Wishtrend Green Tea & Enzyme Powder Wash,By Wishtrend,Cleanser,Combination,Dullness,"Green Tea; Papain","Gentle enzyme cleanser","Morning & Night",21.00,4.8,bywishtrend_powderwash.jpg,https://wishtrend.com/
+P0307,By Wishtrend Mandelic Acid 5 Skin Prep Water,By Wishtrend,Toner,Sensitive,Dullness,"Mandelic Acid","Gentle exfoliating toner","Night",23.00,4.9,bywishtrend_mandelic5.jpg,https://wishtrend.com/
+P0308,By Wishtrend Pure Vitamin C 21.5 Serum,By Wishtrend,Serum,All,Pigmentation,"Vitamin C","Brightening vitamin C serum","Morning",28.00,4.8,bywishtrend_vitaminc21.jpg,https://wishtrend.com/
+P0309,By Wishtrend Polyphenols in Propolis Serum,By Wishtrend,Serum,Sensitive,Barrier Repair,"Propolis Extract","Calming nourishing serum","Morning & Night",29.00,4.8,bywishtrend_propolis_serum.jpg,https://wishtrend.com/
+P0310,By Wishtrend Vitamin A-mazing Bakuchiol Cream,By Wishtrend,Moisturizer,All,Fine Lines,"Bakuchiol; Retinal","Anti-aging moisturizer","Night",34.00,4.9,bywishtrend_bakuchiol_cream.jpg,https://wishtrend.com/
+
+P0311,iUNIK Calendula Complete Cleansing Oil,iUNIK,Cleansing Oil,All,Makeup Removal,"Calendula Oil; Sunflower Oil","Gentle cleansing oil","Evening",18.00,4.8,iunik_calendula_oil.jpg,https://iunikcos.com/
+P0312,iUNIK Centella Bubble Cleansing Foam,iUNIK,Cleanser,Sensitive,Redness,"Centella Asiatica","Low irritation cleanser","Morning & Night",15.00,4.8,iunik_centella_cleanser.jpg,https://iunikcos.com/
+P0313,iUNIK Tea Tree Relief Serum,iUNIK,Serum,Oily,Acne,"Tea Tree; Centella","Acne calming serum","Morning & Night",19.00,4.9,iunik_teatree_serum.jpg,https://iunikcos.com/
+P0314,iUNIK Beta Glucan Power Moisture Serum,iUNIK,Serum,Dry,Hydration,"Beta Glucan","Deep moisturizing serum","Morning & Night",21.00,4.8,iunik_betaglucan_serum.jpg,https://iunikcos.com/
+P0315,iUNIK Centella Calming Gel Cream,iUNIK,Moisturizer,Oily,Redness,"Centella; Tea Tree","Light gel moisturizer","Morning & Night",18.00,4.8,iunik_centella_gelcream.jpg,https://iunikcos.com/
+
+P0316,Benton Honest Cleansing Foam,Benton,Cleanser,Combination,Daily Cleansing,"Camellia Extract","Gentle foaming cleanser","Morning & Night",14.00,4.7,benton_honest_cleanser.jpg,https://bentoncosmetics.com/
+P0317,Benton Aloe BHA Skin Toner,Benton,Toner,Oily,Acne,"Aloe Vera; BHA","Hydrating exfoliating toner","Morning & Night",20.00,4.8,benton_aloebha_toner.jpg,https://bentoncosmetics.com/
+P0318,Benton Snail Bee High Content Essence,Benton,Essence,Sensitive,Acne Marks,"Snail Secretion Filtrate; Bee Venom","Repairing facial essence","Morning & Night",24.00,4.9,benton_snailbee_essence.jpg,https://bentoncosmetics.com/
+P0319,Benton Fermentation Eye Cream,Benton,Eye Cream,All,Fine Lines,"Galactomyces; Ceramides","Anti-aging eye cream","Night",27.00,4.8,benton_eyecream.jpg,https://bentoncosmetics.com/
+P0320,Benton Aloe Propolis Soothing Gel,Benton,Moisturizer,Sensitive,Redness,"Aloe Vera; Propolis","Cooling soothing gel","Morning & Night",18.00,4.8,benton_aloepropolis_gel.jpg,https://bentoncosmetics.com/
+
+P0321,Klairs Gentle Black Fresh Cleansing Oil,Klairs,Cleansing Oil,All,Makeup Removal,"Black Bean Oil","Lightweight cleansing oil","Evening",23.00,4.8,klairs_blackfresh_oil.jpg,https://www.klairscosmetics.com/
+P0322,Klairs Fundamental Ampule Mist,Klairs,Mist,Dry,Hydration,"Green Tea; Rice Extract","Hydrating facial mist","Anytime",24.00,4.8,klairs_ampule_mist.jpg,https://www.klairscosmetics.com/
+P0323,Klairs Fundamental Watery Oil Drop,Klairs,Serum,Dry,Hydration,"Green Tea; Ceramides","Lightweight hydrating oil serum","Morning & Night",28.00,4.9,klairs_watery_oildrop.jpg,https://www.klairscosmetics.com/
+P0324,Klairs Midnight Blue Calming Cream,Klairs,Moisturizer,Sensitive,Redness,"Guaiazulene; Centella","Intensive calming cream","Night",30.00,4.9,klairs_midnightblue_cream.jpg,https://www.klairscosmetics.com/
+P0325,Klairs Freshly Juiced Vitamin E Mask,Klairs,Sleeping Mask,All,Dullness,"Vitamin E; Niacinamide","Overnight brightening mask","Night",27.00,4.8,klairs_vitamine_mask.jpg,https://www.klairscosmetics.com/
+
+P0326,Dr. Jart+ Cicapair Foaming Cleanser,Dr. Jart+,Cleanser,Sensitive,Redness,"Centella Asiatica","Gentle calming foaming cleanser","Morning & Night",22.00,4.8,drjart_cicapair_cleanser.jpg,https://www.drjart.com/
+P0327,Dr. Jart+ Ceramidin Skin Barrier Toner,Dr. Jart+,Toner,Dry,Barrier Repair,"Ceramides; Panthenol","Hydrating barrier strengthening toner","Morning & Night",34.00,4.9,drjart_ceramidin_toner.jpg,https://www.drjart.com/
+P0328,Dr. Jart+ Cicapair Tiger Grass Serum,Dr. Jart+,Serum,Sensitive,Redness,"Centella Asiatica","Calming facial serum","Morning & Night",46.00,4.9,drjart_cicapair_serum.jpg,https://www.drjart.com/
+P0329,Dr. Jart+ Ceramidin Cream,Dr. Jart+,Moisturizer,Dry,Barrier Repair,"Ceramides","Deep moisturizing barrier cream","Morning & Night",48.00,4.9,drjart_ceramidin_cream.jpg,https://www.drjart.com/
+P0330,Dr. Jart+ Every Sun Day SPF50+,Dr. Jart+,Sunscreen,All,Sun Protection,"SPF50+","Daily lightweight sunscreen","Morning",32.00,4.8,drjart_everysunday_spf50.jpg,https://www.drjart.com/
+
+P0331,Hada Labo Gokujyun Face Wash,Hada Labo,Cleanser,Dry,Hydration,"Hyaluronic Acid","Hydrating foaming cleanser","Morning & Night",14.00,4.8,hadalabo_gokujyun_cleanser.jpg,https://www.hadalabo.com/
+P0332,Hada Labo Gokujyun Premium Lotion,Hada Labo,Toner,Dry,Hydration,"7 Types Hyaluronic Acid","Deep hydrating lotion toner","Morning & Night",18.00,4.9,hadalabo_premium_lotion.jpg,https://www.hadalabo.com/
+P0333,Hada Labo Shirojyun Premium Essence,Hada Labo,Serum,All,Pigmentation,"Tranexamic Acid; Vitamin C","Brightening facial essence","Morning & Night",22.00,4.8,hadalabo_shirojyun_essence.jpg,https://www.hadalabo.com/
+P0334,Hada Labo Gokujyun Perfect Gel,Hada Labo,Moisturizer,Dry,Hydration,"Hyaluronic Acid","All-in-one moisturizing gel","Morning & Night",21.00,4.8,hadalabo_perfect_gel.jpg,https://www.hadalabo.com/
+P0335,Hada Labo UV White Gel SPF50+,Hada Labo,Sunscreen,All,Sun Protection,"SPF50+","Hydrating UV protection gel","Morning",19.00,4.7,hadalabo_uvwhite_gel.jpg,https://www.hadalabo.com/
+
+P0336,Avène Extremely Gentle Cleanser Lotion,Avène,Cleanser,Sensitive,Redness,"Avène Thermal Spring Water","Soap-free gentle cleanser","Morning & Night",24.00,4.8,avene_gentle_cleanser.jpg,https://www.aveneusa.com/
+P0337,Avène Gentle Toning Lotion,Avène,Toner,Sensitive,Hydration,"Thermal Spring Water","Alcohol-free soothing toner","Morning & Night",22.00,4.7,avene_toning_lotion.jpg,https://www.aveneusa.com/
+P0338,Avène Hydrance Intense Serum,Avène,Serum,Dry,Hydration,"Cohederm Complex","Long-lasting hydration serum","Morning & Night",36.00,4.8,avene_hydrance_serum.jpg,https://www.aveneusa.com/
+P0339,Avène Cicalfate+ Restorative Cream,Avène,Moisturizer,Sensitive,Barrier Repair,"Sucralfate; Zinc","Repairing protective cream","Morning & Night",28.00,4.9,avene_cicalfate_cream.jpg,https://www.aveneusa.com/
+P0340,Avène Very High Protection SPF50+,Avène,Sunscreen,Sensitive,Sun Protection,"SPF50+","Mineral facial sunscreen","Morning",30.00,4.8,avene_spf50_sunscreen.jpg,https://www.aveneusa.com/
+
+P0341,Vichy Pureté Thermale Cleanser,Vichy,Cleanser,Combination,Daily Cleansing,"Vichy Volcanic Water","Refreshing facial cleanser","Morning & Night",20.00,4.8,vichy_purete_cleanser.jpg,https://www.vichyusa.com/
+P0342,Vichy Mineral 89 Booster,Vichy,Serum,Dry,Hydration,"Hyaluronic Acid; Vichy Mineral Water","Hydrating skin booster","Morning & Night",32.00,4.9,vichy_mineral89.jpg,https://www.vichyusa.com/
+P0343,Vichy Liftactiv Vitamin C Serum,Vichy,Serum,All,Dullness,"Vitamin C","Brightening antioxidant serum","Morning",35.00,4.8,vichy_vitaminc_serum.jpg,https://www.vichyusa.com/
+P0344,Vichy Aqualia Thermal Rich Cream,Vichy,Moisturizer,Dry,Hydration,"Hyaluronic Acid","24-hour hydration cream","Morning & Night",30.00,4.8,vichy_aqualia_cream.jpg,https://www.vichyusa.com/
+P0345,Vichy Capital Soleil SPF50+,Vichy,Sunscreen,All,Sun Protection,"SPF50+","Broad spectrum sunscreen","Morning",28.00,4.8,vichy_capitalsoleil_spf50.jpg,https://www.vichyusa.com/
+
+P0346,La Roche-Posay Lipikar Syndet AP+,La Roche-Posay,Cleanser,Dry,Barrier Repair,"Niacinamide; Shea Butter","Gentle lipid-replenishing cleanser","Morning & Night",18.00,4.9,larocheposay_lipikar_cleanser.jpg,https://www.laroche-posay.us/
+P0347,La Roche-Posay Thermal Spring Water Mist,La Roche-Posay,Face Mist,Sensitive,Redness,"Thermal Spring Water","Soothing facial mist","Anytime",15.00,4.8,larocheposay_thermalmist.jpg,https://www.laroche-posay.us/
+P0348,La Roche-Posay Hyalu B5 Serum,La Roche-Posay,Serum,Dry,Fine Lines,"Hyaluronic Acid; Vitamin B5","Plumping anti-aging serum","Morning & Night",39.00,4.9,larocheposay_hyalub5.jpg,https://www.laroche-posay.us/
+P0349,La Roche-Posay Cicaplast Baume B5+,La Roche-Posay,Moisturizer,Sensitive,Barrier Repair,"Panthenol; Madecassoside","Multi-purpose repairing balm","Morning & Night",18.00,4.9,larocheposay_cicaplast_b5.jpg,https://www.laroche-posay.us/
+P0350,La Roche-Posay Anthelios UVMune SPF50+,La Roche-Posay,Sunscreen,All,Sun Protection,"SPF50+","Ultra-light facial sunscreen","Morning",36.00,4.9,larocheposay_anthelios_uvmune.jpg,https://www.laroche-posay.us/
+
+P0351,Mixsoon Bean Cleanser,Mixsoon,Cleanser,Combination,Daily Cleansing,"Soybean Extract","Gentle hydrating cleanser","Morning & Night",18.00,4.8,mixsoon_bean_cleanser.jpg,https://mixsoon.com/
+P0352,Mixsoon Galactomyces Toner,Mixsoon,Toner,All,Dullness,"Galactomyces Ferment","Brightening fermented toner","Morning & Night",22.00,4.9,mixsoon_galactomyces_toner.jpg,https://mixsoon.com/
+P0353,Mixsoon Bean Essence,Mixsoon,Essence,Dry,Hydration,"Soybean Ferment","Hydrating and smoothing essence","Morning & Night",28.00,4.9,mixsoon_bean_essence.jpg,https://mixsoon.com/
+P0354,Mixsoon Bifida Serum,Mixsoon,Serum,Sensitive,Barrier Repair,"Bifida Ferment Lysate","Barrier strengthening serum","Morning & Night",27.00,4.8,mixsoon_bifida_serum.jpg,https://mixsoon.com/
+P0355,Mixsoon Bean Cream,Mixsoon,Moisturizer,Dry,Hydration,"Soybean Extract","Nourishing moisturizer","Morning & Night",30.00,4.8,mixsoon_bean_cream.jpg,https://mixsoon.com/
+
+P0356,Abib Acne Foam Cleanser Heartleaf Foam,Abib,Cleanser,Oily,Acne,"Heartleaf Extract","Purifying acne cleanser","Morning & Night",17.00,4.8,abib_heartleaf_cleanser.jpg,https://abib.com/
+P0357,Abib Heartleaf Calming Toner Skin Booster,Abib,Toner,Sensitive,Redness,"Heartleaf Extract","Calming hydrating toner","Morning & Night",24.00,4.8,abib_heartleaf_toner.jpg,https://abib.com/
+P0358,Abib Heartleaf Essence Calming Pump,Abib,Essence,Sensitive,Barrier Repair,"Heartleaf Extract","Soothing facial essence","Morning & Night",28.00,4.9,abib_heartleaf_essence.jpg,https://abib.com/
+P0359,Abib Rice Probiotics Overnight Mask,Abib,Sleeping Mask,Dry,Hydration,"Rice Extract; Probiotics","Overnight hydration mask","Night",30.00,4.8,abib_rice_mask.jpg,https://abib.com/
+P0360,Abib Quick Sunstick SPF50+,Abib,Sunscreen,All,Sun Protection,"SPF50+","Portable sunscreen stick","Morning",22.00,4.8,abib_sunstick.jpg,https://abib.com/
+
+P0361,Beplain Greenful pH Balanced Cleanser,Beplain,Cleanser,Sensitive,Daily Cleansing,"Mung Bean Extract","Low pH facial cleanser","Morning & Night",18.00,4.8,beplain_greenful_cleanser.jpg,https://beplain.com/
+P0362,Beplain Chamomile Toner,Beplain,Toner,Sensitive,Redness,"Chamomile Extract","Calming facial toner","Morning & Night",22.00,4.8,beplain_chamomile_toner.jpg,https://beplain.com/
+P0363,Beplain Cicaterol Ampoule,Beplain,Serum,Sensitive,Barrier Repair,"Centella Asiatica","Barrier recovery serum","Morning & Night",26.00,4.9,beplain_cicaterol_ampoule.jpg,https://beplain.com/
+P0364,Beplain Cicaful Calming Gel,Beplain,Moisturizer,Sensitive,Redness,"Centella; Madecassoside","Cooling gel moisturizer","Morning & Night",24.00,4.8,beplain_cicaful_gel.jpg,https://beplain.com/
+P0365,Beplain Sunmuse Moisture Sunscreen SPF50+,Beplain,Sunscreen,All,Sun Protection,"SPF50+","Hydrating sunscreen","Morning",23.00,4.8,beplain_sunmuse_spf50.jpg,https://beplain.com/
+
+P0366,Celimax Derma Nature Fresh Cleanser,Celimax,Cleanser,Combination,Daily Cleansing,"Tea Tree Extract","Refreshing foaming cleanser","Morning & Night",16.00,4.7,celimax_cleanser.jpg,https://celimax.co.kr/
+P0367,Celimax Dual Barrier Creamy Toner,Celimax,Toner,Dry,Barrier Repair,"Ceramides; Panthenol","Barrier strengthening toner","Morning & Night",24.00,4.9,celimax_barrier_toner.jpg,https://celimax.co.kr/
+P0368,Celimax Noni Energy Ampoule,Celimax,Serum,Dullness,Nourishment,"Noni Fruit Extract","Revitalizing facial ampoule","Morning & Night",27.00,4.8,celimax_noni_ampoule.jpg,https://celimax.co.kr/
+P0369,Celimax Dual Barrier Cream,Celimax,Moisturizer,Dry,Barrier Repair,"Ceramides","Intensive barrier cream","Morning & Night",28.00,4.8,celimax_barrier_cream.jpg,https://celimax.co.kr/
+P0370,Celimax Oil Control Sunscreen SPF50+,Celimax,Sunscreen,Oily,Sun Protection,"SPF50+","Oil-free sunscreen","Morning",22.00,4.7,celimax_sunscreen.jpg,https://celimax.co.kr/
+
+P0371,Biodance Hydro Cera-Nol Cleanser,Biodance,Cleanser,Dry,Hydration,"Ceramides; Panthenol","Hydrating cream cleanser","Morning & Night",20.00,4.8,biodance_cleanser.jpg,https://biodance.co.kr/
+P0372,Biodance Hydro Cera-Nol Toner,Biodance,Toner,Dry,Barrier Repair,"Ceramides","Barrier repair toner","Morning & Night",25.00,4.9,biodance_toner.jpg,https://biodance.co.kr/
+P0373,Biodance Hydro Cera-Nol Ampoule,Biodance,Serum,Dry,Hydration,"Ceramides; Hyaluronic Acid","Deep hydration ampoule","Morning & Night",32.00,4.9,biodance_ampoule.jpg,https://biodance.co.kr/
+P0374,Biodance Hydro Cera-Nol Cream,Biodance,Moisturizer,Dry,Barrier Repair,"Ceramides","Barrier strengthening cream","Morning & Night",34.00,4.9,biodance_cream.jpg,https://biodance.co.kr/
+P0375,Biodance Daily Moisture Sun Cream SPF50+,Biodance,Sunscreen,All,Sun Protection,"SPF50+","Moisturizing daily sunscreen","Morning",26.00,4.8,biodance_suncream.jpg,https://biodance.co.kr/
+
+P0376,Garnier Micellar Cleansing Water,Garnier,Cleansing Water,All,Makeup Removal,"Micellar Technology","Removes makeup and impurities gently","Evening",8.99,4.8,garnier_micellar_water.jpg,https://www.garnierusa.com/
+P0377,Garnier Bright Complete Face Wash,Garnier,Cleanser,Combination,Dullness,"Vitamin C; Lemon Extract","Brightening daily face wash","Morning & Night",6.99,4.7,garnier_brightcomplete_facewash.jpg,https://www.garnierusa.com/
+P0378,Garnier Vitamin C Booster Serum,Garnier,Serum,All,Pigmentation,"Vitamin C; Niacinamide","Brightening facial serum","Morning",14.99,4.8,garnier_vitaminc_serum.jpg,https://www.garnierusa.com/
+P0379,Garnier Bright Complete Serum Cream,Garnier,Moisturizer,All,Dullness,"Vitamin C","Glow boosting moisturizer","Morning & Night",12.99,4.7,garnier_brightcomplete_cream.jpg,https://www.garnierusa.com/
+P0380,Garnier Super UV Invisible Serum SPF50+,Garnier,Sunscreen,All,Sun Protection,"SPF50+","Lightweight invisible sunscreen","Morning",13.99,4.8,garnier_superuv_spf50.jpg,https://www.garnierusa.com/
+
+P0381,Olay Gentle Foaming Cleanser,Olay,Cleanser,Normal,Daily Cleansing,"Glycerin","Gentle foaming facial cleanser","Morning & Night",9.99,4.7,olay_gentle_cleanser.jpg,https://www.olay.com/
+P0382,Olay Hydrating Toner,Olay,Toner,Dry,Hydration,"Aloe Vera","Alcohol-free hydrating toner","Morning & Night",8.99,4.6,olay_hydrating_toner.jpg,https://www.olay.com/
+P0383,Olay Vitamin C + Peptide Serum,Olay,Serum,All,Dullness,"Vitamin C; Peptides","Brightening anti-aging serum","Morning",29.99,4.8,olay_vitaminc_serum.jpg,https://www.olay.com/
+P0384,Olay Regenerist Micro-Sculpting Cream,Olay,Moisturizer,Dry,Fine Lines,"Niacinamide; Peptides","Firming anti-aging cream","Morning & Night",34.99,4.9,olay_regenerist_cream.jpg,https://www.olay.com/
+P0385,Olay Complete SPF30 Moisturizer,Olay,Moisturizer,All,Sun Protection,"SPF30","Daily moisturizer with SPF","Morning",21.99,4.8,olay_complete_spf30.jpg,https://www.olay.com/
+
+P0386,Nivea Refreshing Face Wash,Nivea,Cleanser,Normal,Daily Cleansing,"Vitamin E","Refreshing facial cleanser","Morning & Night",6.99,4.6,nivea_refreshing_facewash.jpg,https://www.niveausa.com/
+P0387,Nivea Rose Care Toner,Nivea,Toner,Dry,Hydration,"Rose Water","Hydrating facial toner","Morning & Night",7.99,4.6,nivea_rose_toner.jpg,https://www.niveausa.com/
+P0388,Nivea Luminous630 Anti Spot Serum,Nivea,Serum,All,Pigmentation,"Luminous630","Dark spot correcting serum","Morning & Night",27.99,4.8,nivea_luminous630_serum.jpg,https://www.niveausa.com/
+P0389,Nivea Soft Moisturizing Cream,Nivea,Moisturizer,All,Hydration,"Jojoba Oil; Vitamin E","Light moisturizing cream","Morning & Night",5.99,4.8,nivea_soft_cream.jpg,https://www.niveausa.com/
+P0390,Nivea Sun Protect SPF50+,Nivea,Sunscreen,All,Sun Protection,"SPF50+","Broad spectrum sunscreen","Morning",12.99,4.7,nivea_sunprotect_spf50.jpg,https://www.niveausa.com/
+
+P0391,L'Oréal Paris Revitalift Cleanser,L'Oréal Paris,Cleanser,Combination,Fine Lines,"Glycolic Acid","Anti-aging facial cleanser","Morning & Night",8.99,4.7,loreal_revitalift_cleanser.jpg,https://www.lorealparisusa.com/
+P0392,L'Oréal Paris Revitalift Toner,L'Oréal Paris,Toner,Combination,Fine Lines,"Pro-Retinol","Firming facial toner","Morning & Night",10.99,4.6,loreal_revitalift_toner.jpg,https://www.lorealparisusa.com/
+P0393,L'Oréal Paris Revitalift Vitamin C Serum,L'Oréal Paris,Serum,All,Dullness,"Vitamin C","Brightening facial serum","Morning",24.99,4.8,loreal_vitaminc_serum.jpg,https://www.lorealparisusa.com/
+P0394,L'Oréal Paris Revitalift Day Cream,L'Oréal Paris,Moisturizer,Dry,Fine Lines,"Pro-Retinol","Anti-aging day moisturizer","Morning",26.99,4.8,loreal_revitalift_daycream.jpg,https://www.lorealparisusa.com/
+P0395,L'Oréal Paris UV Defender SPF50+,L'Oréal Paris,Sunscreen,All,Sun Protection,"SPF50+","Daily UV protection sunscreen","Morning",18.99,4.8,loreal_uvdefender_spf50.jpg,https://www.lorealparisusa.com/
+
+P0396,Simple Kind To Skin Refreshing Face Wash,Simple,Cleanser,Sensitive,Daily Cleansing,"Pro-Vitamin B5","Soap-free facial cleanser","Morning & Night",7.99,4.8,simple_refreshing_facewash.jpg,https://www.simpleskincare.com/
+P0397,Simple Soothing Facial Toner,Simple,Toner,Sensitive,Hydration,"Chamomile; Witch Hazel","Alcohol-free soothing toner","Morning & Night",6.99,4.7,simple_soothing_toner.jpg,https://www.simpleskincare.com/
+P0398,Simple Booster Serum 3% Hyaluronic Acid,Simple,Serum,Dry,Hydration,"Hyaluronic Acid","Hydrating facial serum","Morning & Night",11.99,4.7,simple_hyaluronic_serum.jpg,https://www.simpleskincare.com/
+P0399,Simple Hydrating Light Moisturizer,Simple,Moisturizer,Sensitive,Hydration,"Vitamin E; Glycerin","Lightweight moisturizer","Morning & Night",8.99,4.8,simple_light_moisturizer.jpg,https://www.simpleskincare.com/
+P0400,Simple Protecting Light Moisturizer SPF15,Simple,Moisturizer,All,Sun Protection,"SPF15","Daily moisturizer with sun protection","Morning",9.99,4.7,simple_spf15_moisturizer.jpg,https://www.simpleskincare.com/
+
+P0401,Mamaearth Tea Tree Face Wash,Mamaearth,Cleanser,Oily,Acne,"Tea Tree Oil; Neem Extract","Purifying face wash for acne-prone skin","Morning & Night",8.99,4.7,mamaearth_teatree_facewash.jpg,https://mamaearth.in/
+P0402,Mamaearth Vitamin C Face Wash,Mamaearth,Cleanser,All,Dullness,"Vitamin C; Turmeric","Brightening facial cleanser","Morning & Night",8.99,4.7,mamaearth_vitaminc_facewash.jpg,https://mamaearth.in/
+P0403,Mamaearth Vitamin C Face Toner,Mamaearth,Toner,All,Dullness,"Vitamin C; Cucumber","Refreshing brightening toner","Morning & Night",9.99,4.6,mamaearth_vitaminc_toner.jpg,https://mamaearth.in/
+P0404,Mamaearth Skin Illuminate Serum,Mamaearth,Serum,All,Pigmentation,"Vitamin C; Turmeric","Glow boosting facial serum","Morning",14.99,4.8,mamaearth_skinilluminate_serum.jpg,https://mamaearth.in/
+P0405,Mamaearth Oil-Free Face Moisturizer,Mamaearth,Moisturizer,Oily,Hydration,"Apple Cider Vinegar","Oil-free lightweight moisturizer","Morning & Night",10.99,4.7,mamaearth_oilfree_moisturizer.jpg,https://mamaearth.in/
+
+P0406,WOW Apple Cider Vinegar Face Wash,WOW Skin Science,Cleanser,Oily,Oil Control,"Apple Cider Vinegar","Deep cleansing face wash","Morning & Night",8.99,4.7,wow_acv_facewash.jpg,https://www.buywow.in/
+P0407,WOW Vitamin C Foaming Face Wash,WOW Skin Science,Cleanser,All,Dullness,"Vitamin C","Brightening cleanser","Morning & Night",9.99,4.6,wow_vitaminc_facewash.jpg,https://www.buywow.in/
+P0408,WOW Aloe Vera Face Toner,WOW Skin Science,Toner,Sensitive,Hydration,"Aloe Vera","Hydrating alcohol-free toner","Morning & Night",8.99,4.6,wow_aloe_toner.jpg,https://www.buywow.in/
+P0409,WOW Vitamin C Face Serum,WOW Skin Science,Serum,All,Dullness,"Vitamin C; Witch Hazel","Brightening facial serum","Morning",13.99,4.7,wow_vitaminc_serum.jpg,https://www.buywow.in/
+P0410,WOW Aloe Vera Moisturizer,WOW Skin Science,Moisturizer,Dry,Hydration,"Aloe Vera","Hydrating moisturizer","Morning & Night",11.99,4.7,wow_aloe_moisturizer.jpg,https://www.buywow.in/
+
+P0411,The Derma Co 1% Salicylic Face Wash,The Derma Co,Cleanser,Oily,Acne,"Salicylic Acid","Acne control face wash","Morning & Night",8.99,4.8,thedermaco_salicylic_facewash.jpg,https://thedermaco.com/
+P0412,The Derma Co Cica Glow Toner,The Derma Co,Toner,Sensitive,Redness,"Centella Asiatica","Calming toner","Morning & Night",9.99,4.7,thedermaco_cica_toner.jpg,https://thedermaco.com/
+P0413,The Derma Co 10% Niacinamide Serum,The Derma Co,Serum,Oily,Open Pores,"Niacinamide","Pore minimizing serum","Morning & Night",15.99,4.8,thedermaco_niacinamide_serum.jpg,https://thedermaco.com/
+P0414,The Derma Co Ceramide Moisturizer,The Derma Co,Moisturizer,Dry,Barrier Repair,"Ceramides","Barrier strengthening moisturizer","Morning & Night",14.99,4.8,thedermaco_ceramide_cream.jpg,https://thedermaco.com/
+P0415,The Derma Co Hyaluronic Sunscreen SPF50,The Derma Co,Sunscreen,All,Sun Protection,"SPF50; Hyaluronic Acid","Hydrating sunscreen","Morning",15.99,4.8,thedermaco_spf50.jpg,https://thedermaco.com/
+
+P0416,Plum Green Tea Face Wash,Plum,Cleanser,Oily,Acne,"Green Tea","Gentle acne cleanser","Morning & Night",7.99,4.8,plum_greentea_facewash.jpg,https://plumgoodness.com/
+P0417,Plum Bulgarian Rose Toner,Plum,Toner,Dry,Hydration,"Rose Extract","Alcohol-free toner","Morning & Night",8.99,4.7,plum_rose_toner.jpg,https://plumgoodness.com/
+P0418,Plum Vitamin C Serum,Plum,Serum,All,Dullness,"Vitamin C","Glow boosting serum","Morning",16.99,4.8,plum_vitaminc_serum.jpg,https://plumgoodness.com/
+P0419,Plum Green Tea Oil-Free Moisturizer,Plum,Moisturizer,Oily,Hydration,"Green Tea","Oil-free moisturizer","Morning & Night",11.99,4.7,plum_greentea_moisturizer.jpg,https://plumgoodness.com/
+P0420,Plum SPF50 Sunscreen Gel,Plum,Sunscreen,All,Sun Protection,"SPF50","Lightweight sunscreen gel","Morning",13.99,4.8,plum_spf50_gel.jpg,https://plumgoodness.com/
+
+P0421,Foxtale Daily Cleanser,Foxtale,Cleanser,Combination,Daily Cleansing,"Ceramides","Gentle daily cleanser","Morning & Night",9.99,4.8,foxtale_daily_cleanser.jpg,https://foxtale.in/
+P0422,Foxtale Hydrating Toner,Foxtale,Toner,Dry,Hydration,"Hyaluronic Acid","Hydrating toner","Morning & Night",10.99,4.7,foxtale_hydrating_toner.jpg,https://foxtale.in/
+P0423,Foxtale Glow Serum,Foxtale,Serum,All,Dullness,"Vitamin C; Niacinamide","Glow enhancing serum","Morning",16.99,4.8,foxtale_glow_serum.jpg,https://foxtale.in/
+P0424,Foxtale Ceramide Moisturizer,Foxtale,Moisturizer,Dry,Barrier Repair,"Ceramides","Barrier repair moisturizer","Morning & Night",14.99,4.8,foxtale_ceramide_cream.jpg,https://foxtale.in/
+P0425,Foxtale Matte Sunscreen SPF50,Foxtale,Sunscreen,Oily,Sun Protection,"SPF50","Matte finish sunscreen","Morning",15.99,4.8,foxtale_matte_spf50.jpg,https://foxtale.in/
+
+P0426,Dot & Key Barrier Repair Gentle Cleanser,Dot & Key,Cleanser,Sensitive,Barrier Repair,"Ceramides; Hyaluronic Acid","Gentle sulfate-free cleanser","Morning & Night",9.99,4.8,dotandkey_barrier_cleanser.jpg,https://www.dotandkey.com/
+P0427,Dot & Key Cica Calming Toner,Dot & Key,Toner,Sensitive,Redness,"Centella Asiatica; Green Tea","Soothing facial toner","Morning & Night",10.99,4.7,dotandkey_cica_toner.jpg,https://www.dotandkey.com/
+P0428,Dot & Key 10% Vitamin C Serum,Dot & Key,Serum,All,Dullness,"Vitamin C; Kakadu Plum","Brightening antioxidant serum","Morning",17.99,4.8,dotandkey_vitaminc_serum.jpg,https://www.dotandkey.com/
+P0429,Dot & Key Ceramide Moisturizer,Dot & Key,Moisturizer,Dry,Barrier Repair,"Ceramides; Oat Extract","Barrier repair moisturizer","Morning & Night",15.99,4.8,dotandkey_ceramide_cream.jpg,https://www.dotandkey.com/
+P0430,Dot & Key Watermelon Cooling Sunscreen SPF50+,Dot & Key,Sunscreen,All,Sun Protection,"SPF50+; Watermelon Extract","Cooling gel sunscreen","Morning",16.99,4.8,dotandkey_watermelon_spf50.jpg,https://www.dotandkey.com/
+
+P0431,Pilgrim Squalane Face Wash,Pilgrim,Cleanser,Dry,Hydration,"Squalane; Aloe Vera","Hydrating facial cleanser","Morning & Night",8.99,4.7,pilgrim_squalane_facewash.jpg,https://discoverpilgrim.com/
+P0432,Pilgrim White Lotus Toner,Pilgrim,Toner,All,Dullness,"White Lotus","Refreshing facial toner","Morning & Night",10.99,4.7,pilgrim_whitelotus_toner.jpg,https://discoverpilgrim.com/
+P0433,Pilgrim Vitamin C Night Serum,Pilgrim,Serum,All,Pigmentation,"Vitamin C; Hyaluronic Acid","Brightening facial serum","Night",18.99,4.8,pilgrim_vitaminc_serum.jpg,https://discoverpilgrim.com/
+P0434,Pilgrim Squalane Glow Moisturizer,Pilgrim,Moisturizer,Dry,Hydration,"Squalane","Glow enhancing moisturizer","Morning & Night",15.99,4.8,pilgrim_squalane_cream.jpg,https://discoverpilgrim.com/
+P0435,Pilgrim Invisible Sunscreen SPF50+,Pilgrim,Sunscreen,All,Sun Protection,"SPF50+","Invisible finish sunscreen","Morning",15.99,4.7,pilgrim_invisible_spf50.jpg,https://discoverpilgrim.com/
+
+P0436,Aqualogica Hydrate Face Wash,Aqualogica,Cleanser,Dry,Hydration,"Hyaluronic Acid; Coconut Water","Hydrating facial cleanser","Morning & Night",8.99,4.7,aqualogica_hydrate_facewash.jpg,https://aqualogica.in/
+P0437,Aqualogica Hydrate Toner,Aqualogica,Toner,Dry,Hydration,"Coconut Water","Refreshing toner","Morning & Night",10.99,4.7,aqualogica_hydrate_toner.jpg,https://aqualogica.in/
+P0438,Aqualogica Glow+ Face Serum,Aqualogica,Serum,All,Dullness,"Vitamin C; Papaya","Glow enhancing serum","Morning",16.99,4.8,aqualogica_glow_serum.jpg,https://aqualogica.in/
+P0439,Aqualogica Hydrate Gel Moisturizer,Aqualogica,Moisturizer,Dry,Hydration,"Hyaluronic Acid","Gel moisturizer","Morning & Night",14.99,4.8,aqualogica_hydrate_gel.jpg,https://aqualogica.in/
+P0440,Aqualogica Radiance Sunscreen SPF50+,Aqualogica,Sunscreen,All,Sun Protection,"SPF50+","Hydrating sunscreen","Morning",15.99,4.8,aqualogica_radiance_spf50.jpg,https://aqualogica.in/
+
+P0441,Deconstruct Hydrating Face Wash,Deconstruct,Cleanser,Dry,Hydration,"Hyaluronic Acid","Hydrating cleanser","Morning & Night",8.99,4.7,deconstruct_facewash.jpg,https://thedeconstruct.in/
+P0442,Deconstruct Hydrating Toner,Deconstruct,Toner,Dry,Hydration,"Panthenol","Hydrating toner","Morning & Night",10.99,4.7,deconstruct_toner.jpg,https://thedeconstruct.in/
+P0443,Deconstruct 10% Niacinamide Serum,Deconstruct,Serum,Oily,Open Pores,"Niacinamide","Pore minimizing serum","Morning & Night",17.99,4.8,deconstruct_niacinamide_serum.jpg,https://thedeconstruct.in/
+P0444,Deconstruct Ceramide Moisturizer,Deconstruct,Moisturizer,Sensitive,Barrier Repair,"Ceramides","Barrier repair cream","Morning & Night",15.99,4.8,deconstruct_ceramide_cream.jpg,https://thedeconstruct.in/
+P0445,Deconstruct Gel Sunscreen SPF55+,Deconstruct,Sunscreen,All,Sun Protection,"SPF55+","Lightweight gel sunscreen","Morning",16.99,4.8,deconstruct_spf55.jpg,https://thedeconstruct.in/
+
+P0446,Conscious Chemist Gentle Cleanser,Conscious Chemist,Cleanser,Sensitive,Daily Cleansing,"Oat Extract","Gentle facial cleanser","Morning & Night",9.99,4.8,consciouschemist_cleanser.jpg,https://consciouschemist.com/
+P0447,Conscious Chemist Hydra Toner,Conscious Chemist,Toner,Dry,Hydration,"Hyaluronic Acid","Hydrating toner","Morning & Night",11.99,4.7,consciouschemist_toner.jpg,https://consciouschemist.com/
+P0448,Conscious Chemist Vitamin C Serum,Conscious Chemist,Serum,All,Dullness,"Vitamin C; Ferulic Acid","Brightening facial serum","Morning",18.99,4.8,consciouschemist_vitaminc_serum.jpg,https://consciouschemist.com/
+P0449,Conscious Chemist Barrier Repair Cream,Conscious Chemist,Moisturizer,Sensitive,Barrier Repair,"Ceramides; Cholesterol","Barrier strengthening cream","Morning & Night",17.99,4.8,consciouschemist_barrier_cream.jpg,https://consciouschemist.com/
+P0450,Conscious Chemist Sunscreen SPF50+,Conscious Chemist,Sunscreen,All,Sun Protection,"SPF50+","Broad spectrum sunscreen","Morning",16.99,4.8,consciouschemist_spf50.jpg,https://consciouschemist.com/
+
+P0451,Cetaphil Gentle Skin Cleanser,Cetaphil,Cleanser,Sensitive,Daily Cleansing,"Glycerin; Niacinamide","Soap-free gentle facial cleanser","Morning & Night",14.99,4.9,cetaphil_gentle_cleanser.jpg,https://www.cetaphil.com/
+P0452,Cetaphil Daily Facial Cleanser,Cetaphil,Cleanser,Oily,Oil Control,"Glycerin","Foaming cleanser for combination to oily skin","Morning & Night",15.99,4.8,cetaphil_daily_cleanser.jpg,https://www.cetaphil.com/
+P0453,Cetaphil Healthy Radiance Brightening Toner,Cetaphil,Toner,All,Dullness,"Niacinamide; Sea Daffodil","Brightening facial toner","Morning & Night",16.99,4.7,cetaphil_brightening_toner.jpg,https://www.cetaphil.com/
+P0454,Cetaphil Hydrating Eye Gel-Cream,Cetaphil,Eye Cream,Dry,Dark Circles,"Hyaluronic Acid","Hydrating eye treatment","Morning & Night",18.99,4.8,cetaphil_eyecream.jpg,https://www.cetaphil.com/
+P0455,Cetaphil Moisturizing Lotion,Cetaphil,Moisturizer,Dry,Hydration,"Avocado Oil; Glycerin","Daily moisturizing lotion","Morning & Night",17.99,4.9,cetaphil_moisturizing_lotion.jpg,https://www.cetaphil.com/
+
+P0456,CeraVe Hydrating Cleanser,CeraVe,Cleanser,Dry,Hydration,"Ceramides; Hyaluronic Acid","Hydrating facial cleanser","Morning & Night",16.99,4.9,cerave_hydrating_cleanser.jpg,https://www.cerave.com/
+P0457,CeraVe Foaming Facial Cleanser,CeraVe,Cleanser,Oily,Oil Control,"Ceramides; Niacinamide","Foaming facial cleanser","Morning & Night",16.99,4.9,cerave_foaming_cleanser.jpg,https://www.cerave.com/
+P0458,CeraVe Hydrating Toner,CeraVe,Toner,Dry,Hydration,"Ceramides","Alcohol-free hydrating toner","Morning & Night",15.99,4.8,cerave_hydrating_toner.jpg,https://www.cerave.com/
+P0459,CeraVe Skin Renewing Vitamin C Serum,CeraVe,Serum,All,Dullness,"Vitamin C; Ceramides","Brightening antioxidant serum","Morning",24.99,4.8,cerave_vitaminc_serum.jpg,https://www.cerave.com/
+P0460,CeraVe PM Facial Moisturizing Lotion,CeraVe,Moisturizer,All,Barrier Repair,"Ceramides; Niacinamide","Night barrier repair moisturizer","Night",19.99,4.9,cerave_pm_lotion.jpg,https://www.cerave.com/
+
+P0461,Bioderma Sensibio Gel Moussant,Bioderma,Cleanser,Sensitive,Redness,"Coco Glucoside","Gentle foaming cleanser","Morning & Night",18.99,4.8,bioderma_sensibio_gel.jpg,https://www.bioderma.us/
+P0462,Bioderma Sensibio Tonique,Bioderma,Toner,Sensitive,Hydration,"Cucumber Extract","Soothing facial toner","Morning & Night",17.99,4.7,bioderma_sensibio_toner.jpg,https://www.bioderma.us/
+P0463,Bioderma Hydrabio Serum,Bioderma,Serum,Dry,Hydration,"Aquagenium Complex","Hydrating facial serum","Morning & Night",29.99,4.8,bioderma_hydrabio_serum.jpg,https://www.bioderma.us/
+P0464,Bioderma Atoderm Intensive Baume,Bioderma,Moisturizer,Dry,Barrier Repair,"Niacinamide; Ceramides","Intensive barrier repair balm","Morning & Night",24.99,4.9,bioderma_atoderm_baume.jpg,https://www.bioderma.us/
+P0465,Bioderma Photoderm MAX SPF50+,Bioderma,Sunscreen,All,Sun Protection,"SPF50+","Broad-spectrum sunscreen","Morning",21.99,4.8,bioderma_photoderm_spf50.jpg,https://www.bioderma.us/
+
+P0466,Eucerin Hydrating Cleansing Gel,Eucerin,Cleanser,Dry,Hydration,"Hyaluronic Acid","Hydrating facial cleanser","Morning & Night",15.99,4.8,eucerin_hydrating_cleanser.jpg,https://www.eucerinus.com/
+P0467,Eucerin ProACNE Toner,Eucerin,Toner,Oily,Acne,"Lactic Acid","Clarifying facial toner","Morning & Night",16.99,4.7,eucerin_proacne_toner.jpg,https://www.eucerinus.com/
+P0468,Eucerin Hyaluron-Filler Vitamin C Booster,Eucerin,Serum,All,Fine Lines,"Vitamin C","Anti-aging vitamin C booster","Morning",31.99,4.8,eucerin_vitaminc_booster.jpg,https://www.eucerinus.com/
+P0469,Eucerin Advanced Repair Cream,Eucerin,Moisturizer,Dry,Barrier Repair,"Ceramides; Urea","Intensive moisturizing cream","Morning & Night",18.99,4.9,eucerin_advanced_repair.jpg,https://www.eucerinus.com/
+P0470,Eucerin Sun Age Defense SPF50,Eucerin,Sunscreen,All,Sun Protection,"SPF50; Hyaluronic Acid","Daily anti-aging sunscreen","Morning",19.99,4.8,eucerin_spf50.jpg,https://www.eucerinus.com/
+
+P0471,Vanicream Gentle Facial Cleanser,Vanicream,Cleanser,Sensitive,Daily Cleansing,"Glycerin","Fragrance-free facial cleanser","Morning & Night",13.99,4.9,vanicream_cleanser.jpg,https://www.vanicream.com/
+P0472,Vanicream Facial Moisturizer,Vanicream,Moisturizer,Sensitive,Barrier Repair,"Ceramides; Hyaluronic Acid","Lightweight facial moisturizer","Morning & Night",14.99,4.9,vanicream_moisturizer.jpg,https://www.vanicream.com/
+P0473,Vanicream Vitamin C Serum,Vanicream,Serum,All,Dullness,"Vitamin C","Brightening antioxidant serum","Morning",21.99,4.7,vanicream_vitaminc_serum.jpg,https://www.vanicream.com/
+P0474,Vanicream Daily Facial Lotion,Vanicream,Moisturizer,Dry,Hydration,"Squalane; Ceramides","Daily hydrating lotion","Morning & Night",15.99,4.8,vanicream_daily_lotion.jpg,https://www.vanicream.com/
+P0475,Vanicream Mineral Sunscreen SPF50,Vanicream,Sunscreen,Sensitive,Sun Protection,"SPF50; Zinc Oxide","Mineral sunscreen for sensitive skin","Morning",17.99,4.8,vanicream_spf50.jpg,https://www.vanicream.com/
+
+P0476,Neutrogena Hydro Boost Cleanser,Neutrogena,Cleanser,Dry,Hydration,"Hyaluronic Acid; Glycerin","Hydrating gel facial cleanser","Morning & Night",12.99,4.8,neutrogena_hydroboost_cleanser.jpg,https://www.neutrogena.com/
+P0477,Neutrogena Oil-Free Acne Wash,Neutrogena,Cleanser,Oily,Acne,"Salicylic Acid","Acne-fighting facial cleanser","Morning & Night",10.99,4.8,neutrogena_acnewash.jpg,https://www.neutrogena.com/
+P0478,Neutrogena Alcohol-Free Toner,Neutrogena,Toner,Sensitive,Hydration,"Glycerin","Gentle alcohol-free toner","Morning & Night",8.99,4.7,neutrogena_alcoholfree_toner.jpg,https://www.neutrogena.com/
+P0479,Neutrogena Hydro Boost Hyaluronic Serum,Neutrogena,Serum,Dry,Hydration,"Hyaluronic Acid","Deep hydration facial serum","Morning & Night",19.99,4.8,neutrogena_hydroboost_serum.jpg,https://www.neutrogena.com/
+P0480,Neutrogena Hydro Boost Water Gel,Neutrogena,Moisturizer,Dry,Hydration,"Hyaluronic Acid","Lightweight gel moisturizer","Morning & Night",18.99,4.9,neutrogena_hydroboost_watergel.jpg,https://www.neutrogena.com/
+
+P0481,La Roche-Posay Effaclar Purifying Cleanser,La Roche-Posay,Cleanser,Oily,Acne,"Zinc PCA","Foaming cleanser for oily skin","Morning & Night",16.99,4.9,larocheposay_effaclar_cleanser.jpg,https://www.laroche-posay.us/
+P0482,La Roche-Posay Effaclar Clarifying Toner,La Roche-Posay,Toner,Oily,Acne,"Salicylic Acid","Clarifying exfoliating toner","Morning & Night",18.99,4.8,larocheposay_effaclar_toner.jpg,https://www.laroche-posay.us/
+P0483,La Roche-Posay Pure Vitamin C10 Serum,La Roche-Posay,Serum,All,Dullness,"Vitamin C","Brightening antioxidant serum","Morning",42.99,4.8,larocheposay_c10_serum.jpg,https://www.laroche-posay.us/
+P0484,La Roche-Posay Toleriane Double Repair Moisturizer,La Roche-Posay,Moisturizer,Sensitive,Barrier Repair,"Ceramides; Niacinamide","Daily barrier repair moisturizer","Morning & Night",21.99,4.9,larocheposay_double_repair.jpg,https://www.laroche-posay.us/
+P0485,La Roche-Posay Anthelios Melt-in Milk SPF60,La Roche-Posay,Sunscreen,All,Sun Protection,"SPF60","High protection facial sunscreen","Morning",29.99,4.9,larocheposay_anthelios_milk.jpg,https://www.laroche-posay.us/
+
+P0486,Paula's Choice Calm Ultra-Gentle Cleanser,Paula's Choice,Cleanser,Sensitive,Redness,"Green Tea","Ultra-gentle facial cleanser","Morning & Night",21.99,4.8,paulaschoice_calm_cleanser.jpg,https://www.paulaschoice.com/
+P0487,Paula's Choice Enriched Calming Toner,Paula's Choice,Toner,Sensitive,Hydration,"Chamomile","Soothing calming toner","Morning & Night",24.99,4.8,paulaschoice_calm_toner.jpg,https://www.paulaschoice.com/
+P0488,Paula's Choice C15 Super Booster,Paula's Choice,Serum,All,Pigmentation,"Vitamin C; Vitamin E","High-strength vitamin C serum","Morning",55.00,4.9,paulaschoice_c15_booster.jpg,https://www.paulaschoice.com/
+P0489,Paula's Choice Barrier Repair Moisturizer,Paula's Choice,Moisturizer,Dry,Barrier Repair,"Retinol; Ceramides","Night barrier repair moisturizer","Night",33.00,4.8,paulaschoice_barrierrepair.jpg,https://www.paulaschoice.com/
+P0490,Paula's Choice RESIST SPF50 Moisturizer,Paula's Choice,Sunscreen,All,Sun Protection,"SPF50","Anti-aging sunscreen moisturizer","Morning",39.00,4.9,paulaschoice_resist_spf50.jpg,https://www.paulaschoice.com/
+
+P0491,Eucerin DermatoCLEAN Cleansing Milk,Eucerin,Cleanser,Dry,Hydration,"APG Complex","Gentle cleansing milk","Morning & Night",15.99,4.7,eucerin_cleansing_milk.jpg,https://www.eucerinus.com/
+P0492,Eucerin Hyaluron Toner,Eucerin,Toner,Dry,Hydration,"Hyaluronic Acid","Hydrating facial toner","Morning & Night",16.99,4.7,eucerin_hyaluron_toner.jpg,https://www.eucerinus.com/
+P0493,Eucerin Anti-Pigment Dual Serum,Eucerin,Serum,All,Pigmentation,"Thiamidol; Hyaluronic Acid","Dark spot correcting serum","Morning & Night",34.99,4.8,eucerin_antipigment_serum.jpg,https://www.eucerinus.com/
+P0494,Eucerin Urea Repair Face Cream,Eucerin,Moisturizer,Dry,Hydration,"Urea; Ceramides","Intensive moisturizing cream","Morning & Night",18.99,4.8,eucerin_urea_facecream.jpg,https://www.eucerinus.com/
+P0495,Eucerin Oil Control SPF50+,Eucerin,Sunscreen,Oily,Sun Protection,"SPF50","Oil-control sunscreen","Morning",19.99,4.8,eucerin_oilcontrol_spf50.jpg,https://www.eucerinus.com/
+
+P0496,SkinCeuticals Simply Clean Cleanser,SkinCeuticals,Cleanser,Combination,Daily Cleansing,"Fruit Acids","Gel facial cleanser","Morning & Night",39.00,4.8,skinceuticals_simplyclean.jpg,https://www.skinceuticals.com/
+P0497,SkinCeuticals Equalizing Toner,SkinCeuticals,Toner,Combination,Oil Control,"Hydroxy Acids","Balancing exfoliating toner","Morning & Night",36.00,4.7,skinceuticals_equalizing_toner.jpg,https://www.skinceuticals.com/
+P0498,SkinCeuticals C E Ferulic,SkinCeuticals,Serum,All,Fine Lines,"Vitamin C; Vitamin E; Ferulic Acid","Award-winning antioxidant serum","Morning",182.00,4.9,skinceuticals_ceferulic.jpg,https://www.skinceuticals.com/
+P0499,SkinCeuticals Triple Lipid Restore 2:4:2,SkinCeuticals,Moisturizer,Dry,Barrier Repair,"Ceramides; Cholesterol","Anti-aging lipid moisturizer","Morning & Night",155.00,4.9,skinceuticals_triplelipid.jpg,https://www.skinceuticals.com/
+P0500,SkinCeuticals Daily Brightening UV Defense SPF30,SkinCeuticals,Sunscreen,All,Sun Protection,"SPF30; Tranexamic Acid","Brightening daily sunscreen","Morning",58.00,4.8,skinceuticals_uvdefense_spf30.jpg,https://www.skinceuticals.com/
