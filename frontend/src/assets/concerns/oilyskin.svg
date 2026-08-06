@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" class="w-full h-full">
+  <rect width="120" height="120" rx="24" fill="#FEF3C7" />
+  <circle cx="60" cy="60" r="42" fill="#FDE68A" opacity="0.6"/>
+  <!-- Oil Drop Icon -->
+  <path d="M60 30 C50 48, 40 58, 60 82 C80 58, 70 48, 60 30 Z" fill="#D97706"/>
+  <circle cx="56" cy="55" r="3" fill="#FFFFFF" opacity="0.8"/>
+  <path d="M42 85 L78 85" stroke="#B45309" stroke-width="3" stroke-linecap="round"/>
+</svg>

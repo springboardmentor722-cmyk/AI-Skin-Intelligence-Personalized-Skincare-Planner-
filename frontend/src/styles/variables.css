@@ -1,0 +1,65 @@
+:root {
+  /* Brand Palette */
+  --primary: #00B8B8;
+  --primary-hover: #00a0a0;
+  --primary-light: rgba(0, 184, 184, 0.12);
+  --primary-glow: rgba(0, 184, 184, 0.35);
+
+  --secondary: #5C6CFF;
+  --secondary-hover: #4a5be6;
+  --secondary-light: rgba(92, 108, 255, 0.12);
+
+  --accent: #9C6BFF;
+  --accent-hover: #8a57f0;
+  --accent-light: rgba(156, 107, 255, 0.12);
+
+  /* Backgrounds & Surface */
+  --bg-main: #F8FAFC;
+  --bg-dark: #0F172A;
+  --card-bg: #FFFFFF;
+  --card-glass: rgba(255, 255, 255, 0.85);
+
+  /* Typography Colors */
+  --text-dark: #111827;
+  --text-gray: #6B7280;
+  --text-muted: #9CA3AF;
+
+  /* Borders & Dividers */
+  --border-color: #E5E7EB;
+  --border-glass: rgba(255, 255, 255, 0.5);
+
+  /* Status Colors */
+  --success: #22C55E;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+
+  /* Border Radii */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  /* Shadows */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 12px 32px rgba(17, 24, 39, 0.08);
+  --shadow-glass: 0 20px 40px rgba(0, 0, 0, 0.06);
+
+  /* Font Scale */
+  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  --title-large: 48px;
+  --title-section: 36px;
+  --title-card: 22px;
+  --body-size: 16px;
+  --small-size: 14px;
+}
+
+.dark {
+  --bg-main: #0B0F17;
+  --card-bg: #1E293B;
+  --card-glass: rgba(30, 41, 59, 0.85);
+  --text-dark: #F9FAFB;
+  --text-gray: #9CA3AF;
+  --border-color: #334155;
+  --shadow-glass: 0 20px 40px rgba(0, 0, 0, 0.4);
+}

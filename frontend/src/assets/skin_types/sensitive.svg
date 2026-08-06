@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none" class="w-full h-full">
+  <defs>
+    <linearGradient id="sensBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF1F2" />
+      <stop offset="100%" stop-color="#FFE4E6" />
+    </linearGradient>
+    <linearGradient id="faceGradSens" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFEDD5" />
+      <stop offset="100%" stop-color="#FECDD3" />
+    </linearGradient>
+    <filter id="shadowSens" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#F43F5E" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+
+  <rect width="200" height="200" rx="32" fill="url(#sensBg)" />
+  <circle cx="100" cy="100" r="70" fill="#FB7185" opacity="0.18" />
+
+  <!-- Base Face -->
+  <path d="M60 135 C60 165, 140 165, 140 135 C140 110, 145 90, 140 70 C135 45, 65 45, 60 70 C55 90, 60 110, 60 135 Z" fill="url(#faceGradSens)" filter="url(#shadowSens)"/>
+
+  <!-- Flushing / Redness Spots on Cheeks -->
+  <ellipse cx="78" cy="108" rx="16" ry="12" fill="#F43F5E" opacity="0.35" />
+  <ellipse cx="122" cy="108" rx="16" ry="12" fill="#F43F5E" opacity="0.35" />
+
+  <!-- Irritation Micro Dots -->
+  <circle cx="75" cy="104" r="1.5" fill="#E11D48"/>
+  <circle cx="82" cy="110" r="1.5" fill="#E11D48"/>
+  <circle cx="72" cy="112" r="1.5" fill="#E11D48"/>
+
+  <circle cx="125" cy="104" r="1.5" fill="#E11D48"/>
+  <circle cx="118" cy="110" r="1.5" fill="#E11D48"/>
+  <circle cx="128" cy="112" r="1.5" fill="#E11D48"/>
+
+  <!-- Sensitive Shield / Feather Badge -->
+  <g transform="translate(140, 48)">
+    <circle cx="12" cy="12" r="14" fill="#E11D48" opacity="0.15"/>
+    <!-- Shield Outline -->
+    <path d="M12 5 L19 8 V13 C19 17.5 16 20.5 12 22 C8 20.5 5 17.5 5 13 V8 L12 5 Z" fill="none" stroke="#E11D48" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M12 9 V13 M12 16 H12.01" stroke="#E11D48" stroke-width="2" stroke-linecap="round"/>
+  </g>
+</svg>

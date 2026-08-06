@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" class="w-full h-full">
+  <rect width="120" height="120" rx="24" fill="#FFFBEB" />
+  <circle cx="60" cy="60" r="42" fill="#FEF3C7" opacity="0.6"/>
+  <!-- Hyperpigmentation Patches -->
+  <path d="M45 42 C58 35, 75 42, 70 56 C66 68, 52 75, 42 66 C35 58, 38 46, 45 42 Z" fill="#D97706" opacity="0.55"/>
+  <path d="M68 62 C78 58, 88 66, 82 78 C76 86, 62 82, 65 72 Z" fill="#B45309" opacity="0.45"/>
+</svg>

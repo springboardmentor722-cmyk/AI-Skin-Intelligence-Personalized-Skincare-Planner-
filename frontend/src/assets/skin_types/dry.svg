@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none" class="w-full h-full">
+  <defs>
+    <linearGradient id="dryBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EFF6FF" />
+      <stop offset="100%" stop-color="#DBEAFE" />
+    </linearGradient>
+    <linearGradient id="faceGradDry" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFEDD5" />
+      <stop offset="100%" stop-color="#FED7AA" />
+    </linearGradient>
+    <filter id="shadowDry" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#3B82F6" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <rect width="200" height="200" rx="32" fill="url(#dryBg)" />
+  <circle cx="100" cy="100" r="70" fill="#60A5FA" opacity="0.15" />
+
+  <!-- Face Contour -->
+  <path d="M60 135 C60 165, 140 165, 140 135 C140 110, 145 90, 140 70 C135 45, 65 45, 60 70 C55 90, 60 110, 60 135 Z" fill="url(#faceGradDry)" filter="url(#shadowDry)"/>
+
+  <!-- Tightness & Micro-Crack Flake Texture -->
+  <path d="M72 80 L82 76 M70 85 L84 83 M73 90 L80 92" stroke="#F97316" stroke-width="1.5" stroke-linecap="round" opacity="0.5" />
+  <path d="M128 80 L118 76 M130 85 L116 83 M127 90 L120 92" stroke="#F97316" stroke-width="1.5" stroke-linecap="round" opacity="0.5" />
+
+  <path d="M85 130 L95 134 M105 134 L115 130" stroke="#EA580C" stroke-width="1.5" stroke-linecap="round" opacity="0.4" />
+
+  <!-- Flaky Leaf / Texture Icons -->
+  <g fill="#93C5FD">
+    <!-- Moisture needed icon -->
+    <path d="M100 55 C93 68, 88 74, 100 85 C112 74, 107 68, 100 55 Z" fill="none" stroke="#2563EB" stroke-width="2.5" stroke-dasharray="3 3"/>
+  </g>
+
+  <!-- Arid Sun / Dryness Rays Symbol -->
+  <circle cx="145" cy="55" r="14" fill="#3B82F6" opacity="0.2"/>
+  <path d="M145 45 V48 M145 62 V65 M135 55 H138 M152 55 H155" stroke="#2563EB" stroke-width="2" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" class="w-full h-full">
+  <rect width="120" height="120" rx="24" fill="#FFF1F2" />
+  <circle cx="60" cy="60" r="42" fill="#FFE4E6" opacity="0.6"/>
+  <!-- Acne Blemish Vector -->
+  <circle cx="60" cy="60" r="18" fill="#F43F5E" opacity="0.25"/>
+  <circle cx="60" cy="60" r="10" fill="#E11D48" opacity="0.8"/>
+  <circle cx="57" cy="57" r="3.5" fill="#FFFFFF"/>
+  <circle cx="40" cy="45" r="5" fill="#F43F5E" opacity="0.6"/>
+  <circle cx="78" cy="72" r="6" fill="#F43F5E" opacity="0.6"/>
+</svg>

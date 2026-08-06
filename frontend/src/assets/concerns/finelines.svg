@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" class="w-full h-full">
+  <rect width="120" height="120" rx="24" fill="#F0F9FF" />
+  <circle cx="60" cy="60" r="42" fill="#E0F2FE" opacity="0.6"/>
+  <!-- Delicate Fine Lines -->
+  <path d="M40 45 C55 42, 65 48, 80 44" stroke="#0284C7" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M35 56 C52 52, 68 60, 85 54" stroke="#0284C7" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M42 67 C55 64, 65 70, 78 66" stroke="#0369A1" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M45 78 C56 75, 64 80, 75 77" stroke="#0284C7" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

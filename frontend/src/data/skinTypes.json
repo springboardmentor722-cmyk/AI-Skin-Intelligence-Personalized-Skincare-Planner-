@@ -1,0 +1,62 @@
+[
+  {
+    "id": "normal",
+    "title": "Normal Skin",
+    "description": "Well-balanced sebum and moisture with smooth texture and minimal blemishes.",
+    "characteristics": [
+      "Balanced T-zone",
+      "Fine, barely visible pores",
+      "Resilient moisture barrier"
+    ],
+    "image": "/src/assets/skin_types/combination.svg",
+    "backendEnum": "Normal"
+  },
+  {
+    "id": "combination",
+    "title": "Combination Skin",
+    "description": "Oily T-zone (forehead, nose, chin) with normal-to-dry cheeks.",
+    "characteristics": [
+      "Oily T-zone",
+      "Normal to dry cheeks",
+      "Balanced hydration needs"
+    ],
+    "image": "/src/assets/skin_types/combination.svg",
+    "backendEnum": "Combination"
+  },
+  {
+    "id": "oily",
+    "title": "Oily Skin",
+    "description": "Overactive sebum production resulting in midday shine, visible pores, and congestion.",
+    "characteristics": [
+      "Excess shine across face",
+      "Enlarged pores",
+      "Prone to breakouts"
+    ],
+    "image": "/src/assets/skin_types/oily.svg",
+    "backendEnum": "Oily"
+  },
+  {
+    "id": "dry",
+    "title": "Dry Skin",
+    "description": "Lacks natural lipids, causing tightness, flaking, and rough texture.",
+    "characteristics": [
+      "Feels tight after washing",
+      "Flaky or rough patches",
+      "Compromised lipid barrier"
+    ],
+    "image": "/src/assets/skin_types/dry.svg",
+    "backendEnum": "Dry"
+  },
+  {
+    "id": "sensitive",
+    "title": "Sensitive Skin",
+    "description": "Easily irritated with frequent flushing, stinging reactivity, or redness.",
+    "characteristics": [
+      "Frequent flushing & redness",
+      "Stinging reactivity",
+      "Delicate barrier function"
+    ],
+    "image": "/src/assets/skin_types/sensitive.svg",
+    "backendEnum": "Sensitive"
+  }
+]

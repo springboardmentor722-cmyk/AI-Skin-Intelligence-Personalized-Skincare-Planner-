@@ -1,0 +1,130 @@
+[
+  {
+    "id": "acne",
+    "title": "Acne",
+    "description": "Active breakouts, comedones, and inflamed pimples caused by excess sebum and bacteria.",
+    "image": "/src/assets/concerns/acne.svg",
+    "backendField": "acne_severity",
+    "severityField": "acne_severity"
+  },
+  {
+    "id": "pimples",
+    "title": "Pimples",
+    "description": "Localized pustules, papules, and clogged pore lesions.",
+    "image": "/src/assets/concerns/acne.svg",
+    "backendField": "acne_severity",
+    "severityField": "acne_severity"
+  },
+  {
+    "id": "hyperpigmentation",
+    "title": "Hyperpigmentation",
+    "description": "Melasma patches and sun-induced dark pigmentation across cheeks and forehead.",
+    "image": "/src/assets/concerns/pigmentation.svg",
+    "backendField": "hyperpigmentation_severity",
+    "severityField": "hyperpigmentation_severity"
+  },
+  {
+    "id": "dark_spots",
+    "title": "Dark Spots",
+    "description": "Localized age spots, sun spots, and concentrated melanin deposits.",
+    "image": "/src/assets/concerns/darkspots.svg",
+    "backendField": "dark_spots_severity",
+    "severityField": "dark_spots_severity"
+  },
+  {
+    "id": "dryness",
+    "title": "Dryness",
+    "description": "Flakiness, rough surface texture, and lack of natural lubricating lipids.",
+    "image": "/src/assets/concerns/dryskin.svg",
+    "backendField": "dryness_severity",
+    "severityField": "dryness_severity"
+  },
+  {
+    "id": "oiliness",
+    "title": "Oiliness",
+    "description": "Midday facial shine, overactive sebum glands, and slick skin feel.",
+    "image": "/src/assets/concerns/oilyskin.svg",
+    "backendField": "oiliness_severity",
+    "severityField": "oiliness_severity"
+  },
+  {
+    "id": "sensitive_skin",
+    "title": "Sensitive Skin",
+    "description": "Fragile moisture barrier, stinging reaction to skincare products, and easy irritation.",
+    "image": "/src/assets/concerns/sensitive.svg",
+    "backendField": "sensitivity_severity",
+    "severityField": "sensitivity_severity"
+  },
+  {
+    "id": "redness",
+    "title": "Redness",
+    "description": "Facial flushing, reactive redness, and visible superficial capillaries.",
+    "image": "/src/assets/concerns/redness.svg",
+    "backendField": "redness_severity",
+    "severityField": "redness_severity"
+  },
+  {
+    "id": "rosacea",
+    "title": "Rosacea",
+    "description": "Persistent central facial redness, flushing episodes, and delicate vascular sensitivity.",
+    "image": "/src/assets/concerns/redness.svg",
+    "backendField": "redness_severity",
+    "severityField": "redness_severity"
+  },
+  {
+    "id": "fine_lines",
+    "title": "Fine Lines",
+    "description": "Early expression lines around the eyes, forehead, and mouth.",
+    "image": "/src/assets/concerns/finelines.svg",
+    "backendField": "fine_lines_severity",
+    "severityField": "fine_lines_severity"
+  },
+  {
+    "id": "wrinkles",
+    "title": "Wrinkles",
+    "description": "Deeper structural creases and loss of skin elasticity over time.",
+    "image": "/src/assets/concerns/wrinkles.svg",
+    "backendField": "wrinkles_severity",
+    "severityField": "wrinkles_severity"
+  },
+  {
+    "id": "uneven_tone",
+    "title": "Uneven Tone",
+    "description": "Patchy complexion, loss of radiance, and localized skin tone variations.",
+    "image": "/src/assets/concerns/uneventone.svg",
+    "backendField": "uneven_tone_severity",
+    "severityField": "uneven_tone_severity"
+  },
+  {
+    "id": "enlarged_pores",
+    "title": "Enlarged Pores",
+    "description": "Stretched pore openings around T-zone due to sebum congestion.",
+    "image": "/src/assets/concerns/oilyskin.svg",
+    "backendField": "oiliness_severity",
+    "severityField": "oiliness_severity"
+  },
+  {
+    "id": "dull_skin",
+    "title": "Dull Skin",
+    "description": "Sluggish cellular turnover resulting in lack of glow and flat complexion.",
+    "image": "/src/assets/concerns/uneventone.svg",
+    "backendField": "uneven_tone_severity",
+    "severityField": "uneven_tone_severity"
+  },
+  {
+    "id": "sun_damage",
+    "title": "Sun Damage",
+    "description": "UV-induced photoaging, solar lentigines, and loss of collagen firmness.",
+    "image": "/src/assets/concerns/pigmentation.svg",
+    "backendField": "hyperpigmentation_severity",
+    "severityField": "hyperpigmentation_severity"
+  },
+  {
+    "id": "dehydration",
+    "title": "Dehydration",
+    "description": "Transepidermal water loss causing fine surface dehydration lines and tightness.",
+    "image": "/src/assets/concerns/dryskin.svg",
+    "backendField": "dryness_severity",
+    "severityField": "dryness_severity"
+  }
+]

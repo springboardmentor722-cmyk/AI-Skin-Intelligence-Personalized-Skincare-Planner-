@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none" class="w-full h-full">
+  <defs>
+    <linearGradient id="oilyBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFBEB" />
+      <stop offset="100%" stop-color="#FEF3C7" />
+    </linearGradient>
+    <linearGradient id="oilyGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F59E0B" stop-opacity="0.6" />
+      <stop offset="100%" stop-color="#D97706" stop-opacity="0.2" />
+    </linearGradient>
+    <linearGradient id="faceGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FED7AA" />
+      <stop offset="100%" stop-color="#FDBA74" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#D97706" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+
+  <!-- Background Card Circle -->
+  <rect width="200" height="200" rx="32" fill="url(#oilyBg)" />
+  <circle cx="100" cy="100" r="70" fill="url(#oilyGlow)" opacity="0.2" />
+
+  <!-- Face Silhouette Base -->
+  <path d="M60 135 C60 165, 140 165, 140 135 C140 110, 145 90, 140 70 C135 45, 65 45, 60 70 C55 90, 60 110, 60 135 Z" fill="url(#faceGrad)" filter="url(#shadow)"/>
+
+  <!-- T-Zone Highlight Area (Oily Zone) -->
+  <path d="M75 60 H125 V85 L108 105 V130 H92 V105 L75 85 Z" fill="#FFFFFF" opacity="0.35" />
+
+  <!-- Shine Droplet Accents -->
+  <g filter="url(#shadow)">
+    <!-- Main Drop Forehead -->
+    <path d="M100 52 C95 62, 91 67, 100 75 C109 67, 105 62, 100 52 Z" fill="#F59E0B" />
+    <circle cx="98" cy="62" r="2" fill="#FFFFFF" />
+
+    <!-- Cheek Droplet Left -->
+    <path d="M72 100 C69 106, 66 109, 72 114 C78 109, 75 106, 72 100 Z" fill="#FBBF24" />
+    <!-- Cheek Droplet Right -->
+    <path d="M128 100 C125 106, 122 109, 128 114 C134 109, 131 106, 128 100 Z" fill="#FBBF24" />
+  </g>
+
+  <!-- Pore Accents T-Zone -->
+  <circle cx="95" cy="80" r="1.5" fill="#D97706" opacity="0.6"/>
+  <circle cx="105" cy="80" r="1.5" fill="#D97706" opacity="0.6"/>
+  <circle cx="100" cy="85" r="1.5" fill="#D97706" opacity="0.6"/>
+  <circle cx="92" cy="92" r="1.5" fill="#D97706" opacity="0.6"/>
+  <circle cx="108" cy="92" r="1.5" fill="#D97706" opacity="0.6"/>
+
+  <!-- Subtle Sparkles -->
+  <path d="M142 55 L144 60 L149 62 L144 64 L142 69 L140 64 L135 62 L140 60 Z" fill="#F59E0B" opacity="0.8"/>
+  <path d="M58 85 L59 88 L62 89 L59 90 L58 93 L57 90 L54 89 L57 88 Z" fill="#FBBF24" opacity="0.8"/>
+</svg>

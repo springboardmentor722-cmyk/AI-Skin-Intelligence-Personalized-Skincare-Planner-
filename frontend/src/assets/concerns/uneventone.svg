@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" class="w-full h-full">
+  <rect width="120" height="120" rx="24" fill="#FDF4FF" />
+  <circle cx="60" cy="60" r="42" fill="#FAE8FF" opacity="0.6"/>
+  <!-- Two-Tone Patch Split -->
+  <path d="M30 60 A30 30 0 0 1 90 60 Z" fill="#C084FC" opacity="0.5"/>
+  <path d="M30 60 A30 30 0 0 0 90 60 Z" fill="#E879F9" opacity="0.3"/>
+  <circle cx="60" cy="60" r="30" stroke="#A855F7" stroke-width="2.5"/>
+</svg>
