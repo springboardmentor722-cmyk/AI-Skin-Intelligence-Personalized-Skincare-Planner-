@@ -25,6 +25,7 @@ import DermatologistConsultants from "./pages/DermatologistConsultants";
 import ConsultantCustomers from "./pages/ConsultantCustomers";
 import ConsultantDermatologists from "./pages/ConsultantDermatologists";
 import AdminDashboard from "./pages/AdminDashboard";
+import ConsultantRecommendations from "./pages/ConsultantRecommendations";
 
 function Layout({ children }) {
   const location = useLocation();
@@ -80,6 +81,10 @@ export default function App() {
             <Route
               path="/consultant/dermatologists"
               element={<ProtectedRoute allowedRoles={["skincare_consultant"]}><ConsultantDermatologists /></ProtectedRoute>}
+            />
+            <Route
+              path="/consultant/recommendations"
+              element={<ProtectedRoute allowedRoles={["skincare_consultant"]}><ConsultantRecommendations /></ProtectedRoute>}
             />
             <Route
               path="/dermatologist/dashboard"

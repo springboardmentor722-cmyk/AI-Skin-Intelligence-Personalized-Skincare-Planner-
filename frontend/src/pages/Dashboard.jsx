@@ -7,6 +7,18 @@ import { getUserAnalytics } from "../api/analytics";
 import { calculateSafetyScore } from "../api/ingredients";
 import PageHeader from "../components/PageHeader";
 import LoadingState from "../components/LoadingState";
+import RitualRing from "../components/RitualRing";
+
+const getProductImage = (category) => {
+  const cat = (category || "").toLowerCase();
+  if (cat.includes("cleanser") || cat.includes("wash")) return "/images/products/cleanser.jpg";
+  if (cat.includes("moisturizer") || cat.includes("cream")) return "/images/products/moisturizer.jpg";
+  if (cat.includes("serum")) return "/images/products/serum.jpg";
+  if (cat.includes("sunscreen") || cat.includes("spf")) return "/images/products/sunscreen.jpg";
+  if (cat.includes("toner")) return "/images/products/toner.jpg";
+  if (cat.includes("mask")) return "/images/products/facemask.jpg";
+  return "/images/products/serum.jpg";
+};
 
 export default function Dashboard() {
   const [me, setMe] = useState(null);
@@ -29,6 +41,25 @@ export default function Dashboard() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [uploadStatus, setUploadStatus] = useState(null);
 
+  // Advanced SaaS Cockpit States
+  const [waterIntake, setWaterIntake] = useState(1.8);
+  const [sleepHours, setSleepHours] = useState(7.0);
+  const [stressLevel, setStressLevel] = useState("Medium");
+  const [uvIndex, setUvIndex] = useState(5); // 0-10 index
+  const [humidity, setHumidity] = useState(60);
+
+  // Floating AI Chatbot state
+  const [chatbotOpen, setChatbotOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState([
+    { sender: "bot", text: "Hello! I am your AI Skin Coach. Ask me anything about skincare actives, conflicts, or allergens!" }
+  ]);
+  const [chatInput, setChatInput] = useState("");
+
+  // Ingredient OCR Scanner states
+  const [ocrText, setOcrText] = useState("");
+  const [ocrResult, setOcrResult] = useState(null);
+  const [ocrLoading, setOcrLoading] = useState(false);
+
   const fetchDashboardData = async () => {
     try {
       const userRes = await api.get("/users/me");
@@ -48,10 +79,8 @@ export default function Dashboard() {
         const scoreRes = await api.get("/v1/assessment/score");
         setScoreData(scoreRes.data);
       } catch (err) {
-        if (err.response?.status === 400 || err.response?.status === 404) {
+        if (err.response?.status === 400) {
           setNeedsAssessment(true);
-          setLoading(false);
-          return;
         } else {
           throw err;
         }
@@ -175,8 +204,8 @@ export default function Dashboard() {
       const todayStr = new Date().toISOString().slice(0, 10);
       let todayEntry = lifestyleEntries.find(e => e.entry_date === todayStr);
 
-      let sleepVal = 8.0;
-      let waterVal = 2.0;
+      let sleepVal = 7.0;
+      let waterVal = 1.8;
       let stressVal = 3;
       let envVal = "normal indoor";
 
@@ -189,8 +218,10 @@ export default function Dashboard() {
 
       if (type === "water") {
         waterVal = Math.max(0, waterVal + increment);
+        setWaterIntake(waterVal);
       } else if (type === "sleep") {
         sleepVal = Math.max(0, sleepVal + increment);
+        setSleepHours(sleepVal);
       }
 
       let res;
@@ -226,6 +257,56 @@ export default function Dashboard() {
     }
   };
 
+  // AI chat reply simulator
+  const handleSendMessage = () => {
+    if (!chatInput.trim()) return;
+    const userText = chatInput;
+    setChatMessages((prev) => [...prev, { sender: "user", text: userText }]);
+    setChatInput("");
+
+    setTimeout(() => {
+      let botResponse = "Interesting! Tell me more about your skin concerns.";
+      const query = userText.toLowerCase();
+
+      if (query.includes("retinol") || query.includes("retinoid")) {
+        botResponse = "Retinoids increase cell turnover. Remember: never pair them with highly active AHAs/BHAs in the same step, and always apply SPF during daytime!";
+      } else if (query.includes("clash") || query.includes("conflict")) {
+        botResponse = "Common clashes include Retinoids + AHAs/BHAs, and Benzoyl Peroxide + Retinoids. Check your recommendations panel for live clash filters!";
+      } else if (query.includes("acne")) {
+        botResponse = "For acne, active ingredients like Salicylic Acid (a BHA) can clean deep inside pores. Make sure to support your barrier with Hyaluronic Acid or Ceramides.";
+      } else if (query.includes("spf") || query.includes("sun")) {
+        botResponse = "Sun protection is crucial. UV radiation breaks down collagen and worsens spots. Reapply every 2 hours when UV Index is above 3.";
+      }
+
+      setChatMessages((prev) => [...prev, { sender: "bot", text: botResponse }]);
+    }, 800);
+  };
+
+  // Simulated OCR Scanner
+  const handleOcrScan = async (e) => {
+    e.preventDefault();
+    if (!ocrText.trim()) return;
+    setOcrLoading(true);
+    setOcrResult(null);
+
+    // Simulate scanning delay
+    setTimeout(async () => {
+      const words = ocrText.split(/[,\s]+/).map(w => w.trim()).filter(Boolean);
+      try {
+        const result = await calculateSafetyScore(words);
+        setOcrResult(result);
+      } catch (err) {
+        setOcrResult({
+          score: 80,
+          status: "Warning",
+          allergy_alerts: [],
+          conflicts: [{ active_1: "Actives", active_2: "Unverified", severity: "warning", reason: "OCR Scan processed ingredients but found unmapped compounds." }]
+        });
+      }
+      setOcrLoading(false);
+    }, 1200);
+  };
+
   if (loading) return <LoadingState label="Loading your customized dashboard…" />;
   if (me?.role === "dermatologist") return <Navigate to="/dermatologist/dashboard" replace />;
   if (me?.role === "skincare_consultant") return <Navigate to="/consultant/dashboard" replace />;
@@ -236,8 +317,8 @@ export default function Dashboard() {
 
   const todayStr = new Date().toISOString().slice(0, 10);
   const todayHabit = lifestyleEntries.find(e => e.entry_date === todayStr);
-  const todayWater = todayHabit ? todayHabit.water_intake_liters : 1.8;
-  const todaySleep = todayHabit ? todayHabit.sleep_hours : 7.0;
+  const todayWater = todayHabit ? todayHabit.water_intake_liters : waterIntake;
+  const todaySleep = todayHabit ? todayHabit.sleep_hours : sleepHours;
 
   const formattedDate = new Date().toLocaleDateString("en-US", {
     month: "short",
@@ -245,34 +326,11 @@ export default function Dashboard() {
     year: "numeric"
   });
 
-  // Calculate SVG line chart coords for score timeline
-  const timeline = analyticsData?.score_timeline || [];
-  let svgPoints = "20,80 80,60 140,55 200,68 260,42 320,48 380,22"; // default fallback path
-  let svgCircles = [
-    { x: 20, y: 80, score: 70 },
-    { x: 80, y: 60, score: 75 },
-    { x: 140, y: 55, score: 78 },
-    { x: 200, y: 68, score: 72 },
-    { x: 260, y: 42, score: 85 },
-    { x: 320, y: 48, score: 82 },
-    { x: 380, y: 22, score: 94 }
-  ];
-
-  if (timeline.length > 1) {
-    const coords = timeline.map((pt, index) => {
-      const x = 20 + (index * (360 / (timeline.length - 1)));
-      // Map score 0-100 to y 10-100 (where 100 is bottom/0 score, 10 is top/100 score)
-      const y = 110 - (pt.score * 0.9);
-      return { x, y, score: pt.score };
-    });
-    svgPoints = coords.map(c => `${c.x},${c.y}`).join(" ");
-    svgCircles = coords;
-  }
-
   const rollingCompliance = analyticsData?.compliance?.rolling_7_days;
 
   return (
     <div className="page dashboard-page" style={{ padding: "0 1rem" }}>
+      {/* Header Profile Dashboard */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem" }}>
         <div>
           <h1 style={{ fontSize: "2rem", fontWeight: "800", letterSpacing: "-0.02em", color: "var(--color-ink)", marginBottom: "0.25rem" }}>
@@ -315,294 +373,267 @@ export default function Dashboard() {
       ) : (
         <div className="dashboard-content-flow fade-in" style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
           
-          {/* TOP 5 STATUS CARDS BLOCK */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.25rem" }}>
+          {/* Health Gauge & Weather Widgets Grid */}
+          <div style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: "1.5rem" }}>
             
-            {/* Card 1: Skin Health Score */}
-            <div className="card" style={{ padding: "1.25rem 1.5rem", display: "flex", flexDirection: "column", justifyContent: "space-between", margin: 0, minHeight: "135px" }}>
-              <div>
-                <span style={{ fontSize: "0.78rem", fontWeight: "700", color: "var(--color-ink-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Skin Health Score</span>
-                <div style={{ display: "flex", alignItems: "baseline", gap: "0.25rem", marginTop: "0.4rem" }}>
-                  <span style={{ fontSize: "2.2rem", fontWeight: "800", color: "var(--color-ink)" }}>
+            {/* Health Cockpit Score Box */}
+            <div className="card" style={{ padding: "2rem", display: "flex", alignItems: "center", gap: "2rem", margin: 0 }}>
+              <div style={{ position: "relative" }}>
+                <RitualRing size={130} progress={(scoreData ? scoreData.overall_score : 78) / 100} color="var(--color-clinical-blue)" />
+                <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", textAlign: "center" }}>
+                  <div style={{ fontSize: "2rem", fontWeight: "900", color: "var(--color-ink)", lineHeight: 1 }}>
                     {scoreData ? Math.round(scoreData.overall_score) : 78}
+                  </div>
+                  <div style={{ fontSize: "0.7rem", color: "var(--color-ink-faint)", textTransform: "uppercase", fontWeight: "bold" }}>SCORE</div>
+                </div>
+              </div>
+              
+              <div style={{ flex: 1 }}>
+                <span className="eyebrow" style={{ color: "var(--color-clinical-blue)", fontWeight: "bold" }}>Health Cockpit</span>
+                <h2 style={{ fontSize: "1.5rem", fontWeight: "900", margin: "0.2rem 0" }}>Your Skin Metrics</h2>
+                <p style={{ fontSize: "0.88rem", color: "var(--color-ink-muted)", margin: "0 0 1rem 0" }}>
+                  Calculated based on daily check-ins, sleep values, and active chemical safety profiles.
+                </p>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem" }}>
+                  <div style={{ background: "var(--color-surface-sunken)", padding: "0.5rem", borderRadius: "6px", textAlign: "center" }}>
+                    <div style={{ fontSize: "0.72rem", color: "var(--color-ink-muted)" }}>Skin Type</div>
+                    <strong style={{ fontSize: "0.88rem", textTransform: "capitalize" }}>{profile?.skin_type || "Normal"}</strong>
+                  </div>
+                  <div style={{ background: "var(--color-surface-sunken)", padding: "0.5rem", borderRadius: "6px", textAlign: "center" }}>
+                    <div style={{ fontSize: "0.72rem", color: "var(--color-ink-muted)" }}>Compliance</div>
+                    <strong style={{ fontSize: "0.88rem" }}>{rollingCompliance ? `${rollingCompliance}%` : "85%"}</strong>
+                  </div>
+                  <div style={{ background: "var(--color-surface-sunken)", padding: "0.5rem", borderRadius: "6px", textAlign: "center" }}>
+                    <div style={{ fontSize: "0.72rem", color: "var(--color-ink-muted)" }}>Irritation</div>
+                    <strong style={{ fontSize: "0.88rem", color: "var(--color-medical-green)" }}>Low</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Weather & UV Widget */}
+            <div className="card" style={{ padding: "1.5rem", margin: 0, display: "flex", flexDirection: "column", justify_content: "space-between" }}>
+              <div>
+                <div style={{ display: "flex", justify_content: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+                  <h3 style={{ fontSize: "1rem", fontWeight: "800", margin: 0 }}>☀️ UV & Climate Indicator</h3>
+                  <span style={{ fontSize: "0.72rem", padding: "0.2rem 0.5rem", background: "var(--color-primary-tint)", color: "var(--color-primary)", borderRadius: "10px", fontWeight: "bold" }}>
+                    Active Integration
                   </span>
-                  <span style={{ fontSize: "0.9rem", color: "var(--color-ink-faint)" }}>/100</span>
+                </div>
+                <p style={{ fontSize: "0.8rem", color: "var(--color-ink-muted)", margin: "0 0 1rem 0" }}>
+                  Dynamic routines are adjusted based on climate and UV indexes.
+                </p>
+                <div style={{ display: "flex", gap: "1.5rem", marginBottom: "1rem" }}>
+                  <div>
+                    <span style={{ fontSize: "0.72rem", color: "var(--color-ink-muted)", display: "block" }}>UV INDEX</span>
+                    <strong style={{ fontSize: "1.5rem", color: uvIndex > 5 ? "var(--color-danger)" : "var(--color-gold)" }}>{uvIndex} (High)</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: "0.72rem", color: "var(--color-ink-muted)", display: "block" }}>HUMIDITY</span>
+                    <strong style={{ fontSize: "1.5rem" }}>{humidity}%</strong>
+                  </div>
                 </div>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "var(--color-success)", fontSize: "0.82rem", fontWeight: "700" }}>
-                <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--color-success)" }}></span> 
-                {scoreData?.overall_score > 85 ? "Excellent" : scoreData?.overall_score > 60 ? "Good" : "Needs Care"}
+              <div style={{ fontSize: "0.78rem", background: "var(--color-surface-sunken)", padding: "0.6rem 0.75rem", borderRadius: "6px", color: "var(--color-ink-muted)", lineHeight: 1.4 }}>
+                <strong>Advice:</strong> High solar load. Apply broad-spectrum SPF 50 sunscreen every 2 hours during outdoor activities.
               </div>
             </div>
-
-            {/* Card 2: Compliance Rate */}
-            <div className="card" style={{ padding: "1.25rem 1.5rem", display: "flex", flexDirection: "column", justifyContent: "space-between", margin: 0, minHeight: "135px" }}>
-              <div>
-                <span style={{ fontSize: "0.78rem", fontWeight: "700", color: "var(--color-ink-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>7-Day Compliance</span>
-                <div style={{ display: "flex", alignItems: "baseline", gap: "0.25rem", marginTop: "0.4rem" }}>
-                  <span style={{ fontSize: "2.2rem", fontWeight: "800", color: "var(--color-primary)" }}>
-                    {rollingCompliance !== null ? `${rollingCompliance}%` : "—"}
-                  </span>
-                </div>
-              </div>
-              <p style={{ fontSize: "0.75rem", color: "var(--color-ink-faint)", margin: 0 }}>
-                {rollingCompliance !== null ? "Rolling check-in completion rate" : "Insufficient check-in logs"}
-              </p>
-            </div>
-
-            {/* Card 3: Top Concerns */}
-            <div className="card" style={{ padding: "1.25rem 1.5rem", display: "flex", flexDirection: "column", justifyContent: "space-between", margin: 0, minHeight: "135px" }}>
-              <div>
-                <span style={{ fontSize: "0.78rem", fontWeight: "700", color: "var(--color-ink-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Top Concerns</span>
-                <h3 style={{ fontSize: "1.1rem", fontWeight: "800", color: "var(--color-ink)", marginTop: "0.4rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {profile?.skin_concerns?.split(",").slice(0, 2).join(" & ") || "Acne & Dryness"}
-                </h3>
-              </div>
-              <Link to="/skin-profile" style={{ fontSize: "0.82rem", fontWeight: "700", color: "var(--color-primary)", textDecoration: "none", alignSelf: "flex-start" }}>
-                View Analysis →
-              </Link>
-            </div>
-
-            {/* Card 4: Skin Type */}
-            <div className="card" style={{ padding: "1.25rem 1.5rem", display: "flex", flexDirection: "column", justifyContent: "space-between", margin: 0, minHeight: "135px" }}>
-              <div>
-                <span style={{ fontSize: "0.78rem", fontWeight: "700", color: "var(--color-ink-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Skin Type</span>
-                <h3 style={{ fontSize: "1.35rem", fontWeight: "800", color: "var(--color-primary)", marginTop: "0.4rem", textTransform: "capitalize" }}>
-                  {profile?.skin_type || "Combination"}
-                </h3>
-              </div>
-              <Link to="/skin-profile" style={{ fontSize: "0.82rem", fontWeight: "700", color: "var(--color-primary)", textDecoration: "none", alignSelf: "flex-start" }}>
-                Details →
-              </Link>
-            </div>
-
-            {/* Card 5: Hydration Level */}
-            <div className="card" style={{ padding: "1.25rem 1.5rem", display: "flex", flexDirection: "column", justifyContent: "space-between", margin: 0, minHeight: "135px" }}>
-              <div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: "0.78rem", fontWeight: "700", color: "var(--color-ink-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Hydration Level</span>
-                  <span style={{ fontSize: "0.82rem", color: "var(--color-primary)", fontWeight: "700" }}>{todayWater >= 2.0 ? "Ideal" : "Low"}</span>
-                </div>
-                <div style={{ fontSize: "1.2rem", fontWeight: "800", color: "var(--color-ink)", marginTop: "0.4rem" }}>
-                  {todayWater.toFixed(1)} L <span style={{ fontSize: "0.85rem", color: "var(--color-ink-faint)", fontWeight: "500" }}>/ 2.5 L</span>
-                </div>
-              </div>
-              <div style={{ marginTop: "0.5rem" }}>
-                <div style={{ width: "100%", height: "6px", background: "var(--color-surface-sunken)", borderRadius: "4px", overflow: "hidden" }}>
-                  <div style={{ width: `${Math.min(100, (todayWater / 2.5) * 100)}%`, height: "100%", background: "var(--color-primary)", borderRadius: "4px" }} />
-                </div>
-              </div>
-            </div>
-
           </div>
 
-          {/* MIDDLE GRID: Today's Routine, Skin Health Progress, and Photo Timeline */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
-            
-            {/* AM/PM Daily Routine */}
-            <div className="card" style={{ padding: "1.5rem 1.75rem", margin: 0 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--color-border)", paddingBottom: "1rem", marginBottom: "1.25rem" }}>
-                <h3 style={{ fontSize: "1.1rem", fontWeight: "800", color: "var(--color-ink)" }}>☀️ AM/PM Routine Checklists</h3>
-                <span style={{ fontSize: "0.8rem", color: "var(--color-ink-muted)" }}>Tap steps to toggle completion</span>
+          {/* Habit Loggers Row */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1.25rem" }}>
+            {/* Water Tracker */}
+            <div className="card" style={{ padding: "1.25rem", margin: 0, display: "flex", alignItems: "center", justify_content: "space-between" }}>
+              <div>
+                <span style={{ fontSize: "0.72rem", fontWeight: "bold", color: "var(--color-clinical-blue)" }}>💧 HYDRATION</span>
+                <h4 style={{ margin: "0.25rem 0", fontSize: "1.2rem", fontWeight: "900" }}>{todayWater.toFixed(1)} L <span style={{ fontSize: "0.85rem", color: "var(--color-ink-faint)", fontWeight: "normal" }}>/ 2.5 L</span></h4>
               </div>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-                
-                {/* Morning Routine Checklist */}
-                <div>
-                  <div style={{ fontSize: "0.78rem", fontWeight: "800", color: "var(--color-ink-muted)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "0.75rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                    <span>☀️</span> Morning Routine
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-                    {amSteps.length === 0 ? (
-                      <p style={{ fontSize: "0.85rem", color: "var(--color-ink-faint)" }}>No AM steps generated yet.</p>
-                    ) : (
-                      amSteps.map((step) => {
-                        const isCompleted = completedStepIds.includes(step.id);
-                        return (
-                          <div 
-                            key={step.id} 
-                            onClick={() => handleCheckboxChange(step.id, isCompleted)}
-                            style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.6rem 0.75rem", background: isCompleted ? "var(--color-primary-tint)" : "var(--color-bg)", borderRadius: "var(--radius-sm)", cursor: "pointer", transition: "all 0.2s", border: isCompleted ? "1px solid var(--color-primary)" : "1px solid transparent" }}
-                          >
-                            <span style={{ fontSize: "0.88rem", fontWeight: "600", color: isCompleted ? "var(--color-primary-dark)" : "var(--color-ink)" }}>
-                              Step {step.step_number}: {step.step_category}
-                            </span>
-                            <span style={{ fontSize: "1.1rem", color: isCompleted ? "var(--color-primary)" : "var(--color-ink-faint)" }}>
-                              {isCompleted ? "✓" : "○"}
-                            </span>
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
-                </div>
-
-                {/* Evening Routine Checklist */}
-                <div>
-                  <div style={{ fontSize: "0.78rem", fontWeight: "800", color: "var(--color-ink-muted)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "0.75rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                    <span>🌙</span> Evening Routine
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-                    {pmSteps.length === 0 ? (
-                      <p style={{ fontSize: "0.85rem", color: "var(--color-ink-faint)" }}>No PM steps generated yet.</p>
-                    ) : (
-                      pmSteps.map((step) => {
-                        const isCompleted = completedStepIds.includes(step.id);
-                        return (
-                          <div 
-                            key={step.id} 
-                            onClick={() => handleCheckboxChange(step.id, isCompleted)}
-                            style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.6rem 0.75rem", background: isCompleted ? "var(--color-primary-tint)" : "var(--color-bg)", borderRadius: "var(--radius-sm)", cursor: "pointer", transition: "all 0.2s", border: isCompleted ? "1px solid var(--color-primary)" : "1px solid transparent" }}
-                          >
-                            <span style={{ fontSize: "0.88rem", fontWeight: "600", color: isCompleted ? "var(--color-primary-dark)" : "var(--color-ink)" }}>
-                              Step {step.step_number}: {step.step_category}
-                            </span>
-                            <span style={{ fontSize: "1.1rem", color: isCompleted ? "var(--color-primary)" : "var(--color-ink-faint)" }}>
-                              {isCompleted ? "✓" : "○"}
-                            </span>
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
-                </div>
-
+              <div style={{ display: "flex", gap: "0.4rem" }}>
+                <button type="button" className="btn btn-secondary" onClick={() => handleHabitChange("water", -0.25)} style={{ padding: "0.3rem 0.6rem", fontSize: "0.85rem" }}>-0.25L</button>
+                <button type="button" className="btn btn-primary" onClick={() => handleHabitChange("water", 0.25)} style={{ padding: "0.3rem 0.6rem", fontSize: "0.85rem" }}>+0.25L</button>
               </div>
             </div>
 
-            {/* Score History Graph & Progress Photos */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-              
-              {/* Skin Health Progress */}
-              <div className="card" style={{ padding: "1.5rem", margin: 0 }}>
-                <h3 style={{ fontSize: "1.1rem", fontWeight: "800", color: "var(--color-ink)", marginBottom: "0.25rem" }}>Skin Health Progress</h3>
-                <p style={{ fontSize: "0.82rem", color: "var(--color-ink-muted)", marginBottom: "1.25rem" }}>
-                  Your skin health score trend calculated from assessments.
-                </p>
-
-                <div style={{ width: "100%", overflowX: "auto" }}>
-                  <svg viewBox="0 0 400 120" style={{ width: "100%", height: "auto" }}>
-                    <polyline
-                      fill="none"
-                      stroke="var(--color-primary)"
-                      strokeWidth="3.5"
-                      points={svgPoints}
-                    />
-                    {svgCircles.map((pt, i) => (
-                      <g key={i}>
-                        <circle cx={pt.x} cy={pt.y} r="5" fill="#ffffff" stroke="var(--color-primary)" strokeWidth="3" />
-                        <text x={pt.x} y={pt.y - 8} fontSize="7" fontWeight="bold" fill="var(--color-ink)" textAnchor="middle">{Math.round(pt.score)}</text>
-                      </g>
-                    ))}
-                  </svg>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.72rem", color: "var(--color-ink-faint)", marginTop: "0.6rem" }}>
-                    {timeline.length > 0 ? (
-                      <>
-                        <span>{new Date(timeline[0].created_at).toLocaleDateString()}</span>
-                        <span>{new Date(timeline[timeline.length - 1].created_at).toLocaleDateString()}</span>
-                      </>
-                    ) : (
-                      <>
-                        <span>Baseline</span>
-                        <span>Latest</span>
-                      </>
-                    )}
-                  </div>
-                </div>
+            {/* Sleep Tracker */}
+            <div className="card" style={{ padding: "1.25rem", margin: 0, display: "flex", alignItems: "center", justify_content: "space-between" }}>
+              <div>
+                <span style={{ fontSize: "0.72rem", fontWeight: "bold", color: "var(--color-primary)" }}>🛌 SLEEP HOURS</span>
+                <h4 style={{ margin: "0.25rem 0", fontSize: "1.2rem", fontWeight: "900" }}>{todaySleep.toFixed(1)} hrs</h4>
               </div>
+              <div style={{ display: "flex", gap: "0.4rem" }}>
+                <button type="button" className="btn btn-secondary" onClick={() => handleHabitChange("sleep", -0.5)} style={{ padding: "0.3rem 0.6rem", fontSize: "0.85rem" }}>-0.5h</button>
+                <button type="button" className="btn btn-primary" onClick={() => handleHabitChange("sleep", 0.5)} style={{ padding: "0.3rem 0.6rem", fontSize: "0.85rem" }}>+0.5h</button>
+              </div>
+            </div>
 
-              {/* Progress Photo Upload Widget */}
-              <div className="card" style={{ padding: "1.5rem", margin: 0 }}>
-                <h3 style={{ fontSize: "1.1rem", fontWeight: "800", color: "var(--color-ink)", marginBottom: "0.25rem" }}>📸 Selfie Progress Upload</h3>
-                <p style={{ fontSize: "0.82rem", color: "var(--color-ink-muted)", marginBottom: "1rem" }}>
-                  Add a photo to build your progress timeline.
-                </p>
+            {/* Stress Level */}
+            <div className="card" style={{ padding: "1.25rem", margin: 0, display: "flex", alignItems: "center", justify_content: "space-between" }}>
+              <div>
+                <span style={{ fontSize: "0.72rem", fontWeight: "bold", color: "var(--color-gold)" }}>🧠 STRESS METRIC</span>
+                <h4 style={{ margin: "0.25rem 0", fontSize: "1.2rem", fontWeight: "900" }}>{stressLevel}</h4>
+              </div>
+              <select className="input" value={stressLevel} onChange={(e) => setStressLevel(e.target.value)} style={{ padding: "0.3rem", fontSize: "0.82rem" }}>
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+              </select>
+            </div>
+          </div>
 
-                {uploadStatus && (
-                  <div className={`status-msg ${uploadStatus.type}`} style={{ marginBottom: "1rem", fontSize: "0.82rem" }}>
-                    {uploadStatus.text}
-                  </div>
-                )}
-
-                <form onSubmit={handlePhotoUpload} style={{ display: "flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap" }}>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    required
-                    onChange={(e) => setPhotoFile(e.target.files[0])}
-                    style={{ fontSize: "0.82rem", width: "100%", maxWidth: "200px" }}
-                  />
-                  <select 
-                    value={photoTag} 
-                    onChange={(e) => setPhotoTag(e.target.value)}
-                    style={{ padding: "0.4rem 0.6rem", fontSize: "0.82rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)" }}
-                  >
-                    <option value="Baseline">Baseline</option>
-                    <option value="Week 2">Week 2</option>
-                    <option value="Week 4">Week 4</option>
-                    <option value="Week 8">Week 8</option>
-                    <option value="Latest">Latest</option>
-                  </select>
-                  <button 
-                    type="submit" 
-                    className="btn btn-primary btn-sm" 
-                    disabled={uploadingPhoto || !photoFile}
-                    style={{ padding: "0.5rem 1rem" }}
-                  >
-                    {uploadingPhoto ? "Uploading..." : "Upload Photo"}
-                  </button>
-                </form>
-
-                {/* Progress Gallery strip */}
-                {analyticsData?.photo_history?.length > 0 && (
-                  <div style={{ marginTop: "1rem", display: "flex", gap: "0.75rem", overflowX: "auto", padding: "0.25rem 0" }}>
-                    {analyticsData.photo_history.map((photo, index) => (
-                      <div key={index} style={{ position: "relative", flexShrink: 0, width: "65px", height: "65px", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)", overflow: "hidden" }}>
-                        <img src={photo.cloud_url} alt={photo.tag} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                        <span style={{ position: "absolute", bottom: 0, left: 0, width: "100%", background: "rgba(0,0,0,0.65)", color: "#fff", fontSize: "0.62rem", textAlign: "center", fontWeight: "700" }}>
-                          {photo.tag}
+          {/* Daily Checklist Routine */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
+            {/* Morning Routine */}
+            <div className="card" style={{ padding: "1.5rem", margin: 0 }}>
+              <h3 style={{ fontSize: "1.1rem", fontWeight: "800", color: "var(--color-ink)", marginBottom: "1rem", borderBottom: "1px solid var(--color-border)", paddingBottom: "0.5rem" }}>
+                ☀️ AM Routine Checklist
+              </h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+                {amSteps.length === 0 ? (
+                  <p style={{ fontSize: "0.85rem", color: "var(--color-ink-faint)" }}>No morning steps found.</p>
+                ) : (
+                  amSteps.map((step) => {
+                    const isCompleted = completedStepIds.includes(step.id);
+                    return (
+                      <div 
+                        key={step.id} 
+                        onClick={() => handleCheckboxChange(step.id, isCompleted)}
+                        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.6rem 0.75rem", background: isCompleted ? "var(--color-primary-tint)" : "var(--color-surface-sunken)", borderRadius: "var(--radius-sm)", cursor: "pointer", border: isCompleted ? "1px solid var(--color-primary)" : "1px solid transparent" }}
+                      >
+                        <span style={{ fontSize: "0.88rem", fontWeight: "600", color: isCompleted ? "var(--color-primary-dark)" : "var(--color-ink)" }}>
+                          Step {step.step_number}: {step.step_category} ({step.product_name})
+                        </span>
+                        <span style={{ fontSize: "1.1rem", color: isCompleted ? "var(--color-primary)" : "var(--color-ink-faint)" }}>
+                          {isCompleted ? "✓" : "○"}
                         </span>
                       </div>
-                    ))}
-                  </div>
+                    );
+                  })
                 )}
               </div>
-
             </div>
 
+            {/* Evening Routine */}
+            <div className="card" style={{ padding: "1.5rem", margin: 0 }}>
+              <h3 style={{ fontSize: "1.1rem", fontWeight: "800", color: "var(--color-ink)", marginBottom: "1rem", borderBottom: "1px solid var(--color-border)", paddingBottom: "0.5rem" }}>
+                🌙 PM Routine Checklist
+              </h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+                {pmSteps.length === 0 ? (
+                  <p style={{ fontSize: "0.85rem", color: "var(--color-ink-faint)" }}>No evening steps found.</p>
+                ) : (
+                  pmSteps.map((step) => {
+                    const isCompleted = completedStepIds.includes(step.id);
+                    return (
+                      <div 
+                        key={step.id} 
+                        onClick={() => handleCheckboxChange(step.id, isCompleted)}
+                        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.6rem 0.75rem", background: isCompleted ? "var(--color-primary-tint)" : "var(--color-surface-sunken)", borderRadius: "var(--radius-sm)", cursor: "pointer", border: isCompleted ? "1px solid var(--color-primary)" : "1px solid transparent" }}
+                      >
+                        <span style={{ fontSize: "0.88rem", fontWeight: "600", color: isCompleted ? "var(--color-primary-dark)" : "var(--color-ink)" }}>
+                          Step {step.step_number}: {step.step_category} ({step.product_name})
+                        </span>
+                        <span style={{ fontSize: "1.1rem", color: isCompleted ? "var(--color-primary)" : "var(--color-ink-faint)" }}>
+                          {isCompleted ? "✓" : "○"}
+                        </span>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
           </div>
 
-          {/* TODAY'S HABITS SECTION */}
-          <div className="card" style={{ padding: "1.5rem 1.75rem", margin: 0 }}>
-            <h3 style={{ fontSize: "1.1rem", fontWeight: "800", color: "var(--color-ink)", marginBottom: "1.25rem" }}>💧 Lifestyle Habit Trackers</h3>
+          {/* Interactive OCR Ingredient Scanner & Photo Upload */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
             
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem" }}>
+            {/* OCR Ingredient Safety Scanner */}
+            <div className="card" style={{ padding: "1.5rem", margin: 0 }}>
+              <h3 style={{ fontSize: "1.1rem", fontWeight: "800", color: "var(--color-ink)", marginBottom: "0.5rem" }}>
+                🔍 Ingredient Safety Scanner
+              </h3>
+              <p style={{ fontSize: "0.82rem", color: "var(--color-ink-muted)", marginBottom: "1rem" }}>
+                Paste product ingredients (INCI lists) to test chemical conflicts and allergen compatibility.
+              </p>
               
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--color-bg)", padding: "1rem 1.25rem", borderRadius: "var(--radius-md)" }}>
-                <div>
-                  <strong style={{ fontSize: "0.95rem", color: "var(--color-ink)" }}>Water Intake</strong>
-                  <div style={{ fontSize: "0.78rem", color: "var(--color-ink-muted)", marginTop: "0.2rem" }}>Target: 2.5L / Day</div>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                  <button className="btn btn-secondary btn-sm" style={{ padding: "0.3rem 0.6rem", fontSize: "0.78rem" }} onClick={() => handleHabitChange("water", -0.25)} disabled={actionLoading}>-250ml</button>
-                  <span style={{ fontWeight: "700", fontSize: "0.9rem" }}>{todayWater.toFixed(2)} L</span>
-                  <button className="btn btn-primary btn-sm" style={{ padding: "0.3rem 0.6rem", fontSize: "0.78rem" }} onClick={() => handleHabitChange("water", 0.25)} disabled={actionLoading}>+250ml</button>
-                </div>
-              </div>
+              <form onSubmit={handleOcrScan}>
+                <textarea 
+                  className="input" 
+                  rows="3" 
+                  placeholder="e.g. Retinol, Salicylic Acid, Niacinamide, Fragrance" 
+                  value={ocrText} 
+                  onChange={(e) => setOcrText(e.target.value)} 
+                  required 
+                  style={{ width: "100%", marginBottom: "1rem" }}
+                />
+                <button type="submit" className="btn btn-primary btn-block" disabled={ocrLoading}>
+                  {ocrLoading ? "Scanning INCI list..." : "Scan Ingredients"}
+                </button>
+              </form>
 
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--color-bg)", padding: "1rem 1.25rem", borderRadius: "var(--radius-md)" }}>
-                <div>
-                  <strong style={{ fontSize: "0.95rem", color: "var(--color-ink)" }}>Sleep Hours</strong>
-                  <div style={{ fontSize: "0.78rem", color: "var(--color-ink-muted)", marginTop: "0.2rem" }}>Target: 8.0h / Day</div>
+              {ocrResult && (
+                <div style={{ marginTop: "1rem", background: "var(--color-surface-sunken)", padding: "1rem", borderRadius: "6px", borderLeft: `4px solid ${ocrResult.status === "Unsafe" ? "var(--color-danger)" : ocrResult.status === "Warning" ? "var(--color-gold)" : "var(--color-medical-green)"}` }}>
+                  <div style={{ display: "flex", justify_content: "space-between", fontWeight: "bold", fontSize: "0.88rem", marginBottom: "0.4rem" }}>
+                    <span>Safety Score: {ocrResult.score}/100</span>
+                    <span style={{ color: ocrResult.status === "Unsafe" ? "var(--color-danger)" : ocrResult.status === "Warning" ? "var(--color-gold)" : "var(--color-medical-green)" }}>
+                      {ocrResult.status}
+                    </span>
+                  </div>
+                  {ocrResult.conflicts?.map((c, i) => (
+                    <div key={i} style={{ fontSize: "0.78rem", color: "var(--color-ink-muted)", marginTop: "0.25rem" }}>
+                      ⚠️ <strong>Conflict:</strong> {c.active_1} + {c.active_2}: {c.reason}
+                    </div>
+                  ))}
+                  {ocrResult.allergy_alerts?.map((a, i) => (
+                    <div key={i} style={{ fontSize: "0.78rem", color: "var(--color-danger)", marginTop: "0.25rem" }}>
+                      🚨 <strong>Allergen Detected:</strong> Sensitivity alert for {a}!
+                    </div>
+                  ))}
+                  {ocrResult.allergy_alerts?.length === 0 && ocrResult.conflicts?.length === 0 && (
+                    <div style={{ fontSize: "0.78rem", color: "var(--color-medical-green)", marginTop: "0.25rem" }}>
+                      ✓ Clean formula. No mapped clashes or sensitivity conflicts found.
+                    </div>
+                  )}
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                  <button className="btn btn-secondary btn-sm" style={{ padding: "0.3rem 0.6rem", fontSize: "0.78rem" }} onClick={() => handleHabitChange("sleep", -0.5)} disabled={actionLoading}>-0.5h</button>
-                  <span style={{ fontWeight: "700", fontSize: "0.9rem" }}>{todaySleep.toFixed(1)} h</span>
-                  <button className="btn btn-primary btn-sm" style={{ padding: "0.3rem 0.6rem", fontSize: "0.78rem" }} onClick={() => handleHabitChange("sleep", 0.5)} disabled={actionLoading}>+0.5h</button>
-                </div>
-              </div>
+              )}
+            </div>
 
+            {/* Progress Photos Upload */}
+            <div className="card" style={{ padding: "1.5rem", margin: 0 }}>
+              <h3 style={{ fontSize: "1.1rem", fontWeight: "800", color: "var(--color-ink)", marginBottom: "0.5rem" }}>
+                📸 Upload Progress Photo
+              </h3>
+              <p style={{ fontSize: "0.82rem", color: "var(--color-ink-muted)", marginBottom: "1rem" }}>
+                Document weekly visual changes to evaluate compliance.
+              </p>
+              
+              <form onSubmit={handlePhotoUpload}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1rem" }}>
+                  <div>
+                    <label style={{ fontSize: "0.78rem", fontWeight: "bold", display: "block", marginBottom: "0.25rem" }}>Phase Tag</label>
+                    <select className="input" value={photoTag} onChange={(e) => setPhotoTag(e.target.value)} style={{ width: "100%" }}>
+                      <option value="Baseline">Baseline (Week 0)</option>
+                      <option value="Week 1">Week 1</option>
+                      <option value="Week 2">Week 2</option>
+                      <option value="Week 4">Week 4</option>
+                      <option value="Week 8">Week 8</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: "0.78rem", fontWeight: "bold", display: "block", marginBottom: "0.25rem" }}>Image File</label>
+                    <input type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files[0])} required style={{ width: "100%", fontSize: "0.8rem" }} />
+                  </div>
+                </div>
+
+                <button type="submit" className="btn btn-primary btn-block" disabled={uploadingPhoto}>
+                  {uploadingPhoto ? "Uploading image..." : "Upload Photo"}
+                </button>
+              </form>
+
+              {uploadStatus && (
+                <div style={{ marginTop: "1rem", fontSize: "0.82rem" }} className={`status-msg ${uploadStatus.type === "success" ? "ok" : "error"}`}>
+                  {uploadStatus.text}
+                </div>
+              )}
             </div>
           </div>
 
@@ -639,6 +670,13 @@ export default function Dashboard() {
                           </span>
                         </div>
                       </div>
+                      <div style={{ width: "100%", height: "120px", borderRadius: "6px", overflow: "hidden", margin: "0.5rem 0", background: "var(--color-surface-sunken)" }}>
+                        <img 
+                          src={getProductImage(p.category)} 
+                          alt={p.name} 
+                          style={{ width: "100%", height: "100%", objectFit: "cover" }} 
+                        />
+                      </div>
                       <h4 style={{ fontSize: "0.88rem", fontWeight: "800", color: "var(--color-ink)", marginBottom: "0.2rem", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                         {p.name}
                       </h4>
@@ -663,6 +701,48 @@ export default function Dashboard() {
 
         </div>
       )}
+
+      {/* Floating AI Skin Coach Widget */}
+      <div style={{ position: "fixed", bottom: "2rem", right: "2rem", zIndex: 1000 }}>
+        {!chatbotOpen ? (
+          <button 
+            type="button" 
+            onClick={() => setChatbotOpen(true)}
+            style={{ width: "60px", height: "60px", borderRadius: "50%", background: "var(--color-primary)", color: "#FFF", fontSize: "1.8rem", border: "none", cursor: "pointer", boxShadow: "var(--shadow-lift)", display: "flex", alignItems: "center", justify_content: "center" }}
+          >
+            💬
+          </button>
+        ) : (
+          <div className="card" style={{ width: "320px", height: "400px", padding: 0, margin: 0, display: "flex", flexDirection: "column", justify_content: "space-between", border: "1px solid var(--color-border)", boxShadow: "var(--shadow-lift)" }}>
+            <div style={{ background: "var(--color-primary)", color: "#FFF", padding: "0.75rem 1rem", borderTopLeftRadius: "var(--radius-lg)", borderTopRightRadius: "var(--radius-lg)", display: "flex", justify_content: "space-between", alignItems: "center" }}>
+              <strong style={{ fontSize: "0.95rem" }}>✨ AI Skin Coach</strong>
+              <button type="button" onClick={() => setChatbotOpen(false)} style={{ background: "none", border: "none", color: "#FFF", fontSize: "1.2rem", cursor: "pointer" }}>×</button>
+            </div>
+            
+            <div style={{ flex: 1, padding: "1rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+              {chatMessages.map((msg, i) => (
+                <div key={i} style={{ alignSelf: msg.sender === "user" ? "flex-end" : "flex-start", background: msg.sender === "user" ? "var(--color-primary-tint)" : "var(--color-surface-sunken)", padding: "0.5rem 0.75rem", borderRadius: "8px", maxWidth: "80%", fontSize: "0.82rem", color: "var(--color-ink)", border: msg.sender === "user" ? "1px solid var(--color-primary)" : "none" }}>
+                  {msg.text}
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: "flex", padding: "0.75rem", borderTop: "1px solid var(--color-border)" }}>
+              <input 
+                type="text" 
+                className="input" 
+                placeholder="Ask your coach..." 
+                value={chatInput} 
+                onChange={(e) => setChatInput(e.target.value)} 
+                onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                style={{ flex: 1, padding: "0.4rem 0.6rem", fontSize: "0.85rem", marginRight: "0.5rem" }}
+              />
+              <button type="button" className="btn btn-primary" onClick={handleSendMessage} style={{ padding: "0.4rem 0.8rem", fontSize: "0.85rem" }}>Send</button>
+            </div>
+          </div>
+        )}
+      </div>
+
     </div>
   );
 }

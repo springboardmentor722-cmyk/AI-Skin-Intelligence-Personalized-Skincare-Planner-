@@ -271,7 +271,12 @@ export default function SkinAssessment() {
             {/* AI Skin Image Scan Section */}
             <div className="card" style={{ marginBottom: "2rem", padding: "1.5rem", border: "2px dashed var(--color-border)", borderRadius: "8px", background: "var(--color-bg-secondary)" }}>
               <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-                <div style={{ fontSize: "2rem" }}>🤖</div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "42px", height: "42px", borderRadius: "50%", background: "var(--color-primary-tint)", color: "var(--color-primary)", flexShrink: 0 }}>
+                  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                    <circle cx="12" cy="13" r="4" />
+                  </svg>
+                </div>
                 <div>
                   <h3 style={{ margin: 0 }}>AI Skin Scanner (Auto-Input)</h3>
                   <p style={{ margin: "0.2rem 0 0 0", fontSize: "0.85rem", color: "var(--color-fg-muted)" }}>

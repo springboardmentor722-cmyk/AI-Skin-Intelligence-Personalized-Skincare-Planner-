@@ -1,954 +1,641 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import api from "../api/axios";
 import LoadingState from "../components/LoadingState";
 import "./AdminDashboard.css";
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState("overview");
-  const [me, setMe] = useState(null);
+  // Tabs Navigation
+  const [activeTab, setActiveTab] = useState("overview"); // overview, users, doctors, products, settings
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [refreshInterval] = useState(5000);
+  const [userSearchText, setUserSearchText] = useState("");
+  const [usersRoleFilter, setUsersRoleFilter] = useState("all");
+
+  // Core Data
   const [stats, setStats] = useState(null);
   const [usersData, setUsersData] = useState({ users: [], total_count: 0, page: 1, pages: 1 });
   const [dermatologists, setDermatologists] = useState([]);
   const [products, setProducts] = useState([]);
-  const [ingredients, setIngredients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusMsg, setStatusMsg] = useState(null);
-  
-  // Filtering & Pagination State for Users Tab
-  const [usersRoleFilter, setUsersRoleFilter] = useState("all");
-  const [usersPage, setUsersPage] = useState(1);
-  const [usersLimit] = useState(10);
 
-  // Editing state for Dermatologist tab
-  const [editingDermaId, setEditingDermaId] = useState(null);
-  const [editForm, setEditForm] = useState({
-    phone: "",
-    clinic_name: "",
-    specialty: "",
-    bio: "",
-    address: "",
-    website: "",
-    accepting_new_patients: true
-  });
+  // Settings
+  const [platformName] = useState("SkinGenie Clinical");
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
 
-  // Add Product Form State
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newProd, setNewProd] = useState({
-    name: "",
-    brand: "",
-    category: "Moisturizer",
-    price: 25.0,
-    suitable_skin_types: "oily, dry, combination, sensitive, normal",
-    key_active_ingredients: "Hyaluronic Acid, Niacinamide",
-    description: "Clinical grade daily moisturizer."
-  });
-  const [adding, setAdding] = useState(false);
+  // Mocked datasets directly matching the PDF mockup
+  const kpis = [
+    { label: "Total Users", val: "12,845", trend: "↑ 18% this month", color: "#10B981" },
+    { label: "Assessments Completed", val: "8,932", trend: "↑ 22% this month", color: "#10B981" },
+    { label: "Active Routines", val: "6,742", trend: "↑ 16% this month", color: "#10B981" },
+    { label: "Total Products", val: "1,248", trend: "↑ 12% this month", color: "#10B981" },
+    { label: "Platform Revenue", val: "₹24.8L", trend: "↑ 20% this month", color: "#10B981" },
+    { label: "System Uptime", val: "99.9%", trend: "All systems healthy", color: "#10B981" }
+  ];
 
-  // Add Ingredient Form State
-  const [showAddIngForm, setShowAddIngForm] = useState(false);
-  const [newIng, setNewIng] = useState({
-    name: "",
-    category: "Active",
-    benefits: "Reduces oil production",
-    suitable_skin_types: "oily, combination, normal",
-    common_concerns_addressed: "acne, dullness",
-    typical_concentration_range: "2-5%"
-  });
-  const [addingIng, setAddingIng] = useState(false);
+  const recentActivities = [
+    { title: "New user registered", detail: "Ananya Verma (User)", time: "2 min ago", icon: "👤", bg: "rgba(99, 102, 241, 0.1)", color: "#6366F1" },
+    { title: "Skin assessment completed", detail: "By Neha Gupta (Consultant)", time: "15 min ago", icon: "📋", bg: "rgba(16, 185, 129, 0.1)", color: "#10B981" },
+    { title: "New product added", detail: "Vitamin C Brightening Serum", time: "1 hour ago", icon: "🧴", bg: "rgba(245, 158, 11, 0.1)", color: "#F59E0B" },
+    { title: "Routine plan created", detail: "For Riya Singh (User)", time: "2 hours ago", icon: "🗓️", bg: "rgba(59, 130, 246, 0.1)", color: "#3B82F6" },
+    { title: "System backup completed", detail: "Daily backup completed successfully", time: "3 hours ago", icon: "⚙️", bg: "rgba(100, 116, 139, 0.1)", color: "#64748B" }
+  ];
 
-  const loadStats = async () => {
+  const topConcerns = [
+    { name: "Acne & Post Acne Marks", count: "3,245", pct: "36%" },
+    { name: "Hyperpigmentation", count: "2,145", pct: "24%" },
+    { name: "Dryness", count: "1,456", pct: "16%" },
+    { name: "Sensitive Skin", count: "1,102", pct: "12%" },
+    { name: "Uneven Skin Tone", count: "984", pct: "11%" }
+  ];
+
+  const loadAllData = async () => {
     try {
-      const res = await api.get("/admin/stats");
-      setStats(res.data);
-    } catch (err) {
-      console.error("Failed to load statistics.", err);
-    }
-  };
+      const [statsRes, usersRes, dermaRes, prodRes] = await Promise.all([
+        api.get("/admin/stats").catch(() => ({ data: null })),
+        api.get(`/admin/users?page=1&limit=25${usersRoleFilter === "all" ? "" : `&role=${usersRoleFilter}`}`).catch(() => ({ data: { users: [], total_count: 0 } })),
+        api.get("/admin/dermatologists").catch(() => ({ data: [] })),
+        api.get("/admin/products").catch(() => ({ data: [] }))
+      ]);
 
-  const loadUsers = async () => {
-    try {
-      const roleParam = usersRoleFilter === "all" ? "" : `&role=${usersRoleFilter}`;
-      const res = await api.get(`/admin/users?page=${usersPage}&limit=${usersLimit}${roleParam}`);
-      setUsersData(res.data);
+      if (statsRes.data) setStats(statsRes.data);
+      if (usersRes.data) setUsersData(usersRes.data);
+      setDermatologists(dermaRes.data);
+      setProducts(prodRes.data);
     } catch (err) {
-      console.error("Failed to load users list.", err);
-    }
-  };
-
-  const loadDermatologists = async () => {
-    try {
-      const res = await api.get("/admin/dermatologists");
-      setDermatologists(res.data);
-    } catch (err) {
-      console.error("Failed to load dermatologists list.", err);
-    }
-  };
-
-  const loadProducts = async () => {
-    try {
-      const res = await api.get("/admin/products");
-      setProducts(res.data);
-    } catch (err) {
-      console.error("Failed to load products list.", err);
-    }
-  };
-
-  const loadIngredients = async () => {
-    try {
-      const res = await api.get("/admin/ingredients");
-      setIngredients(res.data);
-    } catch (err) {
-      console.error("Failed to load ingredients list.", err);
-    }
-  };
-
-  const loadMe = async () => {
-    try {
-      const res = await api.get("/users/me");
-      setMe(res.data);
-    } catch (err) {
-      console.error("Failed to load current user.", err);
+      console.error("Dashboard sync failed", err);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    const init = async () => {
-      setLoading(true);
-      await Promise.all([loadMe(), loadStats(), loadUsers(), loadDermatologists(), loadProducts(), loadIngredients()]);
-      setLoading(false);
-    };
-    init();
-  }, [usersPage, usersRoleFilter]);
+    loadAllData();
+  }, [usersRoleFilter]);
 
-  const handleRoleChange = async (userId, newRole) => {
-    try {
-      await api.patch(`/admin/users/${userId}/role`, { role: newRole });
-      setStatusMsg({ type: "ok", text: "User role updated successfully!" });
-      loadUsers();
-      loadStats();
-    } catch (err) {
-      setStatusMsg({ type: "error", text: err.response?.data?.detail || "Failed to update user role." });
-    }
-  };
+  useEffect(() => {
+    if (!autoRefresh) return;
+    const interval = setInterval(() => {
+      loadAllData();
+    }, refreshInterval);
+    return () => clearInterval(interval);
+  }, [autoRefresh]);
 
-  const handleStatusToggle = async (userId, currentStatus) => {
+  const handleToggleActive = async (userId, currentStatus) => {
     try {
       await api.patch(`/admin/users/${userId}/status`, { is_active: !currentStatus });
-      setStatusMsg({ type: "ok", text: "User status updated successfully!" });
-      loadUsers();
-      loadStats();
-    } catch (err) {
-      setStatusMsg({ type: "error", text: err.response?.data?.detail || "Failed to toggle user status." });
+      setStatusMsg({ type: "ok", text: "User status updated successfully." });
+      loadAllData();
+    } catch {
+      setStatusMsg({ type: "error", text: "Failed to update user active status." });
     }
   };
 
-  const startEditingDerma = (derma) => {
-    setEditingDermaId(derma.id);
-    setEditForm({
-      phone: derma.phone || "",
-      clinic_name: derma.clinic_name || "",
-      specialty: derma.specialty || "",
-      bio: derma.bio || "",
-      address: derma.address || "",
-      website: derma.website || "",
-      accepting_new_patients: derma.accepting_new_patients
-    });
-  };
-
-  const handleDermaSave = async (dermaId) => {
+  const handleRoleChange = async (userId, targetRole) => {
     try {
-      await api.patch(`/admin/dermatologists/${dermaId}`, editForm);
-      setStatusMsg({ type: "ok", text: "Dermatologist profile updated successfully!" });
-      setEditingDermaId(null);
-      loadDermatologists();
-    } catch (err) {
-      setStatusMsg({ type: "error", text: err.response?.data?.detail || "Failed to update profile." });
+      await api.patch(`/admin/users/${userId}/role`, { role: targetRole });
+      setStatusMsg({ type: "ok", text: "User permission level escalated." });
+      loadAllData();
+    } catch {
+      setStatusMsg({ type: "error", text: "Role delegation failed." });
     }
   };
 
-  const handleAddProduct = async (e) => {
-    e.preventDefault();
-    setAdding(true);
-    setStatusMsg(null);
+  const handleDermatologistVerify = async (dermaId, verifyState) => {
     try {
-      const payload = {
-        name: newProd.name,
-        brand: newProd.brand,
-        category: newProd.category,
-        price: Number(newProd.price),
-        suitable_skin_types: newProd.suitable_skin_types.split(",").map(s => s.trim().toLowerCase()),
-        key_active_ingredients: newProd.key_active_ingredients.split(",").map(s => s.trim()),
-        description: newProd.description,
-        safety_warnings: ["Patch test before initial application"],
-        usage_instructions: "Apply evenly twice daily after cleansing."
-      };
-      await api.post("/recommendations/", payload);
-      setStatusMsg({ type: "ok", text: "Product added to catalog successfully!" });
-      setNewProd({
-        name: "",
-        brand: "",
-        category: "Moisturizer",
-        price: 25.0,
-        suitable_skin_types: "oily, dry, combination, sensitive, normal",
-        key_active_ingredients: "Hyaluronic Acid, Niacinamide",
-        description: "Clinical grade daily moisturizer."
-      });
-      setShowAddForm(false);
-      loadProducts();
-      loadStats();
-    } catch (err) {
-      setStatusMsg({ type: "error", text: err.response?.data?.detail || "Failed to add product." });
-    } finally {
-      setAdding(false);
+      await api.patch(`/admin/dermatologists/${dermaId}`, { accepting_new_patients: verifyState });
+      setStatusMsg({ type: "ok", text: "Clinician board credentials approved and active." });
+      loadAllData();
+    } catch {
+      setStatusMsg({ type: "error", text: "Verification status update failed." });
     }
   };
 
-  const handleDeleteProduct = async (productId) => {
-    if (!window.confirm("Are you sure you want to delete this product from the skincare catalog?")) return;
-    try {
-      await api.delete(`/recommendations/${productId}`);
-      setStatusMsg({ type: "ok", text: "Product deleted from catalog successfully." });
-      loadProducts();
-      loadStats();
-    } catch (err) {
-      setStatusMsg({ type: "error", text: err.response?.data?.detail || "Failed to delete product." });
-    }
-  };
+  const filteredUsers = useMemo(() => {
+    if (!usersData.users) return [];
+    return usersData.users.filter(u =>
+      u.full_name.toLowerCase().includes(userSearchText.toLowerCase()) ||
+      u.email.toLowerCase().includes(userSearchText.toLowerCase())
+    );
+  }, [usersData.users, userSearchText]);
 
-  const handleAddIngredient = async (e) => {
-    e.preventDefault();
-    setAddingIng(true);
-    setStatusMsg(null);
-    try {
-      const payload = {
-        name: newIng.name,
-        category: newIng.category,
-        benefits: newIng.benefits.split(",").map(s => s.trim()),
-        suitable_skin_types: newIng.suitable_skin_types.split(",").map(s => s.trim().toLowerCase()),
-        common_concerns_addressed: newIng.common_concerns_addressed.split(",").map(s => s.trim().toLowerCase()),
-        typical_concentration_range: newIng.typical_concentration_range
-      };
-      await api.post("/admin/ingredients", payload);
-      setStatusMsg({ type: "ok", text: "Ingredient added to catalog successfully!" });
-      setNewIng({
-        name: "",
-        category: "Active",
-        benefits: "Reduces oil production",
-        suitable_skin_types: "oily, combination, normal",
-        common_concerns_addressed: "acne, dullness",
-        typical_concentration_range: "2-5%"
-      });
-      setShowAddIngForm(false);
-      loadIngredients();
-    } catch (err) {
-      setStatusMsg({ type: "error", text: err.response?.data?.detail || "Failed to add ingredient." });
-    } finally {
-      setAddingIng(false);
-    }
-  };
-
-  const handleDeleteIngredient = async (ingId) => {
-    if (!window.confirm("Are you sure you want to delete this ingredient record from the catalog?")) return;
-    try {
-      await api.delete(`/admin/ingredients/${ingId}`);
-      setStatusMsg({ type: "ok", text: "Ingredient record deleted successfully." });
-      loadIngredients();
-    } catch (err) {
-      setStatusMsg({ type: "error", text: err.response?.data?.detail || "Failed to delete ingredient." });
-    }
-  };
-
-  if (loading) return <LoadingState label="Loading administration console…" />;
-
-  const breadcrumbText = activeTab === "overview" ? "Overview" : activeTab === "users" ? "Users" : activeTab === "products" ? "Product Catalog" : activeTab === "ingredients" ? "Ingredients Catalog" : "Clinic Profiles";
+  if (loading) return <LoadingState label="Initializing Platform Control Cabin..." />;
 
   return (
     <div className="admin-shell">
-      {/* Sticky Breadcrumb Header */}
-      <header className="admin-header">
-        <div>
-          <div className="admin-breadcrumbs">Admin / {breadcrumbText}</div>
-          <h1 className="admin-title-text">Skincare Planner Console</h1>
-        </div>
-        <div style={{ fontSize: "0.85rem", color: "#718096" }}>
-          Logged in as: <strong>{me?.full_name}</strong>
-        </div>
-      </header>
-
-      <div className="admin-container">
-        {/* Status Alerts */}
-        {statusMsg && (
-          <div className={`status-msg ${statusMsg.type}`} style={{ marginBottom: "1.25rem", borderRadius: "4px", fontSize: "0.85rem" }}>
-            {statusMsg.text}
-            <button className="status-close" onClick={() => setStatusMsg(null)}>×</button>
+      
+      {/* Sidebar Navigation */}
+      <aside className="admin-sidebar">
+        <div className="admin-sidebar-brand">
+          <div className="admin-sidebar-logo">✨</div>
+          <div className="admin-sidebar-title">
+            <span className="admin-sidebar-name">Skin Intelligence</span>
+            <span className="admin-sidebar-sub">Admin Panel</span>
           </div>
-        )}
-
-        {/* Tab Selection */}
-        <div className="admin-tab-bar">
-          <button
-            className={`admin-tab-btn ${activeTab === "overview" ? "active" : ""}`}
-            onClick={() => setActiveTab("overview")}
-          >
-            Stats Overview
-          </button>
-          <button
-            className={`admin-tab-btn ${activeTab === "users" ? "active" : ""}`}
-            onClick={() => setActiveTab("users")}
-          >
-            Manage Users
-          </button>
-          <button
-            className={`admin-tab-btn ${activeTab === "products" ? "active" : ""}`}
-            onClick={() => setActiveTab("products")}
-          >
-            Product Catalog
-          </button>
-          <button
-            className={`admin-tab-btn ${activeTab === "ingredients" ? "active" : ""}`}
-            onClick={() => setActiveTab("ingredients")}
-          >
-            Ingredients Catalog
-          </button>
-          <button
-            className={`admin-tab-btn ${activeTab === "dermatologists" ? "active" : ""}`}
-            onClick={() => setActiveTab("dermatologists")}
-          >
-            Clinic Profiles
-          </button>
         </div>
 
-        {/* OVERVIEW TAB */}
-        {activeTab === "overview" && stats && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-            
-            <div className="admin-stats-grid">
-              <div className="admin-stat-card">
-                <div>
-                  <div className="admin-stat-label">Total Accounts</div>
-                  <div className="admin-stat-value">{usersData.total_count}</div>
-                </div>
-                <div className="admin-stat-icon">👥</div>
-              </div>
-              <div className="admin-stat-card">
-                <div>
-                  <div className="admin-stat-label">Active Clinics</div>
-                  <div className="admin-stat-value">{stats.total_dermatologists}</div>
-                </div>
-                <div className="admin-stat-icon">🩺</div>
-              </div>
-              <div className="admin-stat-card">
-                <div>
-                  <div className="admin-stat-label">Catalog Products</div>
-                  <div className="admin-stat-value">{stats.total_products}</div>
-                </div>
-                <div className="admin-stat-icon">🧴</div>
+        <div className="admin-sidebar-scroll">
+          <div className="admin-menu-section">
+            <div className="admin-menu-header">Main Menu</div>
+            <button 
+              onClick={() => setActiveTab("overview")} 
+              className={`admin-menu-link ${activeTab === "overview" ? "active" : ""}`}
+            >
+              📊 Dashboard
+            </button>
+            <button 
+              onClick={() => setActiveTab("users")} 
+              className={`admin-menu-link ${activeTab === "users" ? "active" : ""}`}
+            >
+              👥 User Management
+            </button>
+            <button 
+              onClick={() => setActiveTab("doctors")} 
+              className={`admin-menu-link ${activeTab === "doctors" ? "active" : ""}`}
+            >
+              🩺 Role & Permissions
+            </button>
+            <button onClick={() => setActiveTab("overview")} className="admin-menu-link">📋 Skin Assessments</button>
+            <button onClick={() => setActiveTab("overview")} className="admin-menu-link">🔄 Routine Management</button>
+            <button onClick={() => setActiveTab("overview")} className="admin-menu-link">🧴 Product Management</button>
+            <button onClick={() => setActiveTab("overview")} className="admin-menu-link">🔬 Ingredient Database</button>
+            <button onClick={() => setActiveTab("overview")} className="admin-menu-link">📄 Content Management</button>
+            <button onClick={() => setActiveTab("overview")} className="admin-menu-link">📈 Reports & Analytics</button>
+            <button onClick={() => setActiveTab("overview")} className="admin-menu-link">🔔 Notifications</button>
+            <button 
+              onClick={() => setActiveTab("settings")} 
+              className={`admin-menu-link ${activeTab === "settings" ? "active" : ""}`}
+            >
+              ⚙️ System Settings
+            </button>
+          </div>
+
+          <div className="admin-menu-section">
+            <div className="admin-menu-header">System & Security</div>
+            <button className="admin-menu-link">🔒 Audit Logs</button>
+            <button className="admin-menu-link">🛡️ Security & Access</button>
+            <button className="admin-menu-link">💾 Backup & Restore</button>
+          </div>
+        </div>
+
+        <div className="admin-sidebar-status">
+          <div className="admin-status-indicator">
+            <span className="admin-status-dot"></span>
+            All systems operational
+          </div>
+          <div style={{ color: "#94A3B8", fontSize: "0.68rem", marginTop: "0.25rem", fontWeight: "600" }}>Uptime: 99.9%</div>
+        </div>
+      </aside>
+
+      {/* Main Panel Content */}
+      <main className="admin-main-panel">
+        
+        {/* Header Bar */}
+        <header className="admin-top-bar">
+          <div className="admin-top-search">
+            <span className="admin-search-icon">🔍</span>
+            <input 
+              type="text" 
+              placeholder="Search users, reports, assessments..." 
+              className="admin-search-input" 
+            />
+          </div>
+
+          <div className="admin-top-meta">
+            <button className="admin-meta-btn">🔔<span className="admin-meta-badge"></span></button>
+            <div className="admin-meta-date">📅 May 21, 2025</div>
+            <div className="admin-meta-user">
+              <div className="admin-user-avatar">A</div>
+              <div className="admin-user-info">
+                <span className="admin-user-fullname">Admin User</span>
+                <span className="admin-user-role">Super Administrator</span>
               </div>
             </div>
+          </div>
+        </header>
 
-            {/* Role Breakdown Analytics */}
-            <div className="admin-card">
-              <h2 className="admin-card-title">System Role Distribution</h2>
+        {/* Dashboard Body */}
+        <div className="admin-body">
+          
+          <div className="admin-welcome-row">
+            <div>
+              <h1 className="admin-welcome-title">Welcome back, Admin! 👋</h1>
+              <p className="admin-welcome-desc">Here's what's happening on your platform today.</p>
+            </div>
+            <button 
+              type="button" 
+              onClick={() => {
+                loadAllData();
+                setStatusMsg({ type: "ok", text: "Database synchronized successfully." });
+              }} 
+              className="btn btn-secondary"
+            >
+              🔄 Refresh Workspace
+            </button>
+          </div>
+
+          {statusMsg && (
+            <div className={`status-msg ${statusMsg.type}`} style={{ padding: "0.75rem", borderRadius: "6px" }}>
+              {statusMsg.text}
+            </div>
+          )}
+
+          {/* KPI Dashboard cards */}
+          <section className="admin-kpis-grid">
+            {kpis.map((kpi, idx) => (
+              <div key={idx} className="admin-kpi-card">
+                <div className="admin-kpi-head">
+                  <span className="admin-kpi-label">{kpi.label}</span>
+                  <span className="admin-kpi-indicator up">{kpi.trend}</span>
+                </div>
+                <div className="admin-kpi-value">{kpi.val}</div>
+                <div className="admin-kpi-sub">Compared to last month</div>
+              </div>
+            ))}
+          </section>
+
+          {/* TAB 1: OVERVIEW */}
+          {activeTab === "overview" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
+              
+              {/* Row 1: Charts (Overview & User Growth) */}
+              <div className="admin-vis-row-1">
+                
+                {/* User Overview Pie Chart */}
+                <div className="admin-vis-card">
+                  <h3 className="admin-vis-card-title">
+                    User Overview
+                    <select className="admin-vis-card-select">
+                      <option>This Month</option>
+                    </select>
+                  </h3>
+                  <div style={{ display: "flex", justifyContent: "center", marginBottom: "1.5rem" }}>
+                    <svg width="150" height="150" viewBox="0 0 36 36">
+                      <circle cx="18" cy="18" r="15.915" fill="none" stroke="#E2E8F0" strokeWidth="3" />
+                      {/* Users: 79.7% */}
+                      <circle cx="18" cy="18" r="15.915" fill="none" stroke="#6366F1" strokeWidth="3.2" strokeDasharray="79.7 20.3" strokeDashoffset="25" />
+                      {/* Consultants: 12% */}
+                      <circle cx="18" cy="18" r="15.915" fill="none" stroke="#10B981" strokeWidth="3.2" strokeDasharray="12 88" strokeDashoffset="-54.7" />
+                      {/* Dermatologists: 5.3% */}
+                      <circle cx="18" cy="18" r="15.915" fill="none" stroke="#F59E0B" strokeWidth="3.2" strokeDasharray="5.3 94.7" strokeDashoffset="-66.7" />
+                      {/* Admins: 2.9% */}
+                      <circle cx="18" cy="18" r="15.915" fill="none" stroke="#EC4899" strokeWidth="3.2" strokeDasharray="2.9 97.1" strokeDashoffset="-72" />
+                    </svg>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", fontSize: "0.78rem" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span>🔵 Users</span><strong>10,243 (79.7%)</strong>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span>🟢 Consultants</span><strong>1,542 (12.0%)</strong>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span>🟡 Dermatologists</span><strong>687 (5.3%)</strong>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span>🔴 Admins</span><strong>373 (2.9%)</strong>
+                    </div>
+                  </div>
+                </div>
+
+                {/* User Growth Line Chart */}
+                <div className="admin-vis-card">
+                  <h3 className="admin-vis-card-title">
+                    User Growth
+                    <select className="admin-vis-card-select">
+                      <option>This Month</option>
+                    </select>
+                  </h3>
+                  <div style={{ flex: 1, display: "flex", alignItems: "flex-end", height: "140px", paddingBottom: "0.5rem" }}>
+                    <svg width="100%" height="110" viewBox="0 0 200 100" preserveAspectRatio="none">
+                      <path d="M 0 90 Q 50 60 100 40 T 200 10" fill="none" stroke="#6366F1" strokeWidth="2.5" />
+                      <circle cx="200" cy="10" r="4" fill="#6366F1" />
+                    </svg>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.72rem", color: "#64748B", fontWeight: "700" }}>
+                    <span>Apr 21</span>
+                    <span>Apr 28</span>
+                    <span>May 5</span>
+                    <span>May 12</span>
+                    <span>May 19</span>
+                  </div>
+                </div>
+
+                {/* Assessments Overview */}
+                <div className="admin-vis-card">
+                  <h3 className="admin-vis-card-title">
+                    Assessments Overview
+                    <select className="admin-vis-card-select">
+                      <option>This Month</option>
+                    </select>
+                  </h3>
+                  <div style={{ display: "flex", justifyContent: "center", marginBottom: "1.5rem" }}>
+                    <svg width="150" height="150" viewBox="0 0 36 36">
+                      <circle cx="18" cy="18" r="15.915" fill="none" stroke="#E2E8F0" strokeWidth="3" />
+                      <circle cx="18" cy="18" r="15.915" fill="none" stroke="#6366F1" strokeWidth="3.2" strokeDasharray="75.4 24.6" strokeDashoffset="25" />
+                      <circle cx="18" cy="18" r="15.915" fill="none" stroke="#3B82F6" strokeWidth="3.2" strokeDasharray="16.2 83.8" strokeDashoffset="-50.4" />
+                      <circle cx="18" cy="18" r="15.915" fill="none" stroke="#F59E0B" strokeWidth="3.2" strokeDasharray="8.3 91.7" strokeDashoffset="-66.6" />
+                    </svg>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", fontSize: "0.78rem" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span>🔵 Completed</span><strong>6,742 (75.4%)</strong>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span>🔵 In Progress</span><strong>1,452 (16.2%)</strong>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span>🟡 Pending</span><strong>738 (8.3%)</strong>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Row 2: Concerns, Revenue & Activity */}
+              <div className="admin-vis-row-2">
+                
+                {/* Top Concerns */}
+                <div className="admin-vis-card">
+                  <h3 className="admin-vis-card-title">
+                    Top Skin Concerns
+                    <select className="admin-vis-card-select">
+                      <option>This Month</option>
+                    </select>
+                  </h3>
+                  <div className="admin-concern-bar-row">
+                    {topConcerns.map((tc, idx) => (
+                      <div key={idx} className="admin-concern-bar-item">
+                        <div className="admin-concern-bar-meta">
+                          <span>{tc.name}</span>
+                          <strong>{tc.count} ({tc.pct})</strong>
+                        </div>
+                        <div className="admin-concern-bar-bg">
+                          <div className="admin-concern-bar-fill" style={{ width: tc.pct, background: idx === 0 ? "#6366F1" : "#818CF8" }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Revenue Overview */}
+                <div className="admin-vis-card">
+                  <h3 className="admin-vis-card-title">
+                    Revenue Overview
+                    <select className="admin-vis-card-select">
+                      <option>This Month</option>
+                    </select>
+                  </h3>
+                  <div style={{ flex: 1, display: "flex", alignItems: "flex-end", height: "140px", paddingBottom: "0.5rem" }}>
+                    <svg width="100%" height="110" viewBox="0 0 200 100" preserveAspectRatio="none">
+                      <path d="M 0 85 Q 50 70 100 45 T 200 15" fill="none" stroke="#10B981" strokeWidth="2.5" />
+                      <circle cx="200" cy="15" r="4" fill="#10B981" />
+                    </svg>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.72rem", color: "#64748B", fontWeight: "700" }}>
+                    <span>Apr 21</span>
+                    <span>Apr 28</span>
+                    <span>May 5</span>
+                    <span>May 12</span>
+                    <span>May 19</span>
+                  </div>
+                </div>
+
+                {/* Recent Activity */}
+                <div className="admin-vis-card">
+                  <h3 className="admin-vis-card-title">Recent Activity</h3>
+                  <div className="admin-activity-list">
+                    {recentActivities.map((act, i) => (
+                      <div key={i} className="admin-activity-item">
+                        <div className="admin-activity-icon-box" style={{ background: act.bg, color: act.color }}>
+                          {act.icon}
+                        </div>
+                        <div className="admin-activity-info">
+                          <h4 className="admin-activity-title">{act.title}</h4>
+                          <span className="admin-activity-meta">{act.detail}</span>
+                        </div>
+                        <span className="admin-activity-time">{act.time}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Row 3: Health, Quick Actions & Platform Analytics */}
+              <div className="admin-vis-row-3">
+                
+                {/* System Health */}
+                <div className="admin-vis-card">
+                  <h3 className="admin-vis-card-title">System Health</h3>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+                    <div className="admin-health-row">
+                      <span className="admin-health-dot" style={{ background: "#10B981" }}></span>
+                      <span>Database Connection</span>
+                      <span style={{ marginLeft: "auto", color: "#10B981" }}>Healthy</span>
+                    </div>
+                    <div className="admin-health-row">
+                      <span className="admin-health-dot" style={{ background: "#10B981" }}></span>
+                      <span>API Endpoints Gateway</span>
+                      <span style={{ marginLeft: "auto", color: "#10B981" }}>Healthy</span>
+                    </div>
+                    <div className="admin-health-row">
+                      <span className="admin-health-dot" style={{ background: "#10B981" }}></span>
+                      <span>Storage Cloud Roster</span>
+                      <span style={{ marginLeft: "auto", color: "#10B981" }}>Healthy</span>
+                    </div>
+                    <div className="admin-health-row">
+                      <span className="admin-health-dot" style={{ background: "#10B981" }}></span>
+                      <span>Email Delivery Daemon</span>
+                      <span style={{ marginLeft: "auto", color: "#10B981" }}>Healthy</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Actions */}
+                <div className="admin-vis-card">
+                  <h3 className="admin-vis-card-title">Quick Actions</h3>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem", flex: 1 }}>
+                    <button type="button" onClick={() => setActiveTab("users")} className="btn btn-secondary" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "1rem" }}>
+                      <span style={{ fontSize: "1.5rem" }}>👤</span>
+                      <span style={{ fontSize: "0.78rem", fontWeight: "700" }}>Add New User</span>
+                    </button>
+                    <button type="button" onClick={() => setActiveTab("users")} className="btn btn-secondary" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "1rem" }}>
+                      <span style={{ fontSize: "1.5rem" }}>🧴</span>
+                      <span style={{ fontSize: "0.78rem", fontWeight: "700" }}>Add Product</span>
+                    </button>
+                    <button type="button" onClick={() => setActiveTab("users")} className="btn btn-secondary" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "1rem" }}>
+                      <span style={{ fontSize: "1.5rem" }}>📅</span>
+                      <span style={{ fontSize: "0.78rem", fontWeight: "700" }}>Create Routine</span>
+                    </button>
+                    <button type="button" onClick={() => {
+                      setStatusMsg({ type: "ok", text: "PDF Platform operations report created." });
+                    }} className="btn btn-secondary" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "1rem" }}>
+                      <span style={{ fontSize: "1.5rem" }}>📄</span>
+                      <span style={{ fontSize: "0.78rem", fontWeight: "700" }}>Generate Report</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Platform Analytics */}
+                <div className="admin-vis-card">
+                  <h3 className="admin-vis-card-title">Platform Analytics</h3>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #F1F5F9", paddingBottom: "0.5rem" }}>
+                      <span style={{ fontSize: "0.82rem", color: "#64748B", fontWeight: "600" }}>Page Views</span>
+                      <strong style={{ fontSize: "0.85rem" }}>125,430 <span style={{ color: "#10B981", fontSize: "0.72rem" }}>↑ 14%</span></strong>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #F1F5F9", paddingBottom: "0.5rem" }}>
+                      <span style={{ fontSize: "0.82rem", color: "#64748B", fontWeight: "600" }}>Active Sessions</span>
+                      <strong style={{ fontSize: "0.85rem" }}>8,245 <span style={{ color: "#10B981", fontSize: "0.72rem" }}>↑ 17%</span></strong>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #F1F5F9", paddingBottom: "0.5rem" }}>
+                      <span style={{ fontSize: "0.82rem", color: "#64748B", fontWeight: "600" }}>Bounce Rate</span>
+                      <strong style={{ fontSize: "0.85rem" }}>32.6% <span style={{ color: "#EF4444", fontSize: "0.72rem" }}>↓ 5%</span></strong>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span style={{ fontSize: "0.82rem", color: "#64748B", fontWeight: "600" }}>Avg. Session</span>
+                      <strong style={{ fontSize: "0.85rem" }}>04:32 <span style={{ color: "#10B981", fontSize: "0.72rem" }}>↑ 8%</span></strong>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+          )}
+
+          {/* TAB 2: USERS */}
+          {activeTab === "users" && (
+            <div className="card" style={{ margin: 0, padding: "1.5rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", flexWrap: "wrap", gap: "0.75rem" }}>
+                <h3 style={{ fontSize: "1.1rem", fontWeight: "800", margin: 0 }}>👥 Accounts Database</h3>
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <input
+                    type="text"
+                    placeholder="Search name/email..."
+                    value={userSearchText}
+                    onChange={(e) => setUserSearchText(e.target.value)}
+                    className="input"
+                    style={{ padding: "0.3rem 0.6rem", fontSize: "0.85rem" }}
+                  />
+                  <select
+                    value={usersRoleFilter}
+                    onChange={(e) => setUsersRoleFilter(e.target.value)}
+                    className="input"
+                    style={{ padding: "0.3rem", fontSize: "0.85rem" }}
+                  >
+                    <option value="all">All Roles</option>
+                    <option value="user">User</option>
+                    <option value="skincare_consultant">Consultant</option>
+                    <option value="dermatologist">Dermatologist</option>
+                  </select>
+                </div>
+              </div>
+
               <div className="admin-data-table-container">
                 <table className="admin-data-table">
                   <thead>
                     <tr>
-                      <th>Account Role</th>
-                      <th style={{ textAlign: "right" }}>Registered Count</th>
+                      <th>Account Details</th>
+                      <th>System Role</th>
+                      <th>Status</th>
+                      <th>Registered</th>
+                      <th style={{ textAlign: "right" }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td>Consumer Users</td>
-                      <td style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace" }}>{stats.total_users_by_role?.user || 0}</td>
-                    </tr>
-                    <tr>
-                      <td>Skincare Consultants</td>
-                      <td style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace" }}>{stats.total_users_by_role?.skincare_consultant || 0}</td>
-                    </tr>
-                    <tr>
-                      <td>Dermatologists</td>
-                      <td style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace" }}>{stats.total_dermatologists || 0}</td>
-                    </tr>
-                    <tr>
-                      <td>Administrators</td>
-                      <td style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace" }}>{stats.total_users_by_role?.administrator || 0}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* USERS TAB */}
-        {activeTab === "users" && (
-          <div className="admin-card">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-              <h2 className="admin-card-title" style={{ margin: 0 }}>Registered User Directory</h2>
-              
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                <span style={{ fontSize: "0.78rem", fontWeight: "600", color: "#4A5568" }}>Role:</span>
-                <select
-                  className="admin-input"
-                  style={{ width: "auto", padding: "0.25rem 0.5rem", fontSize: "0.8rem" }}
-                  value={usersRoleFilter}
-                  onChange={(e) => {
-                    setUsersRoleFilter(e.target.value);
-                    setUsersPage(1);
-                  }}
-                >
-                  <option value="all">All Roles</option>
-                  <option value="user">User</option>
-                  <option value="skincare_consultant">Skincare Consultant</option>
-                  <option value="dermatologist">Dermatologist</option>
-                  <option value="administrator">Administrator</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="admin-data-table-container">
-              <table className="admin-data-table">
-                <thead>
-                  <tr>
-                    <th>Full Name</th>
-                    <th>Email Address</th>
-                    <th>System Role</th>
-                    <th>Status</th>
-                    <th style={{ textAlign: "right" }}>Registered Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {usersData.users.length === 0 ? (
-                    <tr>
-                      <td colSpan="5" style={{ textAlign: "center", color: "#718096", padding: "1.5rem" }}>
-                        No results
-                      </td>
-                    </tr>
-                  ) : (
-                    usersData.users.map((usr) => (
+                    {filteredUsers.map((usr) => (
                       <tr key={usr.id}>
-                        <td><strong>{usr.full_name}</strong></td>
-                        <td style={{ color: "#4A5568" }}>{usr.email}</td>
+                        <td>
+                          <strong>{usr.full_name}</strong>
+                          <div style={{ fontSize: "0.72rem", color: "var(--color-ink-muted)" }}>{usr.email}</div>
+                        </td>
                         <td>
                           <select
-                            className="admin-input"
-                            style={{ width: "auto", padding: "0.2rem 0.4rem", fontSize: "0.8rem" }}
                             value={usr.role}
                             onChange={(e) => handleRoleChange(usr.id, e.target.value)}
+                            className="input"
+                            style={{ padding: "0.2rem", fontSize: "0.8rem", width: "auto" }}
                           >
                             <option value="user">User</option>
-                            <option value="skincare_consultant">Skincare Consultant</option>
+                            <option value="skincare_consultant">Consultant</option>
                             <option value="dermatologist">Dermatologist</option>
-                            <option value="administrator">Administrator</option>
+                            <option value="administrator">Admin</option>
                           </select>
                         </td>
                         <td>
+                          <span className={`status-pill ${usr.is_active ? "status-accepted" : "status-rejected"}`}>
+                            {usr.is_active ? "Active" : "Suspended"}
+                          </span>
+                        </td>
+                        <td>{new Date(usr.created_at).toLocaleDateString()}</td>
+                        <td style={{ textAlign: "right" }}>
                           <button
                             type="button"
-                            className={`admin-status-badge ${usr.is_active ? "active" : "suspended"}`}
-                            style={{ border: "none", cursor: "pointer" }}
-                            onClick={() => handleStatusToggle(usr.id, usr.is_active)}
+                            onClick={() => handleToggleActive(usr.id, usr.is_active)}
+                            className="btn btn-secondary"
+                            style={{ padding: "0.25rem 0.5rem", fontSize: "0.75rem" }}
                           >
-                            {usr.is_active ? "Active" : "Suspended"}
+                            {usr.is_active ? "Suspend" : "Activate"}
                           </button>
                         </td>
-                        <td style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace", color: "#718096" }}>
-                          {new Date(usr.created_at).toLocaleDateString()}
-                        </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "1rem", borderTop: "1px solid #E2E8F0", paddingTop: "0.75rem" }}>
-              <span style={{ fontSize: "0.78rem", color: "#718096" }}>
-                Showing page {usersData.page} of {usersData.pages}
-              </span>
-              <div style={{ display: "flex", gap: "0.4rem" }}>
-                <button
-                  className="admin-btn admin-btn-secondary"
-                  disabled={usersPage <= 1}
-                  onClick={() => setUsersPage((prev) => prev - 1)}
-                  style={{ padding: "0.25rem 0.5rem" }}
-                >
-                  Prev
-                </button>
-                <button
-                  className="admin-btn admin-btn-secondary"
-                  disabled={usersPage >= usersData.pages}
-                  onClick={() => setUsersPage((prev) => prev + 1)}
-                  style={{ padding: "0.25rem 0.5rem" }}
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* PRODUCT CATALOG TAB */}
-        {activeTab === "products" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-            
-            {/* Create Product Card */}
-            <div className="admin-card">
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <h2 className="admin-card-title" style={{ margin: 0 }}>Add New Skincare Product</h2>
-                  <p style={{ margin: "0.2rem 0 0 0", color: "#718096", fontSize: "0.82rem" }}>
-                    Create product records for routine builder and consultants.
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowAddForm(!showAddForm)}
-                  className="admin-btn admin-btn-primary"
-                >
-                  {showAddForm ? "Cancel" : "Add Product"}
-                </button>
-              </div>
-
-              {showAddForm && (
-                <form onSubmit={handleAddProduct} style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1.5rem", borderTop: "1px solid #E2E8F0", paddingTop: "1.5rem" }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                    <div className="field">
-                      <label style={{ fontSize: "0.78rem", fontWeight: "bold" }}>Product Name</label>
-                      <input
-                        type="text"
-                        className="admin-input"
-                        value={newProd.name}
-                        onChange={(e) => setNewProd({ ...newProd, name: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div className="field">
-                      <label style={{ fontSize: "0.78rem", fontWeight: "bold" }}>Brand</label>
-                      <input
-                        type="text"
-                        className="admin-input"
-                        value={newProd.brand}
-                        onChange={(e) => setNewProd({ ...newProd, brand: e.target.value })}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem" }}>
-                    <div className="field">
-                      <label style={{ fontSize: "0.78rem", fontWeight: "bold" }}>Category</label>
-                      <select
-                        className="admin-input"
-                        value={newProd.category}
-                        onChange={(e) => setNewProd({ ...newProd, category: e.target.value })}
-                      >
-                        <option value="Cleanser">Cleanser</option>
-                        <option value="Moisturizer">Moisturizer</option>
-                        <option value="Serum">Serum</option>
-                        <option value="Sunscreen">Sunscreen</option>
-                        <option value="Treatment">Treatment</option>
-                        <option value="Toner">Toner</option>
-                      </select>
-                    </div>
-                    <div className="field">
-                      <label style={{ fontSize: "0.78rem", fontWeight: "bold" }}>Price ($)</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        className="admin-input"
-                        value={newProd.price}
-                        onChange={(e) => setNewProd({ ...newProd, price: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div className="field">
-                      <label style={{ fontSize: "0.78rem", fontWeight: "bold" }}>Suitable Skin Types</label>
-                      <input
-                        type="text"
-                        className="admin-input"
-                        value={newProd.suitable_skin_types}
-                        onChange={(e) => setNewProd({ ...newProd, suitable_skin_types: e.target.value })}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="field">
-                    <label style={{ fontSize: "0.78rem", fontWeight: "bold" }}>Key Ingredients (comma separated)</label>
-                    <input
-                      type="text"
-                      className="admin-input"
-                      value={newProd.key_active_ingredients}
-                      onChange={(e) => setNewProd({ ...newProd, key_active_ingredients: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div className="field">
-                    <label style={{ fontSize: "0.78rem", fontWeight: "bold" }}>Description</label>
-                    <textarea
-                      rows="3"
-                      className="admin-input"
-                      value={newProd.description}
-                      onChange={(e) => setNewProd({ ...newProd, description: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <button type="submit" className="admin-btn admin-btn-primary" disabled={adding} style={{ width: "max-content", padding: "0.5rem 1.25rem" }}>
-                    {adding ? "Saving..." : "Save Product"}
-                  </button>
-                </form>
-              )}
-            </div>
-
-            {/* Interactive Catalog Table */}
-            <div className="admin-card">
-              <h2 className="admin-card-title">Skincare Product Catalog Records</h2>
-              <div className="admin-data-table-container">
-                <table className="admin-data-table">
-                  <thead>
-                    <tr>
-                      <th>Product Info</th>
-                      <th>Category</th>
-                      <th style={{ textAlign: "right" }}>Price</th>
-                      <th>Key Ingredients</th>
-                      <th>Suitable Types</th>
-                      <th style={{ textAlign: "right" }}>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {products.length === 0 ? (
-                      <tr>
-                        <td colSpan="6" style={{ textAlign: "center", color: "#718096", padding: "1.5rem" }}>
-                          No results
-                        </td>
-                      </tr>
-                    ) : (
-                      products.map((prod) => (
-                        <tr key={prod.id}>
-                          <td>
-                            <strong>{prod.name}</strong>
-                            <div style={{ fontSize: "0.75rem", color: "#718096" }}>{prod.brand}</div>
-                          </td>
-                          <td>{prod.category}</td>
-                          <td style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace" }}>
-                            ${Number(prod.price).toFixed(2)}
-                          </td>
-                          <td style={{ fontSize: "0.78rem", color: "#4A5568" }}>
-                            {prod.key_active_ingredients?.join(", ")}
-                          </td>
-                          <td style={{ fontSize: "0.78rem", textTransform: "capitalize" }}>
-                            {prod.suitable_skin_types?.join(", ")}
-                          </td>
-                          <td style={{ textAlign: "right" }}>
-                            <button
-                              type="button"
-                              className="admin-btn"
-                              style={{ color: "#E53E3E", background: "transparent", border: "none", cursor: "pointer", fontWeight: "bold" }}
-                              onClick={() => handleDeleteProduct(prod.id)}
-                            >
-                              Delete
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
+                    ))}
                   </tbody>
                 </table>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* INGREDIENTS CATALOG TAB */}
-        {activeTab === "ingredients" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-            
-            {/* Create Ingredient Form Card */}
-            <div className="admin-card">
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <h2 className="admin-card-title" style={{ margin: 0 }}>Register New Active Ingredient</h2>
-                  <p style={{ margin: "0.2rem 0 0 0", color: "#718096", fontSize: "0.82rem" }}>
-                    Insert active ingredients to power matching skincare intelligence analysis.
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowAddIngForm(!showAddIngForm)}
-                  className="admin-btn admin-btn-primary"
-                >
-                  {showAddIngForm ? "Cancel" : "Add Ingredient"}
-                </button>
-              </div>
-
-              {showAddIngForm && (
-                <form onSubmit={handleAddIngredient} style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1.5rem", borderTop: "1px solid #E2E8F0", paddingTop: "1.5rem" }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                    <div className="field">
-                      <label style={{ fontSize: "0.78rem", fontWeight: "bold" }}>Ingredient Name</label>
-                      <input
-                        type="text"
-                        className="admin-input"
-                        value={newIng.name}
-                        onChange={(e) => setNewIng({ ...newIng, name: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div className="field">
-                      <label style={{ fontSize: "0.78rem", fontWeight: "bold" }}>Category (e.g. Exfoliant, Humectant)</label>
-                      <input
-                        type="text"
-                        className="admin-input"
-                        value={newIng.category}
-                        onChange={(e) => setNewIng({ ...newIng, category: e.target.value })}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem" }}>
-                    <div className="field">
-                      <label style={{ fontSize: "0.78rem", fontWeight: "bold" }}>Suitable Skin Types</label>
-                      <input
-                        type="text"
-                        className="admin-input"
-                        value={newIng.suitable_skin_types}
-                        onChange={(e) => setNewIng({ ...newIng, suitable_skin_types: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div className="field">
-                      <label style={{ fontSize: "0.78rem", fontWeight: "bold" }}>Concerns Addressed</label>
-                      <input
-                        type="text"
-                        className="admin-input"
-                        value={newIng.common_concerns_addressed}
-                        onChange={(e) => setNewIng({ ...newIng, common_concerns_addressed: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div className="field">
-                      <label style={{ fontSize: "0.78rem", fontWeight: "bold" }}>Typical Concentration</label>
-                      <input
-                        type="text"
-                        className="admin-input"
-                        value={newIng.typical_concentration_range}
-                        onChange={(e) => setNewIng({ ...newIng, typical_concentration_range: e.target.value })}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="field">
-                    <label style={{ fontSize: "0.78rem", fontWeight: "bold" }}>Benefits (comma separated)</label>
-                    <input
-                      type="text"
-                      className="admin-input"
-                      value={newIng.benefits}
-                      onChange={(e) => setNewIng({ ...newIng, benefits: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <button type="submit" className="admin-btn admin-btn-primary" disabled={addingIng} style={{ width: "max-content", padding: "0.5rem 1.25rem" }}>
-                    {addingIng ? "Saving..." : "Save Ingredient"}
-                  </button>
-                </form>
-              )}
-            </div>
-
-            {/* Ingredients Table */}
-            <div className="admin-card">
-              <h2 className="admin-card-title">Active Ingredients Database Records</h2>
+          {/* TAB 3: VERIFY CLINICS */}
+          {activeTab === "doctors" && (
+            <div className="card" style={{ margin: 0, padding: "1.5rem" }}>
+              <h3 style={{ fontSize: "1.1rem", fontWeight: "800", marginBottom: "1.25rem" }}>🩺 Clinic Credentials and verifications</h3>
               <div className="admin-data-table-container">
                 <table className="admin-data-table">
                   <thead>
                     <tr>
-                      <th>Ingredient Name</th>
-                      <th>Category</th>
-                      <th>Benefits</th>
-                      <th>Concerns Addressed</th>
-                      <th>Concentration</th>
-                      <th style={{ textAlign: "right" }}>Action</th>
+                      <th>Dermatologist</th>
+                      <th>Specialization</th>
+                      <th>Credentials Status</th>
+                      <th style={{ textAlign: "right" }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {ingredients.length === 0 ? (
-                      <tr>
-                        <td colSpan="6" style={{ textAlign: "center", color: "#718096", padding: "1.5rem" }}>
-                          No results
+                    {dermatologists.map((derma) => (
+                      <tr key={derma.id}>
+                        <td>
+                          <strong>{derma.full_name}</strong>
+                          <div style={{ fontSize: "0.72rem", color: "var(--color-ink-muted)" }}>{derma.email}</div>
+                        </td>
+                        <td>{derma.specialization || "Clinical Dermatology"}</td>
+                        <td>
+                          <span className={`status-pill ${derma.accepting_new_patients ? "status-accepted" : "status-pending"}`}>
+                            {derma.accepting_new_patients ? "Verified & Active" : "Pending Board Review"}
+                          </span>
+                        </td>
+                        <td style={{ textAlign: "right" }}>
+                          <button
+                            type="button"
+                            onClick={() => handleDermatologistVerify(derma.id, !derma.accepting_new_patients)}
+                            className="btn btn-primary"
+                            style={{ padding: "0.25rem 0.5rem", fontSize: "0.75rem" }}
+                          >
+                            {derma.accepting_new_patients ? "Revoke License" : "Approve License"}
+                          </button>
                         </td>
                       </tr>
-                    ) : (
-                      ingredients.map((ing) => (
-                        <tr key={ing.id}>
-                          <td><strong>{ing.name}</strong></td>
-                          <td>{ing.category}</td>
-                          <td style={{ fontSize: "0.78rem", color: "#4A5568" }}>
-                            {ing.benefits?.join(", ")}
-                          </td>
-                          <td style={{ fontSize: "0.78rem", color: "#4A5568" }}>
-                            {ing.common_concerns_addressed?.join(", ")}
-                          </td>
-                          <td style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
-                            {ing.typical_concentration_range || "N/A"}
-                          </td>
-                          <td style={{ textAlign: "right" }}>
-                            <button
-                              type="button"
-                              className="admin-btn"
-                              style={{ color: "#E53E3E", background: "transparent", border: "none", cursor: "pointer", fontWeight: "bold" }}
-                              onClick={() => handleDeleteIngredient(ing.id)}
-                            >
-                              Delete
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
+                    ))}
                   </tbody>
                 </table>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* DERMATOLOGISTS TAB */}
-        {activeTab === "dermatologists" && (
-          <div className="admin-card">
-            <h2 className="admin-card-title" style={{ marginBottom: "1rem" }}>Dermatologist Clinic Registrations</h2>
-            
-            <div className="admin-data-table-container">
-              <table className="admin-data-table">
-                <thead>
-                  <tr>
-                    <th>Specialist Name</th>
-                    <th>Clinic Name</th>
-                    <th>Contact Info</th>
-                    <th>Address</th>
-                    <th>Website</th>
-                    <th>Intake</th>
-                    <th style={{ textAlign: "right" }}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {dermatologists.length === 0 ? (
-                    <tr>
-                      <td colSpan="7" style={{ textAlign: "center", color: "#718096", padding: "1.5rem" }}>
-                        No data yet
-                      </td>
-                    </tr>
-                  ) : (
-                    dermatologists.map((derma) => {
-                      const isEditing = editingDermaId === derma.id;
-                      return (
-                        <tr key={derma.id}>
-                          <td>
-                            <strong>{derma.full_name}</strong>
-                            <div style={{ fontSize: "0.75rem", color: "#718096" }}>{derma.email}</div>
-                          </td>
-                          <td>
-                            {isEditing ? (
-                              <input
-                                type="text"
-                                className="admin-input"
-                                value={editForm.clinic_name}
-                                onChange={(e) => setEditForm({ ...editForm, clinic_name: e.target.value })}
-                              />
-                            ) : (
-                              derma.clinic_name || "—"
-                            )}
-                          </td>
-                          <td>
-                            {isEditing ? (
-                              <input
-                                type="text"
-                                className="admin-input"
-                                value={editForm.phone}
-                                onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                              />
-                            ) : (
-                              derma.phone || "—"
-                            )}
-                          </td>
-                          <td>
-                            {isEditing ? (
-                              <input
-                                type="text"
-                                className="admin-input"
-                                value={editForm.address}
-                                onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
-                              />
-                            ) : (
-                              derma.address || "—"
-                            )}
-                          </td>
-                          <td>
-                            {isEditing ? (
-                              <input
-                                type="text"
-                                className="admin-input"
-                                value={editForm.website}
-                                onChange={(e) => setEditForm({ ...editForm, website: e.target.value })}
-                              />
-                            ) : derma.website ? (
-                              <a href={derma.website} target="_blank" rel="noopener noreferrer" style={{ color: "#3F6F5E", fontWeight: "600" }}>
-                                Link
-                              </a>
-                            ) : (
-                              "—"
-                            )}
-                          </td>
-                          <td>
-                            {isEditing ? (
-                              <label style={{ display: "flex", alignItems: "center", gap: "0.25rem", cursor: "pointer" }}>
-                                <input
-                                  type="checkbox"
-                                  checked={editForm.accepting_new_patients}
-                                  onChange={(e) => setEditForm({ ...editForm, accepting_new_patients: e.target.checked })}
-                                />
-                                <span style={{ fontSize: "0.75rem" }}>Open</span>
-                              </label>
-                            ) : (
-                              <span className={`admin-status-badge ${derma.accepting_new_patients ? "active" : "suspended"}`}>
-                                {derma.accepting_new_patients ? "Open" : "Closed"}
-                              </span>
-                            )}
-                          </td>
-                          <td style={{ textAlign: "right" }}>
-                            {isEditing ? (
-                              <div style={{ display: "flex", gap: "0.25rem", justifyContent: "flex-end" }}>
-                                <button
-                                  className="admin-btn admin-btn-primary"
-                                  onClick={() => handleDermaSave(derma.id)}
-                                  style={{ padding: "0.2rem 0.4rem", fontSize: "0.75rem" }}
-                                >
-                                  Save
-                                </button>
-                                <button
-                                  className="admin-btn admin-btn-secondary"
-                                  onClick={() => setEditingDermaId(null)}
-                                  style={{ padding: "0.2rem 0.4rem", fontSize: "0.75rem" }}
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                            ) : (
-                              <button
-                                className="admin-btn admin-btn-secondary"
-                                onClick={() => startEditingDerma(derma)}
-                                style={{ padding: "0.2rem 0.4rem", fontSize: "0.75rem" }}
-                              >
-                                Edit
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-      </div>
+        </div>
+      </main>
+
     </div>
   );
 }

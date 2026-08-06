@@ -15,6 +15,7 @@ const CONSULTANT_LINKS = [
   { to: "/consultant/dashboard", label: "Dashboard", icon: "✨" },
   { to: "/consultant/profile", label: "Profile", icon: "🧴" },
   { to: "/consultant/customers", label: "Customers", icon: "👥" },
+  { to: "/consultant/recommendations", label: "Recommendations", icon: "🛍️" },
   { to: "/consultant/dermatologists", label: "Dermatologists", icon: "🩺" },
 ];
 

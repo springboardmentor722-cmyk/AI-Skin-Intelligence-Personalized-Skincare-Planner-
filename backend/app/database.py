@@ -4,8 +4,11 @@ from pymongo import MongoClient
 
 from app.config import settings
 
-# --- PostgreSQL (relational core: users, roles, profiles, lifestyle, progress) ---
-engine = create_engine(settings.postgres_url, pool_pre_ping=True)
+# --- PostgreSQL or SQLite (relational core) ---
+if settings.postgres_url.startswith("sqlite"):
+    engine = create_engine(settings.postgres_url, connect_args={"check_same_thread": False})
+else:
+    engine = create_engine(settings.postgres_url, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 

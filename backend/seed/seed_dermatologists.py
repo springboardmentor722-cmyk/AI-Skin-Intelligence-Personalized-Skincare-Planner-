@@ -23,9 +23,17 @@ def slugify(text: str) -> str:
     return text
 
 
+def get_phones(clinic: dict) -> list[str]:
+    phone_str = clinic.get("phone", "")
+    if not phone_str:
+        return []
+    return [p.strip() for p in phone_str.split(";") if p.strip()]
+
+
 def build_bio(clinic: dict) -> str:
-    if len(clinic["phones"]) > 1:
-        return "Additional numbers: " + ", ".join(clinic["phones"][1:])
+    phones = get_phones(clinic)
+    if len(phones) > 1:
+        return "Additional numbers: " + ", ".join(phones[1:])
     return ""
 
 
@@ -58,13 +66,16 @@ def seed():
             db.add(user)
             db.flush()  # get user.id before creating the profile
 
+            phones = get_phones(clinic)
+            address_str = f"{clinic.get('street_address', '')}, {clinic.get('city', '')}, {clinic.get('state', '')} {clinic.get('zip', '')}".strip(", ")
+
             profile = models.DermatologistProfile(
                 user_id=user.id,
-                phone=clinic["phones"][0] if clinic["phones"] else None,
+                phone=phones[0] if phones else None,
                 clinic_name=clinic["clinic"],
                 specialty="; ".join(clinic["specialties"]),
                 bio=build_bio(clinic) or None,
-                address=clinic["address"],
+                address=address_str,
                 website=clinic["website"],
                 accepting_new_patients=True,
             )
