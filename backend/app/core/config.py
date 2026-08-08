@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7 # 7 days
     
+    # API Keys
+    GROQ_API_KEY: Union[str, None] = None
+    
     model_config = SettingsConfigDict(case_sensitive=True, env_file=".env")
 
 settings = Settings()

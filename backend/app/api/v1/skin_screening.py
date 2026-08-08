@@ -29,14 +29,17 @@ def get_latest_screening(
 @router.post("/analyze")
 def analyze_image(
     screening_in: SkinScreeningCreate,
+    db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user)
 ):
     from app.services.groq_vision import groq_vision_service
-    if not screening_in.image_base64:
+    if not screening_in.image_data:
         from fastapi import HTTPException
         raise HTTPException(status_code=400, detail="No image provided")
     
-    return groq_vision_service.analyze_skin_image(screening_in.image_base64)
+    return groq_vision_service.analyze_skin_image(
+        screening_in.image_data, db=db, user_id=current_user.id
+    )
 
 @router.get("/{id}", response_model=SkinScreeningResponse)
 def get_screening(
@@ -69,8 +72,15 @@ def delete_screening(
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user)
 ):
-    skin_screening_service.delete_screening(db, id, current_user.id)
-    return {"message": "Skin screening deleted successfully"}
+    try:
+        skin_screening_service.delete_screening(db, id, current_user.id)
+        return {"message": "Skin screening deleted successfully"}
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        # Return 500 explicitly to avoid masking behind CORS
+        from fastapi.responses import JSONResponse
+        return JSONResponse(status_code=500, content={"detail": str(e)})
 
 @router.post("/evaluate")
 def evaluate_screening(

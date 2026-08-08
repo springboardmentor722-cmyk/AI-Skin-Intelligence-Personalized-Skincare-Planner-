@@ -33,4 +33,5 @@ class ProfessionalProfile(Base, UUIDMixin, TimestampMixin):
     bio: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     # Relationships
-    user = relationship("User", backref="professional_profile")
+    from sqlalchemy.orm import backref
+    user = relationship("User", backref=backref("professional_profile", uselist=False))

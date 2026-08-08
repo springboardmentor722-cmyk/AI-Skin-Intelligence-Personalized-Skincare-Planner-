@@ -11,3 +11,15 @@ pydantic[email]>=2.0.0
 pydantic-settings>=2.0.0
 requests>=2.31.0
 groq>=0.5.0
+
+pandas
+scikit-learn
+joblib
+
+# Face Verification (dlib-based ML face encoding comparison)
+# Requires CMake and C++ compiler on Windows (Visual Studio Build Tools)
+# If installation fails, the app auto-falls back to OpenCV Haar Cascade
+cmake
+dlib
+face_recognition
+opencv-python-headless

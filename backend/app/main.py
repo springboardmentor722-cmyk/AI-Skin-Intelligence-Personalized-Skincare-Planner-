@@ -13,13 +13,7 @@ app = FastAPI(
 from app.db.database import engine
 from app.db.base import Base
 # Make sure all models are imported before this line so they are registered with Base
-from app.models.user import User
-from app.models.role import Role
-from app.models.profile import SkinProfile, LifestyleProfile, EnvironmentProfile
-from app.models.user_profile import UserProfile
-from app.models.skin_screening import SkinScreening
-from app.models.lifestyle import LifestyleLog
-from app.models.product import Product, Ingredient
+from app.models import *
 
 Base.metadata.create_all(bind=engine)
 

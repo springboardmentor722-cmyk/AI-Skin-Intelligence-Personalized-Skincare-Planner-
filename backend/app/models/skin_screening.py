@@ -18,6 +18,7 @@ class SkinScreening(Base, UUIDMixin, TimestampMixin):
     secondary_concern: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     skin_goals: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     skin_sensitivity: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    image_data: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     allergies: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     previous_treatments: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     current_routine: Mapped[Optional[str]] = mapped_column(Text, nullable=True)

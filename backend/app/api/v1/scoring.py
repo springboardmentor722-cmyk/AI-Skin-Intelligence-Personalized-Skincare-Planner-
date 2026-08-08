@@ -18,13 +18,35 @@ def get_skin_health_history(
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user)
 ):
-    # Mocking historical progress data
-    import datetime
-    today = datetime.date.today()
-    return [
-        {"date": (today - datetime.timedelta(days=28)).isoformat(), "overall_score": 62, "adherence": 60},
-        {"date": (today - datetime.timedelta(days=21)).isoformat(), "overall_score": 65, "adherence": 70},
-        {"date": (today - datetime.timedelta(days=14)).isoformat(), "overall_score": 68, "adherence": 75},
-        {"date": (today - datetime.timedelta(days=7)).isoformat(), "overall_score": 75, "adherence": 85},
-        {"date": today.isoformat(), "overall_score": scoring_service.calculate_score(db, current_user.id).overall_score, "adherence": 85},
-    ]
+    from app.repositories.skin_screening import skin_screening_repo
+    from app.models.score import SkinScore
+    screenings = skin_screening_repo.get_by_user_id(db, current_user.id, limit=50)
+    
+    # Sort chronologically
+    screenings.sort(key=lambda x: x.created_at)
+    
+    history = []
+    
+    for s in screenings:
+        # Try to find an actual score for this screening
+        score_record = db.query(SkinScore).filter(SkinScore.screening_id == s.id).first()
+        
+        if score_record:
+            overall_score = int(score_record.overall_score)
+            adherence = int(score_record.routine_score)
+        else:
+            # Fallback to mock if no score was saved
+            overall_score = 80
+            if s.primary_concern: overall_score -= 10
+            if s.secondary_concern: overall_score -= 5
+            adherence = 60 # Default baseline
+            
+        history.append({
+            "id": str(s.id),
+            "date": s.created_at.isoformat(),
+            "overall_score": overall_score,
+            "adherence": adherence,
+            "image_data": None
+        })
+        
+    return history

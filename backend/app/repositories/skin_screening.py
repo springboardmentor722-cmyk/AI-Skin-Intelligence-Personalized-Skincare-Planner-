@@ -16,7 +16,9 @@ class SkinScreeningRepository:
         return db.query(SkinScreening).filter(SkinScreening.id == id).first()
 
     def create(self, db: Session, user_id: UUID, obj_in: SkinScreeningCreate) -> SkinScreening:
-        db_obj = SkinScreening(user_id=user_id, **obj_in.model_dump(exclude_unset=True))
+        create_data = obj_in.model_dump(exclude_unset=True)
+        create_data.pop("overall_score", None)
+        db_obj = SkinScreening(user_id=user_id, **create_data)
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)

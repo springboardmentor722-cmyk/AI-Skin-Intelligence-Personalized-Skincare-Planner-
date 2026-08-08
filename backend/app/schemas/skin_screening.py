@@ -18,9 +18,10 @@ class SkinScreeningBase(BaseModel):
     alcohol: Optional[str] = None
     current_medications: Optional[str] = None
     stress_level: Optional[str] = None
+    image_data: Optional[str] = None
 
 class SkinScreeningCreate(SkinScreeningBase):
-    image_base64: Optional[str] = None
+    overall_score: Optional[int] = None
 
 class SkinScreeningUpdate(SkinScreeningBase):
     pass

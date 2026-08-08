@@ -10,7 +10,7 @@ from app.models.user import User
 from app.models.profile import SkinProfile, LifestyleProfile, EnvironmentProfile
 from app.models.lifestyle import LifestyleLog
 from app.models.skin_screening import SkinScreening
-from app.models.routine import Routine
+from app.models.routine import SkincareRoutine
 from app.models.user_profile import UserProfile
 
 def reset_tables():

@@ -17,8 +17,12 @@ class Ingredient(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "ingredients"
 
     name: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
+    category: Mapped[str] = mapped_column(String(100), nullable=True)
+    description: Mapped[str] = mapped_column(Text, nullable=True)
     benefits: Mapped[str] = mapped_column(Text, nullable=True)
     concerns_targeted: Mapped[str] = mapped_column(Text, nullable=True)
+    base_conflicts: Mapped[str] = mapped_column(Text, nullable=True)
+    allergy_triggers: Mapped[str] = mapped_column(Text, nullable=True)
 
     products: Mapped[List["Product"]] = relationship(
         "Product", secondary=product_ingredients, back_populates="ingredients"
@@ -32,6 +36,9 @@ class Product(Base, UUIDMixin, TimestampMixin):
     product_type: Mapped[str] = mapped_column(String(100), nullable=False) # e.g., Cleanser, Serum
     description: Mapped[str] = mapped_column(Text, nullable=True)
     skin_types: Mapped[str] = mapped_column(String(255), nullable=True) # e.g., "Oily, Combination"
+    price: Mapped[float] = mapped_column(nullable=True, default=0.0)
+    rating: Mapped[float] = mapped_column(nullable=True, default=0.0)
+    image_url: Mapped[str] = mapped_column(String(500), nullable=True)
 
     ingredients: Mapped[List["Ingredient"]] = relationship(
         "Ingredient", secondary=product_ingredients, back_populates="products"

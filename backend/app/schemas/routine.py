@@ -10,6 +10,7 @@ class RoutineStep(BaseModel):
     step_number: int
     product: ProductRecommendation
     instructions: str
+    recovery_details: str = None
 
 class Routine(BaseModel):
     morning_routine: List[RoutineStep]
