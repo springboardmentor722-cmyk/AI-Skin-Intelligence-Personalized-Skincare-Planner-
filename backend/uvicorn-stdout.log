@@ -1,0 +1,63 @@
+INFO:     127.0.0.1:59953 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54150 - "POST /login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54150 - "OPTIONS /dashboard/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54150 - "GET /dashboard/stats HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:59562 - "OPTIONS /progress HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59562 - "GET /progress HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:59562 - "OPTIONS /progress/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59562 - "GET /progress/ HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:63588 - "OPTIONS /skin-profile/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63588 - "GET /skin-profile/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57604 - "GET /uploads/skin_images/6_360_F_308584000_y1HR0WQBLgjD9FXzMW8HUqb5u1wxeLgS.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63588 - "OPTIONS /me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63588 - "GET /me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62600 - "OPTIONS /lifestyle/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62600 - "GET /lifestyle/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62600 - "OPTIONS /products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62600 - "GET /products HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:62600 - "OPTIONS /products/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62600 - "GET /products/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63734 - "OPTIONS /ingredients HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63734 - "GET /ingredients HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:63734 - "OPTIONS /ingredients/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63734 - "GET /ingredients/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49834 - "GET /ingredients HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:49834 - "GET /ingredients/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56076 - "GET /progress HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:56076 - "GET /progress/ HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:61336 - "OPTIONS /consultations/my-consultation HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61336 - "GET /consultations/my-consultation HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59089 - "GET /dashboard/stats HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:61796 - "GET /products HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:61796 - "GET /products/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50674 - "GET /products HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:50674 - "GET /products/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51484 - "GET /ingredients HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:51484 - "GET /ingredients/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56147 - "GET /progress HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:56147 - "GET /progress/ HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:63951 - "POST /login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63951 - "GET /dashboard/stats HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:54703 - "OPTIONS /users HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54703 - "GET /users HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54703 - "OPTIONS /pending-users HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54703 - "GET /pending-users HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54703 - "GET /products HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:54703 - "GET /products/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54703 - "GET /ingredients HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:54703 - "GET /ingredients/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53297 - "GET /products/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53297 - "GET /ingredients/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53313 - "GET /products/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53313 - "GET /ingredients/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63200 - "POST /login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63200 - "OPTIONS /dashboard/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63200 - "GET /dashboard/stats HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:59812 - "GET /products HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:59812 - "GET /products/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61139 - "OPTIONS /skin-profile/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61139 - "GET /skin-profile/ HTTP/1.1" 200 OK
+ INFO:     127.0.0.1:58845 - "GET /products/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58845 - "GET /ingredients/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58845 - "GET /products/?search=hyaluronic HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58845 - "GET /ingredients/?search=acne HTTP/1.1" 200 OK

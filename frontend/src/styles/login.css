@@ -1,0 +1,95 @@
+body{
+    background:#F5FFF8;
+    font-family:Arial, Helvetica, sans-serif;
+}
+
+.login-page{
+    min-height:100vh;
+    display:flex;
+}
+
+.left-side{
+    flex:1;
+    background:linear-gradient(rgba(40,120,80,.65),rgba(40,120,80,.65)),
+    url("https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9");
+    background-size:cover;
+    background-position:center;
+    color:white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding:60px;
+}
+
+.left-side h1{
+    font-size:48px;
+    font-weight:bold;
+}
+
+.left-side p{
+    font-size:20px;
+    margin-top:20px;
+}
+
+.right-side{
+    flex:1;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.login-card{
+    width:420px;
+    background:white;
+    border-radius:20px;
+    padding:40px;
+    box-shadow:0 15px 40px rgba(0,0,0,.1);
+}
+
+.login-card h2{
+    text-align:center;
+    margin-bottom:30px;
+    color:#d96b9b;
+}
+
+.form-control{
+    border-radius:10px;
+    padding:12px;
+}
+
+.login-btn{
+    width:100%;
+    background:#d96b9b;
+    color:white;
+    border:none;
+    padding:12px;
+    border-radius:10px;
+    font-weight:bold;
+}
+
+.login-btn:hover{
+    background:#d96b9b;
+}
+
+.error{
+    color:red;
+    text-align:center;
+    margin-top:15px;
+}
+
+@media(max-width:900px){
+
+.left-side{
+
+display:none;
+
+}
+
+.right-side{
+
+width:100%;
+
+}
+
+}
