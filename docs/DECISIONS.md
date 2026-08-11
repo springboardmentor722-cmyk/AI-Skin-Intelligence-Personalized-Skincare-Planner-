@@ -1817,3 +1817,110 @@ conventions (comma-joined co-brands, casing) than this catalog, and exact-match
 discipline means it simply doesn't overlap here, not that the code is broken.
 Further growth needs either a better-aligned dataset or a live retailer image API —
 still explicitly out of scope, still not filled by scraping or fabrication.
+
+## ADR-047 — Reopens ADR-033: real consent + retention flow for face-photo skin analysis, owner-authorized
+
+**Status:** Accepted (owner request, 2026-08-12 — explicit reopening of ADR-033's
+third deliberately-left-open item)
+**Context:** ADR-033 correctly left "train on real users' skin photos" blocked on
+"no opt-in mechanism, no documented data-retention/deletion policy for biometric
+imagery, and no legal review on record." The project owner has now explicitly
+authorized building the consent/retention flow itself (not just the ML), triggered
+by reviewing three external repos (`MdAliAhnaf/Skin_Type_Classification-
+Recommendation`, `kasmya/AI-Cosmetic-Reccomendation-System` — both CNN/CV skin-
+image-classification prototypes) as a prompt to close this gap for real. This ADR
+records the concrete design, sourced from `docs/SUGGESTIONS.md` P0's existing
+sketch (consent ledger, retention, purge, fairness gate) rather than invented from
+scratch, plus the owner's specific choices where the sketch left them open.
+**IMPORTANT — not legal advice.** Per `SUGGESTIONS.md` P0's own caveat: "Get a
+legal review for your jurisdictions (India DPDP; GDPR if EU users) — this doc is
+engineering guidance, not legal advice." Everything below is an engineering
+scaffold for a real legal review to inspect before this ships to real production
+users with real consequences — it does not substitute for one.
+**Decision — five concrete pieces, each owner-confirmed:**
+1. **Separate, higher-sensitivity consent, not a reuse of signup consent.** The
+   `user` table's `consentAcceptedAt`/`consentPolicyVersion` (Better-Auth-owned,
+   ADR-003 identity stream) covers general ToS/privacy acceptance at signup — it is
+   NOT reused for biometric training consent, which is a distinct, revocable,
+   per-feature grant. New PostgreSQL table `biometric_training_consent` (owned by
+   `assessment` service, Alembic-managed): `user_id TEXT REFERENCES "user"(id)`,
+   `consented_at TIMESTAMPTZ`, `policy_version TEXT`, `revoked_at TIMESTAMPTZ NULL`.
+   A photo is eligible for training only while a non-revoked row exists.
+2. **Face-image upload endpoint** on the real `assessment` service (not a new
+   service — extends `services/assessment/`), reusing `core/storage.py` unchanged
+   (`assessment-photos/user_{id}/...` prefix, magic-byte sniff, EXIF strip,
+   presigned-only reads) — the same adapter `progress_photos` already uses. Upload
+   requires the consent row above to exist for training-eligibility, but the
+   photo can still be uploaded and scored for the user's own immediate assessment
+   even without training consent (consent gates *training use*, not *the feature*).
+3. **90-day retention, auto-purge.** A photo (and any derived embedding/AI-payload
+   doc) becomes eligible for training only within 90 days of `consented_at`;
+   `app/worker/` gains a scheduled purge job that deletes expired rows/objects
+   across PG (metadata), S3 (image bytes), Mongo (AI payload docs), and the vector
+   namespace — mirrors the existing "delete my data" purge shape
+   (`ARCHITECTURE.md` §7) already documented for the general case, applied here on
+   a rolling per-photo TTL instead of an on-demand full-account purge.
+4. **Fully automatic scheduled retraining.** A worker cron job batches newly
+   eligible opted-in photos (within the 90-day window) on a schedule, trains a
+   candidate `SkinTypeClassifier`/`ConcernDetector` artifact (transfer-learning CNN,
+   structurally following `ml/training/train_lesion_classifier.py`'s real
+   ResNet18-on-public-data precedent, but bootstrapped on the app's own
+   `skin_types`/`skin_concerns` taxonomy using a public dataset — e.g. a Roboflow
+   skin-classification set, the same category repo 1 used — as the base training
+   set, with opted-in real photos as incremental fine-tuning data once available),
+   and versions the artifact into `ml/registry/` like every other model here.
+5. **Mandatory fairness gate before promotion — blocking, not advisory.** Per
+   `SUGGESTIONS.md` P0 and `docs/AI_ML.md`'s model-card requirement: every
+   candidate artifact from step 4 must pass a Fitzpatrick/Monk skin-tone slice
+   evaluation (per-slice accuracy/error-parity check against a documented
+   threshold) before the scheduled job promotes it to serving. A candidate that
+   fails the gate is logged and discarded, never silently promoted, never manually
+   overridden without a recorded exception.
+**Consequences:** `SkinTypeClassifier`/`ConcernDetector` move from ADR-007 stubs to
+real, trained models for the first time. New Alembic migration for
+`biometric_training_consent`. New worker jobs (purge + scheduled retrain) need
+their own monitoring (a failed purge silently retaining data past 90 days is a
+real compliance regression, not just a bug). `docs/AI_ML.md`'s model cards updated
+for both models' real training data + fairness-gate results. **Still requires a
+real legal review before production launch with real users** — this ADR authorizes
+building the engineering scaffold, not a legal sign-off substitute.
+
+## ADR-048 — Sephora-review collaborative-filtering signal, blended as a tiebreak (not a weight-scheme change)
+
+**Status:** Accepted (owner request, 2026-08-12 — inspired by reviewing
+`vsancnaj/Hybrid-Recommendation-System`, an item-based CF + content-based hybrid
+over the same Sephora Kaggle dataset this project already ingests)
+**Context:** `training_dataset/raw/sephora/reviews_{0-250,250-500,500-750,750-1250,
+1250-end}.csv` are already downloaded (`training_dataset/MANIFEST.md` #1) but never
+ingested — only `product_info.csv` from the same Kaggle dataset feeds `products`/
+`ingredients`. These CSVs carry Sephora's own users' `user_id`/`rating`/review text
+per product — real population-level co-preference data, but **not** Skinlytics
+users' own behavior (the app has no product-rating feature of its own yet, so
+there is no real per-Skinlytics-user interaction matrix to build CF from — a
+genuine data gap, confirmed before deciding how to proceed, not assumed away).
+**Decision:** build item-item collaborative filtering over the Sephora reviewers'
+population as an *external prior*, not a personalization signal about the
+Skinlytics user asking for recommendations:
+1. New ingest step (extends `services/admin/ingest/`, reuses the existing
+   Kaggle-download pattern, not a new pipeline pattern) parses the five
+   `reviews_*.csv` into a sparse user×product rating matrix, computes item-item
+   cosine similarity, and writes the result as a derived artifact — **never a
+   live-written DB table** (single-writer rule, ADR-005): stored the same way
+   embeddings are, versioned under `ml/registry/` and loaded by the worker.
+2. **Blended as a tiebreak/boost signal, not a 4th weighted component.** The frozen
+   `recommendation_weights` (50/35/15) stay authoritative and unchanged — no
+   migration to their schema. After the existing pipeline produces its
+   safety-gated, vector-retrieved, ML-ranked candidate set (P2's Stage 1→2→3),
+   CF similarity is applied as a secondary sort key / small score nudge among
+   near-tied candidates only — it can reorder ties, it cannot override a hard
+   safety filter or materially outrank the primary suitability score.
+3. **Provenance is labeled, not hidden.** `docs/AI_ML.md`'s recommendation model
+   card documents this signal as "Sephora shopper population co-preference
+   patterns," explicitly distinct from any claim of personalized-to-this-user
+   behavior — avoids the product ever implying it knows what *this* user
+   previously bought/rated when it doesn't.
+**Consequences:** first real use of the five `reviews_*.csv` files sitting unused
+in `training_dataset/raw/sephora/` since 2026-08-02. No change to
+`recommendation_weights`' CHECK-enforced 50/35/15 sum. New worker-projected
+artifact needs the same rebuildability guarantee (ADR-010) as every other derived
+store — must be re-derivable from the raw CSVs, never hand-edited.
