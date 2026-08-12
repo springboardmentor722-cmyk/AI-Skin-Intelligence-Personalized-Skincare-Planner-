@@ -1,179 +1,158 @@
-# M3R API Contract — frozen for P0
+# Milestone 3 (remaining work) — API contract freeze
 
-Reconciled against live schemas (`backend/app/services/{ingredients,recommendations,
-progress}/schemas.py`) and `M3R_GAP_ANALYSIS.md`. These four surfaces are additive
-extensions of the existing services (single-writer rule, service anatomy unchanged) —
-none of this invents a parallel module. P1-P3 build against these shapes; P4/P5 build
-against the regenerated `web/lib/api-types.ts` these produce (`make openapi` after each
-merge).
+> Produced by M3-P0-T5, against `Master_prompt_milestone3.md`'s §6 owner-confirmed
+> conflict resolutions (2026-08-12) and the newer rubric `MILSTONE 3 & 4.pdf`. Every
+> shape below is grounded in the actual conventions already in
+> `backend/app/services/ingredients/{router,schemas}.py`,
+> `backend/app/services/progress/{router,schemas}.py`, and
+> `backend/app/services/recommendations/{router,products_router,schemas}.py` — not
+> invented from scratch. P1–P4 implement exactly these shapes; deviations found necessary
+> during implementation get called out in the phase report, not silently applied here.
 
-## 1. Safety Score endpoint (new — Rubric Step 1)
+## Conventions every endpoint below follows (unchanged from the rest of the app)
 
-`POST /api/v1/ingredients/safety-score`
-
-- **Auth:** `require_role("user")` (own profile) + consultant/dermatologist for
-  assigned clients via `clinical_review`'s public `verify_assignment` wrapper (pass
-  `client_user_id` as an optional query param, ownership-checked).
-- **Request body** (`SafetyScoreRequest`):
-  ```json
-  {
-    "ingredient_ids": [12, 45, 88],
-    "routine_time": "AM" | "PM"
-  }
-  ```
-  `ingredient_ids` resolve against the existing `ingredients` table (never a free-text
-  INCI parse in v1 — that's a future enhancement, not this pass's scope).
-- **Response** (`SafetyScoreRead`):
-  ```json
-  {
-    "score": 62,
-    "label": "Warning",
-    "confidence": 0.9,
-    "allergy_alerts": [
-      { "ingredient_id": 3, "ingredient_name": "Ascorbic Acid", "reason": "Possible allergy match: 'Ascorbic Acid' overlaps a tag in your recorded allergies. Check with a professional before using.", "confidence": 0.7 }
-    ],
-    "interaction_warnings": [
-      { "ingredient_id_a": 12, "ingredient_id_b": 88, "ingredient_name_a": "Retinol", "ingredient_name_b": "Glycolic Acid", "verdict": "avoid", "reason": "..." }
-    ]
-  }
-  ```
-  - `score`: `int`, 0-100.
-  - `label`: `Literal["Safe", "Warning", "Unsafe"]` — thresholds config-driven (new PG
-    row, pattern: `scoring_weights`), not hardcoded Python constants.
-  - `allergy_alerts`: built from the existing `app/ai/suitability.py` synonym-aware
-    matcher against the caller's `skin_profile` allergens — read via the skin_profile
-    service interface, never its tables directly. Reuses `SuitabilityResult`'s existing
-    `reasons[0]` + `confidence` directly, rather than deriving a separate matched-
-    allergen/alias-flag pair.
-  - `interaction_warnings`: built from `app/ai/interactions.py`'s existing pairwise
-    verdicts. `routine_time` scopes the request to one routine step by construction —
-    every ingredient in `ingredient_ids` is understood to be used in that one step, so
-    every pairwise interaction found among them is inherently a same-step conflict.
-    The parameter is recorded on the request but there is no separate per-pair
-    filtering logic to build.
-  - `confidence`: standard AI-advisory field (AGENTS.md §2.8); "not medical advice"
-    surfaces client-side wherever this is rendered.
-- **Errors:** `422` for unknown `ingredient_ids`; `404` if `client_user_id` isn't
-  assigned to the caller.
-
-## 2. Recommendation endpoint (extend `GET /recommendations/me` — Rubric Step 2)
-
-- **Auth:** unchanged (`require_role("user")` + professional-for-assigned-client).
-- **New query params:** `max_price: float | None` (hard budget cap, not just a soft
-  scoring signal — a top match over the cap is hard-flagged (`over_budget: true`,
-  never merely down-ranked in the ranking itself) and, when a real cheaper
-  same-category candidate exists, a second, flagged alternative entry is appended
-  alongside it. The over-budget product itself is never dropped from the response —
-  see `over_budget`/`alternative_for_product_id` below for the real behavior).
-- **Response** (`RecommendationRead`, extended):
-  ```json
-  {
-    "product": { "...": "ProductRead, unchanged (product.category carries the category)" },
-    "match_percentage": 94,
-    "reasons": ["Targets acne", "Oil-free formula matches oily skin type"],
-    "active_ingredient_tags": ["Salicylic Acid", "Niacinamide"],
-    "over_budget": false,
-    "alternative_for_product_id": null
-  }
-  ```
-  - No redundant top-level `category` — `product.category` already carries it.
-    "Categorized recommendations" (MILESTONE 3.pdf Step 2) means: the served list is
-    the top `_TOP_PER_CATEGORY` (= 1) ranked candidate per `product.category` across
-    the 7 rubric-literal categories (Face Wash, Moisturizer, Sunscreen, Serum, Toner,
-    Treatment Products, Face Masks) — i.e. one best match per category, not a flat
-    single global top-N that could all land in one category.
-  - `match_percentage`: `int` 0-100, rounded — replaces the raw `match_score: float`
-    (renamed field, same underlying weighted-scoring computation).
-  - `active_ingredient_tags`: the distinct `ingredients.category` values (Retinoids,
-    AHAs/BHAs, ...) found across the product's mapped ingredients — populated for
-    budget-cap alternative entries too (closed post-launch review, alongside the rest
-    of the alternative-scoring rework), not hardcoded `[]` for them anymore. Often
-    genuinely `[]` in practice, for main-path entries and alternatives alike, on real
-    ingested products whose ingredients never mapped to a curated `ingredients.category`
-    value — an honest data-coverage gap in the underlying ingredient catalog, not a bug
-    in this field.
-  - `over_budget` / `alternative_for_product_id`: when a top match exceeds
-    `max_price`, its entry gets `over_budget: true` — the product itself is never
-    dropped from the response, only flagged — and, if a real cheaper same-category,
-    allergy/avoid-gated-safe candidate exists, a second entry is appended with
-    `alternative_for_product_id` set to the over-budget product's id and
-    `over_budget: false`. No alternative is fabricated if none qualifies.
-  - Weights (Concern 50% / Skin-Type Fit 35% / Rating 15%) live in a new config-driven
-    PG row (pattern: `scoring_weights`, `CHECK` sum = 1.00) — never hardcoded literals.
-- **Errors:** unchanged from the existing endpoint.
-
-## 3. Progress check-ins + photo pipeline (extend `progress` service — Rubric Step 3)
-
-### 3a. Adherence (extend `ProgressSummaryRead` / analytics, see §4)
-
-Adherence windows computed: `7`, `30`, **and `30 -> 90`** (new). Same
-completed-steps-÷-assigned-steps formula, same day-boundary convention as
-`scores/service.py`'s existing fix — one implementation, not three.
-
-### 3b. Photo upload (extend `POST /progress/photos`)
-
-- **New request field:** `tag: str | None` (e.g. `"Baseline"`, `"Week 4"`) — if
-  omitted, server computes a default: first photo for the user auto-tags `"Baseline"`,
-  subsequent ones compute `"Week N"` from weeks-since-baseline. User-supplied value
-  always wins over the computed default.
-- **New PG column** on `progress_images`: `skin_health_score_at_upload: float | None`
-  — read from the scores service interface at upload time and frozen (never
-  recomputed later, even after the live score changes). Alembic migration + same-change
-  update to `database_schemas/skinlytics_postgresql_schema_v3.sql`.
-- **`ProgressPhotoRead` extended:**
-  ```json
-  {
-    "progress_image_id": 9,
-    "image_stage": "Baseline",
-    "uploaded_at": "2026-08-01T10:00:00Z",
-    "skin_health_score_at_upload": 74.5,
-    "url": "https://...presigned..."
-  }
-  ```
-
-## 4. Analytics endpoint (extend `GET /analytics/me` — Rubric Step 3)
-
-Merge photo links into the existing `score_vs_adherence` + `correlations` payload so
-one endpoint serves the rubric's literal "historical score timelines, compliance
-percentages, and progress photo links" together — P4/P5 charts consume only this
-endpoint, no client-side recomputation or a second fetch to `/progress/me/photos`.
-
-- **Response** (`AnalyticsMeRead`, extended):
-  ```json
-  {
-    "score_vs_adherence": [
-      { "date": "2026-07-01", "overall_score": 68, "adherence_ratio": 0.85 }
-    ],
-    "compliance": { "seven_day": 0.85, "thirty_day": 0.72, "ninety_day": 0.68 },
-    "photos": [
-      { "progress_image_id": 9, "image_stage": "Baseline", "uploaded_at": "...", "skin_health_score_at_upload": 74.5, "url": "..." }
-    ],
-    "correlations": [
-      { "label": "Routine adherence", "data_source": "routine_logs", "correlation": 0.62, "confidence": 0.38, "summary": "..." }
-    ]
-  }
-  ```
-  - `score_vs_adherence`: combines score timeline and adherence into one structure
-    (date, overall_score [None when no score computed yet], adherence_ratio [0-1 or
-    None when no routine assigned that day]).
-  - `compliance`: 7/30/90-day completed/assigned percentages (0-1), None fields when
-    nothing was ever assigned for that window.
-  - `photos`: merged ProgressPhotoRead entries (see §3b).
-  - `correlations`: array of computed correlations between score and other factors
-    (Pearson r computed over user's real history, r² = confidence "fraction of variance
-    explained", both None when insufficient data). Each item is advisory (`confidence`
-    field surfaces client-side).
-- **Auth:** unchanged (`require_role("user")` + assigned professionals via
-  `clinical_review`).
+- Auth: `Depends(require_role(...))` — never a re-implemented check.
+- Professional (consultant/dermatologist) access to another user's data: an optional
+  `client_user_id` query param + `clinical_review_service.verify_assignment(db, user["id"],
+  client_user_id)`, 422 if missing for a professional caller, 404 if not assigned — exact
+  pattern from `POST /ingredients/safety-score`.
+- Validation errors from the service layer: caught `ValueError` → `422`.
+- Response models are Pydantic schemas in the owning service's `schemas.py`, never raw
+  dicts.
+- All new routes mount under `/api/v1` via the owning service's existing router — no new
+  top-level router files except where noted.
 
 ---
 
-## Frontend consumption notes (P4/P5)
+## C1 — `POST /api/v1/ingredients/analyze-compatibility`
 
-- Dashboard chart library: **Chart.js or Plotly** per the session's recorded decision
-  (see `M3R_GAP_ANALYSIS.md` §Decisions) — implementation detail (which of the two, and
-  whether it replaces or sits alongside the existing Recharts trend chart) deferred to
-  P4 kickoff; prefer whichever avoids adding a net-new dependency once P4 checks
-  `web/package.json`.
-- `make openapi` must be re-run after each of P1/P2/P3 merges so P4/P5 build against
-  real generated types, not hand-typed guesses of this contract.
+**Owner decision:** superset over `safety-score`, which stays frozen (P1, G2).
+**File:** `backend/app/services/ingredients/router.py` (extends the existing router).
+
+```python
+class AnalyzeCompatibilityRequest(BaseModel):
+    # Exactly one of the two must be provided — service raises ValueError otherwise.
+    ingredient_ids: Annotated[list[int], Field(min_length=1, max_length=20)] | None = None
+    inci_text: str | None = None  # free-text INCI list, e.g. "Aqua, Glycerin, Retinol"
+    routine_time: Literal["AM", "PM"]
+
+class TokenizedIngredient(BaseModel):
+    raw_token: str
+    matched_ingredient_id: int | None  # null if no canonical match found
+    matched_ingredient_name: str | None
+    confidence: float
+
+class AnalyzeCompatibilityRead(BaseModel):
+    tokenized: list[TokenizedIngredient]        # only populated when inci_text was used
+    score: int                                   # identical composition to SafetyScoreRead
+    label: Literal["Safe", "Warning", "Unsafe"]
+    confidence: float
+    allergy_alerts: list[AllergyAlert]            # reused from ingredients/schemas.py
+    interaction_warnings: list[InteractionWarning]  # reused
+```
+
+`POST /ingredients/analyze-compatibility` — role `user, consultant, dermatologist` (same
+as `safety-score`), same `client_user_id` ownership pattern. 422 if neither
+`ingredient_ids` nor `inci_text` given, or both given.
+
+---
+
+## C3 — `POST /api/v1/progress/log-entry`
+
+**Owner decision (corrected 2026-08-12, see G7):** genuinely new — no existing endpoint
+covers daily completion + hydration + concerns. **File:**
+`backend/app/services/progress/router.py` (extends the existing router; do not create a
+new `services/log_entry/`).
+
+```python
+class LogEntryCreate(BaseModel):
+    date: datetime.date
+    completed_step_ids: list[int]   # subset of the day's assigned AM/PM routine steps
+    hydration_ml: Annotated[int, Field(ge=0, le=10000)]
+    concerns: list[str] = []        # free-text self-reported concerns, not concern_ids —
+                                     # the rubric's own wording is "self-reported concerns"
+
+class LogEntryRead(BaseModel):
+    date: datetime.date
+    completed_step_ids: list[int]
+    hydration_ml: int
+    concerns: list[str]
+    created_at: datetime.datetime
+```
+
+`POST /progress/log-entry` — role `user` only, own record (matches `/progress/me/*`'s
+existing role scoping). Reads `routine_logs` via the routines service's existing
+interface for the completion-flags half (never that collection directly — single-writer
+rule); persists hydration + concerns through a new write path in the progress service's
+own store. Compliance math (`services/progress/service.py`'s 7/30/90 functions) must
+read the same completion data whether it arrived via this endpoint or the existing
+routine-step-toggle path — one source of truth, not two.
+
+---
+
+## C2 — `POST /api/v1/products/recommend-routine-set`
+
+**File:** `backend/app/services/recommendations/products_router.py` (extends the
+existing router; `products_service.py` gets the new `recommend_routine_set()`).
+
+```python
+CATEGORIES: Final = ("Face Wash", "Serum", "Moisturizer", "Sunscreen", "Toner", "Face Masks")
+
+class RoutineSetRequest(BaseModel):
+    budget: Annotated[float, Field(gt=0)]
+    category_max: dict[str, float] | None = None  # optional per-category cap
+
+class RoutineSetItem(BaseModel):
+    category: str
+    product: ProductRead | None   # null only if truly no safe candidate exists in that category
+    price: float | None
+    match_percentage: int | None
+
+class RoutineSetRead(BaseModel):
+    items: list[RoutineSetItem]
+    total_spend: float
+    leftover: float
+    over_budget: bool
+    shortfall: float | None  # set only when the closest feasible set still exceeds budget
+```
+
+`POST /products/recommend-routine-set` — role `user` only (mirrors
+`GET /recommendations/me`'s scoping — this is the same suitability pipeline, budget-
+constrained). Every `product` in the response has already passed the same hard safety
+filter as `GET /recommendations/me` — no separate, weaker filter path.
+
+---
+
+## Product comparison — ALREADY REAL, no contract change
+
+(Not rubric-C4 — that number belongs to the `/dashboard/<role>` route-naming conflict,
+tracked separately in P5. Listed here only because it's the other read-only
+verification-only item alongside C1–C3.)
+
+`GET /products/compare?product_ids=1&product_ids=2` (`products_router.py:66`,
+`compare_products()` in `products_service.py:307`) already returns
+`ProductCompareRead { items: list[ProductCompareItem] }` with each item carrying
+`ingredient_names`, `skin_types_supported`, `concerns_supported`, and the full
+`ProductRead` (including `suitable`/`suitability_confidence` — the safety-gate status).
+P3 verifies this against the rubric's field list (price, rating, category, mapped
+actives, skin-type/concern fit — all present) and adds tests; **no schema change is
+contracted here.**
+
+---
+
+## Ownership / role matrix (all four new/changed surfaces)
+
+| Endpoint | `user` | `consultant`/`dermatologist` | `admin` |
+|---|---|---|---|
+| `POST /ingredients/analyze-compatibility` | own | assigned client only (`client_user_id`) | — |
+| `POST /progress/log-entry` | own | — | — |
+| `POST /products/recommend-routine-set` | own | — | — |
+| `GET /products/compare` (unchanged) | any (public catalog data) | any | any |
+
+## Error codes (unchanged conventions)
+
+- `422` — validation failure (bad payload shape, missing required field, ambiguous
+  `ingredient_ids`/`inci_text`, missing `client_user_id` for a professional caller).
+- `404` — target resource not found, or professional caller not assigned to
+  `client_user_id`.
+- `401`/`403` — handled by `require_role` itself, not per-endpoint code.
