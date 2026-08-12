@@ -180,7 +180,6 @@ const RAW_NAV: Record<Role, RawNavSection[]> = {
           subtitle: "Routine & habit reminders",
           path: "/reminders",
           icon: BellRing,
-          built: false,
         },
         {
           id: "settings",

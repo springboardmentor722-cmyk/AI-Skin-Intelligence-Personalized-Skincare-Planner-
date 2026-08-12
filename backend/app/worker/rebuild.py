@@ -48,9 +48,7 @@ _NAMESPACES = ("products", "ingredients", "knowledge_articles")
 _INGREDIENT_BATCH_SIZE = 64
 
 
-async def _embed_ingredients_batch(
-    db: AsyncSession, mongo: Any, ingredient_ids: list[int]
-) -> int:
+async def _embed_ingredients_batch(db: AsyncSession, mongo: Any, ingredient_ids: list[int]) -> int:
     model_name, dim = NAMESPACE_EMBEDDING_MODELS["ingredients"]
     # Builds each ingredient's document once and reuses it for both the ES write and
     # the embedding text/metadata below — calling project_to_elasticsearch here too
