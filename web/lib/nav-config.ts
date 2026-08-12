@@ -747,3 +747,25 @@ export const ROLE_HOME: Record<Role, string> = {
   dermatologist: "/dermatologist/dashboard",
   admin: "/admin/dashboard",
 };
+
+// Public, role-agnostic pages — never "owned" by any role even under `user`'s
+// catch-all below (a `?from=/login` or `?from=/signup` shouldn't be treated as a
+// legitimate post-sign-in destination for anyone).
+const PUBLIC_PATHS = ["/login", "/signup", "/forgot-password", "/reset-password"];
+
+// A path belongs to `role` if it falls under that role's own prefix (ROLE_PATH_PREFIX)
+// — for `user` (prefix "") that means "not under any OTHER role's prefix and not a
+// public page", since user routes are the bare, unprefixed ones. Compares only the
+// pathname portion (splitting off any `?query` or `#hash`) so a same-origin path that
+// carries its own query string, e.g. `/admin?x=1`, is matched by prefix correctly
+// instead of failing every `startsWith(prefix + "/")` check and falling through to
+// `user`'s catch-all.
+export function roleOwnsPath(role: Role, rawPath: string): boolean {
+  const path = rawPath.split(/[?#]/)[0];
+  if (PUBLIC_PATHS.includes(path)) return false;
+  const prefix = ROLE_PATH_PREFIX[role];
+  if (prefix !== "") return path === prefix || path.startsWith(`${prefix}/`);
+  return (Object.values(ROLE_PATH_PREFIX) as string[]).every(
+    (otherPrefix) => otherPrefix === "" || !(path === otherPrefix || path.startsWith(`${otherPrefix}/`))
+  );
+}

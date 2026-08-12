@@ -13,24 +13,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
 import { loginSchema, type LoginValues } from "@/lib/schemas/auth";
-import { ROLE_HOME, ROLE_PATH_PREFIX, type Role } from "@/lib/nav-config";
+import { ROLE_HOME, roleOwnsPath, type Role } from "@/lib/nav-config";
 import { useCurrentUser } from "@/lib/use-current-user";
 import { GoogleIcon } from "@/components/auth/google-icon";
 
 // web/designs/wireframes/login.html — the form panel is a solid "diagnostic module"
 // card, not glass (docs/DESIGN.md §3: glass is forbidden under forms — it frames data,
 // never backgrounds it). Only the left branding panel (AuthSplitLayout) is glass.
-// A path belongs to `role` if it falls under that role's own prefix (ROLE_PATH_PREFIX)
-// — for `user` (prefix "") that means "not under any OTHER role's prefix", since user
-// routes are the bare, unprefixed ones.
-function roleOwnsPath(role: Role, path: string): boolean {
-  const prefix = ROLE_PATH_PREFIX[role];
-  if (prefix !== "") return path === prefix || path.startsWith(`${prefix}/`);
-  return (Object.values(ROLE_PATH_PREFIX) as string[]).every(
-    (otherPrefix) => otherPrefix === "" || !(path === otherPrefix || path.startsWith(`${otherPrefix}/`))
-  );
-}
-
 // Only accept a same-origin relative path — `from` is attacker-controllable (a
 // hand-crafted /login?from=... link) — this guards against an open-redirect
 // (`//evil.com`, `https://evil.com`, etc.) rather than trusting the query param
@@ -90,7 +79,12 @@ function LoginForm() {
     if (isPending || checkedInitialSession.current) return;
     checkedInitialSession.current = true;
     if (role) {
-      // A hard navigation, not router.replace() — see onSubmit's comment below for why.
+      // Hard navigation (window.location), not router.replace() — the reproduced,
+      // confirmed race is on onSubmit's post-sign-in redirect below (its own comment
+      // has the full evidence); this path reads the exact same `role` from the exact
+      // same useCurrentUser() call inside the same component, so it's exposed to the
+      // identical hazard shape even though it wasn't independently reproduced here —
+      // matching mechanisms, not an unproven guess applied for its own sake.
       window.location.replace(safeRedirectTarget(searchParams.get("from"), role, ROLE_HOME[role]));
     }
   }, [isPending, role, searchParams]);
@@ -144,7 +138,7 @@ function LoginForm() {
     // dermatologist account landing there used to be rendered as a plain user).
     const signedInRole = data.user.role as Role;
     const fallback = ROLE_HOME[signedInRole] ?? "/dashboard";
-    // A hard navigation (window.location), not router.push — found live,
+    // A hard navigation (window.location.replace), not router.push — found live,
     // reproduced 5+ times via real sign-ins: App Router's client-side transition
     // renders the target route more than once before committing (same framework
     // behavior PROGRESS.md's 2026-07-15 assessment/results bug already hit), and
@@ -155,7 +149,10 @@ function LoginForm() {
     // is a real browser navigation, not a React transition, so it isn't subject
     // to that race at all — matches the fact that every hard/full navigation in
     // testing landed correctly on the first try, every client-side push did not.
-    window.location.href = safeRedirectTarget(searchParams.get("from"), signedInRole, fallback);
+    // `.replace`, not a plain href assignment, so a signed-in visitor pressing Back
+    // never lands on the login form they just submitted (matches the mount-effect's
+    // own `.replace` above).
+    window.location.replace(safeRedirectTarget(searchParams.get("from"), signedInRole, fallback));
   };
 
   if (isPending || role) {
