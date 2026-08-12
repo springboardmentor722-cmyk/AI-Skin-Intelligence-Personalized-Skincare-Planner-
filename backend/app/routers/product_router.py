@@ -2,17 +2,30 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from typing import Optional
+
 from app.database.database import get_db
 from app.models.product import Product
 from app.schemas.product_schema import ProductCreate
 
-router = APIRouter(prefix="/products", tags=["Products"])
+router = APIRouter(
+    prefix="/products",
+    tags=["Products"]
+)
 
+
+# ==========================================
+# ADD PRODUCT
+# ==========================================
 
 @router.post("/")
-def add_product(product: ProductCreate, db: Session = Depends(get_db)):
+def add_product(
+    product: ProductCreate,
+    db: Session = Depends(get_db)
+):
 
-    new_product = Product(**product.model_dump())
+    new_product = Product(
+        **product.model_dump()
+    )
 
     db.add(new_product)
     db.commit()
@@ -24,6 +37,10 @@ def add_product(product: ProductCreate, db: Session = Depends(get_db)):
     }
 
 
+# ==========================================
+# GET PRODUCTS
+# ==========================================
+
 @router.get("/")
 def get_products(
     search: Optional[str] = None,
@@ -34,19 +51,68 @@ def get_products(
 
     query = db.query(Product)
 
-    if search:
+    # -------------------------------
+    # SEARCH
+    # -------------------------------
+
+    if search and search.strip():
+
+        search_value = search.strip()
+
         query = query.filter(
-            or_(Product.product_name.ilike(f"%{search}%"), Product.brand.ilike(f"%{search}%"), Product.category.ilike(f"%{search}%"), Product.ingredients.ilike(f"%{search}%"))
+
+            or_(
+
+                Product.product_name.ilike(
+                    f"%{search_value}%"
+                ),
+
+                Product.brand.ilike(
+                    f"%{search_value}%"
+                ),
+
+                Product.category.ilike(
+                    f"%{search_value}%"
+                ),
+
+                Product.ingredients.ilike(
+                    f"%{search_value}%"
+                )
+
+            )
+
         )
 
-    if skin_type:
+    # -------------------------------
+    # SKIN TYPE
+    # -------------------------------
+
+    if skin_type and skin_type.strip():
+
         query = query.filter(
-            Product.skin_type == skin_type
+            Product.skin_type.ilike(
+                skin_type.strip()
+            )
         )
 
-    if category:
+    # -------------------------------
+    # CATEGORY
+    # -------------------------------
+
+    if category and category.strip():
+
         query = query.filter(
-            Product.category == category
+            Product.category.ilike(
+                category.strip()
+            )
         )
 
-    return query.order_by(Product.product_url.is_(None), Product.product_id).all()
+    # -------------------------------
+    # ORDER
+    # -------------------------------
+
+    query = query.order_by(
+        Product.product_id.asc()
+    )
+
+    return query.all()

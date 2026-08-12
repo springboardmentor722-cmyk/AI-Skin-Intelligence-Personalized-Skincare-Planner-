@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../services/api";
 import "../styles/register.css";
@@ -35,50 +35,93 @@ function Register() {
 
     const handleSubmit = async (e) => {
 
-        e.preventDefault();
+    e.preventDefault();
 
-        if (form.password !== confirmPassword) {
+    setMessage("");
+    setIsSuccess(false);
 
-            setIsSuccess(false);
-            setMessage("Passwords do not match");
-            return;
+    if (form.password !== confirmPassword) {
+        setMessage("Passwords do not match");
+        return;
+    }
 
-        }
+    const data = {
+        name: form.name.trim(),
+        email: form.email.trim(),
+        password: form.password,
+        role: form.role,
 
-        try {
+        qualification:
+            form.role === "CONSULTANT" || form.role === "DERMATOLOGIST"
+                ? form.qualification.trim()
+                : null,
 
-            const response = await api.post("/register", form);
+        experience:
+            form.role === "CONSULTANT" || form.role === "DERMATOLOGIST"
+                ? Number(form.experience)
+                : null,
 
-            setIsSuccess(true);
-            setMessage(response.data.message);
+        specialization:
+            form.role === "CONSULTANT" || form.role === "DERMATOLOGIST"
+                ? form.specialization.trim()
+                : null,
 
-            setTimeout(() => {
+        license_number:
+            form.role === "DERMATOLOGIST"
+                ? form.license_number.trim()
+                : null,
 
-                navigate("/");
-
-            }, 1500);
-
-        }
-
-        catch (error) {
-
-            setIsSuccess(false);
-
-            if (error.response) {
-
-                setMessage(error.response.data.detail);
-
-            }
-
-            else {
-
-                setMessage("Unable to connect to server");
-
-            }
-
-        }
-
+        organization:
+            form.role === "CONSULTANT" || form.role === "DERMATOLOGIST"
+                ? form.organization.trim()
+                : null
     };
+
+    try {
+
+        const response = await api.post("/register", data);
+
+        setIsSuccess(true);
+        setMessage(response.data.message);
+
+        setTimeout(() => {
+            navigate("/");
+        }, 1500);
+
+    } catch (error) {
+
+        console.error("Registration error:", error);
+
+        setIsSuccess(false);
+
+        if (error.response) {
+
+            console.log("Backend response:", error.response.data);
+
+            if (Array.isArray(error.response.data.detail)) {
+
+                setMessage(
+                    error.response.data.detail
+                        .map(item => item.msg)
+                        .join(", ")
+                );
+
+            } else {
+
+                setMessage(
+                    error.response.data.detail ||
+                    "Registration failed"
+                );
+
+            }
+
+        } else {
+
+            setMessage("Unable to connect to server");
+
+        }
+    }
+};
 
    return (
 
@@ -88,7 +131,7 @@ function Register() {
 
         <div className="left-content">
 
-            <h1>🌿 AI Skin Intelligence</h1>
+            <h1>ðŸŒ¿ Skin Intelligence</h1>
 
             <h3>Create Your Account</h3>
 

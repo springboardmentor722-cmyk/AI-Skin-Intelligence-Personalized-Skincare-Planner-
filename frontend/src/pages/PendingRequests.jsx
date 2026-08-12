@@ -192,6 +192,7 @@ function PendingRequests() {
                                             Open Case
 
                                         </button>}
+                                        {role === "CONSULTANT" && <button className="btn btn-primary btn-sm me-2" onClick={() => navigate(`/consultant/case/${request.id}`)}>Open Case</button>}
 
                                         <button
 

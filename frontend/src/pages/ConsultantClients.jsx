@@ -1,0 +1,11 @@
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import DashboardLayout from "../layouts/DashboardLayout";
+import api from "../services/api";
+
+export default function ConsultantClients() {
+  const [data, setData] = useState(null); const [search, setSearch] = useState(""); const [error, setError] = useState(""); const navigate = useNavigate();
+  useEffect(() => { api.get("/consultations/consultant/dashboard").then((response) => setData(response.data)).catch((err) => setError(err.response?.data?.detail || "Unable to load consultant clients.")); }, []);
+  const clients = useMemo(() => (data?.clients || []).filter((client) => `${client.name} ${client.email}`.toLowerCase().includes(search.toLowerCase())), [data, search]);
+  return <DashboardLayout><div className="container py-4"><h2>Consultant Dashboard</h2>{error && <div className="alert alert-danger">{error}</div>}{!data && !error && <p>Loading clients...</p>}{data && <><div className="row my-4">{[["Assigned Users",data.total_assigned_users],["Pending",data.pending_requests],["Completed",data.completed_reviews],["Dermatologist Review",data.dermatologist_recommended]].map(([label,value]) => <div className="col-md-3 mb-3" key={label}><div className="card shadow-sm p-3"><small>{label}</small><h3>{value}</h3></div></div>)}</div><input className="form-control mb-3" placeholder="Search clients by name or email" value={search} onChange={(event) => setSearch(event.target.value)} /><div className="table-responsive"><table className="table align-middle"><thead><tr><th>Client</th><th>Skin Type</th><th>Concerns</th><th>AI Score</th><th>Assessment</th><th>Status</th><th /></tr></thead><tbody>{clients.map((client) => <tr key={client.consultation_id}><td><strong>{client.name}</strong><br /><small>{client.email}</small></td><td>{client.skin_type || "—"}</td><td>{client.skin_concerns || "—"}</td><td>{client.skin_score ?? "—"}</td><td>{client.assessment_date || "—"}</td><td>{client.status}</td><td><button className="btn btn-primary btn-sm" onClick={() => navigate(`/consultant/case/${client.consultation_id}`)}>Open Case</button></td></tr>)}</tbody></table></div></>}</div></DashboardLayout>;
+}

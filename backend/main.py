@@ -12,6 +12,9 @@ from app.models.product import Product
 from app.models.ingredient import Ingredient
 from app.models.progress import Progress
 from app.models.consultation import Consultation
+from app.models.report import Report
+from app.models.skin_assessment import SkinAssessment
+from app.models.notification import Notification
 
 # Import routers
 from app.routers.user_router import router as user_router
@@ -22,12 +25,16 @@ from app.routers.ingredient_router import router as ingredient_router
 from app.routers.progress_router import router as progress_router
 from app.routers.dashboard_router import router as dashboard_router
 from app.routers.consultation_router import router as consultation_router
+from app.routers.report_router import router as report_router
+from app.routers.ai_router import router as ai_router
+from app.routers.skin_assessment_router import router as skin_assessment_router
+from app.routers.notification_router import router as notification_router
 
 # Create tables
 Base.metadata.create_all(bind=engine)
 
 # Create FastAPI app
-app = FastAPI(title="AI Skin Intelligence")
+app = FastAPI(title="Skin Intelligence")
 os.makedirs("uploads/skin_images", exist_ok=True)
 
 app.mount(
@@ -54,7 +61,11 @@ app.include_router(ingredient_router)
 app.include_router(progress_router)
 app.include_router(dashboard_router)
 app.include_router(consultation_router)
+app.include_router(report_router)
+app.include_router(ai_router)
+app.include_router(skin_assessment_router)
+app.include_router(notification_router)
 # Home API
 @app.get("/")
 def home():
-    return {"message": "AI Skin Intelligence API is Running"}
+    return {"message": "Skin Intelligence API is Running"}

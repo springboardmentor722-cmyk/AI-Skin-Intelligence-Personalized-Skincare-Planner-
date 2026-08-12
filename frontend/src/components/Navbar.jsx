@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+﻿import { useNavigate } from "react-router-dom";
 import {
     FaBell,
     FaSearch,
@@ -46,7 +46,7 @@ function Navbar() {
 
                 <p>
 
-                    AI Powered Personalized Skincare Platform
+                    Personalized Skincare Platform
 
                 </p>
 

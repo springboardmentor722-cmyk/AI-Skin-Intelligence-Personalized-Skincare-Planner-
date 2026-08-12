@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from app.utils.auth import role_required
+from app.models.consultation import Consultation
+from app.models.skin_profile import SkinProfile
+from app.models.lifestyle import Lifestyle
+from app.models.progress import Progress
 from app.database.database import get_db
 from app.models.user import User
 from app.schemas.user_schema import UserCreate
@@ -11,7 +13,8 @@ from app.utils.auth import role_required, get_current_user
 from app.schemas.user_update_schema import UserUpdate
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from app.services.notification_service import create_notification
+
 
 router = APIRouter()
 
@@ -32,6 +35,11 @@ def register(user: UserCreate, db: Session =Depends(get_db)):
             status_code=403,
             detail="Administrator accounts cannot be created through registration."
         )
+    if user.role == "CONSULTANT" and db.query(User).filter(User.role == "CONSULTANT").first():
+        raise HTTPException(
+            status_code=409,
+            detail="A system consultant already exists. Only one consultant account is allowed."
+        )
     # Hash password
     hashed_password = hash_password(user.password)
     # Set verification status based on role
@@ -39,7 +47,6 @@ def register(user: UserCreate, db: Session =Depends(get_db)):
 
     if user.role in ["CONSULTANT", "DERMATOLOGIST"]:
         verification_status = "Pending"
-    print("Verification Status:", verification_status)
     # Create user
     new_user = User(
 
@@ -66,6 +73,10 @@ def register(user: UserCreate, db: Session =Depends(get_db)):
 )
 
     db.add(new_user)
+    db.flush()
+    if verification_status == "Pending":
+        for admin in db.query(User).filter(User.role == "ADMIN").all():
+            create_notification(db, admin.id, "New Expert Registration", "A new consultant/dermatologist registration is waiting for approval.", "expert_registration")
     db.commit()
     db.refresh(new_user)
 
@@ -184,17 +195,94 @@ def delete_user(
     current_user=Depends(role_required(["ADMIN"]))
 ):
 
-    user = db.query(User).filter(User.id == user_id).first()
+    # Find the user
+    user = db.query(User).filter(
+        User.id == user_id
+    ).first()
 
     if user is None:
-        return {"message": "User not found"}
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
 
-    db.delete(user)
-    db.commit()
+    # Prevent admin from deleting their own account
+    if user.id == current_user.id:
+        raise HTTPException(
+            status_code=400,
+            detail="You cannot delete your own administrator account."
+        )
 
-    return {
-        "message": "User Deleted Successfully"
-    }
+    try:
+
+        # -----------------------------------------
+        # 1. Delete consultations involving user
+        # -----------------------------------------
+
+        db.query(Consultation).filter(
+            Consultation.expert_id == user_id
+        ).delete(
+            synchronize_session=False
+        )
+
+        db.query(Consultation).filter(
+            Consultation.user_id == user_id
+        ).delete(
+            synchronize_session=False
+        )
+
+        # -----------------------------------------
+        # 2. Delete skin profile
+        # -----------------------------------------
+
+        db.query(SkinProfile).filter(
+            SkinProfile.user_id == user_id
+        ).delete(
+            synchronize_session=False
+        )
+
+        # -----------------------------------------
+        # 3. Delete lifestyle
+        # -----------------------------------------
+
+        db.query(Lifestyle).filter(
+            Lifestyle.user_id == user_id
+        ).delete(
+            synchronize_session=False
+        )
+
+        # -----------------------------------------
+        # 4. Delete progress
+        # -----------------------------------------
+
+        db.query(Progress).filter(
+            Progress.user_id == user_id
+        ).delete(
+            synchronize_session=False
+        )
+
+        # -----------------------------------------
+        # 5. Delete the user
+        # -----------------------------------------
+
+        db.delete(user)
+
+        db.commit()
+
+        return {
+            "message": "User Deleted Successfully"
+        }
+
+    except Exception as e:
+
+        db.rollback()
+
+        print("DELETE USER ERROR:", str(e))
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unable to delete user: {str(e)}"
+        )
 @router.get("/pending-users")
 def get_pending_users(
     db: Session = Depends(get_db),

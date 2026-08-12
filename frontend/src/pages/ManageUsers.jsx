@@ -20,14 +20,31 @@ function ManageUsers() {
         }
     };
 
-    const deleteUser = async (id) => {
+const deleteUser = async (id) => {
 
-        if (!window.confirm("Delete this user?")) return;
+    if (!window.confirm("Are you sure you want to delete this user?")) {
+        return;
+    }
+
+    try {
 
         await api.delete(`/users/${id}`);
 
-        loadUsers();
-    };
+        alert("User deleted successfully.");
+
+        await loadUsers();
+
+    } catch (error) {
+
+        console.error("Delete user error:", error);
+
+        const detail =
+            error.response?.data?.detail ||
+            "Unable to delete user.";
+
+        alert(detail);
+    }
+};
 
     const filteredUsers = users.filter(user =>
         user.name.toLowerCase().includes(search.toLowerCase()) ||

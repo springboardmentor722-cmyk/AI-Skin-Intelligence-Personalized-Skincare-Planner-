@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from "react-router-dom";
+﻿import { NavLink, useNavigate } from "react-router-dom";
 import {
     FaHome,
     FaUser,
@@ -39,10 +39,10 @@ return (
             <div className="sidebar-logo">
 
                 <div className="logo-circle">
-                    🌸
+                    ðŸŒ¸
                 </div>
 
-                <h3>AI Skin Intelligence</h3>
+                <h3>Skin Intelligence</h3>
 
                 <p>
                     Welcome,
@@ -94,12 +94,17 @@ return (
 
                     <NavLink to="/consult-experts" className="menu-item">
                         <FaUserMd />
-                        <span>Consult Experts</span>
+                        <span>Consultations</span>
                     </NavLink>
 
                     <NavLink to="/my-consultation" className="menu-item">
                         <FaUserCheck />
                         <span>My Consultation</span>
+                    </NavLink>
+
+                    <NavLink to="/reports" className="menu-item">
+                        <FaUserCheck />
+                        <span>Reports</span>
                     </NavLink>
 
                 </>
@@ -135,6 +140,11 @@ return (
                         <span>Consultation Requests</span>
                     </NavLink>
 
+                    <NavLink to="/consultant/clients" className="menu-item">
+                        <FaUsers />
+                        <span>Clients</span>
+                    </NavLink>
+
                 </>
             )}
 
@@ -166,6 +176,11 @@ return (
                     <NavLink to="/pending-requests" className="menu-item">
                         <FaUserCheck />
                         <span>Consultation Requests</span>
+                    </NavLink>
+
+                    <NavLink to="/reports" className="menu-item">
+                        <FaUserCheck />
+                        <span>Reports</span>
                     </NavLink>
 
                 </>
@@ -220,3 +235,4 @@ return (
 }
 
 export default Sidebar;
+

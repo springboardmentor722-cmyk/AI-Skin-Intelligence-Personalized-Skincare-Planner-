@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
 import api from "../services/api";
+import { useNavigate } from "react-router-dom";
 
 function MyConsultation() {
 
     const [consultation, setConsultation] = useState(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         loadConsultation();
@@ -170,6 +172,11 @@ function MyConsultation() {
                         )
 
                     }
+
+                    {consultation.progress_observations && <><h4 className="mt-4">Progress Observations</h4><p style={{ whiteSpace: "pre-line" }}>{consultation.progress_observations}</p></>}
+                    {consultation.routine_suggestions && <><h4>Routine Suggestions</h4><p style={{ whiteSpace: "pre-line" }}>{consultation.routine_suggestions}</p></>}
+                    {consultation.follow_up_suggestion && <><h4>Follow-up</h4><p style={{ whiteSpace: "pre-line" }}>{consultation.follow_up_suggestion}</p></>}
+                    {consultation.requires_dermatologist && <div className="alert alert-info mt-4"><strong>Your consultant recommends a dermatologist review.</strong><br/><button className="btn btn-primary mt-2" onClick={() => navigate("/consult-experts")}>Approach Dermatologist</button></div>}
 
                 </div>
 

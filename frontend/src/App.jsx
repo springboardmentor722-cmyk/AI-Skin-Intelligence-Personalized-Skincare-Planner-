@@ -19,6 +19,9 @@ import PendingRequests from "./pages/PendingRequests";
 import CaseDetails from "./pages/CaseDetails";
 import MyConsultation from "./pages/MyConsultation";
 import Landing from "./pages/Landing";
+import Reports from "./pages/Reports";
+import ConsultantClients from "./pages/ConsultantClients";
+import ConsultantCase from "./pages/ConsultantCase";
 function App() {
 
   return (
@@ -90,6 +93,7 @@ function App() {
     element={<PendingUsers />}
 />
 <Route path="/profile" element={<Profile />} />
+<Route path="/reports" element={<ProtectedRoute allowedRoles={["USER", "DERMATOLOGIST"]}><Reports /></ProtectedRoute>} />
 <Route
     path="/consult-experts"
     element={
@@ -114,6 +118,8 @@ function App() {
         </ProtectedRoute>
     }
 />
+<Route path="/consultant/clients" element={<ProtectedRoute allowedRoles={["CONSULTANT"]}><ConsultantClients /></ProtectedRoute>} />
+<Route path="/consultant/case/:id" element={<ProtectedRoute allowedRoles={["CONSULTANT"]}><ConsultantCase /></ProtectedRoute>} />
 <Route
     path="/my-consultation"
     element={

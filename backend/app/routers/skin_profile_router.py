@@ -40,7 +40,7 @@ def create_profile(age: int = Form(...), gender: str = Form(...), skin_type: str
     existing = db.query(SkinProfile).filter(SkinProfile.user_id == current_user.id).first()
     if existing:
         return {"message": "Profile already exists"}
-    profile = SkinProfile(user_id=current_user.id, age=age, gender=gender, skin_type=skin_type, skin_concerns=skin_concerns, allergies=allergies, sensitivities=sensitivities, skin_image=save_image(current_user.id, skin_image), skin_score=87, ai_skin_type="Combination Skin", acne_level="Mild", pigmentation="Moderate", hydration="Good", oiliness="Medium", dark_circles="Low", recommendations="Use Salicylic Acid Face Wash\nVitamin C Serum\nNiacinamide Serum\nSPF 50 Sunscreen\nDrink 3 Litres Water\nSleep 8 Hours")
+    profile = SkinProfile(user_id=current_user.id, age=age, gender=gender, skin_type=skin_type, skin_concerns=skin_concerns, allergies=allergies, sensitivities=sensitivities, skin_image=save_image(current_user.id, skin_image))
     db.add(profile); db.flush(); upsert_today_progress(db, profile, "Skin profile assessment"); db.commit(); db.refresh(profile)
     return {"message": "Profile Created Successfully", "profile": profile}
 
@@ -60,3 +60,4 @@ def update_profile(age: int = Form(...), gender: str = Form(...), skin_type: str
     upsert_today_progress(db, profile, "Skin profile assessment updated")
     db.commit(); db.refresh(profile)
     return {"message": "Profile Updated Successfully", "profile": profile}
+

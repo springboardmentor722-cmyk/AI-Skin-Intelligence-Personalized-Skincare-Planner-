@@ -1,4 +1,4 @@
-function About() {
+﻿function About() {
   return (
     <section className="about-section" id="about">
 
@@ -15,7 +15,7 @@ function About() {
         <div className="about-text">
 
           <p>
-            AI Skin Intelligence is an intelligent skincare platform that
+            Skin Intelligence is an intelligent skincare platform that
             combines artificial intelligence with dermatology to help users
             understand their skin better.
           </p>

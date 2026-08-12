@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../services/api";
 import "../styles/login.css";
@@ -94,7 +94,7 @@ navigate("/dashboard");
 
 <div>
 
-<h1>🌿 AI Skin Intelligence</h1>
+<h1>ðŸŒ¿ Skin Intelligence</h1>
 
 <p>
 

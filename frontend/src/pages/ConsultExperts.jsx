@@ -78,7 +78,18 @@ function ConsultExperts() {
 
     };
 
+    const requestConsultant = async () => {
+        try {
+            const response = await api.post("/consultations/request", {});
+            setMessage(response.data.message);
+        } catch (err) {
+            setMessage(err.response?.data?.detail || "Unable to send your consultant request.");
+        }
+    };
+
     const filteredExperts = experts.filter((expert) => {
+
+        if (expert.role !== "DERMATOLOGIST") return false;
 
         const matchesSearch =
             expert.name.toLowerCase().includes(search.toLowerCase());
@@ -100,7 +111,7 @@ function ConsultExperts() {
 
                 <p>
 
-                    Choose a verified consultant or dermatologist.
+                    Contact the common skincare consultant, or request a dermatologist.
 
                 </p>
 
@@ -115,6 +126,18 @@ function ConsultExperts() {
 
                 </div>
             }
+
+            <div className="expert-card mb-4">
+                <div className="expert-top">
+                    <FaUserMd className="expert-icon" />
+                    <div>
+                        <h4>Skin Intelligence Consultant</h4>
+                        <span className="badge bg-primary">COMMON CONSULTANT</span>
+                    </div>
+                </div>
+                <p className="mt-3 mb-3">All users are connected to the same skincare consultant.</p>
+                <button className="btn btn-primary" onClick={requestConsultant}>Request Consultant Guidance</button>
+            </div>
 
             <div className="row mb-4">
 
@@ -162,12 +185,6 @@ function ConsultExperts() {
 
                         </option>
 
-                        <option value="CONSULTANT">
-
-                            Consultant
-
-                        </option>
-
                         <option value="DERMATOLOGIST">
 
                             Dermatologist
@@ -181,6 +198,8 @@ function ConsultExperts() {
             </div>
 
             <div className="row">
+
+                {filteredExperts.length === 0 && <p className="text-muted">No verified dermatologists are available right now.</p>}
 
                 {
 

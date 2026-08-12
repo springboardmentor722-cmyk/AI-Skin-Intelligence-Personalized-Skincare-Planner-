@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 
 import "../styles/hero.css";
 
@@ -12,7 +12,7 @@ function Hero() {
 
                 <h1>
 
-                    AI Skin Intelligence
+                    Skin Intelligence
 
                 </h1>
 

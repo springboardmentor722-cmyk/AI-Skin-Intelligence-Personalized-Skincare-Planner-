@@ -1,4 +1,4 @@
-import { FaSpa } from "react-icons/fa";
+﻿import { FaSpa } from "react-icons/fa";
 
 function Footer() {
   return (
@@ -6,7 +6,7 @@ function Footer() {
       <div className="footer-logo">
         <FaSpa />
 
-        <h3>AI Skin Intelligence</h3>
+        <h3>Skin Intelligence</h3>
       </div>
 
       <p>
@@ -14,7 +14,7 @@ function Footer() {
       </p>
 
       <span>
-        © 2026 AI Skin Intelligence. All Rights Reserved.
+        Â© 2026 Skin Intelligence. All Rights Reserved.
       </span>
     </footer>
   );
