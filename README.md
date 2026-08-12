@@ -13,6 +13,4 @@ AI-powered skincare intelligence platform using React, FastAPI, Computer Vision,
 - OpenCV
 
 ## 🎥 Project Demo
-
-<video src="./docs/project_status.mp4" controls width="800">
-</video>
+[▶️ Watch Project Demo](https://drive.google.com/file/d/181OGbg_5sGqSh5TYPP29m2n13e477iMx/view?usp=drive_link)
