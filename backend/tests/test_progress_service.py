@@ -498,3 +498,11 @@ async def test_score_band_milestone_does_not_fire_within_the_same_band() -> None
     ]
 
     assert _detect_score_band_milestones(points) == []
+
+
+async def test_get_todays_new_streak_milestone_is_none_with_no_history(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    from app.services.progress.service import get_todays_new_streak_milestone
+
+    assert await get_todays_new_streak_milestone(db_session, test_user_id) is None

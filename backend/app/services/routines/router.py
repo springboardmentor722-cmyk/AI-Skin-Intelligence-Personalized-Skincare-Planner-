@@ -5,6 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import require_role
 from app.db.postgres import get_db
+from app.services.notifications.service import create_notification
+from app.services.progress.service import get_todays_new_streak_milestone
 from app.services.recommendations.schemas import ProductRead
 from app.services.routines import service
 from app.services.routines.schemas import (
@@ -48,10 +50,21 @@ async def log_step_completion(
     step_id: int,
     body: StepCompletionUpdate,
     user: Annotated[dict[str, Any], Depends(require_role("user"))],
+    db: Annotated[AsyncSession, Depends(get_db)],
 ) -> None:
     # Milestone 2 Step 5.2: an interactive checklist checkbox POSTs here on toggle,
     # persisting into Mongo routine_logs (service.py) instead of resetting on reload.
     await service.toggle_step_completion(user["id"], step_id, body.completed)
+    if body.completed:
+        milestone = await get_todays_new_streak_milestone(db, user["id"])
+        if milestone is not None:
+            await create_notification(
+                db,
+                user["id"],
+                title="Streak milestone!",
+                message=milestone.label,
+                notification_type="streak",
+            )
 
 
 @router.get("/routines/products/search")

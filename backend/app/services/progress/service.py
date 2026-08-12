@@ -380,3 +380,19 @@ async def get_progress_summary(
     return ProgressSummaryRead(
         points=points, adherence=adherence, insight=insight, milestones=milestones
     )
+
+
+async def get_todays_new_streak_milestone(db: AsyncSession, user_id: str) -> Milestone | None:
+    """Public wrapper around the existing `_detect_streak_milestones` — reuses the
+    same pure detection logic the Insights screen already computes, just checks
+    whether *today* is the achieved_on date of a fresh crossing. Called from the
+    routines router right after a step toggle (routines/router.py), not from here —
+    this service doesn't know about notifications (service-boundary rule,
+    AGENTS.md §2 point 4)."""
+    adherence = await get_adherence_series(db, user_id, days=30)
+    milestones = _detect_streak_milestones(adherence)
+    today = datetime.datetime.now(datetime.UTC).date()
+    for milestone in milestones:
+        if milestone.achieved_on == today:
+            return milestone
+    return None
