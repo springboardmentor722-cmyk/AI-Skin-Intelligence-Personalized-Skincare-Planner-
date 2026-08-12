@@ -69,6 +69,30 @@ async def test_list_my_notifications_returns_only_the_caller_s_own_rows(
     assert rows[0].is_read is False
 
 
+async def test_create_notification_persists_a_real_row(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    from app.services.notifications.service import create_notification
+
+    created = await create_notification(
+        db_session,
+        test_user_id,
+        title="Evening routine reminder",
+        message="Time for your PM routine",
+        notification_type="reminder",
+    )
+    await db_session.flush()
+
+    assert created.notification_id is not None
+    assert created.user_id == test_user_id
+    assert created.title == "Evening routine reminder"
+    assert created.is_read is False
+
+    rows = await list_my_notifications(db_session, test_user_id)
+    assert len(rows) == 1
+    assert rows[0].notification_id == created.notification_id
+
+
 async def test_notifications_endpoint_requires_auth(client: AsyncClient) -> None:
     response = await client.get("/api/v1/notifications/me")
     assert response.status_code in (401, 403)

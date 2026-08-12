@@ -14,3 +14,14 @@ async def list_my_notifications(
         .limit(limit)
     )
     return list(result.scalars().all())
+
+
+async def create_notification(
+    db: AsyncSession, user_id: str, *, title: str, message: str, notification_type: str
+) -> Notification:
+    notification = Notification(
+        user_id=user_id, title=title, message=message, notification_type=notification_type
+    )
+    db.add(notification)
+    await db.flush()
+    return notification
