@@ -24,6 +24,7 @@ from app.worker.consumers.embeddings import embed_and_upsert
 from app.worker.consumers.es_projection import (
     INDEX_MAPPINGS,
     build_ingredient_document,
+    ensure_indices,
     project_to_elasticsearch,
 )
 
@@ -51,14 +52,27 @@ async def _embed_ingredients_batch(
     db: AsyncSession, mongo: Any, ingredient_ids: list[int]
 ) -> int:
     model_name, dim = NAMESPACE_EMBEDDING_MODELS["ingredients"]
+    # Builds each ingredient's document once and reuses it for both the ES write and
+    # the embedding text/metadata below — calling project_to_elasticsearch here too
+    # would build_ingredient_document() a second time per ingredient (2 SELECTs
+    # instead of 1), the exact per-item DB round-trip this batching was written to
+    # cut down on. ensure_indices() (cheap HEAD checks) still runs, matching
+    # project_to_elasticsearch's own per-write guarantee that ingredients_index
+    # exists with the documented mapping before anything is indexed into it.
+    es = get_elasticsearch()
+    await ensure_indices()
     processed = 0
     for start in range(0, len(ingredient_ids), _INGREDIENT_BATCH_SIZE):
         batch_ids = ingredient_ids[start : start + _INGREDIENT_BATCH_SIZE]
         docs: list[tuple[int, dict[str, Any]]] = []
         for ingredient_id in batch_ids:
-            await project_to_elasticsearch(db, mongo, "ingredient", str(ingredient_id))
             doc = await build_ingredient_document(db, ingredient_id)
-            if doc is not None:
+            if doc is None:
+                await es.options(ignore_status=404).delete(
+                    index="ingredients_index", id=str(ingredient_id)
+                )
+            else:
+                await es.index(index="ingredients_index", id=str(ingredient_id), document=doc)
                 docs.append((ingredient_id, doc))
             processed += 1
 
@@ -81,6 +95,14 @@ async def _embed_ingredients_batch(
             )
             for (ingredient_id, doc), embedding in zip(docs, embeddings, strict=True)
         ]
+        # ponytail: this embed+FAISS write is atomic per-batch, not per-item — a
+        # failure partway through (e.g. batch 200 of ~252) leaves up to
+        # _INGREDIENT_BATCH_SIZE ingredients with a fresh ES doc but no FAISS vector
+        # yet, vs. the old per-item path's 1-item window. rebuild_all() is already
+        # documented as idempotent and meant to be rerun (module docstring), so this
+        # self-heals on the next run; upgrade path if that's ever not good enough:
+        # catch/log per-batch and continue instead of letting the exception
+        # propagate out of rebuild_all() entirely.
         await vector.bulk_upsert("ingredients", items, dim=dim)
     return processed
 
