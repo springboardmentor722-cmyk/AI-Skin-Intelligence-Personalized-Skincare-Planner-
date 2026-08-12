@@ -15,7 +15,7 @@
 | M3-P0-T4 | DONE | C1/C4/C5/C6 decided via AskUserQuestion (all defaults); C7/C8 decided (all defaults); C1-C3 decisions recorded in `M3R_API_CONTRACT.md`; owner additionally reopened ADR-033 → ADR-047 (biometric consent) + ADR-048 (Sephora CF), P8/P9 added |
 | M3-P0-T5 | DONE | `M3R_API_CONTRACT.md` written — C1/C2/C3 new-endpoint shapes, C4 (compare) confirmed no-change |
 | M3-P0-T6 | DONE | this file |
-| M3-P0-T7 | TODO | merge `feat/m3-p0-rebaseline` → `dev` after `/code-review` |
+| M3-P0-T7 | DONE | `/code-review` ran, 4 doc-consistency findings fixed (C2/C3 swap, dangling `M3R_GAP_ANALYSIS.md`/`build/p4-p5` refs, flagged pre-existing ADR-045/046 gap); merged to `dev`. Backend pytest: 610 passed / 4 pre-existing failures (unrelated, zero backend diff on this branch) / 2 full-catalog rebuild tests deselected (~24k rows, no batching, multi-hour runtime — pre-existing perf issue, not this branch's) |
 
 ## P1 — INCI parsing + `analyze-compatibility` (branch `feat/m3-p1-inci-compatibility`)
 
