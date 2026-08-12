@@ -57,7 +57,7 @@ as `safety-score`), same `client_user_id` ownership pattern. 422 if neither
 
 ---
 
-## C2 — `POST /api/v1/progress/log-entry`
+## C3 — `POST /api/v1/progress/log-entry`
 
 **Owner decision (corrected 2026-08-12, see G7):** genuinely new — no existing endpoint
 covers daily completion + hydration + concerns. **File:**
@@ -90,7 +90,7 @@ routine-step-toggle path — one source of truth, not two.
 
 ---
 
-## C3 — `POST /api/v1/products/recommend-routine-set`
+## C2 — `POST /api/v1/products/recommend-routine-set`
 
 **File:** `backend/app/services/recommendations/products_router.py` (extends the
 existing router; `products_service.py` gets the new `recommend_routine_set()`).
@@ -123,7 +123,11 @@ filter as `GET /recommendations/me` — no separate, weaker filter path.
 
 ---
 
-## C4 — Product comparison — ALREADY REAL, no contract change
+## Product comparison — ALREADY REAL, no contract change
+
+(Not rubric-C4 — that number belongs to the `/dashboard/<role>` route-naming conflict,
+tracked separately in P5. Listed here only because it's the other read-only
+verification-only item alongside C1–C3.)
 
 `GET /products/compare?product_ids=1&product_ids=2` (`products_router.py:66`,
 `compare_products()` in `products_service.py:307`) already returns

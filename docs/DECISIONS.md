@@ -1460,7 +1460,8 @@ shape. Forcing a second, structurally different series (score + adherence, dual-
 meant either breaking those 5 consumers' shape or building an awkward second mode inside
 one file.
 **Decision:** Owner-confirmed (recorded in `M3R_GAP_ANALYSIS.md` "Decisions already
-recorded this session") to add Chart.js (`chart.js` + `react-chartjs-2`, already a
+recorded this session" — file deleted in the M3-P0 rebaseline, `2cfb6cb`; retrieve with
+`git show 2cfb6cb^:docs/milestones/milestone_3/M3R_GAP_ANALYSIS.md`) to add Chart.js (`chart.js` + `react-chartjs-2`, already a
 `web/package.json` dependency from a prior session's `6026db6` commit) as a second,
 narrowly-scoped charting library for exactly this one new component,
 `web/components/charts/score-adherence-chart.tsx`, fed only by `GET /analytics/me`.
@@ -1478,7 +1479,9 @@ Chart.js again, not a free choice between the two.
 content-type sniffing, EXIF stripping, private-bucket + short-lived presigned URLs
 only) against MinIO in dev, per `AGENTS.md` §5's existing "drop-in real AWS S3 in prod
 via env vars only, no code change" design.
-**Decision:** Owner-confirmed (recorded in `M3R_GAP_ANALYSIS.md` §6 item 2) that the
+**Decision:** Owner-confirmed (recorded in `M3R_GAP_ANALYSIS.md` §6 item 2 — file
+deleted in the M3-P0 rebaseline, `2cfb6cb`; retrieve with
+`git show 2cfb6cb^:docs/milestones/milestone_3/M3R_GAP_ANALYSIS.md`) that the
 existing MinIO adapter satisfies the requirement as-is — no live AWS/Azure bucket is
 needed to pass this milestone. The env-var-swap story (same adapter, different
 endpoint/credentials env vars) is the proof, not a new integration.
@@ -1493,8 +1496,9 @@ own standing-precedent note) established that an external rubric's literal names
 over internal architecture judgment when the two genuinely conflict — that's why M2
 renamed tables/endpoints to `skin_assessments`/`skincare_routines` and
 `/api/v1/assessment/*`/`/api/v1/routine/*`. Milestone 3's gap analysis
-(`M3R_GAP_ANALYSIS.md`, closing note before "Decisions already recorded this session")
-explicitly checked for the same class of conflict and found none: the Step 1 Safety
+(`M3R_GAP_ANALYSIS.md`, closing note before "Decisions already recorded this session" —
+file deleted in the M3-P0 rebaseline, `2cfb6cb`; retrieve with
+`git show 2cfb6cb^:docs/milestones/milestone_3/M3R_GAP_ANALYSIS.md`) explicitly checked for the same class of conflict and found none: the Step 1 Safety
 Score endpoint and Step 2-4 gaps identified this pass were genuinely new-build or
 rework items, not cases of existing code already doing the same thing under a
 different name.
@@ -1817,6 +1821,15 @@ conventions (comma-joined co-brands, casing) than this catalog, and exact-match
 discipline means it simply doesn't overlap here, not that the code is broken.
 Further growth needs either a better-aligned dataset or a live retailer image API —
 still explicitly out of scope, still not filled by scraping or fabrication.
+
+> **Numbering gap, flagged not filled:** ADR-045/046 were never written on any branch —
+> `AGENTS.md`'s admin/ingest section cites "Category A/B, ADR-045 gate" but no such ADR
+> exists in this file's history. Found during the M3-P0 code review (`2026-08-12`) while
+> adding ADR-047/048 immediately after ADR-044. Left as a gap rather than silently
+> renumbering 047/048 down to 045/046 — both are already cross-referenced by that number
+> in `M3R_TASK_LEDGER.md` and this session's commits. Filling 045/046 (or retiring the
+> `AGENTS.md` citation) is real work for whoever next touches the enrichment-provider
+> framework, not something to guess at here.
 
 ## ADR-047 — Reopens ADR-033: real consent + retention flow for face-photo skin analysis, owner-authorized
 
