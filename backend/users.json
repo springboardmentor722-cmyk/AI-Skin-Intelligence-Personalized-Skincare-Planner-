@@ -1,0 +1,102 @@
+[
+  {
+    "id": "a-1",
+    "name": "Admin User",
+    "email": "admin@gmail.com",
+    "password": "12345",
+    "role": "admin",
+    "primary_concern": "System Operations",
+    "skin_type": "N/A",
+    "created_at": "2026-08-10T18:27:31.358Z"
+  },
+  {
+    "id": "u-1",
+    "name": "Ananya Verma",
+    "email": "ananya@dermat.com",
+    "password": "password123",
+    "role": "user",
+    "primary_concern": "Acne & Sensitivity",
+    "skin_type": "Combination",
+    "created_at": "2026-08-10T18:27:31.359Z"
+  },
+  {
+    "id": "c-1",
+    "name": "Dr. Priya Sharma",
+    "email": "priya.consultant@dermat.com",
+    "password": "password123",
+    "role": "consultant",
+    "primary_concern": "Consultant Specialist",
+    "skin_type": "Normal",
+    "created_at": "2026-08-10T18:27:31.359Z"
+  },
+  {
+    "id": "d-1",
+    "name": "Dr. Sarah Johnson",
+    "email": "dr.sarah@dermat.com",
+    "password": "password123",
+    "role": "dermatologist",
+    "primary_concern": "Clinical Derm Specialist",
+    "skin_type": "Normal",
+    "created_at": "2026-08-10T18:27:31.359Z"
+  },
+  {
+    "id": "d-2",
+    "name": "Dr. Arjun Shah",
+    "email": "arjun.shah@dermat.com",
+    "password": "password123",
+    "role": "dermatologist",
+    "primary_concern": "Clinical Derm Specialist",
+    "skin_type": "Normal",
+    "created_at": "2026-08-10T18:27:31.359Z"
+  },
+  {
+    "id": "u-2",
+    "name": "Rohan Mehta",
+    "email": "rohan@example.com",
+    "password": "password123",
+    "role": "user",
+    "primary_concern": "Post-acne scars",
+    "skin_type": "Oily",
+    "created_at": "2026-08-10T18:27:31.359Z"
+  },
+  {
+    "id": "u-3",
+    "name": "Maya Patel",
+    "email": "maya@example.com",
+    "password": "password123",
+    "role": "user",
+    "primary_concern": "Rosacea & Flushing",
+    "skin_type": "Sensitive",
+    "created_at": "2026-08-10T18:27:31.359Z"
+  },
+  {
+    "id": "u-1786386606202",
+    "name": "neha",
+    "email": "neha@gmail.com",
+    "password": "12345",
+    "role": "user",
+    "primary_concern": "Clarity & Hydration",
+    "skin_type": "Combination",
+    "created_at": "2026-08-10T18:30:06.202Z"
+  },
+  {
+    "id": "d-1786390058859",
+    "name": "sarah",
+    "email": "sarah@gmail.com",
+    "password": "12345",
+    "role": "dermatologist",
+    "primary_concern": "Clarity & Hydration",
+    "skin_type": "Combination",
+    "created_at": "2026-08-10T19:27:38.859Z"
+  },
+  {
+    "id": "c-1786390135618",
+    "name": "priya",
+    "email": "priya@gmail.com",
+    "password": "12345",
+    "role": "consultant",
+    "primary_concern": "Clarity & Hydration",
+    "skin_type": "Combination",
+    "created_at": "2026-08-10T19:28:55.618Z"
+  }
+]

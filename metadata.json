@@ -1,0 +1,6 @@
+{
+  "name": "Dermat - Skin Intelligence",
+  "description": "Personalized skincare platform with user dashboard, dermatologist consultations, AI skin assessments, and a dedicated consultant management portal.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

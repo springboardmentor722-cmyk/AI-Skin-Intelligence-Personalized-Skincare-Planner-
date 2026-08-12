@@ -1,0 +1,26 @@
+[
+  {
+    "id": "req-1",
+    "clientName": "Ananya Verma",
+    "clientEmail": "ananya@soluna.com",
+    "dermatologistId": "d-1",
+    "dermatologistName": "Dr. Sarah Johnson",
+    "concern": "Persistent cheek acne and dark spots post-breakout",
+    "status": "Forwarded to Dermatologist",
+    "requestedDate": "2026-08-05",
+    "notes": "Has been using Vitamin C serum for 2 weeks.",
+    "created_at": "2026-08-10T18:27:32.139Z"
+  },
+  {
+    "id": "req-2",
+    "clientName": "Rohan Mehta",
+    "clientEmail": "rohan@example.com",
+    "dermatologistId": "d-2",
+    "dermatologistName": "Dr. Arjun Shah",
+    "concern": "Post-inflammatory hyperpigmentation",
+    "status": "Forwarded to Dermatologist",
+    "requestedDate": "2026-08-08",
+    "notes": "Needs chemical peel evaluation.",
+    "created_at": "2026-08-10T18:27:32.139Z"
+  }
+]
