@@ -162,6 +162,7 @@ export default function Page() {
                       <Button
                         variant="ghost"
                         size="icon"
+                        aria-label={`Download ${report.report_type} report`}
                         onClick={() => downloadReport(report.report_id)}
                       >
                         <Download className="size-4" strokeWidth={1.5} />
