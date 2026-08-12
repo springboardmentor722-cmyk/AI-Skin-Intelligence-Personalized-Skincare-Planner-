@@ -1,6 +1,12 @@
 import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
+
+# The only two shapes worker/consumers/reminders.py's cron actually understands —
+# "daily" (paired with reminder_time) or "every_Nh" with N >= 1 (interval-based,
+# reminder_time null). Reject anything else at the trust boundary rather than
+# silently accepting a value the cron can only ever treat as "never due".
+_FrequencyStr = Field(pattern=r"^(daily|every_[1-9]\d*h)$")
 
 
 class NotificationRead(BaseModel):
@@ -19,7 +25,7 @@ class ReminderCreate(BaseModel):
     title: str
     message: str | None = None
     reminder_time: datetime.time | None = None
-    frequency: str
+    frequency: str = _FrequencyStr
     is_active: bool = True
 
 
@@ -27,7 +33,7 @@ class ReminderUpdate(BaseModel):
     title: str | None = None
     message: str | None = None
     reminder_time: datetime.time | None = None
-    frequency: str | None = None
+    frequency: str | None = Field(default=None, pattern=r"^(daily|every_[1-9]\d*h)$")
     is_active: bool | None = None
 
 

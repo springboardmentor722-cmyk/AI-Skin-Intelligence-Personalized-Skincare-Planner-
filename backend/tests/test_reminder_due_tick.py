@@ -5,9 +5,10 @@ import datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.services.notifications.models import Reminder
 from app.services.notifications.schemas import ReminderCreate
 from app.services.notifications.service import list_my_notifications, upsert_reminder
-from app.worker.consumers.reminders import run_due_reminders
+from app.worker.consumers.reminders import _is_due, run_due_reminders
 
 # A fixed instant, injected via run_due_reminders' `now` param — the consumer
 # scans every user's reminders (a cron job legitimately must), so pinning `now`
@@ -109,3 +110,17 @@ async def test_run_due_reminders_skips_an_interval_reminder_off_its_hour(
 
     notifications = await list_my_notifications(db_session, test_user_id)
     assert notifications == []
+
+
+def test_is_due_treats_a_malformed_frequency_as_not_due_without_raising() -> None:
+    # ReminderCreate's schema rejects "every_0h"/None at creation time now, but the
+    # `frequency` DB column is nullable free text with no CHECK constraint — a row
+    # with a malformed value (pre-dating the schema validation, or written outside
+    # the API) must not raise and abort the whole cron tick for every other user.
+    malformed = Reminder(
+        user_id="unused", reminder_type="hydration", title="x", frequency="every_0h"
+    )
+    assert _is_due(malformed, _NOW) is False
+
+    no_frequency = Reminder(user_id="unused", reminder_type="hydration", title="x", frequency=None)
+    assert _is_due(no_frequency, _NOW) is False

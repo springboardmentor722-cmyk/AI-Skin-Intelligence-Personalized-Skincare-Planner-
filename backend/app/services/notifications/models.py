@@ -37,11 +37,14 @@ class Reminder(Base):
 
     reminder_id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[str] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
-    reminder_type: Mapped[str] = mapped_column()
-    title: Mapped[str] = mapped_column()
+    # reminder_type/title/frequency are nullable in the live DDL (schema_v3.sql) —
+    # ReminderCreate requires them at the API boundary, but the ORM type must match
+    # what the column actually allows, not what every current writer happens to send.
+    reminder_type: Mapped[str | None] = mapped_column(default=None)
+    title: Mapped[str | None] = mapped_column(default=None)
     message: Mapped[str | None] = mapped_column(default=None)
     reminder_time: Mapped[datetime.time | None] = mapped_column(default=None)
-    frequency: Mapped[str] = mapped_column()
+    frequency: Mapped[str | None] = mapped_column(default=None)
     is_active: Mapped[bool] = mapped_column(server_default="true")
     created_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())

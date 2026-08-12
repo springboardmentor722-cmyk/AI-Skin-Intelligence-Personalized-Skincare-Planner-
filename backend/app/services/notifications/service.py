@@ -37,12 +37,14 @@ async def has_notified_today(
         datetime.datetime.now(datetime.UTC).date(), datetime.time.min
     )
     result = await db.execute(
-        select(Notification.notification_id).where(
+        select(Notification.notification_id)
+        .where(
             Notification.user_id == user_id,
             Notification.notification_type == notification_type,
             Notification.message == message,
             Notification.created_at >= today_start,
         )
+        .limit(1)
     )
     return result.scalar_one_or_none() is not None
 
@@ -56,9 +58,10 @@ async def list_my_reminders(db: AsyncSession, user_id: str) -> list[Reminder]:
 
 async def upsert_reminder(db: AsyncSession, user_id: str, data: ReminderCreate) -> Reminder:
     result = await db.execute(
-        select(Reminder).where(
-            Reminder.user_id == user_id, Reminder.reminder_type == data.reminder_type
-        )
+        select(Reminder)
+        .where(Reminder.user_id == user_id, Reminder.reminder_type == data.reminder_type)
+        .order_by(Reminder.reminder_id)
+        .limit(1)
     )
     reminder = result.scalar_one_or_none()
     if reminder is None:

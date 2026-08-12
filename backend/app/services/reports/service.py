@@ -192,12 +192,23 @@ async def _get_owned_schedule(db: AsyncSession, user_id: str, schedule_id: int) 
     return schedule
 
 
+class ScheduleValidationError(Exception):
+    """Raised when a PATCH would leave a schedule in a state the cron can never
+    match (frequency='weekly' with no day_of_week, or 'monthly' with no
+    day_of_month) — distinct from _get_owned_schedule's not-found ValueError so
+    the router can map it to 422, not 404."""
+
+
 async def update_schedule(
     db: AsyncSession, user_id: str, schedule_id: int, data: ReportScheduleUpdate
 ) -> ReportSchedule:
     schedule = await _get_owned_schedule(db, user_id, schedule_id)
     for field, value in data.model_dump(exclude_unset=True).items():
         setattr(schedule, field, value)
+    if schedule.frequency == "weekly" and schedule.day_of_week is None:
+        raise ScheduleValidationError("day_of_week is required when frequency is 'weekly'")
+    if schedule.frequency == "monthly" and schedule.day_of_month is None:
+        raise ScheduleValidationError("day_of_month is required when frequency is 'monthly'")
     await db.commit()
     return schedule
 

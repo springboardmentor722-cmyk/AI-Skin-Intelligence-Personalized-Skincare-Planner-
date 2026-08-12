@@ -52,6 +52,11 @@ async def run_due_report_schedules(db: AsyncSession, now: datetime.datetime | No
             )
             generated += 1
         except Exception:
+            # A DB-layer failure (constraint violation, connection blip) leaves the
+            # session's transaction unusable — without rolling back, every
+            # subsequent row in this loop fails with PendingRollbackError, silently
+            # defeating the per-row isolation this try/except exists for.
+            await db.rollback()
             logger.exception(
                 "report_schedule_failed",
                 schedule_id=schedule.schedule_id,

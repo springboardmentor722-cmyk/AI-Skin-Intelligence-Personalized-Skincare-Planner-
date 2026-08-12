@@ -38,9 +38,7 @@ def upgrade() -> None:
         sa.Column("frequency", sa.String(20), nullable=False),
         sa.Column("day_of_week", sa.SmallInteger(), nullable=True),
         sa.Column("day_of_month", sa.SmallInteger(), nullable=True),
-        sa.Column(
-            "time_of_day", sa.Time(), nullable=False, server_default="08:00:00"
-        ),
+        sa.Column("time_of_day", sa.Time(), nullable=False, server_default="08:00:00"),
         sa.Column("is_active", sa.Boolean(), nullable=False, server_default="true"),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
@@ -48,9 +46,7 @@ def upgrade() -> None:
             "frequency IN ('weekly', 'monthly')", name="ck_report_schedules_frequency"
         ),
     )
-    op.create_index(
-        "ix_report_schedules_user_id", "report_schedules", ["user_id"]
-    )
+    op.create_index("ix_report_schedules_user_id", "report_schedules", ["user_id"])
 
 
 def downgrade() -> None:
