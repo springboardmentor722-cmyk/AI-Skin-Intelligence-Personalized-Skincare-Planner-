@@ -696,6 +696,57 @@ export interface paths {
         patch: operations["update_my_reminder_api_v1_reminders__reminder_id__patch"];
         trace?: never;
     };
+    "/api/v1/reports/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate My Report */
+        post: operations["generate_my_report_api_v1_reports_generate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List My Reports */
+        get: operations["list_my_reports_api_v1_reports_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/{report_id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download My Report */
+        get: operations["download_my_report_api_v1_reports__report_id__download_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/analytics/me": {
         parameters: {
             query?: never;
@@ -2734,6 +2785,30 @@ export interface components {
             /** Is Active */
             is_active?: boolean | null;
         };
+        /** ReportGenerateRequest */
+        ReportGenerateRequest: {
+            /**
+             * Report Type
+             * @enum {string}
+             */
+            report_type: "assessment" | "progress" | "routine";
+            /**
+             * Include Profile Header
+             * @default true
+             */
+            include_profile_header: boolean;
+        };
+        /** ReportRead */
+        ReportRead: {
+            /** Report Id */
+            report_id: number;
+            /** Report Type */
+            report_type: string;
+            /** Summary */
+            summary: string | null;
+            /** Generated At */
+            generated_at: string | null;
+        };
         /** RiskFactorRead */
         RiskFactorRead: {
             /** Key */
@@ -4494,6 +4569,92 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ReminderRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_my_report_api_v1_reports_generate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportGenerateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_my_reports_api_v1_reports_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportRead"][];
+                };
+            };
+        };
+    };
+    download_my_report_api_v1_reports__report_id__download_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
                 };
             };
             /** @description Validation Error */

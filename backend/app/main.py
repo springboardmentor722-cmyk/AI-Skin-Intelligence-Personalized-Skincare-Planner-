@@ -26,6 +26,7 @@ from app.services.notifications.router import router as notifications_router
 from app.services.progress.router import router as progress_router
 from app.services.recommendations.products_router import router as products_router
 from app.services.recommendations.router import router as recommendations_router
+from app.services.reports.router import router as reports_router
 from app.services.routines.router import router as routines_router
 from app.services.scores.router import router as scores_router
 from app.services.skin_profile.router import lifestyle_router
@@ -141,6 +142,7 @@ def create_app() -> FastAPI:
     api_v1.include_router(ingredients_router, tags=["ingredients"])
     api_v1.include_router(progress_router, tags=["progress"])
     api_v1.include_router(notifications_router, tags=["notifications"])
+    api_v1.include_router(reports_router, tags=["reports"])
     api_v1.include_router(analytics_router, tags=["analytics"])
     api_v1.include_router(instrumentation_router, tags=["instrumentation"])
     # admin_router already declares prefix="/admin" (verification queue + audit logs).
