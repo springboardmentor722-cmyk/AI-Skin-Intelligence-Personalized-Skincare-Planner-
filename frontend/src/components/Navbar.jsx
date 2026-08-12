@@ -1,4 +1,5 @@
 ﻿import { useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
 import {
     FaBell,
     FaSearch,
@@ -6,6 +7,7 @@ import {
 } from "react-icons/fa";
 
 import "../styles/navbar.css";
+import api from "../services/api";
 
 function Navbar() {
 
@@ -13,6 +15,24 @@ function Navbar() {
 
     const role = localStorage.getItem("role");
     const name = localStorage.getItem("name");
+    const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+    const [notifications, setNotifications] = useState([]);
+    const notificationRef = useRef(null);
+
+    const loadNotifications = async () => {
+        if (!localStorage.getItem("token")) return;
+        try { setNotifications((await api.get("/notifications")).data); } catch { /* Navbar remains available if this fails. */ }
+    };
+    useEffect(() => {
+        loadNotifications();
+        const interval = window.setInterval(loadNotifications, 60000);
+        const close = (event) => { if (notificationRef.current && !notificationRef.current.contains(event.target)) setIsNotificationOpen(false); };
+        document.addEventListener("mousedown", close);
+        return () => { window.clearInterval(interval); document.removeEventListener("mousedown", close); };
+    }, []);
+    const markRead = async (id) => { try { await api.put(`/notifications/${id}/read`); setNotifications((items) => items.map((item) => item.id === id ? { ...item, is_read: true } : item)); } catch { /* preserve UI state */ } };
+    const markAllRead = async () => { try { await api.put("/notifications/read-all"); setNotifications((items) => items.map((item) => ({ ...item, is_read: true }))); } catch { /* preserve UI state */ } };
+    const unreadCount = notifications.filter((item) => !item.is_read).length;
 
     const logout = () => {
 
@@ -66,10 +86,17 @@ function Navbar() {
 
                 </div>
 
-                <div className="notification">
-
-                    <FaBell />
-
+                <div className="notification-wrapper" ref={notificationRef}>
+                    <button className="notification" type="button" aria-label="Notifications" aria-expanded={isNotificationOpen} onClick={() => setIsNotificationOpen((open) => !open)}>
+                        <FaBell />
+                        {unreadCount > 0 && <span className="notification-badge">{unreadCount > 99 ? "99+" : unreadCount}</span>}
+                    </button>
+                    {isNotificationOpen && <div className="notification-dropdown">
+                        <div className="notification-dropdown-header"><strong>Notifications</strong>{unreadCount > 0 && <button type="button" onClick={markAllRead}>Mark all as read</button>}</div>
+                        <div className="notification-list">
+                            {notifications.length === 0 ? <p className="notification-empty">You’re all caught up.</p> : notifications.map((item) => <div className={`notification-item ${item.is_read ? "" : "unread"}`} key={item.id}><div><strong>{item.title}</strong><p>{item.message}</p><small>{item.created_at ? new Date(item.created_at).toLocaleString() : ""}</small></div>{!item.is_read && <button type="button" onClick={() => markRead(item.id)}>Mark as read</button>}</div>)}
+                        </div>
+                    </div>}
                 </div>
 
                 <div className="profile-box">

@@ -73,6 +73,14 @@ def send_request(
         ).order_by(Consultation.id.desc()).first()
         if active:
             return {"message": "You already have an active consultant request.", "consultation_id": active.id, "status": active.status}
+    else:
+        active = db.query(Consultation).filter(
+            Consultation.user_id == current_user.id,
+            Consultation.expert_id == expert.id,
+            Consultation.status.in_(["Pending", "In Review", "Accepted"])
+        ).order_by(Consultation.id.desc()).first()
+        if active:
+            return {"message": "You already have an active dermatologist request.", "consultation_id": active.id, "status": active.status}
 
     consultation = Consultation(
         user_id=current_user.id,
@@ -82,10 +90,10 @@ def send_request(
 
     db.add(consultation)
     if expert.role == "CONSULTANT":
-        create_notification(db, current_user.id, "Consultation Request Submitted", "Your consultation request has been submitted to our skincare consultant.", "consultation_request")
-        create_notification(db, 13, "New Consultation Request", "A user has submitted a new skincare consultation request.", "consultation_request")
+        create_notification(db, current_user.id, "Consultation Request Submitted", "Your consultation request has been submitted to our skincare consultant.", "consultation_request", f"consultation-request-user-{consultation.id}")
+        create_notification(db, 13, "New Consultation Request", "A user has submitted a new skincare consultation request.", "consultation_request", f"consultation-request-consultant-{consultation.id}")
     else:
-        create_notification(db, expert.id, "New Dermatologist Referral", "A consultant has referred a user for dermatologist review.", "dermatologist_referral")
+        create_notification(db, expert.id, "New Dermatologist Referral", "A consultant has referred a user for dermatologist review.", "dermatologist_referral", f"dermatologist-request-{consultation.id}")
     db.commit()
     db.refresh(consultation)
 
@@ -270,11 +278,16 @@ def submit_consultant_review(
         raise HTTPException(status_code=404, detail="Consultation not found")
     from datetime import datetime, timezone
     was_referred = consultation.requires_dermatologist
+    review_fields = ("recommendation", "consultant_notes", "progress_observations", "routine_suggestions", "follow_up_suggestion", "requires_dermatologist")
+    review_changed = any(getattr(consultation, field) != getattr(data, field) for field in review_fields)
     for field, value in data.model_dump().items():
         setattr(consultation, field, value)
     consultation.status = "Dermatologist Recommended" if data.requires_dermatologist else "Completed"
     consultation.reviewed_at = datetime.now(timezone.utc)
-    create_notification(db, consultation.user_id, "Consultation Reviewed", "Your skincare consultation has been reviewed. Please check your consultation details.", "consultation_review")
+    if review_changed:
+        message = ("Your consultant has reviewed your case and recommends consulting a dermatologist."
+                   if data.requires_dermatologist else "Your consultant has reviewed your case and added recommendations.")
+        create_notification(db, consultation.user_id, "Consultation Reviewed", message, "consultation_review")
     if data.requires_dermatologist and not was_referred:
         create_notification(db, consultation.user_id, "Dermatologist Recommended", "Our consultant recommends that you consult a dermatologist. Please check your consultation for the next step.", "dermatologist_recommended")
     db.commit(); db.refresh(consultation)

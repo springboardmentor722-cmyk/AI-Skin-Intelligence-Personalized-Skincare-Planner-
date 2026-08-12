@@ -12,5 +12,7 @@ class Notification(Base):
     title = Column(String(160), nullable=False)
     message = Column(Text, nullable=False)
     notification_type = Column(String(60), nullable=False)
+    # A stable key for one business event. NULL is retained for older rows.
+    event_key = Column(String(191), nullable=True)
     is_read = Column(Boolean, nullable=False, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)

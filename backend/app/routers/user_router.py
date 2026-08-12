@@ -318,7 +318,10 @@ def approve_user(
             detail="User not found"
         )
 
+    status_changed = user.verification_status != "Approved"
     user.verification_status = "Approved"
+    if status_changed:
+        create_notification(db, user.id, "Registration Approved", "Your registration has been approved. You can now sign in.", "registration_approved", f"registration-approved-{user.id}")
 
     db.commit()
     db.refresh(user)
@@ -349,7 +352,10 @@ def reject_user(
             detail="User not found"
         )
 
+    status_changed = user.verification_status != "Rejected"
     user.verification_status = "Rejected"
+    if status_changed:
+        create_notification(db, user.id, "Registration Update", "Your registration has been rejected. Please contact support for more information.", "registration_rejected", f"registration-rejected-{user.id}")
 
     db.commit()
     db.refresh(user)
