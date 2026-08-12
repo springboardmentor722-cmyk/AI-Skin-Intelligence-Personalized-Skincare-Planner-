@@ -5,8 +5,10 @@ it — reuses the `notifications` table already migrated in a7e9f4e50c45, which 
 migration's own docstring says is exactly meant to gain a models.py "when it's actually
 built"."""
 
+import datetime
 import uuid
 
+import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -108,3 +110,166 @@ async def test_notifications_endpoint_returns_the_caller_s_notifications(
         app.dependency_overrides.pop(require_user, None)
     assert response.status_code == 200
     assert response.json() == []
+
+
+async def test_upsert_reminder_creates_a_new_row(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    from app.services.notifications.schemas import ReminderCreate
+    from app.services.notifications.service import list_my_reminders, upsert_reminder
+
+    created = await upsert_reminder(
+        db_session,
+        test_user_id,
+        ReminderCreate(
+            reminder_type="routine_morning",
+            title="Morning Routine",
+            message="Time for your AM routine",
+            reminder_time=datetime.time(8, 0),
+            frequency="daily",
+            is_active=True,
+        ),
+    )
+    await db_session.flush()
+
+    assert created.reminder_id is not None
+    rows = await list_my_reminders(db_session, test_user_id)
+    assert len(rows) == 1
+    assert rows[0].reminder_type == "routine_morning"
+
+
+async def test_list_my_reminders_returns_only_the_caller_s_own_rows(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    from app.services.notifications.schemas import ReminderCreate
+    from app.services.notifications.service import list_my_reminders, upsert_reminder
+
+    other_user_id = f"test-{uuid.uuid4().hex[:20]}"
+    await db_session.execute(
+        external_user_table.insert().values(
+            id=other_user_id,
+            email=f"{other_user_id}@test.invalid",
+            name="Other Test User",
+            emailVerified=False,
+        )
+    )
+    await upsert_reminder(
+        db_session,
+        test_user_id,
+        ReminderCreate(
+            reminder_type="hydration",
+            title="Hydration Nudge",
+            message="Drink water",
+            reminder_time=None,
+            frequency="every_2h",
+            is_active=True,
+        ),
+    )
+    await upsert_reminder(
+        db_session,
+        other_user_id,
+        ReminderCreate(
+            reminder_type="hydration",
+            title="Not yours",
+            message="Should not show up",
+            reminder_time=None,
+            frequency="every_2h",
+            is_active=True,
+        ),
+    )
+    await db_session.flush()
+
+    rows = await list_my_reminders(db_session, test_user_id)
+    assert len(rows) == 1
+    assert rows[0].title == "Hydration Nudge"
+
+
+async def test_update_reminder_toggles_is_active(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    from app.services.notifications.schemas import ReminderCreate, ReminderUpdate
+    from app.services.notifications.service import update_reminder, upsert_reminder
+
+    created = await upsert_reminder(
+        db_session,
+        test_user_id,
+        ReminderCreate(
+            reminder_type="routine_evening",
+            title="Evening Routine",
+            message="Time for your PM routine",
+            reminder_time=datetime.time(21, 30),
+            frequency="daily",
+            is_active=True,
+        ),
+    )
+    await db_session.flush()
+
+    updated = await update_reminder(
+        db_session, test_user_id, created.reminder_id, ReminderUpdate(is_active=False)
+    )
+    assert updated.is_active is False
+
+
+async def test_update_reminder_rejects_another_user_s_reminder(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    from app.services.notifications.schemas import ReminderCreate, ReminderUpdate
+    from app.services.notifications.service import update_reminder, upsert_reminder
+
+    other_user_id = f"test-{uuid.uuid4().hex[:20]}"
+    await db_session.execute(
+        external_user_table.insert().values(
+            id=other_user_id,
+            email=f"{other_user_id}@test.invalid",
+            name="Other Test User",
+            emailVerified=False,
+        )
+    )
+    created = await upsert_reminder(
+        db_session,
+        other_user_id,
+        ReminderCreate(
+            reminder_type="hydration",
+            title="Not yours",
+            message="msg",
+            reminder_time=None,
+            frequency="every_3h",
+            is_active=True,
+        ),
+    )
+    await db_session.flush()
+
+    with pytest.raises(ValueError):
+        await update_reminder(
+            db_session, test_user_id, created.reminder_id, ReminderUpdate(is_active=False)
+        )
+
+
+async def test_delete_reminder_removes_the_row(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    from app.services.notifications.schemas import ReminderCreate
+    from app.services.notifications.service import (
+        delete_reminder,
+        list_my_reminders,
+        upsert_reminder,
+    )
+
+    created = await upsert_reminder(
+        db_session,
+        test_user_id,
+        ReminderCreate(
+            reminder_type="hydration",
+            title="Hydration",
+            message="msg",
+            reminder_time=None,
+            frequency="every_2h",
+            is_active=True,
+        ),
+    )
+    await db_session.flush()
+
+    await delete_reminder(db_session, test_user_id, created.reminder_id)
+    await db_session.flush()
+
+    assert await list_my_reminders(db_session, test_user_id) == []

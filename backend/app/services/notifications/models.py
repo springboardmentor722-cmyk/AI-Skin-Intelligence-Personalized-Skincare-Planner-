@@ -24,3 +24,24 @@ class Notification(Base):
     is_read: Mapped[bool] = mapped_column(server_default="false")
     created_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
+
+
+class Reminder(Base):
+    """Maps the `reminders` table (migrated alongside `notifications` in
+    a7e9f4e50c45, unused until now). Backs the /reminders page's Reminder
+    Settings tab — three reminder_type values in v1: 'routine_morning',
+    'routine_evening', 'hydration' (docs/superpowers/specs/
+    2026-08-12-reports-reminders-design.md)."""
+
+    __tablename__ = "reminders"
+
+    reminder_id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
+    reminder_type: Mapped[str] = mapped_column()
+    title: Mapped[str] = mapped_column()
+    message: Mapped[str | None] = mapped_column(default=None)
+    reminder_time: Mapped[datetime.time | None] = mapped_column(default=None)
+    frequency: Mapped[str] = mapped_column()
+    is_active: Mapped[bool] = mapped_column(server_default="true")
+    created_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
+    updated_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
