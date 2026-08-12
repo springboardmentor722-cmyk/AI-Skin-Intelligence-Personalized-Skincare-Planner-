@@ -74,6 +74,52 @@ async def test_get_vector_returns_none_for_a_missing_id(namespace: str) -> None:
     assert vector.get_vector(namespace, "does-not-exist") is None
 
 
+async def test_bulk_upsert_adds_every_item_in_one_call(namespace: str) -> None:
+    await vector.bulk_upsert(
+        namespace,
+        [("a", _unit(0), {"name": "near"}), ("b", _unit(_DIM - 1), {"name": "far"})],
+        dim=_DIM,
+    )
+
+    assert vector.count(namespace) == 2
+    query = _unit(0)
+    query[1] = 0.1
+    results = vector.search(namespace, query, k=1, dim=_DIM)
+    assert results[0]["vector_id"] == "a"
+    assert results[0]["metadata"] == {"name": "near"}
+
+
+async def test_bulk_upsert_is_idempotent_for_ids_repeated_within_the_same_call(
+    namespace: str,
+) -> None:
+    # A rebuild script wouldn't do this (each id appears once per source row), but the
+    # remove-then-add semantics should still hold rather than leaving two vectors
+    # under the same id — matches `upsert`'s own "last write wins" behavior.
+    await vector.bulk_upsert(
+        namespace,
+        [("a", _vec(1.0), {"name": "v1"}), ("a", _vec(2.0), {"name": "v2"})],
+        dim=_DIM,
+    )
+
+    assert vector.count(namespace) == 1
+    assert vector.get_metadata(namespace, "a") == {"name": "v2"}
+
+
+async def test_bulk_upsert_replaces_an_already_upserted_vector(namespace: str) -> None:
+    await vector.upsert(namespace, "a", _vec(1.0), {"name": "v1"}, dim=_DIM)
+
+    await vector.bulk_upsert(namespace, [("a", _vec(2.0), {"name": "v2"})], dim=_DIM)
+
+    assert vector.count(namespace) == 1
+    assert vector.get_metadata(namespace, "a") == {"name": "v2"}
+
+
+async def test_bulk_upsert_with_no_items_is_a_no_op(namespace: str) -> None:
+    await vector.bulk_upsert(namespace, [], dim=_DIM)
+
+    assert vector.count(namespace) == 0
+
+
 async def test_clear_wipes_the_namespace(namespace: str) -> None:
     await vector.upsert(namespace, "a", _vec(1.0), {}, dim=_DIM)
     await vector.upsert(namespace, "b", _vec(2.0), {}, dim=_DIM)
