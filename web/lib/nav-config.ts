@@ -173,7 +173,6 @@ const RAW_NAV: Record<Role, RawNavSection[]> = {
           subtitle: "View & download reports",
           path: "/reports",
           icon: FileText,
-          built: false,
         },
         {
           id: "reminders",
