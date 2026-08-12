@@ -378,6 +378,8 @@ CREATE TABLE progress_reports (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE INDEX idx_progress_reports_user_generated ON progress_reports(user_id, generated_at);
+
 CREATE TABLE progress_images (
     progress_image_id SERIAL PRIMARY KEY,
     user_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,

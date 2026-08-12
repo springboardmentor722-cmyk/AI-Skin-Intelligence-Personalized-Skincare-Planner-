@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import require_role
 from app.db.postgres import get_db
-from app.services.notifications.service import create_notification
+from app.services.notifications.service import create_notification, has_notified_today
 from app.services.progress.service import get_todays_new_streak_milestone
 from app.services.recommendations.schemas import ProductRead
 from app.services.routines import service
@@ -57,7 +57,9 @@ async def log_step_completion(
     await service.toggle_step_completion(user["id"], step_id, body.completed)
     if body.completed:
         milestone = await get_todays_new_streak_milestone(db, user["id"])
-        if milestone is not None:
+        if milestone is not None and not await has_notified_today(
+            db, user["id"], notification_type="streak", message=milestone.label
+        ):
             await create_notification(
                 db,
                 user["id"],

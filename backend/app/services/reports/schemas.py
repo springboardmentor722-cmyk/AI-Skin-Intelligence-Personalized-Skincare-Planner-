@@ -1,7 +1,7 @@
 import datetime
-from typing import Literal
+from typing import Literal, Self
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 ReportType = Literal["assessment", "progress", "routine"]
 
@@ -23,16 +23,24 @@ class ReportRead(BaseModel):
 class ReportScheduleCreate(BaseModel):
     report_type: ReportType
     frequency: Literal["weekly", "monthly"]
-    day_of_week: int | None = None  # 0-6, required when frequency='weekly'
-    day_of_month: int | None = None  # 1-28, required when frequency='monthly'
+    day_of_week: int | None = Field(default=None, ge=0, le=6)
+    day_of_month: int | None = Field(default=None, ge=1, le=28)
     time_of_day: datetime.time = datetime.time(8, 0)
     is_active: bool = True
+
+    @model_validator(mode="after")
+    def _matching_day_field_is_set(self) -> Self:
+        if self.frequency == "weekly" and self.day_of_week is None:
+            raise ValueError("day_of_week is required when frequency is 'weekly'")
+        if self.frequency == "monthly" and self.day_of_month is None:
+            raise ValueError("day_of_month is required when frequency is 'monthly'")
+        return self
 
 
 class ReportScheduleUpdate(BaseModel):
     frequency: Literal["weekly", "monthly"] | None = None
-    day_of_week: int | None = None
-    day_of_month: int | None = None
+    day_of_week: int | None = Field(default=None, ge=0, le=6)
+    day_of_month: int | None = Field(default=None, ge=1, le=28)
     time_of_day: datetime.time | None = None
     is_active: bool | None = None
 

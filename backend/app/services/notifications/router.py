@@ -3,7 +3,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.security import require_user
+from app.core.security import require_role, require_user
 from app.db.postgres import get_db
 from app.services.notifications import service
 from app.services.notifications.schemas import (
@@ -29,7 +29,9 @@ async def get_my_notifications(
 
 @router.get("/reminders")
 async def get_my_reminders(
-    user: Annotated[dict[str, Any], Depends(require_user)],
+    # Reminder Settings is a `user`-role feature only (nav-config.ts) — unlike
+    # /notifications/me's shared bell, no other role's nav exposes this.
+    user: Annotated[dict[str, Any], Depends(require_role("user"))],
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> list[ReminderRead]:
     rows = await service.list_my_reminders(db, user["id"])
@@ -39,7 +41,7 @@ async def get_my_reminders(
 @router.post("/reminders")
 async def create_my_reminder(
     body: ReminderCreate,
-    user: Annotated[dict[str, Any], Depends(require_user)],
+    user: Annotated[dict[str, Any], Depends(require_role("user"))],
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> ReminderRead:
     created = await service.upsert_reminder(db, user["id"], body)
@@ -50,7 +52,7 @@ async def create_my_reminder(
 async def update_my_reminder(
     reminder_id: int,
     body: ReminderUpdate,
-    user: Annotated[dict[str, Any], Depends(require_user)],
+    user: Annotated[dict[str, Any], Depends(require_role("user"))],
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> ReminderRead:
     try:
@@ -63,7 +65,7 @@ async def update_my_reminder(
 @router.delete("/reminders/{reminder_id}", status_code=204)
 async def delete_my_reminder(
     reminder_id: int,
-    user: Annotated[dict[str, Any], Depends(require_user)],
+    user: Annotated[dict[str, Any], Depends(require_role("user"))],
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> None:
     try:

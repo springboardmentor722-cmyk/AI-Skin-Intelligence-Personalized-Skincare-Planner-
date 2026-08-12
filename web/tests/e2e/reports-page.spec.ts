@@ -50,14 +50,15 @@ test("Reports page: generate a report, see it in Recent Reports, download it", a
       timeout: 15_000,
     });
 
-    // Chromium under automation treats a direct navigation to a PDF response as a
-    // native download rather than a normal page load — the "popup" Page object it
-    // also fires never actually finishes navigating (its .url() stays empty), so the
-    // "download" event (not "popup") is the reliable signal here.
-    const [download] = await Promise.all([
-      page.waitForEvent("download", { timeout: 10_000 }),
+    // downloadReport() opens a blank tab synchronously (to survive the popup
+    // blocker), then redirects it to the presigned URL once it resolves — so the
+    // "popup" fires on `page` first, and Chromium's PDF-download interception then
+    // fires "download" on that popup tab, not on `page` itself.
+    const [popup] = await Promise.all([
+      page.waitForEvent("popup", { timeout: 10_000 }),
       page.getByRole("button", { name: "Download assessment report" }).click(),
     ]);
+    const download = await popup.waitForEvent("download", { timeout: 10_000 });
     expect(download.url()).toContain("reports/");
   } finally {
     if (userId) await deleteTestUser(userId);

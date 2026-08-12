@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import require_role
-from app.core.storage import get_presigned_url
+from app.core.storage import FileValidationError, get_presigned_url
 from app.db.postgres import get_db
 from app.services.reports import service
 from app.services.reports.models import ProgressReport
@@ -26,9 +26,15 @@ async def generate_my_report(
     user: Annotated[dict[str, Any], Depends(require_role("user"))],
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> ReportRead:
-    report = await service.generate_report(
-        db, user["id"], body.report_type, include_profile_header=body.include_profile_header
-    )
+    # Spec: generation failure -> 422 with a message, no partial row (the DB write
+    # only happens after a successful upload in generate_report, so "no partial row"
+    # already holds by construction).
+    try:
+        report = await service.generate_report(
+            db, user["id"], body.report_type, include_profile_header=body.include_profile_header
+        )
+    except FileValidationError as exc:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from exc
     return ReportRead.model_validate(report)
 
 

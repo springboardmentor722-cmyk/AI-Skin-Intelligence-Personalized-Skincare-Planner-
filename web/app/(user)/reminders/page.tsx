@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BellRing, Droplet, Moon, RotateCw, Sun, TriangleAlert } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -46,6 +47,7 @@ export default function Page() {
       if (error) throw new Error("Couldn't update that reminder.");
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["reminders", "list"] }),
+    onError: () => toast.error("Couldn't update that reminder."),
   });
 
   const createMutation = useMutation({
@@ -64,6 +66,7 @@ export default function Page() {
       if (error) throw new Error("Couldn't create that reminder.");
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["reminders", "list"] }),
+    onError: () => toast.error("Couldn't create that reminder."),
   });
 
   return (

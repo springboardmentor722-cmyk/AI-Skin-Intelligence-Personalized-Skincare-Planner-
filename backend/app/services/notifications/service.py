@@ -1,3 +1,5 @@
+import datetime
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -28,6 +30,23 @@ async def create_notification(
     return notification
 
 
+async def has_notified_today(
+    db: AsyncSession, user_id: str, *, notification_type: str, message: str
+) -> bool:
+    today_start = datetime.datetime.combine(
+        datetime.datetime.now(datetime.UTC).date(), datetime.time.min
+    )
+    result = await db.execute(
+        select(Notification.notification_id).where(
+            Notification.user_id == user_id,
+            Notification.notification_type == notification_type,
+            Notification.message == message,
+            Notification.created_at >= today_start,
+        )
+    )
+    return result.scalar_one_or_none() is not None
+
+
 async def list_my_reminders(db: AsyncSession, user_id: str) -> list[Reminder]:
     result = await db.execute(
         select(Reminder).where(Reminder.user_id == user_id).order_by(Reminder.reminder_id)
@@ -36,8 +55,18 @@ async def list_my_reminders(db: AsyncSession, user_id: str) -> list[Reminder]:
 
 
 async def upsert_reminder(db: AsyncSession, user_id: str, data: ReminderCreate) -> Reminder:
-    reminder = Reminder(user_id=user_id, **data.model_dump())
-    db.add(reminder)
+    result = await db.execute(
+        select(Reminder).where(
+            Reminder.user_id == user_id, Reminder.reminder_type == data.reminder_type
+        )
+    )
+    reminder = result.scalar_one_or_none()
+    if reminder is None:
+        reminder = Reminder(user_id=user_id, **data.model_dump())
+        db.add(reminder)
+    else:
+        for field, value in data.model_dump().items():
+            setattr(reminder, field, value)
     await db.commit()
     return reminder
 

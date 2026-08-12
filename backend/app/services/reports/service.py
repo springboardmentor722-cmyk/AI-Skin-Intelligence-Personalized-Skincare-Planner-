@@ -141,6 +141,14 @@ async def generate_report(
 
     section_flowables, summary = await builder(db, user_id)
     flowables.extend(section_flowables)
+    flowables.append(Spacer(1, 16))
+    flowables.append(
+        Paragraph(
+            "This is general skincare guidance, not medical advice — check with a "
+            "dermatologist for diagnosis or treatment.",
+            _STYLES["Normal"],
+        )
+    )
 
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)

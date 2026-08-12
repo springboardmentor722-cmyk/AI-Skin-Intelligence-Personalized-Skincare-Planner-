@@ -6,6 +6,7 @@ from collections.abc import AsyncGenerator
 
 import pytest
 from httpx import AsyncClient
+from pydantic import ValidationError
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -163,3 +164,24 @@ async def test_update_report_schedule_rejects_another_user(
         await update_schedule(
             db_session, test_user_id, created.schedule_id, ReportScheduleUpdate(is_active=False)
         )
+
+
+def test_report_schedule_create_rejects_weekly_without_day_of_week() -> None:
+    from app.services.reports.schemas import ReportScheduleCreate
+
+    with pytest.raises(ValidationError):
+        ReportScheduleCreate(report_type="progress", frequency="weekly")
+
+
+def test_report_schedule_create_rejects_monthly_without_day_of_month() -> None:
+    from app.services.reports.schemas import ReportScheduleCreate
+
+    with pytest.raises(ValidationError):
+        ReportScheduleCreate(report_type="progress", frequency="monthly")
+
+
+def test_report_schedule_create_rejects_an_out_of_range_day_of_month() -> None:
+    from app.services.reports.schemas import ReportScheduleCreate
+
+    with pytest.raises(ValidationError):
+        ReportScheduleCreate(report_type="progress", frequency="monthly", day_of_month=31)

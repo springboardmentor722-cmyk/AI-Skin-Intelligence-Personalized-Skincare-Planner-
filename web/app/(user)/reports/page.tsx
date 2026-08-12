@@ -11,6 +11,7 @@ import {
   Sparkles,
   ClipboardList,
 } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -78,14 +79,24 @@ export default function Page() {
       return data;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["reports", "list"] }),
+    onError: () => toast.error("Couldn't generate that report."),
   });
 
   const downloadReport = async (reportId: number) => {
+    // Open the tab synchronously, inside the click's user-gesture window, then
+    // redirect it once the presigned URL resolves — opening it only after the
+    // await below would get silently popup-blocked in most real browsers.
+    const tab = window.open("", "_blank");
     const { data, error } = await api.GET("/api/v1/reports/{report_id}/download", {
       params: { path: { report_id: reportId } },
     });
-    if (error || !data) return;
-    window.open(data.url, "_blank");
+    if (error || !data) {
+      tab?.close();
+      toast.error("Couldn't download that report.");
+      return;
+    }
+    if (tab) tab.location.href = data.url;
+    else window.location.assign(data.url);
   };
 
   return (
