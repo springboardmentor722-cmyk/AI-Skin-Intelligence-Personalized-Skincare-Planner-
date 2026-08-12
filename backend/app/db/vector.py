@@ -147,6 +147,45 @@ async def upsert(
         _save_meta(namespace, meta)
 
 
+async def bulk_upsert(
+    namespace: str, items: list[tuple[str, list[float], dict[str, Any]]], dim: int
+) -> None:
+    """Same idempotent upsert semantics as `upsert` (re-upserting a vector_id in
+    `items` replaces it), but for many items in one call: loads the index and meta
+    once, adds every item in memory, saves once — `upsert`'s per-call full
+    read-modify-write of the whole on-disk index means a bulk rebuild (e.g.
+    worker/rebuild.py's from-scratch pass) pays for one full index rewrite per item
+    (16,100 ingredients = 16,100 rewrites of an ever-growing file); this pays for
+    exactly one rewrite total. Only worker/rebuild.py calls this — the real-time
+    outbox path (poll_outbox_tick) only ever has one changed item per event, so
+    there's nothing for it to batch; it keeps calling `upsert` unchanged."""
+    if not items:
+        return
+    # De-duped by vector_id first, last occurrence wins — a rebuild script only ever
+    # lists each source row once, but `upsert`'s own last-write-wins semantics should
+    # hold here too rather than handing FAISS two vectors under the same id.
+    dedup_map = {vector_id: (vector_id, embedding, meta_) for vector_id, embedding, meta_ in items}
+    deduped = list(dedup_map.values())
+
+    async with _lock:
+        index = _load_index(namespace, dim)
+        meta = _load_meta(namespace)
+
+        existing_ids = [_faiss_id(vector_id) for vector_id, _, _ in deduped if vector_id in meta]
+        if existing_ids:
+            index.remove_ids(np.array(existing_ids, dtype=np.int64))  # type: ignore[arg-type]
+
+        embeddings = np.array([embedding for _, embedding, _ in deduped], dtype=np.float32)
+        faiss_ids = np.array([_faiss_id(vector_id) for vector_id, _, _ in deduped], dtype=np.int64)
+        index.add_with_ids(embeddings, faiss_ids)
+
+        for vector_id, _, metadata in deduped:
+            meta[vector_id] = {"faiss_id": _faiss_id(vector_id), "metadata": metadata}
+
+        _save_index(namespace, index)
+        _save_meta(namespace, meta)
+
+
 async def remove(namespace: str, vector_id: str) -> None:
     async with _lock:
         meta = _load_meta(namespace)
