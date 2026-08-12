@@ -5,7 +5,7 @@ from app.models.lifestyle import Lifestyle
 from app.models.progress import Progress
 from app.database.database import get_db
 from app.models.user import User
-from app.schemas.user_schema import UserCreate
+from app.schemas.user_schema import UserCreate, UserResponse, UserUpdateResponse
 from app.utils.security import hash_password
 from app.schemas.login_schema import LoginRequest
 from app.utils.security import verify_password, create_access_token
@@ -151,10 +151,9 @@ def admin_dashboard(
 ):
     return {
         "message": "Welcome Administrator",
-        "user": current_user
+        "user": UserResponse.model_validate(current_user)
     }
 from typing import List
-from app.schemas.user_schema import UserResponse
 
 
 @router.get("/users", response_model=List[UserResponse])
@@ -164,7 +163,7 @@ def get_users(
 ):
     return db.query(User).all()
     
-@router.put("/users/{user_id}")
+@router.put("/users/{user_id}", response_model=UserUpdateResponse)
 def update_user(
     user_id: int,
     updated_user: UserUpdate,
@@ -184,10 +183,7 @@ def update_user(
     db.commit()
     db.refresh(user)
 
-    return {
-        "message": "User Updated Successfully",
-        "user": user
-    }
+    return {"message": "User Updated Successfully", "user": user}
 @router.delete("/users/{user_id}")
 def delete_user(
     user_id: int,
@@ -283,7 +279,7 @@ def delete_user(
             status_code=500,
             detail=f"Unable to delete user: {str(e)}"
         )
-@router.get("/pending-users")
+@router.get("/pending-users", response_model=List[UserResponse])
 def get_pending_users(
     db: Session = Depends(get_db),
     current_user=Depends(role_required(["ADMIN"]))
@@ -364,14 +360,14 @@ def reject_user(
         "message": "User Rejected Successfully"
 
     }
-@router.get("/my-profile")
+@router.get("/my-profile", response_model=UserResponse)
 def my_profile(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
 
     user = db.query(User).filter(
-        User.id == current_user["id"]
+        User.id == current_user.id
     ).first()
 
     if not user:
@@ -381,7 +377,7 @@ def my_profile(
         )
 
     return user
-@router.put("/my-profile")
+@router.put("/my-profile", response_model=UserUpdateResponse)
 def update_my_profile(
     updated_user: UserUpdate,
     db: Session = Depends(get_db),
@@ -389,7 +385,7 @@ def update_my_profile(
 ):
 
     user = db.query(User).filter(
-        User.id == current_user["id"]
+        User.id == current_user.id
     ).first()
 
     if not user:
@@ -410,11 +406,8 @@ def update_my_profile(
     db.commit()
     db.refresh(user)
 
-    return {
-        "message": "Profile Updated Successfully",
-        "user": user
-    }
-@router.get("/me")
+    return {"message": "Profile Updated Successfully", "user": user}
+@router.get("/me", response_model=UserResponse)
 def get_logged_user(
 
     current_user: User = Depends(get_current_user)
@@ -422,7 +415,7 @@ def get_logged_user(
 ):
 
     return current_user 
-@router.get("/experts")
+@router.get("/experts", response_model=List[UserResponse])
 def get_experts(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)

@@ -22,6 +22,7 @@ import Landing from "./pages/Landing";
 import Reports from "./pages/Reports";
 import ConsultantClients from "./pages/ConsultantClients";
 import ConsultantCase from "./pages/ConsultantCase";
+import ManageCatalog from "./pages/ManageCatalog";
 function App() {
 
   return (
@@ -93,6 +94,8 @@ function App() {
     element={<PendingUsers />}
 />
 <Route path="/profile" element={<Profile />} />
+<Route path="/manage-products" element={<ProtectedRoute allowedRoles={["ADMIN"]}><ManageCatalog type="products" /></ProtectedRoute>} />
+<Route path="/manage-ingredients" element={<ProtectedRoute allowedRoles={["ADMIN"]}><ManageCatalog type="ingredients" /></ProtectedRoute>} />
 <Route path="/reports" element={<ProtectedRoute allowedRoles={["USER", "DERMATOLOGIST"]}><Reports /></ProtectedRoute>} />
 <Route
     path="/consult-experts"

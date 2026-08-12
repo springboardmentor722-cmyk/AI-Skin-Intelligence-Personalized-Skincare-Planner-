@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text
+from sqlalchemy import Boolean, Column, Integer, String, Text
 from app.database.database import Base
 
 class Ingredient(Base):
@@ -21,3 +21,6 @@ class Ingredient(Base):
     suitable_for = Column(Text, nullable=True)
 
     source_url = Column(String(500), nullable=True)
+
+    # Soft deletion keeps historic references to an ingredient valid.
+    is_active = Column(Boolean, nullable=False, default=True, server_default="1")

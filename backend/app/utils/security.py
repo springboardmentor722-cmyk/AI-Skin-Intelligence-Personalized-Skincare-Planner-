@@ -2,6 +2,8 @@ from passlib.context import CryptContext
 from jose import jwt
 from datetime import datetime, timedelta
 
+from app.config import get_jwt_secret
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
@@ -11,7 +13,7 @@ def hash_password(password: str):
 
 def verify_password(plain_password: str, hashed_password: str):
     return pwd_context.verify(plain_password, hashed_password)
-SECRET_KEY = "SkinIntelligenceSecretKey"
+SECRET_KEY = get_jwt_secret()
 
 ALGORITHM = "HS256"
 

@@ -55,3 +55,8 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class UserUpdateResponse(BaseModel):
+    message: str
+    user: UserResponse

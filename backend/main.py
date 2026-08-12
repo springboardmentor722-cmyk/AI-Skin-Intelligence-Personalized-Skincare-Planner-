@@ -50,6 +50,18 @@ def ensure_notification_schema():
 
 ensure_notification_schema()
 
+def ensure_catalog_activity_schema():
+    """Safely add soft-delete support to existing catalog tables."""
+    inspector = inspect(engine)
+    with engine.begin() as connection:
+        for table in ("products", "ingredients"):
+            if table in inspector.get_table_names():
+                columns = {column["name"] for column in inspector.get_columns(table)}
+                if "is_active" not in columns:
+                    connection.execute(text(f"ALTER TABLE {table} ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT TRUE"))
+
+ensure_catalog_activity_schema()
+
 # Create FastAPI app
 app = FastAPI(title="Skin Intelligence")
 os.makedirs("uploads/skin_images", exist_ok=True)

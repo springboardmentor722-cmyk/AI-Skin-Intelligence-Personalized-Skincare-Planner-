@@ -19,7 +19,9 @@ from app.models.skin_profile import SkinProfile
 from app.models.skin_assessment import SkinAssessment
 from app.models.user import User
 from app.schemas.report_schema import ReportCreate
+from app.schemas.user_schema import UserResponse
 from app.utils.auth import get_current_user
+from app.services.notification_service import create_notification
 
 router = APIRouter(prefix="/reports", tags=["Reports"])
 
@@ -55,6 +57,8 @@ def save_report(data: ReportCreate, db: Session = Depends(get_db), current_user:
         for field, value in values.items():
             if field != "report_date" or value is not None: setattr(report, field, value)
     db.commit(); db.refresh(report)
+    create_notification(db, consultation.user_id, "Dermatologist Report Available", "Your dermatologist has completed a professional report. You can now view or download it from Reports.", "dermatologist_report", f"dermatologist-report-{report.report_id}")
+    db.commit()
     return {"message": "Report saved successfully.", "report": report}
 
 @router.get("/mine")
@@ -78,7 +82,8 @@ def get_report(report_id: int, db: Session = Depends(get_db), current_user: User
     report = db.query(Report).filter(Report.report_id == report_id).first()
     if not report: raise HTTPException(status_code=404, detail="Report not found")
     authorize(report, current_user)
-    return {"report": report, "dermatologist": db.query(User).filter(User.id == report.dermatologist_id).first()}
+    dermatologist = db.query(User).filter(User.id == report.dermatologist_id).first()
+    return {"report": report, "dermatologist": UserResponse.model_validate(dermatologist).model_dump() if dermatologist else None}
 
 def section(story, styles, title, value):
     if value is not None and str(value).strip():
@@ -97,6 +102,7 @@ def report_pdf(report_id: int, db: Session = Depends(get_db), current_user: User
     section(story, styles, "AI Skin Assessment", f"Skin health score: {getattr(ai_assessment, 'final_score', None) if ai_assessment else 'Not assessed'}\nRisk level: {getattr(ai_assessment, 'risk_level', None) if ai_assessment else 'Not assessed'}\nSummary: {getattr(ai_assessment, 'condition_summary', None) if ai_assessment else 'Not provided'}")
     section(story, styles, "Consultant Review", f"Status: {getattr(consultant_review, 'status', None) if consultant_review else 'Not available'}\nSuggestions: {getattr(consultant_review, 'recommendation', None) if consultant_review else 'Not provided'}\nProgress observations: {getattr(consultant_review, 'progress_observations', None) if consultant_review else 'Not provided'}\nFollow-up: {getattr(consultant_review, 'follow_up_suggestion', None) if consultant_review else 'Not provided'}")
     if lifestyle: section(story, styles, "Lifestyle Summary", f"Sleep: {lifestyle.sleep_duration}\nWater intake: {lifestyle.water_intake}\nExercise: {lifestyle.exercise}\nStress level: {lifestyle.stress_level}\nEnvironmental exposure: {lifestyle.environmental_exposure}")
+    section(story, styles, "Dermatologist Professional Report", "The following findings and guidance were provided by the assigned dermatologist.")
     for label, value in [("Patient Summary", report.patient_summary), ("Clinical Observations", report.clinical_observations), ("Skin Assessment", report.skin_assessment), ("Recommendations", report.recommendations), ("Suggested Skincare Routine", report.skincare_routine), ("Follow-up Instructions", report.follow_up_instructions), ("Additional Notes", report.additional_notes)]: section(story, styles, label, value)
     section(story, styles, "Dermatologist Information", f"Name: {getattr(dermatologist, 'name', None) or 'Not provided'}\nQualification: {getattr(dermatologist, 'qualification', None) or 'Not provided'}\nSpecialization: {getattr(dermatologist, 'specialization', None) or 'Not provided'}\nLicense number: {getattr(dermatologist, 'license_number', None) or 'Not provided'}")
     story += [Spacer(1, 6*mm), Paragraph("This report is based on information available during the consultation and does not provide an automated medical diagnosis.", styles["Italic"])]; document.build(story); buffer.seek(0)

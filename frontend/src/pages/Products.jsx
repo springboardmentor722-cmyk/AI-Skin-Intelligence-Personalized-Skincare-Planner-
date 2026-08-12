@@ -11,6 +11,11 @@ function Products() {
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [recommendations, setRecommendations] = useState([]);
+    const [cautions, setCautions] = useState([]);
+    const [recommendationMessage, setRecommendationMessage] = useState("");
+    const [recommendationsLoading, setRecommendationsLoading] = useState(false);
+    const role = localStorage.getItem("role");
 
     // ------------------------------------------------
     // Load products
@@ -18,6 +23,7 @@ function Products() {
 
     useEffect(() => {
         loadProducts();
+        if (role === "USER") loadRecommendations();
     }, []);
 
     const loadProducts = async () => {
@@ -38,6 +44,21 @@ function Products() {
             setError("Unable to load products right now.");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const loadRecommendations = async () => {
+        try {
+            setRecommendationsLoading(true);
+            setRecommendationMessage("");
+            const { data } = await api.get("/products/recommendations");
+            setRecommendations(data.recommendations || []);
+            setCautions(data.cautions || []);
+            setRecommendationMessage(data.warnings?.[0] || "");
+        } catch {
+            setRecommendationMessage("Personalized recommendations are unavailable right now.");
+        } finally {
+            setRecommendationsLoading(false);
         }
     };
 
@@ -115,8 +136,7 @@ function Products() {
             return "Price unavailable";
         }
 
-        // Dataset is now displayed as Indian Rupees
-        return `₹${numericPrice.toFixed(2)}`;
+        return `${currency || "INR"} ${numericPrice.toFixed(2)}`;
     };
 
     // ------------------------------------------------
@@ -153,6 +173,16 @@ function Products() {
                     </div>
 
                 </div>
+
+                {role === "USER" && <section className="recommendations-panel mt-4" aria-live="polite">
+                    <h3>Recommended for You</h3>
+                    <p className="text-muted">Personalized from your current saved skin profile and active catalog products.</p>
+                    {recommendationsLoading && <p className="text-muted mb-0">Loading personalized recommendations...</p>}
+                    {recommendationMessage && <div className="alert alert-info mb-3">{recommendationMessage}</div>}
+                    {!recommendationsLoading && !recommendationMessage && !recommendations.length && <p className="text-muted">No safe personalized recommendations are available yet.</p>}
+                    <div className="row">{recommendations.slice(0, 4).map((product) => <div className="col-xl-3 col-lg-4 col-md-6 mb-3" key={product.product_id}><article className="product-card h-100"><div className="product-body"><p className="product-category">{product.category || "Skincare"}</p><h4>{product.product_name}</h4>{product.brand && <p className="brand">{product.brand}</p>}<span className="recommendation-score">{Math.round(product.recommendation_score)}% Match</span><p className="recommendation-status">Safety: Safe ({product.safety_score}/100)</p><p className="recommendation-detail">Skin type: {product.skin_type_score ? "Suitable" : "Not confirmed"} · Concern match: {Math.round(product.concern_match_score)}%</p><p className="recommendation-detail">Price: {formatPrice(product.price, product.currency)} · Rating: {product.rating ?? "Not available"}</p><p className="recommendation-reason">{product.recommendation_reason}</p>{product.ingredient_safety?.length > 0 && <details className="recommendation-ingredients"><summary>Ingredient safety</summary>{product.ingredient_safety.slice(0, 5).map((ingredient) => <p key={ingredient.ingredient_name}><strong>{ingredient.ingredient_name}:</strong> {ingredient.safety_status}</p>)}</details>}</div></article></div>)}</div>
+                    {cautions.length > 0 && <details className="recommendation-cautions"><summary>Product cautions ({cautions.length})</summary>{cautions.slice(0, 5).map((product) => <p key={product.product_id}><strong>{product.product_name} ({product.safety_status}):</strong> {product.warnings.join(" ") || "Ingredient safety evidence is incomplete."}</p>)}</details>}
+                </section>}
 
                 {/* =========================
                     SEARCH + FILTER

@@ -21,7 +21,9 @@ function DashboardLayout({ children }) {
 
                 {/* Main Content */}
                 <main className="dashboard-content">
-                    {children}
+                    <div className="dashboard-page-content">
+                        {children}
+                    </div>
                 </main>
 
                 {/* Footer */}

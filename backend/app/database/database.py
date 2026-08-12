@@ -1,9 +1,9 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-DATABASE_URL = "mysql+pymysql://root:H5m1latha*@localhost:3306/skin_intelligence"
+from app.config import get_database_url
 
-engine = create_engine(DATABASE_URL)
+engine = create_engine(get_database_url())
 
 SessionLocal = sessionmaker(
     autocommit=False,

@@ -39,7 +39,7 @@ return (
             <div className="sidebar-logo">
 
                 <div className="logo-circle">
-                    ðŸŒ¸
+                    🌸
                 </div>
 
                 <h3>Skin Intelligence</h3>
@@ -206,14 +206,14 @@ return (
                         <span>Pending Users</span>
                     </NavLink>
 
-                    <NavLink to="/products" className="menu-item">
+                    <NavLink to="/manage-products" className="menu-item">
                         <FaBoxOpen />
-                        <span>Products</span>
+                        <span>Manage Products</span>
                     </NavLink>
 
-                    <NavLink to="/ingredients" className="menu-item">
+                    <NavLink to="/manage-ingredients" className="menu-item">
                         <FaLeaf />
-                        <span>Ingredients</span>
+                        <span>Manage Ingredients</span>
                     </NavLink>
 
                 </>

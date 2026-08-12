@@ -4,10 +4,11 @@ from jose import jwt
 from sqlalchemy.orm import Session
 from app.database.database import get_db
 from app.models.user import User
+from app.config import get_jwt_secret
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
-SECRET_KEY = "SkinIntelligenceSecretKey"
+SECRET_KEY = get_jwt_secret()
 ALGORITHM = "HS256"
 
 

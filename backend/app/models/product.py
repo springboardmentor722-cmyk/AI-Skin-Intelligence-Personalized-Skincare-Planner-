@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DECIMAL
+from sqlalchemy import Boolean, Column, Integer, String, Text, DECIMAL
 
 from app.database.database import Base
 
@@ -61,3 +61,6 @@ class Product(Base):
         String(500),
         nullable=True
     )
+
+    # Soft deletion keeps historic references to a product valid.
+    is_active = Column(Boolean, nullable=False, default=True, server_default="1")

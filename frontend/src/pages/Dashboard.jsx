@@ -22,6 +22,7 @@ function Dashboard() {
     const name = localStorage.getItem("name");
 
     const [stats, setStats] = useState({});
+    const [statsError, setStatsError] = useState("");
 
     useEffect(() => {
         loadStats();
@@ -34,12 +35,13 @@ function Dashboard() {
             const response = await api.get("/dashboard/stats");
 
             setStats(response.data);
+            setStatsError("");
 
         }
 
         catch (err) {
 
-            console.log(err);
+            setStatsError("Unable to load dashboard statistics.");
 
         }
 
@@ -163,19 +165,19 @@ function Dashboard() {
 <Card
 title="Users"
 icon={<FaUsers/>}
-value="100+"
+value={stats.total_users}
 />
 
 <Card
 title="Products"
 icon={<FaBoxOpen/>}
-value="1000+"
+value={stats.total_products}
 />
 
 <Card
 title="Ingredients"
 icon={<FaLeaf/>}
-value="1000+"
+value={stats.total_ingredients}
 />
 
 <Card
@@ -251,6 +253,8 @@ value={stats.pending_users}
 
 
             </div>
+
+            {statsError && <div className="alert alert-warning mt-2">{statsError}</div>}
 
             <div className="row mt-4">
 

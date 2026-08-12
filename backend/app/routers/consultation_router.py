@@ -8,6 +8,7 @@ from app.models.user import User
 from app.models.skin_profile import SkinProfile
 from app.models.lifestyle import Lifestyle
 from app.models.progress import Progress
+from app.schemas.user_schema import UserResponse
 
 from app.schemas.consultation_schema import ConsultationCreate, ConsultantReviewCreate
 
@@ -111,7 +112,7 @@ def get_system_consultant(
     consultant = db.query(User).filter(User.role == "CONSULTANT").first()
     if consultant is None:
         raise HTTPException(status_code=404, detail="The system consultant is not available yet.")
-    return consultant
+    return UserResponse.model_validate(consultant)
 
 
 # ==========================================
@@ -255,7 +256,7 @@ def get_case_details(
 
     return {
         "consultation": consultation,
-        "user": user,
+        "user": UserResponse.model_validate(user).model_dump() if user else None,
         "skin_profile": skin,
         "lifestyle": lifestyle,
         "progress": progress,
@@ -287,9 +288,9 @@ def submit_consultant_review(
     if review_changed:
         message = ("Your consultant has reviewed your case and recommends consulting a dermatologist."
                    if data.requires_dermatologist else "Your consultant has reviewed your case and added recommendations.")
-        create_notification(db, consultation.user_id, "Consultation Reviewed", message, "consultation_review")
+        create_notification(db, consultation.user_id, "Consultation Reviewed", message, "consultation_review", f"consultation-review-{consultation.id}")
     if data.requires_dermatologist and not was_referred:
-        create_notification(db, consultation.user_id, "Dermatologist Recommended", "Our consultant recommends that you consult a dermatologist. Please check your consultation for the next step.", "dermatologist_recommended")
+        create_notification(db, consultation.user_id, "Dermatologist Recommended", "Our consultant recommends that you consult a dermatologist. Please check your consultation for the next step.", "dermatologist_recommended", f"dermatologist-recommended-{consultation.id}")
     db.commit(); db.refresh(consultation)
     return {"message": "Consultant review saved.", "consultation": consultation}
 
