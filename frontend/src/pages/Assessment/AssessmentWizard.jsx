@@ -49,6 +49,13 @@ const defaultDraft = {
   sun_exposure: "Medium",
 };
 
+const STEP_IMAGES = {
+  1: "/images/wizard-step-1.png",
+  2: "/images/wizard-step-2.png",
+  3: "/images/wizard-step-3.png",
+  4: "/images/wizard-step-4.png",
+};
+
 export default function AssessmentWizard() {
   const navigate = useNavigate();
   const { showToast } = useToast();
@@ -156,6 +163,10 @@ export default function AssessmentWizard() {
   return (
     <div className="min-h-screen flex justify-center items-center px-4 py-12">
       <div className="glass w-full max-w-[640px] p-10">
+        <div className="w-full h-40 rounded-xl overflow-hidden mb-6">
+          <img src={STEP_IMAGES[step]} alt="" className="w-full h-full object-cover" />
+        </div>
+
         <div className="mb-6">
           <div className="flex justify-between text-xs text-ink-secondary mb-2">
             <span>Step {step} of {totalSteps}</span>

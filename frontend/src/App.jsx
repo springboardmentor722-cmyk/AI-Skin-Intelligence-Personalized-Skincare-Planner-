@@ -16,6 +16,10 @@ import NotFound from "./pages/NotFound/NotFound";
 
 import AssessmentWizard from "./pages/Assessment/AssessmentWizard";
 import Planner from "./pages/Planner/Planner";
+import UserDashboard from "./pages/Dashboard/UserDashboard";
+import Routine from "./pages/Routine/Routine";
+import Recommendations from "./pages/Recommendations/Recommendations";
+import Progress from "./pages/Progress/Progress";
 
 import AdminDashboard from "./pages/Dashboard/AdminDashboard";
 import AdminUsers from "./pages/Dashboard/admin/AdminUsers";
@@ -31,6 +35,7 @@ import ConsultantRecommendations from "./pages/Dashboard/consultant/ConsultantRe
 import DermatologistDashboard from "./pages/Dashboard/DermatologistDashboard";
 import DermatologistPatients from "./pages/Dashboard/dermatologist/DermatologistPatients";
 import DermatologistConditionReports from "./pages/Dashboard/dermatologist/DermatologistConditionReports";
+import DermatologistProgress from "./pages/Dashboard/dermatologist/DermatologistProgress";
 import DermatologistTreatmentNotes from "./pages/Dashboard/dermatologist/DermatologistTreatmentNotes";
 
 function App() {
@@ -53,6 +58,10 @@ function App() {
             <Route path="/create-profile" element={<ProtectedRoute roles={["user"]}><CreateProfile /></ProtectedRoute>} />
 
             {/* Milestone 2 — user role */}
+            <Route path="/dashboard" element={<ProtectedRoute roles={["user"]}><UserDashboard /></ProtectedRoute>} />
+            <Route path="/routine" element={<ProtectedRoute roles={["user"]}><Routine /></ProtectedRoute>} />
+            <Route path="/recommendations" element={<ProtectedRoute roles={["user"]}><Recommendations /></ProtectedRoute>} />
+            <Route path="/progress" element={<ProtectedRoute roles={["user"]}><Progress /></ProtectedRoute>} />
             <Route path="/assessment" element={<ProtectedRoute roles={["user"]}><AssessmentWizard /></ProtectedRoute>} />
             <Route path="/planner" element={<ProtectedRoute roles={["user"]}><Planner /></ProtectedRoute>} />
 
@@ -73,6 +82,7 @@ function App() {
             <Route path="/dermatologist" element={<ProtectedRoute roles={["dermatologist"]}><DermatologistDashboard /></ProtectedRoute>} />
             <Route path="/dermatologist/patients" element={<ProtectedRoute roles={["dermatologist"]}><DermatologistPatients /></ProtectedRoute>} />
             <Route path="/dermatologist/reports" element={<ProtectedRoute roles={["dermatologist"]}><DermatologistConditionReports /></ProtectedRoute>} />
+            <Route path="/dermatologist/progress" element={<ProtectedRoute roles={["dermatologist"]}><DermatologistProgress /></ProtectedRoute>} />
             <Route path="/dermatologist/notes" element={<ProtectedRoute roles={["dermatologist"]}><DermatologistTreatmentNotes /></ProtectedRoute>} />
 
             {/* 404 — must stay last */}

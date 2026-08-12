@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { TbSun, TbMoon, TbCalendarWeek, TbSparkles } from "react-icons/tb";
+import { TbSun, TbMoon, TbCalendarWeek } from "react-icons/tb";
 import MainLayout from "../../layouts/MainLayout";
 import SkinHealthRing from "../../components/SkinHealthRing";
 import { SkeletonCard } from "../../components/Skeleton";
@@ -67,9 +67,7 @@ export default function Planner() {
     return (
       <MainLayout navItems={USER_NAV_ITEMS} brandLabel="Skin AI">
         <div className="glass p-12 flex flex-col items-center text-center gap-3">
-          <div className="w-14 h-14 rounded-full bg-ocean-100 text-ocean-600 flex items-center justify-center text-2xl">
-            <TbSparkles />
-          </div>
+          <img src="/images/empty-state-default.png" alt="" className="w-32 h-32 object-contain" />
           <h2 className="text-base font-medium">No routine yet</h2>
           <p className="text-sm text-ink-secondary max-w-sm">
             Complete the skin assessment first — your personalized AM/PM routine

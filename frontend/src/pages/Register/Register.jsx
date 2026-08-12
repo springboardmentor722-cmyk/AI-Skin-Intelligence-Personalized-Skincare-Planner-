@@ -40,7 +40,10 @@ function Register() {
   };
 
   return (
-    <div className="min-h-screen flex justify-center items-center px-4">
+    <div className="min-h-screen flex justify-center items-center px-4 gap-8">
+      <div className="hidden lg:block w-full max-w-[420px] h-[600px] rounded-2xl overflow-hidden">
+        <img src="/images/auth-hero.png" alt="" className="w-full h-full object-cover" />
+      </div>
       <div className="glass w-full max-w-[420px] p-10">
         <h1 className="text-3xl font-semibold mb-8 text-center">Create account</h1>
 

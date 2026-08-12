@@ -3,12 +3,29 @@ import { TbDownload, TbFileReport } from "react-icons/tb";
 import MainLayout from "../../../layouts/MainLayout";
 import { ADMIN_NAV_ITEMS } from "./adminNav";
 import { getAllUsers } from "../../../services/admin";
+import { getAdminScoreOverview } from "../../../services/assessment";
+import { getAdminRecommendationOverview } from "../../../services/recommendations";
+
+function downloadCsv(filename, headers, rows) {
+  const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 export default function AdminReports() {
   const [users, setUsers] = useState([]);
+  const [scoreOverview, setScoreOverview] = useState(null);
+  const [recOverview, setRecOverview] = useState(null);
 
   useEffect(() => {
     getAllUsers().then((res) => setUsers(res.data)).catch(() => {});
+    getAdminScoreOverview().then((res) => setScoreOverview(res.data)).catch(() => {});
+    getAdminRecommendationOverview().then((res) => setRecOverview(res.data)).catch(() => {});
   }, []);
 
   const exportUsersCsv = () => {
@@ -16,21 +33,56 @@ export default function AdminReports() {
     const rows = users.map((u) => [
       u.full_name, u.email, u.role, new Date(u.created_at).toLocaleDateString(),
     ]);
-    const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "users-report.csv";
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadCsv("users-report.csv", headers, rows);
+  };
+
+  const exportAssessmentsCsv = () => {
+    const headers = ["User ID", "Overall Score", "Primary Concern", "Assessed On"];
+    const rows = scoreOverview.per_user_scores.map((s) => [
+      s.user_id, s.overall_score, s.primary_concern || "", new Date(s.created_at).toLocaleDateString(),
+    ]);
+    downloadCsv("skin-assessment-report.csv", headers, rows);
+  };
+
+  const exportProgressCsv = () => {
+    const headers = ["User ID", "Routine Consistency Score", "Overall Score", "Latest Assessment"];
+    const rows = scoreOverview.per_user_scores.map((s) => [
+      s.user_id, s.consistency_score, s.overall_score, new Date(s.created_at).toLocaleDateString(),
+    ]);
+    downloadCsv("progress-report.csv", headers, rows);
+  };
+
+  const exportRecommendationsCsv = () => {
+    const headers = ["Product", "Brand", "Category", "Recommended To (users)"];
+    const rows = recOverview.top_recommended.map((p) => [p.name, p.brand, p.category, p.count]);
+    downloadCsv("recommendation-report.csv", headers, rows);
   };
 
   const REPORT_TYPES = [
-    { title: "User report", desc: "Full user list with role and join date — now real data", action: exportUsersCsv, available: true },
-    { title: "Skin assessment reports", desc: "Per-user skin assessment summaries", available: false },
-    { title: "Progress reports", desc: "Routine adherence and improvement tracking", available: false },
-    { title: "Recommendation reports", desc: "What the engine recommended and why", available: false },
+    {
+      title: "User report",
+      desc: "Full user list with role and join date",
+      action: exportUsersCsv,
+      available: true,
+    },
+    {
+      title: "Skin assessment reports",
+      desc: "Per-user skin health score and primary concern",
+      action: exportAssessmentsCsv,
+      available: scoreOverview && scoreOverview.users_assessed > 0,
+    },
+    {
+      title: "Progress reports",
+      desc: "Routine adherence and score per user",
+      action: exportProgressCsv,
+      available: scoreOverview && scoreOverview.users_assessed > 0,
+    },
+    {
+      title: "Recommendation reports",
+      desc: "What the engine recommended, and to how many users",
+      action: exportRecommendationsCsv,
+      available: recOverview && recOverview.top_recommended.length > 0,
+    },
   ];
 
   return (
@@ -55,7 +107,7 @@ export default function AdminReports() {
                 <TbDownload /> Export CSV
               </button>
             ) : (
-              <span className="pill pill-pending w-fit">Needs Milestone 2 data</span>
+              <span className="pill pill-pending w-fit">No data yet</span>
             )}
           </div>
         ))}

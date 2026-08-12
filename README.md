@@ -11,3 +11,8 @@ AI-powered skincare intelligence platform using React, FastAPI, Computer Vision,
 - Docker
 - PyTorch
 - OpenCV
+
+## 🎥 Project Demo
+
+<video src="./docs/project-status.mp4" controls width="800">
+</video>

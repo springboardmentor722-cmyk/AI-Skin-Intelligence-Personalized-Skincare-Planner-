@@ -14,6 +14,10 @@ export const assessmentApi = axios.create({
   baseURL: import.meta.env.VITE_ASSESSMENT_API_URL || "http://127.0.0.1:8003",
 });
 
+export const recommendationApi = axios.create({
+  baseURL: import.meta.env.VITE_RECOMMENDATION_API_URL || "http://127.0.0.1:8004",
+});
+
 function attachToken(config) {
   const token = localStorage.getItem("token");
   if (token) {
@@ -25,5 +29,6 @@ function attachToken(config) {
 authApi.interceptors.request.use(attachToken);
 profileApi.interceptors.request.use(attachToken);
 assessmentApi.interceptors.request.use(attachToken);
+recommendationApi.interceptors.request.use(attachToken);
 
 export default authApi;
