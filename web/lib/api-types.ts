@@ -660,6 +660,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/reminders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Reminders */
+        get: operations["get_my_reminders_api_v1_reminders_get"];
+        put?: never;
+        /** Create My Reminder */
+        post: operations["create_my_reminder_api_v1_reminders_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reminders/{reminder_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete My Reminder */
+        delete: operations["delete_my_reminder_api_v1_reminders__reminder_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update My Reminder */
+        patch: operations["update_my_reminder_api_v1_reminders__reminder_id__patch"];
+        trace?: never;
+    };
     "/api/v1/analytics/me": {
         parameters: {
             query?: never;
@@ -2650,6 +2686,54 @@ export interface components {
             /** Alternative For Product Id */
             alternative_for_product_id: number | null;
         };
+        /** ReminderCreate */
+        ReminderCreate: {
+            /** Reminder Type */
+            reminder_type: string;
+            /** Title */
+            title: string;
+            /** Message */
+            message?: string | null;
+            /** Reminder Time */
+            reminder_time?: string | null;
+            /** Frequency */
+            frequency: string;
+            /**
+             * Is Active
+             * @default true
+             */
+            is_active: boolean;
+        };
+        /** ReminderRead */
+        ReminderRead: {
+            /** Reminder Id */
+            reminder_id: number;
+            /** Reminder Type */
+            reminder_type: string;
+            /** Title */
+            title: string;
+            /** Message */
+            message: string | null;
+            /** Reminder Time */
+            reminder_time: string | null;
+            /** Frequency */
+            frequency: string;
+            /** Is Active */
+            is_active: boolean;
+        };
+        /** ReminderUpdate */
+        ReminderUpdate: {
+            /** Title */
+            title?: string | null;
+            /** Message */
+            message?: string | null;
+            /** Reminder Time */
+            reminder_time?: string | null;
+            /** Frequency */
+            frequency?: string | null;
+            /** Is Active */
+            is_active?: boolean | null;
+        };
         /** RiskFactorRead */
         RiskFactorRead: {
             /** Key */
@@ -4302,6 +4386,123 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["NotificationRead"][];
+                };
+            };
+        };
+    };
+    get_my_reminders_api_v1_reminders_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReminderRead"][];
+                };
+            };
+        };
+    };
+    create_my_reminder_api_v1_reminders_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReminderCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReminderRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_my_reminder_api_v1_reminders__reminder_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reminder_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_my_reminder_api_v1_reminders__reminder_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reminder_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReminderUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReminderRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

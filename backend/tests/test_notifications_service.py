@@ -7,16 +7,43 @@ built"."""
 
 import datetime
 import uuid
+from collections.abc import AsyncGenerator
 
 import pytest
 from httpx import AsyncClient
+from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import require_user
-from app.db.postgres import external_user_table
+from app.db.postgres import async_session_factory, external_user_table
 from app.main import app
-from app.services.notifications.models import Notification
+from app.services.notifications.models import Notification, Reminder
 from app.services.notifications.service import list_my_notifications
+
+
+@pytest.fixture
+async def router_test_user() -> AsyncGenerator[str, None]:
+    # The `client` fixture hits the real `get_db` (no rollback wrapper, unlike
+    # `db_session`) — creating a reminder over HTTP really inserts a `reminders`
+    # row FK'd to `user.id`, so this needs a real, committed user row (same
+    # pattern as test_progress_router.py's fixture of the same name).
+    user_id = f"test-reminders-router-{uuid.uuid4().hex[:16]}"
+    async with async_session_factory() as session:
+        await session.execute(
+            external_user_table.insert().values(
+                id=user_id, email=f"{user_id}@test.invalid", name="Test User", emailVerified=False
+            )
+        )
+        await session.commit()
+    try:
+        yield user_id
+    finally:
+        async with async_session_factory() as session:
+            await session.execute(delete(Reminder).where(Reminder.user_id == user_id))
+            await session.execute(
+                delete(external_user_table).where(external_user_table.c.id == user_id)
+            )
+            await session.commit()
 
 
 async def _as(user_id: str, client: AsyncClient) -> None:
@@ -245,9 +272,7 @@ async def test_update_reminder_rejects_another_user_s_reminder(
         )
 
 
-async def test_delete_reminder_removes_the_row(
-    db_session: AsyncSession, test_user_id: str
-) -> None:
+async def test_delete_reminder_removes_the_row(db_session: AsyncSession, test_user_id: str) -> None:
     from app.services.notifications.schemas import ReminderCreate
     from app.services.notifications.service import (
         delete_reminder,
@@ -273,3 +298,46 @@ async def test_delete_reminder_removes_the_row(
     await db_session.flush()
 
     assert await list_my_reminders(db_session, test_user_id) == []
+
+
+async def test_reminders_endpoints_require_auth(client: AsyncClient) -> None:
+    response = await client.get("/api/v1/reminders")
+    assert response.status_code in (401, 403)
+
+
+async def test_create_list_update_delete_reminder_via_http(
+    client: AsyncClient, router_test_user: str
+) -> None:
+    await _as(router_test_user, client)
+    try:
+        create_response = await client.post(
+            "/api/v1/reminders",
+            json={
+                "reminder_type": "hydration",
+                "title": "Hydration Nudge",
+                "message": "Drink water",
+                "reminder_time": None,
+                "frequency": "every_2h",
+                "is_active": True,
+            },
+        )
+        assert create_response.status_code == 200
+        reminder_id = create_response.json()["reminder_id"]
+
+        list_response = await client.get("/api/v1/reminders")
+        assert list_response.status_code == 200
+        assert len(list_response.json()) == 1
+
+        patch_response = await client.patch(
+            f"/api/v1/reminders/{reminder_id}", json={"is_active": False}
+        )
+        assert patch_response.status_code == 200
+        assert patch_response.json()["is_active"] is False
+
+        delete_response = await client.delete(f"/api/v1/reminders/{reminder_id}")
+        assert delete_response.status_code == 204
+
+        final_list = await client.get("/api/v1/reminders")
+        assert final_list.json() == []
+    finally:
+        app.dependency_overrides.pop(require_user, None)
