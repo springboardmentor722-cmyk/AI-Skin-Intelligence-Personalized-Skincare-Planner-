@@ -200,7 +200,7 @@ export default function MyRoutinePage() {
   ];
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex min-w-0 flex-col gap-8">
       <div>
         <h1 className="font-heading text-on-surface text-2xl font-bold">My Routine</h1>
         <p className="text-on-surface-variant mt-1 font-sans text-sm">
@@ -225,13 +225,13 @@ export default function MyRoutinePage() {
         />
       ) : (
         <div>
-          <div className="border-border mb-6 flex gap-8 border-b">
+          <div className="border-border mb-6 flex gap-8 overflow-x-auto border-b">
             {tabs.map(({ type, label, icon: Icon }) => (
               <button
                 key={type}
                 onClick={() => setActiveTab(type)}
                 className={cn(
-                  "flex items-center gap-2 pb-4 font-sans text-lg font-semibold transition-colors",
+                  "flex shrink-0 items-center gap-2 pb-4 font-sans text-lg font-semibold transition-colors",
                   activeTab === type
                     ? "text-secondary border-secondary border-b-2"
                     : "text-on-surface-variant hover:text-on-surface"

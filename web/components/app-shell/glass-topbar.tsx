@@ -177,15 +177,15 @@ export function GlassTopbar({ role, userName, title }: GlassTopbarProps) {
   return (
     <>
       <header className="glass sticky top-0 z-30 flex h-16 items-center justify-between rounded-none border-x-0 border-t-0 px-6">
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center gap-3">
           <SidebarTrigger />
           <Separator orientation="vertical" className="h-5" />
-          <h1 className="font-heading text-on-surface text-lg font-semibold">
+          <h1 className="font-heading text-on-surface truncate text-lg font-semibold">
             {pageTitle}
           </h1>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           {topbar.primaryActionLabel && topbar.primaryActionHref && (
             <Button
               size="sm"
