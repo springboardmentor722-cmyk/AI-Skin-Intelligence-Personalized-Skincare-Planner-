@@ -550,6 +550,23 @@ CREATE TABLE reminders (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Backs the Reports page's "Scheduled Automations" card (M3-Reports/Reminders,
+-- 2026-08-12) — recurring report generation via an arq cron job. report_type mirrors
+-- report_schedules' own literal set ('assessment' | 'progress' | 'routine'); frequency
+-- is 'weekly' (uses day_of_week) or 'monthly' (uses day_of_month), never both set.
+CREATE TABLE report_schedules (
+    schedule_id SERIAL PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+    report_type VARCHAR(50) NOT NULL,
+    frequency VARCHAR(20) NOT NULL CHECK (frequency IN ('weekly', 'monthly')),
+    day_of_week SMALLINT,
+    day_of_month SMALLINT,
+    time_of_day TIME NOT NULL DEFAULT '08:00:00',
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE subscriptions (
     subscription_id SERIAL PRIMARY KEY,
     user_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
@@ -654,6 +671,7 @@ CREATE INDEX idx_audit_logs_target ON audit_logs(target_type, target_id);
 CREATE INDEX idx_audit_logs_created ON audit_logs(created_at);
 CREATE INDEX idx_notifications_user_unread ON notifications(user_id, is_read);
 CREATE INDEX idx_reminders_user_active ON reminders(user_id, is_active);
+CREATE INDEX ix_report_schedules_user_id ON report_schedules(user_id);
 CREATE INDEX idx_subscriptions_user_status ON subscriptions(user_id, status);
 CREATE INDEX idx_payments_user ON payments(user_id);
 -- Production-readiness audit (migration c4f7e1a92d3b): routine_products had no
