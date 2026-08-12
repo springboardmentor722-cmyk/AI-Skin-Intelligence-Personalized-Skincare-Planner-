@@ -73,6 +73,9 @@ def send_request(
             Consultation.status.in_(["Pending", "In Review"])
         ).order_by(Consultation.id.desc()).first()
         if active:
+            create_notification(db, current_user.id, "Consultation Request Submitted", "Your consultation request has been submitted to our skincare consultant.", "consultation_request", f"consultation-request-user-{active.id}")
+            create_notification(db, 13, "New Consultation Request", "A user has submitted a new skincare consultation request.", "consultation_request", f"consultation-request-consultant-{active.id}")
+            db.commit()
             return {"message": "You already have an active consultant request.", "consultation_id": active.id, "status": active.status}
     else:
         active = db.query(Consultation).filter(
@@ -81,6 +84,8 @@ def send_request(
             Consultation.status.in_(["Pending", "In Review", "Accepted"])
         ).order_by(Consultation.id.desc()).first()
         if active:
+            create_notification(db, expert.id, "New Dermatologist Referral", "A consultant has referred a user for dermatologist review.", "dermatologist_referral", f"dermatologist-request-{active.id}")
+            db.commit()
             return {"message": "You already have an active dermatologist request.", "consultation_id": active.id, "status": active.status}
 
     consultation = Consultation(
@@ -90,6 +95,10 @@ def send_request(
     )
 
     db.add(consultation)
+    # Allocate the consultation ID before deriving idempotency keys for its
+    # notifications. Without this, every request used an event key ending in
+    # ``None`` and later requests were incorrectly treated as duplicates.
+    db.flush()
     if expert.role == "CONSULTANT":
         create_notification(db, current_user.id, "Consultation Request Submitted", "Your consultation request has been submitted to our skincare consultant.", "consultation_request", f"consultation-request-user-{consultation.id}")
         create_notification(db, 13, "New Consultation Request", "A user has submitted a new skincare consultation request.", "consultation_request", f"consultation-request-consultant-{consultation.id}")

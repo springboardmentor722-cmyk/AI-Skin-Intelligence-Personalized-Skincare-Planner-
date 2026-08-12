@@ -1,19 +1,21 @@
-import os
 import shutil
 from datetime import date
+from pathlib import Path
 
-from fastapi import APIRouter, Depends, File, Form, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
 from app.models.progress import Progress
+from app.models.consultation import Consultation
 from app.models.skin_profile import SkinProfile
 from app.models.user import User
 from app.utils.auth import get_current_user
 
 router = APIRouter(prefix="/skin-profile", tags=["Skin Profile"])
-UPLOAD_FOLDER = "uploads/skin_images"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+UPLOAD_FOLDER = Path(__file__).resolve().parents[2] / "uploads" / "skin_images"
+UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
 
 def upsert_today_progress(db: Session, profile: SkinProfile, notes: str) -> None:
     """Keep one automatically generated skin-profile assessment per day."""
@@ -30,10 +32,45 @@ def upsert_today_progress(db: Session, profile: SkinProfile, notes: str) -> None
 
 def save_image(user_id: int, skin_image: UploadFile) -> str:
     filename = f"{user_id}_{skin_image.filename}"
-    filepath = os.path.join(UPLOAD_FOLDER, filename)
+    filepath = UPLOAD_FOLDER / filename
     with open(filepath, "wb") as buffer:
         shutil.copyfileobj(skin_image.file, buffer)
-    return filepath
+    return str(Path("uploads") / "skin_images" / filename)
+
+
+@router.get("/image/{filename}")
+def get_skin_image(
+    filename: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Return a skin image only to its owner or an authorized case professional."""
+    if not filename or ".." in filename or Path(filename).name != filename:
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    profile = db.query(SkinProfile).filter(SkinProfile.skin_image.is_not(None)).all()
+    profile = next((item for item in profile if Path(item.skin_image).name == filename), None)
+    if profile is None:
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    if current_user.role == "USER":
+        allowed = profile.user_id == current_user.id
+    elif current_user.role == "ADMIN":
+        allowed = True
+    elif current_user.role in {"CONSULTANT", "DERMATOLOGIST"}:
+        allowed = db.query(Consultation.id).filter(
+            Consultation.user_id == profile.user_id,
+            Consultation.expert_id == current_user.id,
+        ).first() is not None
+    else:
+        allowed = False
+    if not allowed:
+        raise HTTPException(status_code=403, detail="You are not authorized to access this image")
+
+    image_path = (UPLOAD_FOLDER / filename).resolve()
+    if UPLOAD_FOLDER.resolve() not in image_path.parents or not image_path.is_file():
+        raise HTTPException(status_code=404, detail="Image not found")
+    return FileResponse(image_path)
 
 @router.post("/")
 def create_profile(age: int = Form(...), gender: str = Form(...), skin_type: str = Form(...), skin_concerns: str = Form(...), allergies: str = Form(...), sensitivities: str = Form(...), skin_image: UploadFile = File(...), db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):

@@ -1,8 +1,6 @@
 from fastapi import FastAPI
 from sqlalchemy import inspect, text
 
-from fastapi.staticfiles import StaticFiles
-import os
 from app.database.database import Base, engine
 from fastapi.middleware.cors import CORSMiddleware
 # Import all models
@@ -64,13 +62,6 @@ ensure_catalog_activity_schema()
 
 # Create FastAPI app
 app = FastAPI(title="Skin Intelligence")
-os.makedirs("uploads/skin_images", exist_ok=True)
-
-app.mount(
-    "/uploads",
-    StaticFiles(directory="uploads"),
-    name="uploads"
-)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[

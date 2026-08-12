@@ -25,10 +25,12 @@ function Navbar() {
     };
     useEffect(() => {
         loadNotifications();
-        const interval = window.setInterval(loadNotifications, 60000);
+        const interval = window.setInterval(loadNotifications, 15000);
+        const refreshOnFocus = () => loadNotifications();
         const close = (event) => { if (notificationRef.current && !notificationRef.current.contains(event.target)) setIsNotificationOpen(false); };
+        window.addEventListener("focus", refreshOnFocus);
         document.addEventListener("mousedown", close);
-        return () => { window.clearInterval(interval); document.removeEventListener("mousedown", close); };
+        return () => { window.clearInterval(interval); window.removeEventListener("focus", refreshOnFocus); document.removeEventListener("mousedown", close); };
     }, []);
     const markRead = async (id) => { try { await api.put(`/notifications/${id}/read`); setNotifications((items) => items.map((item) => item.id === id ? { ...item, is_read: true } : item)); } catch { /* preserve UI state */ } };
     const markAllRead = async () => { try { await api.put("/notifications/read-all"); setNotifications((items) => items.map((item) => ({ ...item, is_read: true }))); } catch { /* preserve UI state */ } };
@@ -87,7 +89,7 @@ function Navbar() {
                 </div>
 
                 <div className="notification-wrapper" ref={notificationRef}>
-                    <button className="notification" type="button" aria-label="Notifications" aria-expanded={isNotificationOpen} onClick={() => setIsNotificationOpen((open) => !open)}>
+                    <button className="notification" type="button" aria-label="Notifications" aria-expanded={isNotificationOpen} onClick={() => { if (!isNotificationOpen) loadNotifications(); setIsNotificationOpen((open) => !open); }}>
                         <FaBell />
                         {unreadCount > 0 && <span className="notification-badge">{unreadCount > 99 ? "99+" : unreadCount}</span>}
                     </button>
