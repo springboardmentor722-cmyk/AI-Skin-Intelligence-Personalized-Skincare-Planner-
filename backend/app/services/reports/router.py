@@ -9,7 +9,13 @@ from app.core.storage import get_presigned_url
 from app.db.postgres import get_db
 from app.services.reports import service
 from app.services.reports.models import ProgressReport
-from app.services.reports.schemas import ReportGenerateRequest, ReportRead
+from app.services.reports.schemas import (
+    ReportGenerateRequest,
+    ReportRead,
+    ReportScheduleCreate,
+    ReportScheduleRead,
+    ReportScheduleUpdate,
+)
 
 router = APIRouter()
 
@@ -55,3 +61,48 @@ async def download_my_report(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Report not found")
     url = await get_presigned_url(report.report_url)
     return {"url": url}
+
+
+@router.get("/reports/schedules")
+async def get_my_report_schedules(
+    user: Annotated[dict[str, Any], Depends(require_role("user"))],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> list[ReportScheduleRead]:
+    rows = await service.list_my_schedules(db, user["id"])
+    return [ReportScheduleRead.model_validate(r) for r in rows]
+
+
+@router.post("/reports/schedules")
+async def create_my_report_schedule(
+    body: ReportScheduleCreate,
+    user: Annotated[dict[str, Any], Depends(require_role("user"))],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> ReportScheduleRead:
+    created = await service.create_schedule(db, user["id"], body)
+    return ReportScheduleRead.model_validate(created)
+
+
+@router.patch("/reports/schedules/{schedule_id}")
+async def update_my_report_schedule(
+    schedule_id: int,
+    body: ReportScheduleUpdate,
+    user: Annotated[dict[str, Any], Depends(require_role("user"))],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> ReportScheduleRead:
+    try:
+        updated = await service.update_schedule(db, user["id"], schedule_id, body)
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+    return ReportScheduleRead.model_validate(updated)
+
+
+@router.delete("/reports/schedules/{schedule_id}", status_code=204)
+async def delete_my_report_schedule(
+    schedule_id: int,
+    user: Annotated[dict[str, Any], Depends(require_role("user"))],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> None:
+    try:
+        await service.delete_schedule(db, user["id"], schedule_id)
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc

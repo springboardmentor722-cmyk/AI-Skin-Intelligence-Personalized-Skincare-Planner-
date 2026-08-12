@@ -12,8 +12,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.storage import build_key, upload
 from app.services.analytics.service import get_my_analytics
 from app.services.recommendations.service import get_recommendations
-from app.services.reports.models import ProgressReport
-from app.services.reports.schemas import ReportType
+from app.services.reports.models import ProgressReport, ReportSchedule
+from app.services.reports.schemas import ReportScheduleCreate, ReportScheduleUpdate, ReportType
 from app.services.routines.service import get_or_generate_routines
 from app.services.scores.service import get_latest_score
 from app.services.skin_profile.models import SkinType
@@ -156,3 +156,45 @@ async def generate_report(
     db.add(report)
     await db.commit()
     return report
+
+
+async def list_my_schedules(db: AsyncSession, user_id: str) -> list[ReportSchedule]:
+    result = await db.execute(select(ReportSchedule).where(ReportSchedule.user_id == user_id))
+    return list(result.scalars().all())
+
+
+async def create_schedule(
+    db: AsyncSession, user_id: str, data: ReportScheduleCreate
+) -> ReportSchedule:
+    schedule = ReportSchedule(user_id=user_id, **data.model_dump())
+    db.add(schedule)
+    await db.commit()
+    return schedule
+
+
+async def _get_owned_schedule(db: AsyncSession, user_id: str, schedule_id: int) -> ReportSchedule:
+    result = await db.execute(
+        select(ReportSchedule).where(
+            ReportSchedule.schedule_id == schedule_id, ReportSchedule.user_id == user_id
+        )
+    )
+    schedule = result.scalar_one_or_none()
+    if schedule is None:
+        raise ValueError(f"Report schedule {schedule_id} not found for this user")
+    return schedule
+
+
+async def update_schedule(
+    db: AsyncSession, user_id: str, schedule_id: int, data: ReportScheduleUpdate
+) -> ReportSchedule:
+    schedule = await _get_owned_schedule(db, user_id, schedule_id)
+    for field, value in data.model_dump(exclude_unset=True).items():
+        setattr(schedule, field, value)
+    await db.commit()
+    return schedule
+
+
+async def delete_schedule(db: AsyncSession, user_id: str, schedule_id: int) -> None:
+    schedule = await _get_owned_schedule(db, user_id, schedule_id)
+    await db.delete(schedule)
+    await db.commit()

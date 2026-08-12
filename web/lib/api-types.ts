@@ -747,6 +747,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/reports/schedules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Report Schedules */
+        get: operations["get_my_report_schedules_api_v1_reports_schedules_get"];
+        put?: never;
+        /** Create My Report Schedule */
+        post: operations["create_my_report_schedule_api_v1_reports_schedules_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/schedules/{schedule_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete My Report Schedule */
+        delete: operations["delete_my_report_schedule_api_v1_reports_schedules__schedule_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update My Report Schedule */
+        patch: operations["update_my_report_schedule_api_v1_reports_schedules__schedule_id__patch"];
+        trace?: never;
+    };
     "/api/v1/analytics/me": {
         parameters: {
             query?: never;
@@ -2809,6 +2845,67 @@ export interface components {
             /** Generated At */
             generated_at: string | null;
         };
+        /** ReportScheduleCreate */
+        ReportScheduleCreate: {
+            /**
+             * Report Type
+             * @enum {string}
+             */
+            report_type: "assessment" | "progress" | "routine";
+            /**
+             * Frequency
+             * @enum {string}
+             */
+            frequency: "weekly" | "monthly";
+            /** Day Of Week */
+            day_of_week?: number | null;
+            /** Day Of Month */
+            day_of_month?: number | null;
+            /**
+             * Time Of Day
+             * Format: time
+             * @default 08:00:00
+             */
+            time_of_day: string;
+            /**
+             * Is Active
+             * @default true
+             */
+            is_active: boolean;
+        };
+        /** ReportScheduleRead */
+        ReportScheduleRead: {
+            /** Schedule Id */
+            schedule_id: number;
+            /** Report Type */
+            report_type: string;
+            /** Frequency */
+            frequency: string;
+            /** Day Of Week */
+            day_of_week: number | null;
+            /** Day Of Month */
+            day_of_month: number | null;
+            /**
+             * Time Of Day
+             * Format: time
+             */
+            time_of_day: string;
+            /** Is Active */
+            is_active: boolean;
+        };
+        /** ReportScheduleUpdate */
+        ReportScheduleUpdate: {
+            /** Frequency */
+            frequency?: ("weekly" | "monthly") | null;
+            /** Day Of Week */
+            day_of_week?: number | null;
+            /** Day Of Month */
+            day_of_month?: number | null;
+            /** Time Of Day */
+            time_of_day?: string | null;
+            /** Is Active */
+            is_active?: boolean | null;
+        };
         /** RiskFactorRead */
         RiskFactorRead: {
             /** Key */
@@ -4655,6 +4752,123 @@ export interface operations {
                     "application/json": {
                         [key: string]: string;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_my_report_schedules_api_v1_reports_schedules_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportScheduleRead"][];
+                };
+            };
+        };
+    };
+    create_my_report_schedule_api_v1_reports_schedules_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportScheduleCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportScheduleRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_my_report_schedule_api_v1_reports_schedules__schedule_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schedule_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_my_report_schedule_api_v1_reports_schedules__schedule_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schedule_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportScheduleUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportScheduleRead"];
                 };
             };
             /** @description Validation Error */

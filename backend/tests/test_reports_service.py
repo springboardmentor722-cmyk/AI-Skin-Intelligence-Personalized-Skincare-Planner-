@@ -118,3 +118,48 @@ async def test_generate_list_and_download_report_via_http(
         assert download_response.json()["url"].startswith("http")
     finally:
         app.dependency_overrides.pop(require_user, None)
+
+
+async def test_create_and_list_report_schedule(db_session: AsyncSession, test_user_id: str) -> None:
+    from app.services.reports.schemas import ReportScheduleCreate
+    from app.services.reports.service import create_schedule, list_my_schedules
+
+    created = await create_schedule(
+        db_session,
+        test_user_id,
+        ReportScheduleCreate(report_type="progress", frequency="weekly", day_of_week=0),
+    )
+    await db_session.flush()
+
+    assert created.schedule_id is not None
+    rows = await list_my_schedules(db_session, test_user_id)
+    assert len(rows) == 1
+    assert rows[0].frequency == "weekly"
+
+
+async def test_update_report_schedule_rejects_another_user(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    from app.services.reports.schemas import ReportScheduleCreate, ReportScheduleUpdate
+    from app.services.reports.service import create_schedule, update_schedule
+
+    other_user_id = f"test-{uuid.uuid4().hex[:20]}"
+    await db_session.execute(
+        external_user_table.insert().values(
+            id=other_user_id,
+            email=f"{other_user_id}@test.invalid",
+            name="Other",
+            emailVerified=False,
+        )
+    )
+    created = await create_schedule(
+        db_session,
+        other_user_id,
+        ReportScheduleCreate(report_type="progress", frequency="monthly", day_of_month=1),
+    )
+    await db_session.flush()
+
+    with pytest.raises(ValueError):
+        await update_schedule(
+            db_session, test_user_id, created.schedule_id, ReportScheduleUpdate(is_active=False)
+        )
