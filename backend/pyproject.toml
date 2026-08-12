@@ -26,6 +26,7 @@ dependencies = [
     # app/db/redis.py + core/rate_limit.py) is stable across 5.x/8.x, confirmed by grep
     # before relaxing this.
     "redis[hiredis]>=5.0.0,<6",
+    "reportlab>=4.2.5,<5",
     "sentence-transformers>=3.3.1",
     "sqlalchemy[asyncio]>=2.0.51",
     "structlog>=26.1.0",
