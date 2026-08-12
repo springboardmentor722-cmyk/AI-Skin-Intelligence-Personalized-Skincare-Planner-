@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { AlertCircle, Eye, EyeOff, Loader2, Mail, Lock } from "lucide-react";
@@ -13,21 +13,43 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
 import { loginSchema, type LoginValues } from "@/lib/schemas/auth";
-import { ROLE_HOME, type Role } from "@/lib/nav-config";
+import { ROLE_HOME, ROLE_PATH_PREFIX, type Role } from "@/lib/nav-config";
 import { useCurrentUser } from "@/lib/use-current-user";
 import { GoogleIcon } from "@/components/auth/google-icon";
 
 // web/designs/wireframes/login.html — the form panel is a solid "diagnostic module"
 // card, not glass (docs/DESIGN.md §3: glass is forbidden under forms — it frames data,
 // never backgrounds it). Only the left branding panel (AuthSplitLayout) is glass.
+// A path belongs to `role` if it falls under that role's own prefix (ROLE_PATH_PREFIX)
+// — for `user` (prefix "") that means "not under any OTHER role's prefix", since user
+// routes are the bare, unprefixed ones.
+function roleOwnsPath(role: Role, path: string): boolean {
+  const prefix = ROLE_PATH_PREFIX[role];
+  if (prefix !== "") return path === prefix || path.startsWith(`${prefix}/`);
+  return (Object.values(ROLE_PATH_PREFIX) as string[]).every(
+    (otherPrefix) => otherPrefix === "" || !(path === otherPrefix || path.startsWith(`${otherPrefix}/`))
+  );
+}
+
 // Only accept a same-origin relative path — `from` is attacker-controllable (a
 // hand-crafted /login?from=... link) — this guards against an open-redirect
 // (`//evil.com`, `https://evil.com`, etc.) rather than trusting the query param
 // outright. Falls back to `fallback` (the signed-in account's own ROLE_HOME), not a
 // hardcoded "/dashboard" — that hardcoding used to send every role, including admin,
 // to the User dashboard regardless of who actually signed in.
-function safeRedirectTarget(from: string | null, fallback: string): string {
-  if (from && from.startsWith("/") && !from.startsWith("//")) return from;
+//
+// Also requires `from` to actually belong to the signed-in `role` (roleOwnsPath) —
+// found live: sign out of one role (proxy.ts's redirect sets ?from=<that role's path>),
+// then sign in as a DIFFERENT role on the same still-open /login tab without a fresh
+// navigation. The stale `from` from the previous role got trusted unconditionally,
+// sending the new sign-in to a dashboard its role doesn't own, which that page's own
+// role guard (app/*/layout.tsx) would then redirect away from — a real, separate
+// correctness bug (a wrong intermediate landing page) independent of the hard-
+// navigation fix below (onSubmit's own comment) for the actual stuck-forever hang.
+function safeRedirectTarget(from: string | null, role: Role, fallback: string): string {
+  if (from && from.startsWith("/") && !from.startsWith("//") && roleOwnsPath(role, from)) {
+    return from;
+  }
   return fallback;
 }
 
@@ -44,7 +66,6 @@ export default function LoginPage() {
 }
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -69,9 +90,10 @@ function LoginForm() {
     if (isPending || checkedInitialSession.current) return;
     checkedInitialSession.current = true;
     if (role) {
-      router.replace(safeRedirectTarget(searchParams.get("from"), ROLE_HOME[role]));
+      // A hard navigation, not router.replace() — see onSubmit's comment below for why.
+      window.location.replace(safeRedirectTarget(searchParams.get("from"), role, ROLE_HOME[role]));
     }
-  }, [isPending, role, router, searchParams]);
+  }, [isPending, role, searchParams]);
 
   useEffect(() => {
     if (!rateLimitedUntil) return;
@@ -120,8 +142,20 @@ function LoginForm() {
     // account's own role home (ROLE_HOME) — never a hardcoded "/dashboard" (that's
     // the User role's home, not a universal default; an admin/consultant/
     // dermatologist account landing there used to be rendered as a plain user).
-    const fallback = ROLE_HOME[data.user.role as Role] ?? "/dashboard";
-    router.push(safeRedirectTarget(searchParams.get("from"), fallback));
+    const signedInRole = data.user.role as Role;
+    const fallback = ROLE_HOME[signedInRole] ?? "/dashboard";
+    // A hard navigation (window.location), not router.push — found live,
+    // reproduced 5+ times via real sign-ins: App Router's client-side transition
+    // renders the target route more than once before committing (same framework
+    // behavior PROGRESS.md's 2026-07-15 assessment/results bug already hit), and
+    // during that window this page's own render — gated on `role` from
+    // useCurrentUser(), which flips true the instant signIn.email() resolves —
+    // can win the commit race and get stuck showing its own "already signed in"
+    // spinner forever instead of the target page ever landing. A hard navigation
+    // is a real browser navigation, not a React transition, so it isn't subject
+    // to that race at all — matches the fact that every hard/full navigation in
+    // testing landed correctly on the first try, every client-side push did not.
+    window.location.href = safeRedirectTarget(searchParams.get("from"), signedInRole, fallback);
   };
 
   if (isPending || role) {

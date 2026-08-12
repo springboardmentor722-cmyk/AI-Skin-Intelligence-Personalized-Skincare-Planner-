@@ -70,7 +70,7 @@ export interface FooterConfig {
 // User keeps bare paths (app/(user)/... is a route group — no URL segment); the other
 // three roles are prefixed (app/consultant/..., not a route group) so their routes don't
 // collide with User's on the same path (e.g. /dashboard).
-const ROLE_PATH_PREFIX: Record<Role, string> = {
+export const ROLE_PATH_PREFIX: Record<Role, string> = {
   user: "",
   consultant: "/consultant",
   dermatologist: "/dermatologist",
