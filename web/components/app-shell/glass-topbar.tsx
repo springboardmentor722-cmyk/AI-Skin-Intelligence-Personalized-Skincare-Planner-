@@ -250,7 +250,7 @@ export function GlassTopbar({ role, userName, title }: GlassTopbarProps) {
     searchHits = (clientsQuery.data ?? []).map((c) => ({
       key: c.user_id,
       icon: Users,
-      label: c.name ?? c.email,
+      label: c.name || c.email,
       sub: c.name ? c.email : undefined,
       href: `${base}/${c.user_id}`,
     }));
@@ -290,12 +290,18 @@ export function GlassTopbar({ role, userName, title }: GlassTopbarProps) {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        setSearchOpen((open) => !open);
+        // Routes through closeSearch (not a bare toggle) so ⌘K-to-dismiss clears
+        // rawSearch same as Escape/outside-click/selecting a result do.
+        if (searchOpen) {
+          closeSearch();
+        } else {
+          setSearchOpen(true);
+        }
       }
     };
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [searchOpen]);
 
   return (
     <>

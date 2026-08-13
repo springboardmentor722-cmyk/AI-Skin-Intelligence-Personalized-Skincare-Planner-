@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ClipboardCheck, Loader2, RotateCw, Search, ShieldBan, ShieldCheck, TriangleAlert } from "lucide-react";
@@ -38,9 +38,18 @@ export default function AdminUsersPage() {
   // Prefilled from the topbar command palette (glass-topbar.tsx), which links here
   // with ?search=<query> since there's no per-user detail route to deep-link into.
   const searchParams = useSearchParams();
-  const [search, setSearch] = useState(searchParams.get("search") ?? "");
+  const searchParam = searchParams.get("search") ?? "";
+  const [search, setSearch] = useState(searchParam);
   const [page, setPage] = useState(1);
   const queryClient = useQueryClient();
+
+  // Re-sync when the command palette navigates here from an already-open
+  // /admin/users tab (same route, new ?search=) — a same-route client
+  // navigation doesn't remount the page, so the useState initializer above
+  // only fires once and would otherwise miss the new value.
+  useEffect(() => {
+    setSearch(searchParam);
+  }, [searchParam]);
 
   const usersQuery = useQuery({
     queryKey: ["admin", "users", search, page],
