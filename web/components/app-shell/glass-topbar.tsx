@@ -4,7 +4,19 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Bell, CalendarDays, LogOut, Search, Settings, SunMedium, UserPlus } from "lucide-react";
+import {
+  Bell,
+  CalendarDays,
+  FlaskConical,
+  LogOut,
+  type LucideIcon,
+  Search,
+  Settings,
+  SunMedium,
+  UserPlus,
+  UserRound,
+  Users,
+} from "lucide-react";
 
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -22,14 +34,18 @@ import {
   Command,
   CommandDialog,
   CommandEmpty,
+  CommandGroup,
   CommandInput,
+  CommandItem,
   CommandList,
+  CommandShortcut,
 } from "@/components/ui/command";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
 import { authClient } from "@/lib/auth-client";
+import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
 import { useWeatherUV } from "@/lib/hooks/use-weather-uv";
 import {
   EXTRA_TITLES,
@@ -127,6 +143,23 @@ interface GlassTopbarProps {
   title?: string;
 }
 
+// Existing /api/admin/users route.ts passthrough to Better Auth's list-users
+// action — no per-user detail page exists, so a topbar hit only needs enough to
+// link back into the filterable /admin/users list.
+interface AdminUserHit {
+  id: string;
+  name: string;
+  email: string;
+}
+
+interface SearchHit {
+  key: string;
+  icon: LucideIcon;
+  label: string;
+  sub?: string;
+  href: string;
+}
+
 // Glass topbar: page title, ⌘K search, weather/UV chip, notification bell, theme
 // toggle, account menu — docs/WIREFRAMES.md "App shell". The weather/UV chip is now
 // real (GET /api/v1/weather-uv, real OpenWeather/OpenUV adapters,
@@ -137,12 +170,102 @@ export function GlassTopbar({ role, userName, title }: GlassTopbarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [searchOpen, setSearchOpen] = useState(false);
+  const [rawSearch, setRawSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(rawSearch, 300);
+  const trimmedSearch = debouncedSearch.trim();
+  const closeSearch = () => {
+    setSearchOpen(false);
+    setRawSearch("");
+  };
   const user = useCurrentUser(userName);
   const weatherQuery = useWeatherUV();
   const uvLabel =
     weatherQuery.data?.available && weatherQuery.data.uv_index != null
       ? Math.round(weatherQuery.data.uv_index * 10) / 10
       : "—";
+
+  // ⌘K search — one real endpoint per role, no shared "search everything" index
+  // exists. Hooks are always called (rules of hooks); `enabled` gates the one
+  // matching the current role.
+  const ingredientsQuery = useQuery({
+    queryKey: ["topbar-search", "ingredients", trimmedSearch],
+    enabled: role === "user" && trimmedSearch.length > 0,
+    queryFn: async () => {
+      const { data, error } = await api.GET("/api/v1/ingredients", {
+        params: { query: { page: 1, page_size: 8, q: trimmedSearch, category: null } },
+      });
+      if (error) throw new Error("Search failed");
+      return data.items;
+    },
+  });
+
+  const clientsQuery = useQuery({
+    queryKey: ["topbar-search", "clients", trimmedSearch],
+    enabled: (role === "consultant" || role === "dermatologist") && trimmedSearch.length > 0,
+    queryFn: async () => {
+      const { data, error } = await api.GET("/api/v1/clients/me", {
+        params: { query: { page: 1, page_size: 8, q: trimmedSearch } },
+      });
+      if (error) throw new Error("Search failed");
+      return data.items;
+    },
+  });
+
+  const adminUsersQuery = useQuery({
+    queryKey: ["topbar-search", "admin-users", trimmedSearch],
+    enabled: role === "admin" && trimmedSearch.length > 0,
+    queryFn: async (): Promise<AdminUserHit[]> => {
+      const params = new URLSearchParams({ search: trimmedSearch, limit: "8" });
+      const res = await fetch(`/api/admin/users?${params}`);
+      if (!res.ok) throw new Error("Search failed");
+      const json: { users: AdminUserHit[] } = await res.json();
+      return json.users;
+    },
+  });
+
+  // Normalizes whichever of the three queries above is active for this role into
+  // one shape, so the dialog below renders a single list instead of three
+  // duplicated branches.
+  let searchHits: SearchHit[] = [];
+  let searchLoading = false;
+  let searchErrored = false;
+  let searchGroupLabel = "Results";
+
+  if (role === "user") {
+    searchGroupLabel = "Ingredients";
+    searchLoading = ingredientsQuery.isLoading;
+    searchErrored = ingredientsQuery.isError;
+    searchHits = (ingredientsQuery.data ?? []).map((ing) => ({
+      key: String(ing.ingredient_id),
+      icon: FlaskConical,
+      label: ing.ingredient_name,
+      sub: ing.category ?? undefined,
+      href: `/ingredients/${ing.ingredient_id}`,
+    }));
+  } else if (role === "consultant" || role === "dermatologist") {
+    searchGroupLabel = role === "consultant" ? "Clients" : "Patients";
+    searchLoading = clientsQuery.isLoading;
+    searchErrored = clientsQuery.isError;
+    const base = role === "consultant" ? "/consultant/clients" : "/dermatologist/patients";
+    searchHits = (clientsQuery.data ?? []).map((c) => ({
+      key: c.user_id,
+      icon: Users,
+      label: c.name ?? c.email,
+      sub: c.name ? c.email : undefined,
+      href: `${base}/${c.user_id}`,
+    }));
+  } else if (role === "admin") {
+    searchGroupLabel = "Users";
+    searchLoading = adminUsersQuery.isLoading;
+    searchErrored = adminUsersQuery.isError;
+    searchHits = (adminUsersQuery.data ?? []).map((u) => ({
+      key: u.id,
+      icon: UserRound,
+      label: u.name || u.email,
+      sub: u.name ? u.email : undefined,
+      href: `/admin/users?search=${encodeURIComponent(u.email)}`,
+    }));
+  }
 
   const pageTitle =
     title ??
@@ -283,16 +406,52 @@ export function GlassTopbar({ role, userName, title }: GlassTopbarProps) {
         </div>
       </header>
 
-      <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
+      <CommandDialog
+        open={searchOpen}
+        onOpenChange={(open) => (open ? setSearchOpen(true) : closeSearch())}
+      >
         {/* Unlike older shadcn versions, this CommandDialog doesn't auto-wrap children
             in the cmdk root — omitting <Command> throws "Cannot read properties of
-            undefined (reading 'subscribe')" from CommandInput. */}
-        <Command>
-          <CommandInput placeholder="Search…" />
+            undefined (reading 'subscribe')" from CommandInput. shouldFilter={false}:
+            results are already server-filtered by the search endpoint, cmdk's own
+            client-side fuzzy filter would just re-hide them (e.g. "niacinamide" typed
+            while the list still holds the previous, now-stale set during a refetch). */}
+        <Command shouldFilter={false}>
+          <CommandInput
+            placeholder={topbar.searchPlaceholder ?? "Search…"}
+            value={rawSearch}
+            onValueChange={setRawSearch}
+          />
           <CommandList>
-            <CommandEmpty>
-              Search isn&apos;t wired to a real endpoint yet.
-            </CommandEmpty>
+            {trimmedSearch === "" ? (
+              <CommandEmpty>Start typing to search.</CommandEmpty>
+            ) : searchLoading ? (
+              <CommandEmpty>Searching…</CommandEmpty>
+            ) : searchErrored ? (
+              <CommandEmpty>Search failed. Try again.</CommandEmpty>
+            ) : searchHits.length === 0 ? (
+              <CommandEmpty>No results for &quot;{trimmedSearch}&quot;.</CommandEmpty>
+            ) : (
+              <CommandGroup heading={searchGroupLabel}>
+                {searchHits.map((hit) => {
+                  const Icon = hit.icon;
+                  return (
+                    <CommandItem
+                      key={hit.key}
+                      value={hit.key}
+                      onSelect={() => {
+                        closeSearch();
+                        router.push(hit.href);
+                      }}
+                    >
+                      <Icon className="size-4" strokeWidth={1.5} />
+                      <span>{hit.label}</span>
+                      {hit.sub && <CommandShortcut>{hit.sub}</CommandShortcut>}
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            )}
           </CommandList>
         </Command>
       </CommandDialog>

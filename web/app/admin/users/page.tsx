@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -34,7 +35,10 @@ interface ListUsersResponse {
 const PAGE_SIZE = 20;
 
 export default function AdminUsersPage() {
-  const [search, setSearch] = useState("");
+  // Prefilled from the topbar command palette (glass-topbar.tsx), which links here
+  // with ?search=<query> since there's no per-user detail route to deep-link into.
+  const searchParams = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get("search") ?? "");
   const [page, setPage] = useState(1);
   const queryClient = useQueryClient();
 
