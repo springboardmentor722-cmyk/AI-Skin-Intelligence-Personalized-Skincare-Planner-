@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+.venv/
+backend/lumen.db
+backend/.env
+node_modules/
+frontend/dist/
+.DS_Store
+
+# AI runtime artifacts (Milestone 3)
+backend/uploads/
+backend/app/ai/models/*.onnx
+backend/ml/datasets/
+*.db
