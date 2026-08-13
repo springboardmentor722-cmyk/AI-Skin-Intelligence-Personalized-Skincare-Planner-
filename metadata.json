@@ -1,0 +1,6 @@
+{
+  "name": "AI Skin Intelligence & Personalized Skincare Planner",
+  "description": "An AI-powered skincare platform offering personalized skin assessments, weighted health scoring, ingredient clash intelligence, product recommendations, and multi-role dashboards.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
