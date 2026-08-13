@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  # Primary Web Application & API Gateway
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=postgresql://skincare_user:skincare_pass@postgres:5432/skincare_db
+      - MONGO_URI=mongodb://mongo:27017/skincare_mongo
+      - REDIS_URL=redis://redis:6379/0
+      - VECTOR_DB_HOST=vector_db
+      - VECTOR_DB_PORT=8000
+    depends_on:
+      - postgres
+      - mongo
+      - redis
+      - vector_db
+
+  # Relational Database for User Profiles, Audit Logs, & S3 Keys
+  postgres:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: skincare_user
+      POSTGRES_PASSWORD: skincare_pass
+      POSTGRES_DB: skincare_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Document Store for Routine Logs, Check-ins, and INCI Metadata
+  mongo:
+    image: mongo:6.0
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  # Cache & Celery Task Queue for Reminders & Async Scoring
+  redis:
+    image: redis:7.0-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+
+  # Vector Database for 128-Dimensional Product Embeddings
+  vector_db:
+    image: chromadb/chroma:0.4.15
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - vector_data:/chroma/chroma
+
+  # Background Celery Worker for Hydration, Replenishment, & AM/PM Routine Alerts
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: celery -A app.tasks worker --loglevel=info
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://skincare_user:skincare_pass@postgres:5432/skincare_db
+    depends_on:
+      - redis
+      - postgres
+
+volumes:
+  postgres_data:
+  mongo_data:
+  vector_data:
