@@ -30,17 +30,24 @@ export function InsightBanner({
   errorMessage,
   onRetry,
 }: InsightBannerProps) {
+  // `--primary-container` is a dark-navy tint even in light mode (globals.css) —
+  // WidgetEmpty/WidgetError's description text hardcodes `text-muted-foreground`,
+  // tuned for the near-white `bg-card`/`bg-background` every other caller uses.
+  // Overriding the CSS var locally (rather than touching the shared component)
+  // repoints it to the on-primary-container token this banner already uses for
+  // its own text, without affecting any other WidgetEmpty/WidgetError caller.
+  const mutedOverride = "[--muted-foreground:var(--on-primary-container)]";
   if (state === "loading") return <Skeleton className="h-24 w-full rounded-2xl" />;
   if (state === "error") {
     return (
-      <div className="bg-primary-container rounded-2xl p-5">
+      <div className={`bg-primary-container rounded-2xl p-5 ${mutedOverride}`}>
         <WidgetError message={errorMessage} onRetry={onRetry} />
       </div>
     );
   }
   if (state === "empty" || !lines || lines.length === 0) {
     return (
-      <div className="bg-primary-container rounded-2xl p-5">
+      <div className={`bg-primary-container rounded-2xl p-5 ${mutedOverride}`}>
         <WidgetEmpty icon={emptyIcon} message={emptyMessage} actionLabel={emptyActionLabel} actionHref={emptyActionHref} />
       </div>
     );
