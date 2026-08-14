@@ -1,0 +1,32 @@
+name,brand,category,price,key_ingredients,suitable_skin_types,suitable_concerns,description
+Gentle Foaming Cleanser,DermaBasics,Face Wash,450,"Ceramides,Glycerin","dry,sensitive,normal","sensitive_skin,redness","Sulfate-free, pH-balanced daily cleanser for gentle purification."
+Oil Control Face Wash,ClearSkin,Face Wash,350,"Salicylic Acid,Tea Tree","oily,combination","acne,oily_skin",Deep-cleansing wash designed for acne-prone and oily skin.
+Hydrating Gel Cleanser,AquaDerm,Face Wash,400,"Hyaluronic Acid,Aloe Vera","dry,normal,sensitive","dry_skin,sensitive_skin",Refreshing gel cleanser that hydrates while removing impurities.
+Purifying Clay Cleanser,EarthBiotics,Face Wash,420,"Kaolin Clay,Charcoal","oily,combination","oily_skin,acne",Clay-based cleanser that draws out excess oil and minimizes pores.
+Brightening Citrus Wash,GlowLab,Face Wash,480,"Vitamin C,Niacinamide","normal,combination,oily","hyperpigmentation,dark_spots,uneven_skin_tone",Antioxidant-rich wash that brightens dull skin.
+10% Niacinamide Serum,GlowLab,Serum,650,"Niacinamide,Zinc","oily,combination,normal","acne,oily_skin,uneven_skin_tone","Oil-balancing, pore-refining serum for clearer skin."
+Vitamin C Brightening Serum,GlowLab,Serum,899,"Vitamin C,Ferulic Acid","normal,dry,combination","hyperpigmentation,dark_spots,uneven_skin_tone,wrinkles","15% Vitamin C serum for brighter, even-toned, and youthful skin."
+Hydrating Hyaluronic Serum,AquaDerm,Serum,599,"Hyaluronic Acid,Panthenol","dry,normal,sensitive,oily,combination","dry_skin,fine_lines","Multi-weight hyaluronic acid for deep, lasting hydration."
+Peptide Firming Serum,RenewRx,Serum,1100,"Peptides,Collagen","normal,dry,combination","wrinkles,fine_lines","Boosts collagen production for firmer, tighter skin."
+Soothing Centella Serum,CalmCare,Serum,750,"Centella Asiatica,Ceramides","sensitive,dry,normal","sensitive_skin,redness",Calms irritation and repairs the skin barrier instantly.
+Salicylic Acid BHA Serum,ClearSkin,Serum,600,"Salicylic Acid,Green Tea","oily,combination","acne,oily_skin,dark_spots",Targeted BHA serum to clear stubborn breakouts and blackheads.
+Alpha Arbutin Pigment Serum,GlowLab,Serum,850,"Alpha Arbutin,Hyaluronic Acid","normal,combination,dry,oily","hyperpigmentation,dark_spots,uneven_skin_tone",Fades dark spots and post-acne marks safely.
+Barrier Repair Moisturizer,DermaBasics,Moisturizer,700,"Ceramides,Hyaluronic Acid,Shea Butter","dry,sensitive,normal","dry_skin,sensitive_skin,redness","Rich, ceramide-based daily moisturizer for dry skin."
+Oil-Free Gel Moisturizer,ClearSkin,Moisturizer,500,"Niacinamide,Aloe Vera","oily,combination","acne,oily_skin","Lightweight, non-comedogenic gel moisturizer that won't clog pores."
+Pro-Collagen Cream,RenewRx,Moisturizer,1400,"Peptides,Retinol","normal,dry","wrinkles,fine_lines",Anti-aging night cream that visibly reduces fine lines.
+Aqua Water Cream,AquaDerm,Moisturizer,650,"Hyaluronic Acid,Glycerin","combination,normal,oily",dry_skin,Refreshing water cream that provides an instant burst of hydration.
+Cica Calming Balm,CalmCare,Moisturizer,550,"Centella Asiatica,Ceramides","sensitive,dry","sensitive_skin,redness","Intense soothing balm for stressed, irritated, or compromised skin."
+Hydrating Toner,AquaDerm,Toner,400,"Hyaluronic Acid,Rose Water","dry,normal,sensitive","dry_skin,sensitive_skin",Alcohol-free toner that preps and hydrates skin for serums.
+AHA/BHA Exfoliating Toner,ClearSkin,Toner,480,"Salicylic Acid,Glycolic Acid","oily,combination","acne,oily_skin,dark_spots",Gentle daily exfoliating toner to keep pores clear.
+Brightening Essence Toner,GlowLab,Toner,500,"Vitamin C,Licorice Root","normal,combination,dry","hyperpigmentation,uneven_skin_tone",Illuminating essence toner for a radiant complexion.
+Soothing Oat Toner,CalmCare,Toner,420,"Colloidal Oatmeal,Aloe Vera","sensitive,dry,normal","sensitive_skin,redness","Milky, soothing toner for highly sensitive skin."
+Daily Defense SPF 50,SunGuard,Sunscreen,550,"Zinc Oxide,Titanium Dioxide","normal,dry,combination,sensitive","hyperpigmentation,dark_spots,wrinkles,sensitive_skin","Broad-spectrum, non-greasy physical sunscreen."
+Matte Finish Sunscreen SPF 50,SunGuard,Sunscreen,600,"Silica,Niacinamide","oily,combination","acne,oily_skin","Sweat-resistant, matte sunscreen for oily skin types."
+Hydrating Aqua SPF 30,AquaDerm,Sunscreen,500,"Hyaluronic Acid,Vitamin E","dry,normal",dry_skin,Lightweight chemical sunscreen that feels like a moisturizer.
+Tinted Mineral SPF 40,SunGuard,Sunscreen,650,"Zinc Oxide,Iron Oxides","normal,combination,dry","uneven_skin_tone,redness",Mineral SPF with sheer coverage to even out skin tone.
+Nightly Retinol Treatment,RenewRx,Treatment Products,1200,"Retinol,Squalane","normal,oily,combination,dry","wrinkles,fine_lines,acne",0.3% encapsulated retinol for gentle cell renewal.
+Clay Detox Mask,ClearSkin,Face Masks,450,"Kaolin Clay,Salicylic Acid","oily,combination","acne,oily_skin",Weekly clay mask to draw out excess oil and impurities.
+Overnight Hydration Mask,AquaDerm,Face Masks,550,"Hyaluronic Acid,Ceramides","dry,normal,sensitive","dry_skin,fine_lines","Intense overnight sleeping mask for plump, hydrated skin."
+2% BHA Liquid Exfoliant,ClearSkin,Treatment Products,800,"Salicylic Acid,Green Tea","oily,combination","acne,oily_skin,dark_spots",Leave-on exfoliant that rapidly unclogs pores.
+10% AHA Resurfacing Peel,GlowLab,Treatment Products,950,"Glycolic Acid,Lactic Acid","normal,combination,dry","hyperpigmentation,dark_spots,wrinkles","Powerful chemical peel for glowing, renewed skin."
+Soothing Sheet Mask (5-Pack),CalmCare,Face Masks,300,"Centella Asiatica,Aloe Vera","sensitive,dry,normal,oily,combination","sensitive_skin,redness,dry_skin",Cooling sheet masks for immediate relief of irritation.

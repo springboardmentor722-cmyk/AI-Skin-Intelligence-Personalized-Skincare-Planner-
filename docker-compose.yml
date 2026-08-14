@@ -1,0 +1,51 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: skinuser
+      POSTGRES_PASSWORD: skinpass
+      POSTGRES_DB: skin_intelligence
+    ports:
+      - "5432:5432"
+    volumes:
+      - skin_pg_data:/var/lib/postgresql/data
+
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - skin_mongo_data:/data/db
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - skin_redis_data:/data
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      - db
+      - mongo
+      - redis
+    environment:
+      DATABASE_URL: postgresql://skinuser:skinpass@db:5432/skin_intelligence
+      MONGO_URL: mongodb://mongo:27017
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET_KEY: change_this_to_a_long_random_secret
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+    ports:
+      - "8000:8000"
+
+volumes:
+  skin_pg_data:
+  skin_mongo_data:
+  skin_redis_data:

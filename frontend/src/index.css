@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-porcelain text-ink font-sans;
+}
+
+h1, h2, h3, .font-display {
+  font-family: 'Fraunces', ui-serif, Georgia, serif;
+}
+
+.card {
+  @apply bg-white rounded-2xl shadow-soft border border-stone-200/70 p-6;
+}
+
+.btn-primary {
+  @apply bg-teal-500 hover:bg-teal-600 text-white font-medium px-5 py-2.5 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md;
+}
+
+.btn-secondary {
+  @apply bg-rose-400 hover:bg-rose-500 text-white font-medium px-5 py-2.5 rounded-xl transition-colors disabled:opacity-50;
+}
+
+.btn-outline {
+  @apply border border-stone-300 hover:border-teal-400 hover:bg-teal-50 text-ink font-medium px-5 py-2.5 rounded-xl transition-colors;
+}
+
+.input {
+  @apply w-full border border-stone-300 rounded-xl px-4 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-teal-200 focus:border-teal-400 transition-shadow;
+}
+
+.label {
+  @apply block text-sm font-medium text-ink-soft mb-1.5;
+}
+
+.badge {
+  @apply inline-block text-xs font-medium px-2.5 py-1 rounded-full;
+}
+
+.eyebrow {
+  @apply font-mono text-xs tracking-[0.18em] uppercase text-teal-600 font-medium;
+}
+
+.data-figure {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Visible keyboard focus everywhere, not just form inputs */
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid #1F6F5C;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
