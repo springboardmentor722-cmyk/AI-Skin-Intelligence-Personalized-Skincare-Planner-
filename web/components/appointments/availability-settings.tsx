@@ -26,10 +26,6 @@ interface DayRow {
   slot_duration_minutes: number;
 }
 
-function rangesOverlap(a: DayRow, b: DayRow) {
-  return a.start_time < b.end_time && b.start_time < a.end_time;
-}
-
 // Settings > Availability, for the consultant/dermatologist roles only (Task 9's
 // provider-availability endpoints). Weekly recurring hours + one-off blocked dates
 // (exceptions), both mutated as a full replace-on-save rather than per-row PATCH —
@@ -62,9 +58,6 @@ export function AvailabilitySettings() {
     setRows(effectiveRows.map((r) => (r.day_of_week === day_of_week ? { ...r, ...patch } : r)));
   };
 
-  const hasOverlap = effectiveRows.some(
-    (r) => r.enabled && effectiveRows.some((o) => o !== r && o.enabled && o.day_of_week === r.day_of_week && rangesOverlap(r, o))
-  );
   const hasInvalidRange = effectiveRows.some((r) => r.enabled && r.start_time >= r.end_time);
 
   const handleSave = () => {
@@ -125,11 +118,6 @@ export function AvailabilitySettings() {
             </div>
           ))}
         </div>
-        {hasOverlap && (
-          <p className="text-destructive mt-2 font-sans text-xs">
-            Availability ranges overlap on the same day.
-          </p>
-        )}
         {hasInvalidRange && (
           <p className="text-destructive mt-2 font-sans text-xs">
             End time must be after start time.
@@ -138,7 +126,7 @@ export function AvailabilitySettings() {
         <Button
           size="sm"
           className="mt-4"
-          disabled={updateAvailability.isPending || hasOverlap || hasInvalidRange}
+          disabled={updateAvailability.isPending || hasInvalidRange}
           onClick={handleSave}
         >
           Save weekly hours

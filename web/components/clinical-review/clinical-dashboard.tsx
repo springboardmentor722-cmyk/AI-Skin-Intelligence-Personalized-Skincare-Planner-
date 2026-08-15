@@ -265,7 +265,7 @@ export function ClinicalDashboard({ role }: ClinicalDashboardProps) {
           emptyMessage="No upcoming appointments."
           footerLink={{
             label: nextAppointment?.other_party_name ?? "View schedule",
-            href: `/${role}/reminders`,
+            href: role === "consultant" ? "/consultant/reminders" : "/dermatologist/consultations",
           }}
         />
       </div>
