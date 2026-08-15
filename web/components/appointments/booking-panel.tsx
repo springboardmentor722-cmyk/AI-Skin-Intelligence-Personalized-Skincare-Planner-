@@ -39,7 +39,12 @@ export function BookingPanel({ providerId, role, onBack, onBooked }: BookingPane
   const [confirmOpen, setConfirmOpen] = useState(false);
   const bookMutation = useBookAppointmentMutation();
 
-  const dateParam = date ? date.toISOString().slice(0, 10) : null;
+  // Local date, not UTC: date is local midnight of the clicked day, so
+  // .toISOString() (which converts to UTC first) shifts it back a day for any
+  // UTC-ahead timezone — including India (UTC+5:30), this app's primary market.
+  const dateParam = date
+    ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
+    : null;
   const slotsQuery = useProviderSlotsQuery(providerId, dateParam);
 
   const handleConfirm = () => {
