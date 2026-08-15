@@ -65,7 +65,7 @@ export function AppointmentDetailDialog({
         },
         onError: (err) =>
           toast.error(
-            err.message === "cancel_failed"
+            err.message === "cutoff_violation"
               ? "Appointments can only be cancelled at least 24 hours in advance."
               : "Couldn't cancel this appointment. Try again."
           ),

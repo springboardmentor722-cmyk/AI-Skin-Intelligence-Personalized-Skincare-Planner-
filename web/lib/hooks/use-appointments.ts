@@ -135,11 +135,14 @@ export function useCancelAppointmentMutation() {
   const invalidate = useInvalidateAppointments();
   return useMutation({
     mutationFn: async ({ appointmentId, reason }: { appointmentId: number; reason?: string }) => {
-      const { data, error } = await api.PATCH("/api/v1/appointments/{appointment_id}/cancel", {
+      const { data, error, response } = await api.PATCH("/api/v1/appointments/{appointment_id}/cancel", {
         params: { path: { appointment_id: appointmentId } },
         body: { reason: reason ?? null },
       });
-      if (error) throw new Error("cancel_failed");
+      if (error) {
+        if (response.status === 403) throw new Error("cutoff_violation");
+        throw new Error("cancel_failed");
+      }
       return data;
     },
     onSuccess: invalidate,
