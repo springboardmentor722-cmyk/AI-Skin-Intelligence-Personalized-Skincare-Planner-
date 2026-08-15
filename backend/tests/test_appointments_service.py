@@ -312,3 +312,129 @@ async def test_book_appointment_rejects_an_unsupported_consultation_mode(
                 consultation_mode="in_person",
             ),
         )
+
+
+async def test_list_my_appointments_matches_either_side_of_the_fk(
+    db_session: AsyncSession, provider_id: str, test_user_id: str
+) -> None:
+    from app.services.appointments.service import list_my_appointments
+
+    await book_appointment(
+        db_session, test_user_id,
+        AppointmentCreate(
+            provider_id=provider_id,
+            start_time=datetime.datetime(2026, 9, 7, 9, 0, tzinfo=datetime.UTC),
+            consultation_mode="video",
+        ),
+    )
+    as_user = await list_my_appointments(db_session, test_user_id)
+    as_provider = await list_my_appointments(db_session, provider_id)
+    assert len(as_user) == 1
+    assert len(as_provider) == 1
+    assert as_user[0].appointment_id == as_provider[0].appointment_id
+
+
+async def test_get_appointment_rejects_a_non_participant(
+    db_session: AsyncSession, provider_id: str, test_user_id: str
+) -> None:
+    from app.services.appointments.service import get_appointment
+
+    appointment = await book_appointment(
+        db_session, test_user_id,
+        AppointmentCreate(
+            provider_id=provider_id,
+            start_time=datetime.datetime(2026, 9, 7, 9, 0, tzinfo=datetime.UTC),
+            consultation_mode="video",
+        ),
+    )
+    stranger = f"test-{uuid.uuid4().hex[:16]}"
+    await db_session.execute(
+        external_user_table.insert().values(
+            id=stranger, email=f"{stranger}@test.invalid", name="Stranger", emailVerified=False
+        )
+    )
+    await db_session.flush()
+    with pytest.raises(ValueError, match="not found"):
+        await get_appointment(db_session, stranger, appointment.appointment_id)
+
+
+async def test_confirm_then_complete_transition(
+    db_session: AsyncSession, provider_id: str, test_user_id: str
+) -> None:
+    from app.services.appointments.service import complete_appointment, confirm_appointment
+
+    appointment = await book_appointment(
+        db_session, test_user_id,
+        AppointmentCreate(
+            provider_id=provider_id,
+            start_time=datetime.datetime(2026, 9, 7, 9, 0, tzinfo=datetime.UTC),
+            consultation_mode="video",
+        ),
+    )
+    confirmed = await confirm_appointment(db_session, provider_id, appointment.appointment_id)
+    assert confirmed.status == "confirmed"
+    completed = await complete_appointment(db_session, provider_id, appointment.appointment_id, notes="Went well")
+    assert completed.status == "completed"
+    assert completed.notes == "Went well"
+
+
+async def test_confirm_rejects_a_non_owning_provider(
+    db_session: AsyncSession, provider_id: str, test_user_id: str
+) -> None:
+    from app.services.appointments.service import confirm_appointment
+
+    appointment = await book_appointment(
+        db_session, test_user_id,
+        AppointmentCreate(
+            provider_id=provider_id,
+            start_time=datetime.datetime(2026, 9, 7, 9, 0, tzinfo=datetime.UTC),
+            consultation_mode="video",
+        ),
+    )
+    with pytest.raises(ValueError, match="not found"):
+        await confirm_appointment(db_session, test_user_id, appointment.appointment_id)
+
+
+async def test_cancel_by_user_within_24h_is_rejected(
+    db_session: AsyncSession, provider_id: str, test_user_id: str
+) -> None:
+    from app.services.appointments.service import cancel_appointment
+
+    near_future = datetime.datetime.now(datetime.UTC) + datetime.timedelta(hours=2)
+    appointment = await book_appointment(
+        db_session, test_user_id,
+        AppointmentCreate(provider_id=provider_id, start_time=near_future, consultation_mode="video"),
+    )
+    with pytest.raises(PermissionError, match="24"):
+        await cancel_appointment(db_session, test_user_id, appointment.appointment_id, reason=None)
+
+
+async def test_cancel_by_provider_within_24h_is_allowed(
+    db_session: AsyncSession, provider_id: str, test_user_id: str
+) -> None:
+    from app.services.appointments.service import cancel_appointment
+
+    near_future = datetime.datetime.now(datetime.UTC) + datetime.timedelta(hours=2)
+    appointment = await book_appointment(
+        db_session, test_user_id,
+        AppointmentCreate(provider_id=provider_id, start_time=near_future, consultation_mode="video"),
+    )
+    cancelled = await cancel_appointment(db_session, provider_id, appointment.appointment_id, reason="Emergency")
+    assert cancelled.status == "cancelled"
+    assert cancelled.cancelled_by == provider_id
+
+
+async def test_reschedule_updates_time_and_stamps_original(
+    db_session: AsyncSession, provider_id: str, test_user_id: str
+) -> None:
+    from app.services.appointments.service import reschedule_appointment
+
+    far_future = datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=10)
+    appointment = await book_appointment(
+        db_session, test_user_id,
+        AppointmentCreate(provider_id=provider_id, start_time=far_future, consultation_mode="video"),
+    )
+    new_time = far_future + datetime.timedelta(days=1)
+    rescheduled = await reschedule_appointment(db_session, test_user_id, appointment.appointment_id, new_time)
+    assert rescheduled.start_time == new_time
+    assert rescheduled.original_start_time == far_future

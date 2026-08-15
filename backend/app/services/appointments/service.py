@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -224,5 +224,125 @@ async def book_appointment(db: AsyncSession, user_id: str, data: AppointmentCrea
         raise SlotUnavailableError("This appointment slot is no longer available") from exc
 
     await clinical_review_service.create_assignment(db, data.provider_id, user_id)
+    await db.commit()
+    return appointment
+
+
+_CUTOFF = datetime.timedelta(hours=24)
+_VALID_TRANSITIONS = {
+    "confirm": ("pending", "confirmed"),
+    "complete": ("confirmed", "completed"),
+    "no_show": ("confirmed", "no_show"),
+}
+
+
+async def list_my_appointments(
+    db: AsyncSession,
+    caller_id: str,
+    status: str | None = None,
+    date_from: datetime.datetime | None = None,
+    date_to: datetime.datetime | None = None,
+) -> list[Appointment]:
+    conditions = [or_(Appointment.user_id == caller_id, Appointment.provider_id == caller_id)]
+    if status is not None:
+        conditions.append(Appointment.status == status)
+    if date_from is not None:
+        conditions.append(Appointment.start_time >= date_from)
+    if date_to is not None:
+        conditions.append(Appointment.start_time <= date_to)
+    result = await db.execute(
+        select(Appointment).where(and_(*conditions)).order_by(Appointment.start_time)
+    )
+    return list(result.scalars().all())
+
+
+async def get_appointment(db: AsyncSession, caller_id: str, appointment_id: int) -> Appointment:
+    result = await db.execute(
+        select(Appointment).where(
+            Appointment.appointment_id == appointment_id,
+            or_(Appointment.user_id == caller_id, Appointment.provider_id == caller_id),
+        )
+    )
+    appointment = result.scalar_one_or_none()
+    if appointment is None:
+        raise ValueError(f"Appointment {appointment_id} not found")
+    return appointment
+
+
+async def _get_owned_by_provider(
+    db: AsyncSession, provider_id: str, appointment_id: int
+) -> Appointment:
+    result = await db.execute(
+        select(Appointment).where(
+            Appointment.appointment_id == appointment_id, Appointment.provider_id == provider_id
+        )
+    )
+    appointment = result.scalar_one_or_none()
+    if appointment is None:
+        raise ValueError(f"Appointment {appointment_id} not found for this provider")
+    return appointment
+
+
+async def _transition(
+    db: AsyncSession, provider_id: str, appointment_id: int, action: str, **fields: object
+) -> Appointment:
+    appointment = await _get_owned_by_provider(db, provider_id, appointment_id)
+    required_status, next_status = _VALID_TRANSITIONS[action]
+    if appointment.status != required_status:
+        raise ValueError(f"Cannot {action} an appointment in status '{appointment.status}'")
+    appointment.status = next_status
+    for field, value in fields.items():
+        setattr(appointment, field, value)
+    await db.commit()
+    return appointment
+
+
+async def confirm_appointment(
+    db: AsyncSession, provider_id: str, appointment_id: int
+) -> Appointment:
+    return await _transition(db, provider_id, appointment_id, "confirm")
+
+
+async def complete_appointment(
+    db: AsyncSession, provider_id: str, appointment_id: int, notes: str | None = None
+) -> Appointment:
+    return await _transition(db, provider_id, appointment_id, "complete", notes=notes)
+
+
+async def mark_no_show(db: AsyncSession, provider_id: str, appointment_id: int) -> Appointment:
+    return await _transition(db, provider_id, appointment_id, "no_show")
+
+
+async def cancel_appointment(
+    db: AsyncSession, caller_id: str, appointment_id: int, reason: str | None
+) -> Appointment:
+    appointment = await get_appointment(db, caller_id, appointment_id)
+    is_user = caller_id == appointment.user_id
+    if is_user and appointment.start_time - datetime.datetime.now(datetime.UTC) < _CUTOFF:
+        raise PermissionError("Appointments can only be cancelled at least 24 hours in advance")
+    appointment.status = "cancelled"
+    appointment.cancelled_by = caller_id
+    appointment.cancellation_reason = reason
+    await db.commit()
+    return appointment
+
+
+async def reschedule_appointment(
+    db: AsyncSession, caller_id: str, appointment_id: int, new_start_time: datetime.datetime
+) -> Appointment:
+    appointment = await get_appointment(db, caller_id, appointment_id)
+    is_user = caller_id == appointment.user_id
+    if is_user and appointment.start_time - datetime.datetime.now(datetime.UTC) < _CUTOFF:
+        raise PermissionError("Appointments can only be rescheduled at least 24 hours in advance")
+    duration = appointment.end_time - appointment.start_time
+    if appointment.original_start_time is None:
+        appointment.original_start_time = appointment.start_time
+    appointment.start_time = new_start_time
+    appointment.end_time = new_start_time + duration
+    try:
+        await db.flush()
+    except IntegrityError as exc:
+        await db.rollback()
+        raise SlotUnavailableError("This appointment slot is no longer available") from exc
     await db.commit()
     return appointment
