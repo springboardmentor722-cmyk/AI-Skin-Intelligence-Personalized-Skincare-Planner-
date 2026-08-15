@@ -64,3 +64,85 @@ def get_assessment_history(db: Session, user_id: uuid.UUID, limit: int = 30) -> 
         .limit(limit)
         .all()
     )
+
+
+def get_latest_assessments_for_users(db: Session, user_ids: list[uuid.UUID]) -> dict:
+    """
+    One latest SkinAssessment per user, for the given set of users, in a
+    single query. Used to build consultant/dermatologist dashboard
+    aggregates (skin-type distribution, top concerns, average score)
+    without an N+1 query per client.
+    """
+    if not user_ids:
+        return {}
+    rows = (
+        db.query(SkinAssessment)
+        .filter(SkinAssessment.user_id.in_(user_ids))
+        .order_by(SkinAssessment.user_id, SkinAssessment.created_at.desc())
+        .all()
+    )
+    latest_by_user = {}
+    for row in rows:
+        if row.user_id not in latest_by_user:
+            latest_by_user[row.user_id] = row
+    return latest_by_user
+
+
+def get_recent_assessments_for_users(db: Session, user_ids: list[uuid.UUID], limit: int = 5) -> list[SkinAssessment]:
+    """Most recent assessments across a set of users — powers a consultant/dermatologist "Recent Assessments" feed."""
+    if not user_ids:
+        return []
+    return (
+        db.query(SkinAssessment)
+        .filter(SkinAssessment.user_id.in_(user_ids))
+        .order_by(SkinAssessment.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+
+def compute_improvement(db: Session, user_id: uuid.UUID) -> dict | None:
+    """
+    Skin Improvement Scoring: compares the user's FIRST-ever assessment
+    score to their latest, so the platform can show real progress rather
+    than just a raw current number. Returns None if fewer than two
+    assessments exist yet (there's nothing to compare against).
+    """
+    first = (
+        db.query(SkinAssessment)
+        .filter(SkinAssessment.user_id == user_id)
+        .order_by(SkinAssessment.created_at.asc())
+        .first()
+    )
+    latest = (
+        db.query(SkinAssessment)
+        .filter(SkinAssessment.user_id == user_id)
+        .order_by(SkinAssessment.created_at.desc())
+        .first()
+    )
+    if first is None or latest is None or first.id == latest.id:
+        return None
+
+    delta_points = round(latest.overall_score - first.overall_score, 1)
+    delta_percent = round((delta_points / first.overall_score) * 100, 1) if first.overall_score else 0.0
+
+    if delta_points > 2:
+        trend = "Improving"
+    elif delta_points < -2:
+        trend = "Declining"
+    else:
+        trend = "Stable"
+
+    return {
+        "starting_score": first.overall_score,
+        "latest_score": latest.overall_score,
+        "delta_points": delta_points,
+        "delta_percent": delta_percent,
+        "trend": trend,
+        "since": first.created_at,
+    }
+
+
+def compute_improvement_for_users(db: Session, user_ids: list[uuid.UUID]) -> dict:
+    """Per-user improvement dict for a set of users — used to build an "Avg. Improvement" dashboard stat."""
+    return {uid: compute_improvement(db, uid) for uid in user_ids}

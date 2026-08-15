@@ -1,4 +1,4 @@
-"""Personalized Skincare Routine Generation — Milestone 2, Step 4."""
+"""Personalized Skincare Routine Generation — Milestone 2, Step 4 (+ Milestone 3 overwrite)."""
 
 import uuid
 
@@ -47,8 +47,49 @@ def generate_routine(
                     step_number=step_number,
                     step_category=category,
                     is_active=True,
+                    source="auto",
                 )
             )
+
+    db.add_all(rows)
+    db.commit()
+    for row in rows:
+        db.refresh(row)
+    return rows
+
+
+def overwrite_routine(
+    db: Session,
+    user_id: uuid.UUID,
+    assessment_id: uuid.UUID,
+    set_by_id: uuid.UUID,
+    steps: list[dict],
+    note: str | None,
+) -> list[SkincareRoutine]:
+    """
+    Milestone 3, Step 4: a consultant/dermatologist replacing a client's
+    entire active routine with a hand-picked set of steps (the
+    "Prescription/Routine Overwrite Form"). Bypasses the decision matrix
+    entirely — deactivates the current routine and inserts the provider's
+    steps as the new active routine, tagged source="provider" so the
+    frontend can show who set it.
+    """
+    deactivate_active_routine(db, user_id)
+
+    rows = [
+        SkincareRoutine(
+            user_id=user_id,
+            assessment_id=assessment_id,
+            time_of_day=step["time_of_day"],
+            step_number=step["step_number"],
+            step_category=step["step_category"],
+            is_active=True,
+            source="provider",
+            set_by_id=set_by_id,
+            note=note,
+        )
+        for step in steps
+    ]
 
     db.add_all(rows)
     db.commit()
@@ -81,3 +122,16 @@ def count_active_daily_steps(db: Session, user_id: uuid.UUID) -> int:
         )
         .count()
     )
+
+
+def get_users_with_active_routine(db: Session, user_ids: list[uuid.UUID]) -> set:
+    """Which of the given users currently have at least one active routine step."""
+    if not user_ids:
+        return set()
+    rows = (
+        db.query(SkincareRoutine.user_id)
+        .filter(SkincareRoutine.user_id.in_(user_ids), SkincareRoutine.is_active.is_(True))
+        .distinct()
+        .all()
+    )
+    return {row[0] for row in rows}

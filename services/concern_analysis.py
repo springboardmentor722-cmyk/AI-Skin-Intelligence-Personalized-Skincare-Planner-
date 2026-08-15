@@ -13,7 +13,21 @@ SEVERITY_WEIGHT = {"high": 3, "medium": 2, "low": 1}
 # Tie-break order when two concerns land on the same priority score —
 # earlier entries win. Matches the spec's own example (an active acne
 # flare-up should outrank wrinkles even if both are reported).
-TIE_BREAK_ORDER = ["Acne", "Hyperpigmentation", "Dark Spots", "Oiliness", "Redness", "Wrinkles", "Fine Lines"]
+# Tie-break order when two concerns land on the same priority score —
+# earlier entries win. Matches the spec's own example (an active acne
+# flare-up should outrank wrinkles even if both are reported).
+TIE_BREAK_ORDER = [
+    "Acne",
+    "Hyperpigmentation",
+    "Dark Spots",
+    "Uneven Skin Tone",
+    "Redness",
+    "Sensitive Skin",
+    "Oily Skin",
+    "Dry Skin",
+    "Wrinkles",
+    "Fine Lines",
+]
 
 
 def _priority_score(concern: dict) -> tuple[int, int]:

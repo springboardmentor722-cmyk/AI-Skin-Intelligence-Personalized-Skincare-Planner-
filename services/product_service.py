@@ -58,6 +58,27 @@ def list_recommendations_by_consultant(db: Session, consultant_id: uuid.UUID) ->
     )
 
 
+def list_all_recommendations(db: Session, limit: int = 200) -> list[ProductRecommendation]:
+    """Every recommendation, platform-wide — feeds the Admin Recommendation Monitoring page."""
+    return (
+        db.query(ProductRecommendation)
+        .order_by(ProductRecommendation.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+
+def has_client_ordered_product(db: Session, client_id: uuid.UUID, product_id: uuid.UUID) -> bool:
+    """Did this client ever order this product? Used to compute a real recommendation-to-order conversion rate."""
+    return (
+        db.query(OrderItem)
+        .join(Order, OrderItem.order_id == Order.id)
+        .filter(Order.user_id == client_id, OrderItem.product_id == product_id)
+        .first()
+        is not None
+    )
+
+
 def create_order(db: Session, user_id: uuid.UUID, payload: OrderCreateRequest) -> Order:
     products_by_id = {}
     total = 0.0
