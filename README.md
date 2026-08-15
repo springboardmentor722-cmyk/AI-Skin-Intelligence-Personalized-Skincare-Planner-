@@ -6,52 +6,6 @@ An AI-powered skincare platform offering personalized skin assessments, weighted
 
 ---
 
-## 🛠️ Step-by-Step Instructions to Run in Visual Studio Code (VS Code)
-
-### Prerequisites
-- Install **Node.js** (version 18.0 or higher) on your machine.
-- Install **Visual Studio Code** (VS Code).
-
----
-
-### Step 1: Open Project in VS Code
-1. Open Visual Studio Code.
-2. Click **File > Open Folder...** and select the root directory of this project (`skin-intelligence-planner`).
-
----
-
-### Step 2: Open Terminal in VS Code
-1. In VS Code, open the integrated terminal by pressing `Ctrl + ~` (or `Cmd + ~` on macOS).
-2. Alternatively, go to **Terminal > New Terminal** from the top menu bar.
-
----
-
-### Step 3: Install Project Dependencies
-In the VS Code terminal, run:
-```bash
-npm install
-```
-*This installs React, Tailwind CSS, Lucide Icons, and build tooling.*
-
----
-
-### Step 4: Run Development Server
-In the VS Code terminal, run:
-```bash
-npm run dev
-```
-- Open your browser and navigate to: **`http://localhost:3000`**
-- You will see the application running live with full interactivity!
-
----
-
-### Step 5: Production Build (Optional)
-To test the production build:
-```bash
-npm run build
-```
-
----
 
 ## 🚀 Key Modules & Capabilities
 
