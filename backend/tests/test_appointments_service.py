@@ -29,6 +29,7 @@ from app.services.appointments.service import (
 from app.services.clinical_review.service import _verify_assignment
 from app.services.consultant_profile.models import ConsultantProfile
 from app.services.dermatologist_profile.models import DermatologistProfile
+from app.services.notifications.service import list_my_notifications
 
 
 @pytest.fixture
@@ -458,6 +459,21 @@ async def test_cancel_rejects_an_already_completed_appointment(
     await complete_appointment(db_session, provider_id, appointment.appointment_id)
     with pytest.raises(ValueError, match="Cannot cancel"):
         await cancel_appointment(db_session, test_user_id, appointment.appointment_id, reason=None)
+
+
+async def test_booking_notifies_the_provider(
+    db_session: AsyncSession, provider_id: str, test_user_id: str
+) -> None:
+    await book_appointment(
+        db_session, test_user_id,
+        AppointmentCreate(
+            provider_id=provider_id,
+            start_time=datetime.datetime(2026, 9, 7, 9, 0, tzinfo=datetime.UTC),
+            consultation_mode="video",
+        ),
+    )
+    notifications = await list_my_notifications(db_session, provider_id)
+    assert any(n.notification_type == "appointment_booked" for n in notifications)
 
 
 async def test_reschedule_rejects_an_already_cancelled_appointment(

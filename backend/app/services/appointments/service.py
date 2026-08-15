@@ -4,7 +4,11 @@ from sqlalchemy import and_, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.services.appointments.models import Appointment, AvailabilityException, ProviderAvailability
+from app.services.appointments.models import (
+    Appointment,
+    AvailabilityException,
+    ProviderAvailability,
+)
 from app.services.appointments.schemas import (
     AppointmentCreate,
     AvailabilityExceptionCreate,
@@ -14,6 +18,7 @@ from app.services.appointments.schemas import (
 from app.services.clinical_review import service as clinical_review_service
 from app.services.consultant_profile.models import ConsultantProfile
 from app.services.dermatologist_profile.models import DermatologistProfile
+from app.services.notifications import service as notifications_service
 
 
 def _ranges_overlap(
@@ -225,6 +230,12 @@ async def book_appointment(db: AsyncSession, user_id: str, data: AppointmentCrea
 
     await clinical_review_service.create_assignment(db, data.provider_id, user_id)
     await db.commit()
+    await notifications_service.create_notification(
+        db, data.provider_id,
+        title="New appointment request",
+        message="A new appointment request is pending your confirmation.",
+        notification_type="appointment_booked",
+    )
     return appointment
 
 
@@ -300,7 +311,14 @@ async def _transition(
 async def confirm_appointment(
     db: AsyncSession, provider_id: str, appointment_id: int
 ) -> Appointment:
-    return await _transition(db, provider_id, appointment_id, "confirm")
+    appointment = await _transition(db, provider_id, appointment_id, "confirm")
+    await notifications_service.create_notification(
+        db, appointment.user_id,
+        title="Appointment confirmed",
+        message="Your appointment has been confirmed.",
+        notification_type="appointment_confirmed",
+    )
+    return appointment
 
 
 async def complete_appointment(
@@ -326,6 +344,14 @@ async def cancel_appointment(
     appointment.cancelled_by = caller_id
     appointment.cancellation_reason = reason
     await db.commit()
+    is_caller_user = caller_id == appointment.user_id
+    other_party = appointment.provider_id if is_caller_user else appointment.user_id
+    await notifications_service.create_notification(
+        db, other_party,
+        title="Appointment cancelled",
+        message="An appointment has been cancelled.",
+        notification_type="appointment_cancelled",
+    )
     return appointment
 
 
@@ -349,4 +375,12 @@ async def reschedule_appointment(
         await db.rollback()
         raise SlotUnavailableError("This appointment slot is no longer available") from exc
     await db.commit()
+    is_caller_user = caller_id == appointment.user_id
+    other_party = appointment.provider_id if is_caller_user else appointment.user_id
+    await notifications_service.create_notification(
+        db, other_party,
+        title="Appointment rescheduled",
+        message="An appointment has been rescheduled.",
+        notification_type="appointment_rescheduled",
+    )
     return appointment
