@@ -62,4 +62,26 @@ async def test_confirm_appointment_rejects_a_stranger_provider(
     stranger_provider = {"id": f"test-{uuid.uuid4().hex[:16]}", "role": "consultant", "claims": {}}
     with pytest.raises(HTTPException) as exc_info:
         await confirm_appointment(created.appointment_id, stranger_provider, db_session)
+    assert exc_info.value.status_code == 404
+
+
+async def test_confirm_appointment_rejects_an_already_confirmed_appointment(
+    db_session: AsyncSession, provider_id: str, test_user_id: str
+) -> None:
+    from fastapi import HTTPException
+
+    user = {"id": test_user_id, "role": "user", "claims": {}}
+    provider = {"id": provider_id, "role": "consultant", "claims": {}}
+    created = await create_appointment(
+        AppointmentCreate(
+            provider_id=provider_id,
+            start_time=datetime.datetime(2026, 9, 7, 9, 0, tzinfo=datetime.UTC),
+            consultation_mode="video",
+        ),
+        user,
+        db_session,
+    )
+    await confirm_appointment(created.appointment_id, provider, db_session)
+    with pytest.raises(HTTPException) as exc_info:
+        await confirm_appointment(created.appointment_id, provider, db_session)
     assert exc_info.value.status_code == 400

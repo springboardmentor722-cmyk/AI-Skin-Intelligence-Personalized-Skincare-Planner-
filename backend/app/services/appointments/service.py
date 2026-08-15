@@ -168,6 +168,13 @@ class SlotUnavailableError(Exception):
     of a raw IntegrityError to catch."""
 
 
+class AppointmentOwnershipError(ValueError):
+    """Raised when the caller isn't the owning provider for this appointment —
+    maps to 404, not 400, matching the no-existence-leak pattern every other
+    ownership check in this file already uses (get_appointment, cancel_appointment,
+    reschedule_appointment)."""
+
+
 async def _resolve_provider_role(
     db: AsyncSession, provider_id: str
 ) -> tuple[str, list[str] | None]:
@@ -290,7 +297,7 @@ async def _get_owned_by_provider(
     )
     appointment = result.scalar_one_or_none()
     if appointment is None:
-        raise ValueError(f"Appointment {appointment_id} not found for this provider")
+        raise AppointmentOwnershipError(f"Appointment {appointment_id} not found for this provider")
     return appointment
 
 

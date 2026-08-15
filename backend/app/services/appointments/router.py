@@ -213,6 +213,8 @@ async def confirm_appointment(
 ) -> AppointmentRead:
     try:
         appointment = await service.confirm_appointment(db, user["id"], appointment_id)
+    except service.AppointmentOwnershipError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
     return await _to_read(db, user["id"], appointment)
@@ -229,6 +231,8 @@ async def complete_appointment(
         appointment = await service.complete_appointment(
             db, user["id"], appointment_id, notes=data.notes
         )
+    except service.AppointmentOwnershipError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
     return await _to_read(db, user["id"], appointment)
@@ -242,6 +246,8 @@ async def mark_appointment_no_show(
 ) -> AppointmentRead:
     try:
         appointment = await service.mark_no_show(db, user["id"], appointment_id)
+    except service.AppointmentOwnershipError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
     return await _to_read(db, user["id"], appointment)
