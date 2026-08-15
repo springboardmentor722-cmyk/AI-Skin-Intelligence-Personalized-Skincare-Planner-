@@ -1,0 +1,4 @@
+/* Admin dashboard currently reuses Dashboard.css utility classes.
+   This file exists as a dedicated extension point for future
+   admin-only styling (role management, system status widgets, etc.)
+   without touching the shared dashboard stylesheet. */

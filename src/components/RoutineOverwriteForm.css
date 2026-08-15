@@ -1,0 +1,10 @@
+.routine-overwrite-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.routine-overwrite-row select {
+  flex: 1;
+}
