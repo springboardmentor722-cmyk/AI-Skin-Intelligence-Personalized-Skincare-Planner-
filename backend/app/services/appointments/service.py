@@ -317,6 +317,8 @@ async def cancel_appointment(
     db: AsyncSession, caller_id: str, appointment_id: int, reason: str | None
 ) -> Appointment:
     appointment = await get_appointment(db, caller_id, appointment_id)
+    if appointment.status not in ("pending", "confirmed"):
+        raise ValueError(f"Cannot cancel an appointment in status '{appointment.status}'")
     is_user = caller_id == appointment.user_id
     if is_user and appointment.start_time - datetime.datetime.now(datetime.UTC) < _CUTOFF:
         raise PermissionError("Appointments can only be cancelled at least 24 hours in advance")
@@ -331,6 +333,8 @@ async def reschedule_appointment(
     db: AsyncSession, caller_id: str, appointment_id: int, new_start_time: datetime.datetime
 ) -> Appointment:
     appointment = await get_appointment(db, caller_id, appointment_id)
+    if appointment.status not in ("pending", "confirmed"):
+        raise ValueError(f"Cannot reschedule an appointment in status '{appointment.status}'")
     is_user = caller_id == appointment.user_id
     if is_user and appointment.start_time - datetime.datetime.now(datetime.UTC) < _CUTOFF:
         raise PermissionError("Appointments can only be rescheduled at least 24 hours in advance")

@@ -438,3 +438,40 @@ async def test_reschedule_updates_time_and_stamps_original(
     rescheduled = await reschedule_appointment(db_session, test_user_id, appointment.appointment_id, new_time)
     assert rescheduled.start_time == new_time
     assert rescheduled.original_start_time == far_future
+
+
+async def test_cancel_rejects_an_already_completed_appointment(
+    db_session: AsyncSession, provider_id: str, test_user_id: str
+) -> None:
+    from app.services.appointments.service import (
+        cancel_appointment,
+        complete_appointment,
+        confirm_appointment,
+    )
+
+    far_future = datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=10)
+    appointment = await book_appointment(
+        db_session, test_user_id,
+        AppointmentCreate(provider_id=provider_id, start_time=far_future, consultation_mode="video"),
+    )
+    await confirm_appointment(db_session, provider_id, appointment.appointment_id)
+    await complete_appointment(db_session, provider_id, appointment.appointment_id)
+    with pytest.raises(ValueError, match="Cannot cancel"):
+        await cancel_appointment(db_session, test_user_id, appointment.appointment_id, reason=None)
+
+
+async def test_reschedule_rejects_an_already_cancelled_appointment(
+    db_session: AsyncSession, provider_id: str, test_user_id: str
+) -> None:
+    from app.services.appointments.service import cancel_appointment, reschedule_appointment
+
+    far_future = datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=10)
+    appointment = await book_appointment(
+        db_session, test_user_id,
+        AppointmentCreate(provider_id=provider_id, start_time=far_future, consultation_mode="video"),
+    )
+    await cancel_appointment(db_session, test_user_id, appointment.appointment_id, reason="Changed my mind")
+    with pytest.raises(ValueError, match="Cannot reschedule"):
+        await reschedule_appointment(
+            db_session, test_user_id, appointment.appointment_id, far_future + datetime.timedelta(days=1)
+        )
