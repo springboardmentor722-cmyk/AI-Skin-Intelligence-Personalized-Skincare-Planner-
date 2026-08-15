@@ -1,12 +1,15 @@
-"""Routine controller — Milestone 2, Steps 4 and 5.2."""
+"""Routine controller — Milestone 2, Steps 4 and 5.2 (+ Milestone 3 provider overwrite)."""
+
+import uuid
 
 from fastapi import HTTPException, status
 from pymongo.database import Database
 from sqlalchemy.orm import Session
 
 from models.user import User
-from schemas.routine import RoutineGenerateRequest, RoutineLogRequest
-from services import assessment_service, mongo_service, routine_service
+from schemas.routine import RoutineGenerateRequest, RoutineLogRequest, RoutineOverwriteRequest
+from services import assessment_service, booking_service, mongo_service, notification_service, routine_service
+from utils.constants import ROLE_CONSULTANT, ROLE_DERMATOLOGIST
 from utils.decision_matrix import get_seasonal_tip
 
 
@@ -17,8 +20,7 @@ def generate_routine(db: Session, user: User, payload: RoutineGenerateRequest):
     Normally called automatically right after an assessment (see
     assessment_controller.evaluate_assessment). This endpoint exists so a
     routine can also be regenerated on demand — e.g. the user retakes the
-    wizard, or an admin/consultant tool wants to force a refresh — using
-    either the payload overrides or the user's latest assessment.
+    wizard — using either the payload overrides or the user's latest assessment.
     """
     skin_type = payload.skin_type
     primary_concern = payload.primary_concern
@@ -46,23 +48,24 @@ def generate_routine(db: Session, user: User, payload: RoutineGenerateRequest):
         skin_type=skin_type,
         is_highly_sensitive=bool(is_highly_sensitive),
     )
-    return get_routine(db, user, mongo_db=None)
+    return get_routine(db, user.id, mongo_db=None)
 
 
-def get_routine(db: Session, user: User, mongo_db: Database | None):
+def get_routine(db: Session, user_id: uuid.UUID, mongo_db: Database | None):
     """
     GET /api/v1/routine
 
-    Returns the user's active routine grouped into AM / PM / Weekly, each
-    step annotated with whether it's already been checked off today
-    (from MongoDB), so the Daily Planner checkboxes render pre-filled.
+    Returns the active routine grouped into AM / PM / Weekly, each step
+    annotated with whether it's already been checked off today (from
+    MongoDB) and, if a provider overwrote it, who set it and any note —
+    so the Daily Planner can show a "Set by Dr. X" badge.
     """
-    steps = routine_service.get_active_routine(db, user.id)
-    latest = assessment_service.get_latest_assessment(db, user.id)
+    steps = routine_service.get_active_routine(db, user_id)
+    latest = assessment_service.get_latest_assessment(db, user_id)
 
     completed_ids: set[str] = set()
     if mongo_db is not None:
-        today_log = mongo_service.get_log(mongo_db, user.id)
+        today_log = mongo_service.get_log(mongo_db, user_id)
         if today_log:
             completed_ids = {
                 str(entry["routine_step_id"]) for entry in today_log.get("completed_steps", [])
@@ -78,6 +81,9 @@ def get_routine(db: Session, user: User, mongo_db: Database | None):
                 "time_of_day": step.time_of_day,
                 "is_active": step.is_active,
                 "completed_today": str(step.id) in completed_ids,
+                "source": step.source,
+                "set_by_name": step.set_by.full_name if step.set_by else None,
+                "note": step.note,
             }
         )
 
@@ -97,13 +103,8 @@ def log_routine_step(db: Session, mongo_db: Database, user: User, payload: Routi
     POST /api/v1/routine/log
 
     Fired by the Daily Planner's checkbox onChange handler (Step 5.2.4).
-    Writes straight to MongoDB's routine_logs collection; PostgreSQL is
-    untouched here since checklist completion is exactly the kind of
-    high-write-frequency, loosely-structured data the spec assigns to
-    MongoDB.
+    Writes straight to MongoDB's routine_logs collection.
     """
-    # Confirm the step actually belongs to this user before logging it,
-    # so one user can't toggle another user's routine steps.
     owned_step_ids = {str(step.id) for step in routine_service.get_active_routine(db, user.id)}
     if payload.routine_step_id not in owned_step_ids:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Routine step not found")
@@ -121,3 +122,55 @@ def log_routine_step(db: Session, mongo_db: Database, user: User, payload: Routi
         "water_intake_ml": log.get("water_intake_ml"),
         "sleep_hours": log.get("sleep_hours"),
     }
+
+
+def overwrite_routine_for_client(
+    db: Session, provider: User, client_id: uuid.UUID, payload: RoutineOverwriteRequest
+):
+    """
+    PUT /api/v1/routine/overwrite/{client_id}
+
+    Milestone 3, Step 4: the "Prescription/Routine Overwrite Form." Either
+    a consultant or a dermatologist can replace their own assigned
+    client/patient's routine — ownership is checked against whichever
+    relationship applies to the provider's role.
+    """
+    is_owner = False
+    if provider.role.name == ROLE_CONSULTANT:
+        is_owner = booking_service.is_client_assigned_to_consultant(db, provider.id, client_id)
+    elif provider.role.name == ROLE_DERMATOLOGIST:
+        is_owner = booking_service.has_patient_booked_with_dermatologist(db, provider.id, client_id)
+
+    if not is_owner:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This client/patient isn't assigned to you.",
+        )
+
+    latest = assessment_service.get_latest_assessment(db, client_id)
+    if latest is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="This client must complete a skin assessment before their routine can be edited.",
+        )
+
+    routine_service.overwrite_routine(
+        db,
+        user_id=client_id,
+        assessment_id=latest.id,
+        set_by_id=provider.id,
+        steps=[s.model_dump() for s in payload.steps],
+        note=payload.note,
+    )
+
+    notification_service.create_notification(
+        db,
+        client_id,
+        "routine_updated",
+        "Your routine was updated",
+        f"{provider.full_name} updated your skincare routine."
+        + (f' Note: "{payload.note}"' if payload.note else ""),
+        link_to="/planner",
+    )
+
+    return get_routine(db, client_id, mongo_db=None)

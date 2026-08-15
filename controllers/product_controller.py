@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from models.user import User
 from schemas.product import OrderCreateRequest, ProductRecommendationCreate
-from services import booking_service, product_service
+from services import booking_service, notification_service, product_service
 
 
 def get_catalog_for_user(db: Session, user: User):
@@ -43,9 +43,20 @@ def recommend_product(db: Session, consultant: User, payload: ProductRecommendat
     if product is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
 
-    return product_service.create_recommendation(
+    recommendation = product_service.create_recommendation(
         db, consultant.id, payload.client_id, payload.product_id, payload.note
     )
+
+    notification_service.create_notification(
+        db,
+        payload.client_id,
+        "recommendation",
+        "New product recommendation",
+        f"{consultant.full_name} recommended {product.brand} — {product.name} for you.",
+        link_to="/store",
+    )
+
+    return recommendation
 
 
 def list_recommendations_given(db: Session, consultant: User):

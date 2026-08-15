@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from models.booking import APPOINTMENT_STATUSES
 from models.user import User
 from schemas.booking import AppointmentBookingRequest, AppointmentStatusUpdate, ConsultantBookingRequest
-from services import booking_service, client_snapshot_service
+from services import booking_service, client_snapshot_service, notification_service
 from utils.constants import ROLE_CONSULTANT, ROLE_DERMATOLOGIST
 
 
@@ -31,7 +31,18 @@ def book_consultant(db: Session, user: User, payload: ConsultantBookingRequest):
             status_code=status.HTTP_409_CONFLICT,
             detail="You already have an active consultant. Cancel that relationship before booking a new one.",
         )
-    return booking_service.create_consultant_assignment(db, user.id, payload)
+    assignment = booking_service.create_consultant_assignment(db, user.id, payload)
+
+    notification_service.create_notification(
+        db,
+        payload.consultant_id,
+        "referral",
+        "New client assigned",
+        f"{user.full_name} has booked you as their consultant.",
+        link_to="/consultant/clients",
+    )
+
+    return assignment
 
 
 def get_my_consultant_assignments(db: Session, user: User):
@@ -53,23 +64,60 @@ def list_assigned_clients(db: Session, consultant: User):
     return assignments
 
 
-def get_client_profile(db: Session, consultant: User, client_id):
+def get_client_profile(db: Session, consultant: User, client_id, mongo_db=None):
     if not booking_service.is_client_assigned_to_consultant(db, consultant.id, client_id):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="This client isn't assigned to you.",
         )
-    snapshot = client_snapshot_service.get_client_snapshot(db, client_id)
+    snapshot = client_snapshot_service.get_client_snapshot(db, client_id, mongo_db)
     if snapshot is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Client not found")
+
+    snapshot["appointments"] = [
+        {
+            "id": a.id,
+            "dermatologist_id": a.dermatologist_id,
+            "patient_id": a.patient_id,
+            "appointment_date": a.appointment_date,
+            "appointment_time": a.appointment_time,
+            "reason": a.reason,
+            "status": a.status,
+            "dermatologist_name": a.dermatologist.full_name if a.dermatologist else None,
+            "patient_name": a.patient.full_name if a.patient else None,
+            "created_at": a.created_at,
+        }
+        for a in booking_service.list_appointments_for_patient(db, client_id)
+    ]
     return snapshot
 
 
 # --- Dermatologist appointment (scheduled, status workflow) ---
+# Users can no longer book a dermatologist directly — the Consultant is
+# the bridge: only a consultant can refer their assigned client to a
+# dermatologist. The user can still view (read-only) any appointments
+# booked on their behalf.
 
 
-def book_appointment(db: Session, user: User, payload: AppointmentBookingRequest):
-    return booking_service.create_appointment(db, user.id, payload)
+def refer_client_to_dermatologist(db: Session, consultant: User, client_id, payload: AppointmentBookingRequest):
+    if not booking_service.is_client_assigned_to_consultant(db, consultant.id, client_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This client isn't assigned to you.",
+        )
+    appointment = booking_service.create_appointment(db, client_id, payload)
+
+    dermatologist_name = appointment.dermatologist.full_name if appointment.dermatologist else "a dermatologist"
+    notification_service.create_notification(
+        db,
+        client_id,
+        "referral",
+        "Dermatologist appointment scheduled",
+        f"Your consultant referred you to Dr. {dermatologist_name} on {appointment.appointment_date} at {appointment.appointment_time}.",
+        link_to="/bookings",
+    )
+
+    return appointment
 
 
 def get_my_appointments(db: Session, user: User):
@@ -83,13 +131,13 @@ def list_dermatologist_patients(db: Session, dermatologist: User):
     return booking_service.list_appointments_for_dermatologist(db, dermatologist.id)
 
 
-def get_patient_record(db: Session, dermatologist: User, patient_id):
+def get_patient_record(db: Session, dermatologist: User, patient_id, mongo_db=None):
     if not booking_service.has_patient_booked_with_dermatologist(db, dermatologist.id, patient_id):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="This patient hasn't booked an appointment with you.",
         )
-    snapshot = client_snapshot_service.get_client_snapshot(db, patient_id)
+    snapshot = client_snapshot_service.get_client_snapshot(db, patient_id, mongo_db)
     if snapshot is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found")
 
@@ -120,4 +168,15 @@ def update_appointment_status(db: Session, dermatologist: User, appointment_id, 
     if appointment is None or appointment.dermatologist_id != dermatologist.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Appointment not found")
 
-    return booking_service.update_appointment_status(db, appointment, payload.status)
+    updated = booking_service.update_appointment_status(db, appointment, payload.status)
+
+    notification_service.create_notification(
+        db,
+        appointment.patient_id,
+        "appointment_update",
+        f"Appointment {payload.status.lower()}",
+        f"Your appointment with Dr. {dermatologist.full_name} on {appointment.appointment_date} is now {payload.status}.",
+        link_to="/bookings",
+    )
+
+    return updated
