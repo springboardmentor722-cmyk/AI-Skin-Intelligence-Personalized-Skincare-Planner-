@@ -6,6 +6,8 @@ from typing import Optional
 
 from pydantic import BaseModel, EmailStr, Field
 
+from schemas.progress import ProgressPhotoResponse
+
 
 class ProviderSummary(BaseModel):
     """A consultant or dermatologist as shown in the user's booking picker."""
@@ -100,6 +102,7 @@ class ClientSnapshot(BaseModel):
 
     skin_type: Optional[str] = None
     skin_concerns: Optional[str] = None
+    allergies: Optional[str] = None
     skin_photo_url: Optional[str] = None
 
     latest_overall_score: Optional[float] = None
@@ -108,3 +111,6 @@ class ClientSnapshot(BaseModel):
 
     lifestyle_logs: list[LifestyleLogSummary] = Field(default_factory=list)
     appointments: list[AppointmentResponse] = Field(default_factory=list)
+    progress_photos: list[ProgressPhotoResponse] = Field(default_factory=list)
+    adherence: Optional[dict] = None
+    improvement: Optional[dict] = None

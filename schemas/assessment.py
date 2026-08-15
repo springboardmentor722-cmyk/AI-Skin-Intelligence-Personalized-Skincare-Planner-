@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 class SkinConcernInput(BaseModel):
     """One self-reported concern from the multi-step assessment wizard."""
 
-    name: str = Field(..., description="e.g. Acne, Hyperpigmentation, Dark Spots, Wrinkles, Oiliness")
+    name: str = Field(..., description="e.g. Acne, Hyperpigmentation, Dark Spots, Dry Skin, Oily Skin, Sensitive Skin, Wrinkles, Fine Lines, Redness, Uneven Skin Tone")
     severity: str = Field(..., description="High, Medium, or Low")
     is_active_flare: bool = Field(False, description="Is this concern an active flare-up right now?")
 

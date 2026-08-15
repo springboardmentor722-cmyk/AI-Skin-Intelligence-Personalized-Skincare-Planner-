@@ -29,6 +29,9 @@ class RoutineStep(BaseModel):
     time_of_day: str
     is_active: bool
     completed_today: bool = False
+    source: str = "auto"
+    set_by_name: Optional[str] = None
+    note: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -42,6 +45,24 @@ class RoutineResponse(BaseModel):
     pm: list[RoutineStep] = Field(default_factory=list)
     weekly: list[RoutineStep] = Field(default_factory=list)
     generated_at: Optional[datetime] = None
+
+
+class RoutineStepOverride(BaseModel):
+    time_of_day: str = Field(..., description="AM, PM, or Weekly")
+    step_number: int
+    step_category: str
+
+
+class RoutineOverwriteRequest(BaseModel):
+    """
+    A consultant or dermatologist replacing a client/patient's entire
+    active routine with a hand-picked set of steps (Milestone 3, Step 4's
+    "Prescription/Routine Overwrite Form"). Skips the automatic
+    decision-matrix generation entirely — this IS the new routine.
+    """
+
+    steps: list[RoutineStepOverride] = Field(..., min_length=1)
+    note: Optional[str] = Field(None, max_length=300)
 
 
 class RoutineLogRequest(BaseModel):
