@@ -2,7 +2,7 @@
 
 An AI-powered skincare platform offering personalized skin assessments, weighted health scoring, ingredient clash intelligence, product recommendations, and multi-role dashboards (User, Consultant, Dermatologist, Admin).
 
-The project demo link :
+The project demo link :https://drive.google.com/file/d/14NClfa2xkwBnyzyJHPj8ppjPs3c_YH_f/view?usp=sharing
 
 ---
 # 🧴 AI Skin Intelligence & Personalized Skincare Planner
