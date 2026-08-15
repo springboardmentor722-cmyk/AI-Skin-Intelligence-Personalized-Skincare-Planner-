@@ -15,6 +15,7 @@ from app.db.postgres import Base
 # `alembic revision --autogenerate` to see them; add new services' models here as they
 # land.
 from app.services.admin import models as _admin_models  # noqa: F401
+from app.services.appointments import models as _appointments_models  # noqa: F401
 from app.services.assessment import models as _assessment_models  # noqa: F401
 from app.services.consultant_profile import models as _consultant_profile_models  # noqa: F401
 from app.services.dermatologist_profile import models as _dermatologist_profile_models  # noqa: F401
