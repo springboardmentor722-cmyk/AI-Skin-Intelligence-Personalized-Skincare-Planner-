@@ -142,10 +142,16 @@ real router — list/detail/suitability/interaction-check endpoints, ES-backed
 search with a PG fallback, structured-allergy + synonym matching wired into
 suitability, not service-layer-only as an earlier draft of this doc said),
 `recommendations`, `progress`, `admin`, `consultant_profile`,
-`dermatologist_profile`, plus two support modules not numbered in the table:
+`dermatologist_profile`, plus three support modules not numbered in the table
+(none were among the PDF's original 12 modules):
 `clinical_review` (consultant/dermatologist client review + portfolio-wide
-stats, shared by both roles, M2-P14) and `weather` (`/weather-uv`, backed by the
-OpenWeather/OpenUV adapters). `analytics` (#10) landed in M3-P3 as a genuine
+stats, shared by both roles, M2-P14), `weather` (`/weather-uv`, backed by the
+OpenWeather/OpenUV adapters), and `appointments` (booking/scheduling between
+users and consultants/dermatologists — availability, slots, booking,
+confirm/cancel/reschedule; `/appointments`, ADR-049). `appointments` owns PG
+`provider_availability`, `availability_exceptions`, `appointments`; double-
+booking is prevented by a Postgres `EXCLUDE USING gist` constraint, not an
+app-level lock. `analytics` (#10) landed in M3-P3 as a genuine
 read-only aggregator (`GET /analytics/me` merges score timeline, 7/30/90-day
 compliance percentages, and progress-photo links; never a source of truth,
 never written to directly). The image-based Skin Assessment service (#3's

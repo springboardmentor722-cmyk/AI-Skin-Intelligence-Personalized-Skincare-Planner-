@@ -366,8 +366,8 @@ export function ClinicalDashboard({ role }: ClinicalDashboardProps) {
         <div className="border-border bg-card rounded-2xl border p-5">
           <h3 className="font-heading mb-3 text-base font-semibold">Upcoming Follow-ups</h3>
           <p className="text-muted-foreground font-sans text-sm">
-            Scheduling isn&apos;t built yet — this app has no appointment/follow-up
-            system to show real dates from.
+            Follow-up tracking isn&apos;t built yet — this app has no per-client
+            follow-up system to show real dates from.
           </p>
         </div>
       </div>
