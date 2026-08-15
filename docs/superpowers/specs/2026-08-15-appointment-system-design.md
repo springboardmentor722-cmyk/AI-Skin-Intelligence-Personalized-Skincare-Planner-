@@ -117,11 +117,14 @@ models.py · deps.py`, mounted under `/api/v1`, matching the fixed service anato
 - `GET /appointments/providers/{provider_id}/slots?date=` — computed free slots for
   that date (weekly pattern − exceptions − existing pending/confirmed appointments −
   any slot whose start time has already passed, for `date == today`).
-- `POST /appointments` — `require_role("user")`; body carries `provider_id` +
-  `start_time` only — `provider_role` and `consultation_mode` are **not** trusted from
-  the client, `service.py` looks up the provider's actual role and supported modes
-  server-side before insert (a client can't spoof a dermatologist row for a consultant
-  or vice versa). Creates/activates `consultant_clients`, inserts `status='pending'`.
+- `POST /appointments` — `require_role("user")`; body carries `provider_id`,
+  `start_time`, and `consultation_mode` (user's choice, validated server-side against
+  that provider's supported `consultation_modes` — reject with 400 if not a member).
+  `provider_role` is **not** part of the request body at all — `service.py` derives it
+  by looking up whether `provider_id` is a `ConsultantProfile` or `DermatologistProfile`
+  row (a client can't spoof a dermatologist row for a consultant or vice versa; unlike
+  `consultation_mode`, there is no legitimate reason for the client to ever send this
+  field). Creates/activates `consultant_clients`, inserts `status='pending'`.
   On `IntegrityError` from the `EXCLUDE` constraint, the router returns **409** with a
   stable error body (`{"detail": "slot_unavailable"}`) — this is the conflict the
   frontend spec below handles explicitly.
