@@ -1,10 +1,19 @@
 import datetime
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.services.appointments.models import Appointment, AvailabilityException, ProviderAvailability
-from app.services.appointments.schemas import AvailabilityExceptionCreate, AvailabilityRule, SlotRead
+from app.services.appointments.schemas import (
+    AppointmentCreate,
+    AvailabilityExceptionCreate,
+    AvailabilityRule,
+    SlotRead,
+)
+from app.services.clinical_review import service as clinical_review_service
+from app.services.consultant_profile.models import ConsultantProfile
+from app.services.dermatologist_profile.models import DermatologistProfile
 
 
 def _ranges_overlap(
@@ -146,3 +155,74 @@ async def compute_available_slots(
                 slots.append(SlotRead(start_time=cursor, end_time=slot_end))
             cursor = slot_end
     return slots
+
+
+class SlotUnavailableError(Exception):
+    """Raised when the DB's EXCLUDE constraint rejects an overlapping booking —
+    the actual concurrency guard; this just gives callers a typed exception instead
+    of a raw IntegrityError to catch."""
+
+
+async def _resolve_provider_role(
+    db: AsyncSession, provider_id: str
+) -> tuple[str, list[str] | None]:
+    """Returns (role, consultation_modes) for the provider, derived server-side from
+    whichever profile table has a row for provider_id — never trust a client-supplied
+    role. consultation_modes is None when the provider hasn't configured any yet."""
+    consultant = await db.execute(
+        select(ConsultantProfile.consultation_modes).where(
+            ConsultantProfile.user_id == provider_id
+        )
+    )
+    consultant_row = consultant.one_or_none()
+    if consultant_row is not None:
+        return "consultant", consultant_row[0]
+    dermatologist = await db.execute(
+        select(DermatologistProfile.consultation_modes).where(
+            DermatologistProfile.user_id == provider_id
+        )
+    )
+    dermatologist_row = dermatologist.one_or_none()
+    if dermatologist_row is not None:
+        return "dermatologist", dermatologist_row[0]
+    raise ValueError(f"{provider_id} is not a consultant or dermatologist")
+
+
+async def book_appointment(db: AsyncSession, user_id: str, data: AppointmentCreate) -> Appointment:
+    provider_role, consultation_modes = await _resolve_provider_role(db, data.provider_id)
+    if consultation_modes and data.consultation_mode not in consultation_modes:
+        raise ValueError(
+            f"{data.consultation_mode} is not a supported consultation mode for this provider"
+        )
+
+    # slot_duration_minutes for this provider (defaults to 30 if no matching rule —
+    # matches the availability the slot was computed from).
+    duration_result = await db.execute(
+        select(ProviderAvailability.slot_duration_minutes)
+        .where(
+            ProviderAvailability.provider_id == data.provider_id,
+            ProviderAvailability.day_of_week == data.start_time.weekday(),
+        )
+        .limit(1)
+    )
+    duration_minutes = duration_result.scalar_one_or_none() or 30
+
+    appointment = Appointment(
+        user_id=user_id,
+        provider_id=data.provider_id,
+        provider_role=provider_role,
+        consultation_mode=data.consultation_mode,
+        start_time=data.start_time,
+        end_time=data.start_time + datetime.timedelta(minutes=duration_minutes),
+        status="pending",
+    )
+    db.add(appointment)
+    try:
+        await db.flush()
+    except IntegrityError as exc:
+        await db.rollback()
+        raise SlotUnavailableError("This appointment slot is no longer available") from exc
+
+    await clinical_review_service.create_assignment(db, data.provider_id, user_id)
+    await db.commit()
+    return appointment

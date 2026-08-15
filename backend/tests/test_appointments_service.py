@@ -12,15 +12,23 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.postgres import external_user_table
-from app.services.appointments.schemas import AvailabilityExceptionCreate, AvailabilityRule
+from app.services.appointments.schemas import (
+    AppointmentCreate,
+    AvailabilityExceptionCreate,
+    AvailabilityRule,
+)
 from app.services.appointments.service import (
+    SlotUnavailableError,
     add_exception,
+    book_appointment,
     delete_exception,
     get_availability,
     list_exceptions,
     replace_availability,
 )
+from app.services.clinical_review.service import _verify_assignment
 from app.services.consultant_profile.models import ConsultantProfile
+from app.services.dermatologist_profile.models import DermatologistProfile
 
 
 @pytest.fixture
@@ -210,3 +218,97 @@ async def test_compute_available_slots_excludes_past_times_for_today(
         db_session, provider_id, today.date(), now=today
     )
     assert all(s.start_time > today for s in slots)
+
+
+async def test_book_appointment_creates_pending_row_and_activates_assignment(
+    db_session: AsyncSession, provider_id: str, test_user_id: str
+) -> None:
+    appointment = await book_appointment(
+        db_session,
+        test_user_id,
+        AppointmentCreate(
+            provider_id=provider_id,
+            start_time=datetime.datetime(2026, 9, 7, 9, 0, tzinfo=datetime.UTC),
+            consultation_mode="video",
+        ),
+    )
+    assert appointment.status == "pending"
+    assert appointment.provider_role == "consultant"  # derived server-side, not client-supplied
+
+    # consultant_clients row was created/activated as a side effect.
+    assignment = await _verify_assignment(db_session, provider_id, test_user_id)
+    assert assignment.status == "active"
+
+
+async def test_book_appointment_rejects_an_overlapping_slot(
+    db_session: AsyncSession, provider_id: str, test_user_id: str
+) -> None:
+    start = datetime.datetime(2026, 9, 7, 9, 0, tzinfo=datetime.UTC)
+    await book_appointment(
+        db_session, test_user_id,
+        AppointmentCreate(provider_id=provider_id, start_time=start, consultation_mode="video"),
+    )
+
+    other_user = f"test-{uuid.uuid4().hex[:16]}"
+    await db_session.execute(
+        external_user_table.insert().values(
+            id=other_user, email=f"{other_user}@test.invalid", name="Other User", emailVerified=False
+        )
+    )
+    await db_session.flush()
+
+    with pytest.raises(SlotUnavailableError):
+        await book_appointment(
+            db_session, other_user,
+            AppointmentCreate(provider_id=provider_id, start_time=start, consultation_mode="video"),
+        )
+
+
+async def test_book_appointment_derives_provider_role_for_a_dermatologist(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    derm_id = f"test-derm-{uuid.uuid4().hex[:16]}"
+    await db_session.execute(
+        external_user_table.insert().values(
+            id=derm_id, email=f"{derm_id}@test.invalid", name="Dr. Derm", emailVerified=False
+        )
+    )
+    db_session.add(DermatologistProfile(user_id=derm_id, verification_status="approved"))
+    await db_session.flush()
+
+    appointment = await book_appointment(
+        db_session, test_user_id,
+        AppointmentCreate(
+            provider_id=derm_id,
+            start_time=datetime.datetime(2026, 9, 8, 9, 0, tzinfo=datetime.UTC),
+            consultation_mode="chat",
+        ),
+    )
+    assert appointment.provider_role == "dermatologist"
+
+
+async def test_book_appointment_rejects_an_unsupported_consultation_mode(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    provider = f"test-provider-{uuid.uuid4().hex[:16]}"
+    await db_session.execute(
+        external_user_table.insert().values(
+            id=provider, email=f"{provider}@test.invalid", name="Dr. Modes", emailVerified=False
+        )
+    )
+    db_session.add(
+        ConsultantProfile(
+            user_id=provider, verification_status="approved", consultation_modes=["video", "chat"]
+        )
+    )
+    await db_session.flush()
+
+    with pytest.raises(ValueError, match="not a supported consultation mode"):
+        await book_appointment(
+            db_session, test_user_id,
+            AppointmentCreate(
+                provider_id=provider,
+                start_time=datetime.datetime(2026, 9, 9, 9, 0, tzinfo=datetime.UTC),
+                consultation_mode="in_person",
+            ),
+        )

@@ -39,6 +39,7 @@ class DermatologistProfile(Base):
     specializations: Mapped[list[str] | None] = mapped_column(ARRAY(Text), default=None)
     research_interests: Mapped[str | None] = mapped_column(Text, default=None)
     professional_biography: Mapped[str | None] = mapped_column(Text, default=None)
+    consultation_modes: Mapped[list[str] | None] = mapped_column(ARRAY(Text), default=None)
     phone: Mapped[str | None] = mapped_column(default=None)
     location: Mapped[str | None] = mapped_column(default=None)
     verification_status: Mapped[str] = mapped_column(default="pending")
