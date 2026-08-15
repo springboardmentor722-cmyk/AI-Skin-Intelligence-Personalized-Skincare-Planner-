@@ -116,3 +116,97 @@ async def test_delete_exception_rejects_a_different_providers_row(
     )
     with pytest.raises(ValueError, match="not found"):
         await delete_exception(db_session, provider_id, exc.exception_id)
+
+
+async def test_compute_available_slots_from_weekly_pattern(
+    db_session: AsyncSession, provider_id: str
+) -> None:
+    from app.services.appointments.service import compute_available_slots
+
+    # 2026-09-07 is a Monday (day_of_week=0).
+    await replace_availability(
+        db_session,
+        provider_id,
+        [
+            AvailabilityRule(
+                day_of_week=0, start_time=datetime.time(9, 0), end_time=datetime.time(10, 0),
+                slot_duration_minutes=30,
+            )
+        ],
+    )
+    slots = await compute_available_slots(db_session, provider_id, datetime.date(2026, 9, 7))
+    assert [s.start_time.time() for s in slots] == [datetime.time(9, 0), datetime.time(9, 30)]
+
+
+async def test_compute_available_slots_returns_nothing_for_an_unavailable_day(
+    db_session: AsyncSession, provider_id: str
+) -> None:
+    from app.services.appointments.service import compute_available_slots
+
+    await replace_availability(
+        db_session,
+        provider_id,
+        [AvailabilityRule(day_of_week=0, start_time=datetime.time(9, 0), end_time=datetime.time(10, 0))],
+    )
+    # 2026-09-08 is a Tuesday — no rule for day_of_week=1.
+    slots = await compute_available_slots(db_session, provider_id, datetime.date(2026, 9, 8))
+    assert slots == []
+
+
+async def test_compute_available_slots_excludes_a_whole_day_exception(
+    db_session: AsyncSession, provider_id: str
+) -> None:
+    from app.services.appointments.service import compute_available_slots
+
+    await replace_availability(
+        db_session,
+        provider_id,
+        [AvailabilityRule(day_of_week=0, start_time=datetime.time(9, 0), end_time=datetime.time(10, 0))],
+    )
+    await add_exception(
+        db_session, provider_id, AvailabilityExceptionCreate(exception_date=datetime.date(2026, 9, 7))
+    )
+    slots = await compute_available_slots(db_session, provider_id, datetime.date(2026, 9, 7))
+    assert slots == []
+
+
+async def test_compute_available_slots_excludes_an_existing_appointment(
+    db_session: AsyncSession, provider_id: str, test_user_id: str
+) -> None:
+    from app.services.appointments.service import book_appointment, compute_available_slots
+    from app.services.appointments.schemas import AppointmentCreate
+
+    await replace_availability(
+        db_session,
+        provider_id,
+        [AvailabilityRule(day_of_week=0, start_time=datetime.time(9, 0), end_time=datetime.time(10, 0))],
+    )
+    await book_appointment(
+        db_session,
+        test_user_id,
+        AppointmentCreate(
+            provider_id=provider_id,
+            start_time=datetime.datetime(2026, 9, 7, 9, 0, tzinfo=datetime.UTC),
+            consultation_mode="video",
+        ),
+    )
+    slots = await compute_available_slots(db_session, provider_id, datetime.date(2026, 9, 7))
+    assert [s.start_time.time() for s in slots] == [datetime.time(9, 30)]
+
+
+async def test_compute_available_slots_excludes_past_times_for_today(
+    db_session: AsyncSession, provider_id: str
+) -> None:
+    from app.services.appointments.service import compute_available_slots
+
+    today = datetime.datetime.now(datetime.UTC)
+    weekday = today.weekday()  # Python: Monday=0, matches this schema's day_of_week
+    await replace_availability(
+        db_session,
+        provider_id,
+        [AvailabilityRule(day_of_week=weekday, start_time=datetime.time(0, 0), end_time=datetime.time(23, 30))],
+    )
+    slots = await compute_available_slots(
+        db_session, provider_id, today.date(), now=today
+    )
+    assert all(s.start_time > today for s in slots)
