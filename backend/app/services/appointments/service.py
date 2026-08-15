@@ -96,10 +96,12 @@ async def compute_available_slots(
     day_of_week = target_date.weekday()
 
     rules_result = await db.execute(
-        select(ProviderAvailability).where(
+        select(ProviderAvailability)
+        .where(
             ProviderAvailability.provider_id == provider_id,
             ProviderAvailability.day_of_week == day_of_week,
         )
+        .order_by(ProviderAvailability.start_time)
     )
     rules = list(rules_result.scalars().all())
     if not rules:
