@@ -30,7 +30,13 @@ class SkincareRoutine(Base):
     step_category = Column(String(50), nullable=False)  # Cleansing, Treatment, Moisturizing, Sun Protection, ...
     is_active = Column(Boolean, nullable=False, default=True)
 
+    # --- Milestone 3: provider routine overwrite ---
+    source = Column(String(20), nullable=False, default="auto")  # "auto" (decision matrix) or "provider"
+    set_by_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)  # consultant/dermatologist, if source="provider"
+    note = Column(String(300), nullable=True)
+
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
-    user = relationship("User")
+    user = relationship("User", foreign_keys=[user_id])
+    set_by = relationship("User", foreign_keys=[set_by_id])
     assessment = relationship("SkinAssessment", back_populates="routines")

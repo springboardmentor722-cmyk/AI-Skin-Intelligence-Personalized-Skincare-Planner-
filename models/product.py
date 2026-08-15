@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime, timezone
 
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, Numeric, String
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import relationship
 
 from core.database import Base
@@ -33,8 +33,16 @@ class Product(Base):
     rating = Column(Numeric(2, 1), nullable=False, default=4.0)
     review_count = Column(Integer, nullable=False, default=0)
 
+    # --- Recommendation Engine inputs (Milestone 3) ---
+    concern_tags = Column(JSONB, nullable=False, default=list)  # e.g. ["Acne", "Oily Skin"]
+    skin_type_tags = Column(JSONB, nullable=False, default=list)  # e.g. ["Oily", "Combination"]
+
     is_active = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+    ingredients = relationship(
+        "Ingredient", secondary="product_ingredients", back_populates="products"
+    )
 
 
 class ProductRecommendation(Base):
@@ -51,6 +59,8 @@ class ProductRecommendation(Base):
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     product = relationship("Product")
+    consultant = relationship("User", foreign_keys=[consultant_id])
+    client = relationship("User", foreign_keys=[client_id])
 
 
 class Order(Base):
