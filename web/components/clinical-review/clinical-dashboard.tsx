@@ -18,7 +18,8 @@ import { RosterTable, type RosterColumn } from "@/components/dashboard/roster-ta
 import { StatCard } from "@/components/dashboard/stat-card";
 import { TimelineList } from "@/components/dashboard/timeline-list";
 import { api } from "@/lib/api";
-import { retryFor } from "@/lib/widget-state";
+import { useMyAppointmentsQuery } from "@/lib/hooks/use-appointments";
+import { retryFor, widgetStateFor } from "@/lib/widget-state";
 import type { components } from "@/lib/api-types";
 
 type ClientSummary = components["schemas"]["ClientSummaryRead"];
@@ -70,12 +71,13 @@ function toRankedBars(
 // Milestone 2 P14 (ADR-024's deferred consequence, ADR-031's naming precedent) —
 // roster and every KPI/donut/bars/trend/stat-footer/recent-assessment number below
 // is real, aggregated across the professional's actual assigned clients
-// (clinical_review/service.py's list_my_clients + get_portfolio_stats). No
-// "Upcoming Follow-ups" card: no scheduling/appointment concept exists anywhere in
-// database_schemas/ — that fixture card and the 5th "Upcoming Follow-ups"/
-// "Follow-ups Due" KPI have no real replacement and render an honest empty state
-// rather than a fabricated one. The Tip/Insight banner is static educational copy,
-// not a per-client computed insight — never claimed to be data-driven.
+// (clinical_review/service.py's list_my_clients + get_portfolio_stats). The 5th
+// KPI (was an honest "no scheduling system yet" empty state) is now a real
+// "Next Appointment" card wired to the appointment system (Task 9's
+// useMyAppointmentsQuery); the Row 3 "Upcoming Follow-ups" card below still has
+// no real per-follow-up list to show, so it keeps its honest empty copy. The
+// Tip/Insight banner is static educational copy, not a per-client computed
+// insight — never claimed to be data-driven.
 export function ClinicalDashboard({ role }: ClinicalDashboardProps) {
   const isDerma = role === "dermatologist";
   const personLabel = isDerma ? "Patient" : "Client";
@@ -100,6 +102,11 @@ export function ClinicalDashboard({ role }: ClinicalDashboardProps) {
       return data;
     },
   });
+
+  const appointmentsQuery = useMyAppointmentsQuery();
+  const nextAppointment = (appointmentsQuery.data ?? [])
+    .filter((a) => ["pending", "confirmed"].includes(a.status) && new Date(a.start_time).getTime() > Date.now())
+    .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())[0];
 
   const roster = rosterQuery.data?.items ?? [];
   const stats = statsQuery.data;
@@ -199,7 +206,7 @@ export function ClinicalDashboard({ role }: ClinicalDashboardProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Row 1 — 5 KPIs, 5th is an honest empty state (no scheduling system) */}
+      {/* Row 1 — 5 KPIs, 5th is the real "Next Appointment" widget */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <StatCard
           state={statsState}
@@ -239,12 +246,27 @@ export function ClinicalDashboard({ role }: ClinicalDashboardProps) {
           layout="icon-left-circular"
         />
         <StatCard
-          state="empty"
-          label={isDerma ? "Follow-ups Due" : "Upcoming Follow-ups"}
+          state={widgetStateFor(appointmentsQuery, !nextAppointment)}
+          onRetry={retryFor(appointmentsQuery)}
+          label="Next Appointment"
+          value={
+            nextAppointment
+              ? new Date(nextAppointment.start_time).toLocaleString(undefined, {
+                  month: "short",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                })
+              : undefined
+          }
           icon={CalendarClock}
           tint="warning"
           layout="icon-left-circular"
-          emptyMessage="No scheduling system yet."
+          emptyMessage="No upcoming appointments."
+          footerLink={{
+            label: nextAppointment?.other_party_name ?? "View schedule",
+            href: `/${role}/reminders`,
+          }}
         />
       </div>
 
