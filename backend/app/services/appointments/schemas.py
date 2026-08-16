@@ -1,7 +1,7 @@
 import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field
 
 ProviderRole = Literal["consultant", "dermatologist"]
 ConsultationMode = Literal["video", "in_person", "chat"]
@@ -59,7 +59,7 @@ class SlotRead(BaseModel):
 
 class AppointmentCreate(BaseModel):
     provider_id: str
-    start_time: datetime.datetime
+    start_time: AwareDatetime
     consultation_mode: ConsultationMode
 
 

@@ -79,7 +79,10 @@ export function AvailabilitySettings() {
   return (
     <div className="border-border bg-card flex flex-col gap-6 rounded-2xl border p-6">
       <div>
-        <h3 className="font-heading text-on-surface mb-4 text-sm font-semibold">Weekly hours</h3>
+        <h3 className="font-heading text-on-surface mb-1 text-sm font-semibold">Weekly hours</h3>
+        <p className="text-on-surface-variant mb-4 font-sans text-xs">
+          Times are in UTC, not your local timezone.
+        </p>
         <div className="flex flex-col gap-3">
           {effectiveRows.map((row) => (
             <div key={row.day_of_week} className="flex flex-wrap items-center gap-3">
@@ -152,7 +155,11 @@ export function AvailabilitySettings() {
                 <Button
                   size="icon"
                   variant="ghost"
-                  onClick={() => deleteException.mutate(exc.exception_id)}
+                  onClick={() =>
+                    deleteException.mutate(exc.exception_id, {
+                      onError: () => toast.error("Couldn't remove this blocked date. Try again."),
+                    })
+                  }
                 >
                   <Trash2 className="size-4" strokeWidth={1.5} />
                 </Button>
@@ -184,7 +191,10 @@ export function AvailabilitySettings() {
                   end_time: blockWholeDay ? null : blockEnd,
                   reason: null,
                 },
-                { onSuccess: () => setBlockDate("") }
+                {
+                  onSuccess: () => setBlockDate(""),
+                  onError: () => toast.error("Couldn't block this date. Try again."),
+                }
               )
             }
           >

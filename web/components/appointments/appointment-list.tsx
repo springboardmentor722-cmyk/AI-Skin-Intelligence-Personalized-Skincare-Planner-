@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMyAppointmentsQuery, type AppointmentRead } from "@/lib/hooks/use-appointments";
 
-import { AppointmentDetailDialog } from "./appointment-detail-dialog";
+import { AppointmentDetailDialog, STATUS_TONE } from "./appointment-detail-dialog";
 
 interface AppointmentListProps {
   viewerRole: "user" | "consultant" | "dermatologist";
@@ -31,7 +31,11 @@ export function AppointmentList({ viewerRole, onOpenProfile }: AppointmentListPr
       upcoming: rows.filter(
         (a) => !isToday(a.start_time) && isFuture(a.start_time) && ["pending", "confirmed"].includes(a.status)
       ),
-      history: rows.filter((a) => !["pending", "confirmed"].includes(a.status) || !isFuture(a.start_time)),
+      history: rows.filter(
+        (a) =>
+          !isToday(a.start_time) &&
+          (!["pending", "confirmed"].includes(a.status) || !isFuture(a.start_time))
+      ),
     };
   }, [data]);
 
@@ -70,7 +74,7 @@ export function AppointmentList({ viewerRole, onOpenProfile }: AppointmentListPr
                   {new Date(a.start_time).toLocaleString()}
                 </p>
               </div>
-              <Badge variant="outline">{a.status.replace("_", " ")}</Badge>
+              <Badge variant={STATUS_TONE[a.status] ?? "outline"}>{a.status.replace("_", " ")}</Badge>
             </button>
           </li>
         ))}

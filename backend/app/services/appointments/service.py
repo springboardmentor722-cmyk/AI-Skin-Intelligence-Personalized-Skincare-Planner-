@@ -80,6 +80,14 @@ async def list_exceptions(db: AsyncSession, provider_id: str) -> list[Availabili
 async def add_exception(
     db: AsyncSession, provider_id: str, data: AvailabilityExceptionCreate
 ) -> AvailabilityException:
+    if (data.start_time is None) != (data.end_time is None):
+        raise ValueError("start_time and end_time must both be set or both be null")
+    if (
+        data.start_time is not None
+        and data.end_time is not None
+        and data.end_time <= data.start_time
+    ):
+        raise ValueError("end_time must be after start_time")
     exception = AvailabilityException(provider_id=provider_id, **data.model_dump())
     db.add(exception)
     await db.commit()
@@ -175,6 +183,13 @@ class AppointmentOwnershipError(ValueError):
     reschedule_appointment)."""
 
 
+class InvalidTransitionError(ValueError):
+    """Raised when the appointment is already in a terminal state (completed/
+    cancelled/no_show) for the requested transition — maps to 400, not 404,
+    mirroring AppointmentOwnershipError's split between "not yours" (404) and
+    "not a valid transition" (400)."""
+
+
 async def _resolve_provider_role(
     db: AsyncSession, provider_id: str
 ) -> tuple[str, list[str] | None]:
@@ -201,10 +216,24 @@ async def _resolve_provider_role(
 
 
 async def book_appointment(db: AsyncSession, user_id: str, data: AppointmentCreate) -> Appointment:
+    if data.start_time.tzinfo is None:
+        # Belt-and-braces: AppointmentCreate.start_time is AwareDatetime so the API
+        # path already 422s on this, but book_appointment is called directly by
+        # tests/other code too, and a naive value silently never matches the
+        # tz-aware comparisons below (compute_available_slots, the EXCLUDE
+        # constraint) rather than raising.
+        raise ValueError("start_time must be timezone-aware")
+
     provider_role, consultation_modes = await _resolve_provider_role(db, data.provider_id)
     if consultation_modes and data.consultation_mode not in consultation_modes:
         raise ValueError(
             f"{data.consultation_mode} is not a supported consultation mode for this provider"
+        )
+
+    available_slots = await compute_available_slots(db, data.provider_id, data.start_time.date())
+    if data.start_time not in {slot.start_time for slot in available_slots}:
+        raise SlotUnavailableError(
+            "This appointment slot is not within the provider's availability"
         )
 
     # slot_duration_minutes for this provider (defaults to 30 if no matching rule —
@@ -215,6 +244,7 @@ async def book_appointment(db: AsyncSession, user_id: str, data: AppointmentCrea
             ProviderAvailability.provider_id == data.provider_id,
             ProviderAvailability.day_of_week == data.start_time.weekday(),
         )
+        .order_by(ProviderAvailability.start_time)
         .limit(1)
     )
     duration_minutes = duration_result.scalar_one_or_none() or 30
@@ -343,7 +373,9 @@ async def cancel_appointment(
 ) -> Appointment:
     appointment = await get_appointment(db, caller_id, appointment_id)
     if appointment.status not in ("pending", "confirmed"):
-        raise ValueError(f"Cannot cancel an appointment in status '{appointment.status}'")
+        raise InvalidTransitionError(
+            f"Cannot cancel an appointment in status '{appointment.status}'"
+        )
     is_user = caller_id == appointment.user_id
     if is_user and appointment.start_time - datetime.datetime.now(datetime.UTC) < _CUTOFF:
         raise PermissionError("Appointments can only be cancelled at least 24 hours in advance")
@@ -367,7 +399,9 @@ async def reschedule_appointment(
 ) -> Appointment:
     appointment = await get_appointment(db, caller_id, appointment_id)
     if appointment.status not in ("pending", "confirmed"):
-        raise ValueError(f"Cannot reschedule an appointment in status '{appointment.status}'")
+        raise InvalidTransitionError(
+            f"Cannot reschedule an appointment in status '{appointment.status}'"
+        )
     is_user = caller_id == appointment.user_id
     if is_user and appointment.start_time - datetime.datetime.now(datetime.UTC) < _CUTOFF:
         raise PermissionError("Appointments can only be rescheduled at least 24 hours in advance")

@@ -94,7 +94,10 @@ async def add_my_exception(
     user: VerifiedProfessional,
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> AvailabilityExceptionRead:
-    exception = await service.add_exception(db, user["id"], data)
+    try:
+        exception = await service.add_exception(db, user["id"], data)
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
     return AvailabilityExceptionRead.model_validate(exception)
 
 
@@ -262,6 +265,8 @@ async def cancel_appointment(
 ) -> AppointmentRead:
     try:
         appointment = await service.cancel_appointment(db, user["id"], appointment_id, data.reason)
+    except service.InvalidTransitionError as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
     except PermissionError as exc:
         raise HTTPException(status.HTTP_403_FORBIDDEN, str(exc)) from exc
     except ValueError as exc:
@@ -282,6 +287,8 @@ async def reschedule_appointment(
         )
     except service.SlotUnavailableError as exc:
         raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
+    except service.InvalidTransitionError as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
     except PermissionError as exc:
         raise HTTPException(status.HTTP_403_FORBIDDEN, str(exc)) from exc
     except ValueError as exc:

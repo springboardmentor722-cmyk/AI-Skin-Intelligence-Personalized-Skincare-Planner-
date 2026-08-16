@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -18,10 +19,12 @@ import {
   useCompleteAppointmentMutation,
   useConfirmAppointmentMutation,
   useNoShowAppointmentMutation,
+  useProviderSlotsQuery,
+  useRescheduleAppointmentMutation,
   type AppointmentRead,
 } from "@/lib/hooks/use-appointments";
 
-const STATUS_TONE: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+export const STATUS_TONE: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   pending: "outline",
   confirmed: "default",
   completed: "secondary",
@@ -45,10 +48,25 @@ export function AppointmentDetailDialog({
   onOpenProfile,
 }: AppointmentDetailDialogProps) {
   const [confirmingCancel, setConfirmingCancel] = useState(false);
+  const [reschedulingOpen, setReschedulingOpen] = useState(false);
+  const [rescheduleDate, setRescheduleDate] = useState<Date | undefined>(undefined);
+  const [rescheduleSlot, setRescheduleSlot] = useState<string | null>(null);
   const confirmMutation = useConfirmAppointmentMutation();
   const completeMutation = useCompleteAppointmentMutation();
   const noShowMutation = useNoShowAppointmentMutation();
   const cancelMutation = useCancelAppointmentMutation();
+  const rescheduleMutation = useRescheduleAppointmentMutation();
+
+  // Local date, not UTC — same fix as booking-panel.tsx's dateParam: .toISOString()
+  // shifts local midnight back a day for any UTC-ahead timezone (incl. India,
+  // UTC+5:30, this app's primary market).
+  const rescheduleDateParam = rescheduleDate
+    ? `${rescheduleDate.getFullYear()}-${String(rescheduleDate.getMonth() + 1).padStart(2, "0")}-${String(rescheduleDate.getDate()).padStart(2, "0")}`
+    : null;
+  const rescheduleSlotsQuery = useProviderSlotsQuery(
+    appointment?.provider_id ?? null,
+    rescheduleDateParam
+  );
 
   if (!appointment) return null;
   const isProvider = viewerRole !== "user";
@@ -73,6 +91,31 @@ export function AppointmentDetailDialog({
     );
   };
 
+  const handleReschedule = () => {
+    if (!rescheduleSlot) return;
+    rescheduleMutation.mutate(
+      { appointmentId: appointment.appointment_id, startTime: rescheduleSlot },
+      {
+        onSuccess: () => {
+          toast.success("Appointment rescheduled");
+          setReschedulingOpen(false);
+          setRescheduleDate(undefined);
+          setRescheduleSlot(null);
+          onOpenChange(false);
+        },
+        onError: (err) => {
+          if (err.message === "slot_unavailable") {
+            toast.error("This appointment slot is no longer available. Please choose another time.");
+            setRescheduleSlot(null);
+            rescheduleSlotsQuery.refetch();
+          } else {
+            toast.error("Couldn't reschedule this appointment. Try again.");
+          }
+        },
+      }
+    );
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -92,6 +135,64 @@ export function AppointmentDetailDialog({
                 onClick={handleCancel}
               >
                 Cancel appointment
+              </Button>
+            </DialogFooter>
+          </>
+        ) : reschedulingOpen ? (
+          <>
+            <DialogHeader>
+              <DialogTitle>Reschedule appointment</DialogTitle>
+              <DialogDescription>Pick a new date and time.</DialogDescription>
+            </DialogHeader>
+            <Calendar
+              mode="single"
+              selected={rescheduleDate}
+              onSelect={(d) => {
+                setRescheduleDate(d);
+                setRescheduleSlot(null);
+              }}
+              disabled={{ before: new Date() }}
+            />
+            {rescheduleDate &&
+              (rescheduleSlotsQuery.isLoading ? (
+                <p className="text-on-surface-variant font-sans text-xs">Loading times…</p>
+              ) : !rescheduleSlotsQuery.data || rescheduleSlotsQuery.data.length === 0 ? (
+                <p className="text-on-surface-variant font-sans text-xs">
+                  No available slots for this date.
+                </p>
+              ) : (
+                <div className="grid grid-cols-3 gap-2">
+                  {rescheduleSlotsQuery.data.map((slot) => (
+                    <Button
+                      key={slot.start_time}
+                      variant={rescheduleSlot === slot.start_time ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setRescheduleSlot(slot.start_time)}
+                    >
+                      {new Date(slot.start_time).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </Button>
+                  ))}
+                </div>
+              ))}
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setReschedulingOpen(false);
+                  setRescheduleDate(undefined);
+                  setRescheduleSlot(null);
+                }}
+              >
+                Back
+              </Button>
+              <Button
+                disabled={!rescheduleSlot || rescheduleMutation.isPending}
+                onClick={handleReschedule}
+              >
+                Confirm new time
               </Button>
             </DialogFooter>
           </>
@@ -160,9 +261,14 @@ export function AppointmentDetailDialog({
                 </>
               )}
               {["pending", "confirmed"].includes(appointment.status) && (
-                <Button variant="destructive" onClick={() => setConfirmingCancel(true)}>
-                  Cancel
-                </Button>
+                <>
+                  <Button variant="outline" onClick={() => setReschedulingOpen(true)}>
+                    Reschedule
+                  </Button>
+                  <Button variant="destructive" onClick={() => setConfirmingCancel(true)}>
+                    Cancel
+                  </Button>
+                </>
               )}
             </DialogFooter>
           </>
