@@ -16,6 +16,7 @@ from app.db.postgres import engine
 from app.db.redis import get_redis
 from app.services.admin.router import router as admin_router
 from app.services.analytics.router import router as analytics_router
+from app.services.appointments.router import router as appointments_router
 from app.services.assessment.router import router as assessment_router
 from app.services.clinical_review.router import router as clinical_review_router
 from app.services.consultant_profile.router import router as consultant_profile_router
@@ -155,6 +156,9 @@ def create_app() -> FastAPI:
     # ARCHITECTURE.md §2's role table), not consultant-only despite consultant_
     # -prefixed table names.
     api_v1.include_router(clinical_review_router, tags=["clinical-review"])
+    # appointments_router already declares prefix="/appointments" — booking/availability
+    # for consultant/dermatologist providers, alongside clinical_review's assignments.
+    api_v1.include_router(appointments_router, tags=["appointments"])
     # Real OpenWeather/OpenUV adapters (docs/DATASETS_AND_APIS.md) behind the
     # topbar's existing "UV —" stub chip.
     api_v1.include_router(weather_router, tags=["weather"])

@@ -476,6 +476,7 @@ CREATE TABLE dermatologist_profiles (
     specializations TEXT[],
     research_interests TEXT,
     professional_biography TEXT,
+    consultation_modes TEXT[],
     phone VARCHAR(20),
     location VARCHAR(150),
     verification_status VARCHAR(20) NOT NULL DEFAULT 'pending'
@@ -505,6 +506,56 @@ CREATE TABLE verification_documents (
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     verified_by TEXT REFERENCES "user"(id),
     verified_at TIMESTAMP
+);
+
+-- ============================================================
+-- APPOINTMENTS (Milestone 3 scheduling subsystem)
+-- ============================================================
+
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+
+CREATE TABLE provider_availability (
+    availability_id SERIAL PRIMARY KEY,
+    provider_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+    day_of_week SMALLINT NOT NULL,
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    slot_duration_minutes SMALLINT NOT NULL DEFAULT 30,
+    CHECK (day_of_week BETWEEN 0 AND 6),
+    CHECK (end_time > start_time)
+);
+
+CREATE TABLE availability_exceptions (
+    exception_id SERIAL PRIMARY KEY,
+    provider_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+    exception_date DATE NOT NULL,
+    start_time TIME,
+    end_time TIME,
+    reason TEXT,
+    CHECK ((start_time IS NULL) = (end_time IS NULL))
+);
+
+CREATE TABLE appointments (
+    appointment_id SERIAL PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES "user"(id),
+    provider_id TEXT NOT NULL REFERENCES "user"(id),
+    provider_role VARCHAR(20) NOT NULL,
+    consultation_mode VARCHAR(20) NOT NULL,
+    start_time TIMESTAMPTZ NOT NULL,
+    end_time TIMESTAMPTZ NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    cancelled_by TEXT REFERENCES "user"(id),
+    cancellation_reason TEXT,
+    original_start_time TIMESTAMPTZ,
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CHECK (provider_role IN ('consultant', 'dermatologist')),
+    CHECK (status IN ('pending', 'confirmed', 'completed', 'cancelled', 'no_show')),
+    EXCLUDE USING gist (
+        provider_id WITH =,
+        tstzrange(start_time, end_time) WITH &&
+    ) WHERE (status IN ('pending', 'confirmed'))
 );
 
 -- General-purpose system audit log — serves the Admin platform's "Audit Logs" /
@@ -686,6 +737,10 @@ CREATE INDEX idx_routine_products_routine ON routine_products(routine_id);
 CREATE INDEX idx_products_category ON products(category);
 -- migration 2d9fcee3b312 (M3-A): the worker polls pending outbox rows in FIFO order.
 CREATE INDEX idx_outbox_processed_id ON outbox(processed_at, outbox_id);
+CREATE INDEX idx_provider_availability_provider ON provider_availability(provider_id);
+CREATE INDEX idx_availability_exceptions_provider_date ON availability_exceptions(provider_id, exception_date);
+CREATE INDEX idx_appointments_user ON appointments(user_id);
+CREATE INDEX idx_appointments_provider_start ON appointments(provider_id, start_time);
 
 -- ============================================================
 -- SEED DATA  (roles are NOT seeded here — Better Auth admin plugin owns user.role)

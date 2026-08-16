@@ -1,3 +1,4 @@
+import { AvailabilitySettings } from "@/components/appointments/availability-settings";
 import { AppearanceSettings } from "@/components/settings/appearance-settings";
 
 export default function DermatologistSettingsPage() {
@@ -11,6 +12,7 @@ export default function DermatologistSettingsPage() {
       </div>
 
       <AppearanceSettings />
+      <AvailabilitySettings />
     </div>
   );
 }

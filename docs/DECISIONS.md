@@ -1207,7 +1207,12 @@ clinical-dashboard.tsx` rewritten to consume both endpoints;
   `follow_up` table anywhere). Inventing one was explicitly out of scope
   (AGENTS.md §0.2) — the fixture's 5th KPI and "Upcoming Follow-ups" card are
   replaced with an honest "no scheduling system yet" state, not silently dropped
-  or fabricated.
+  or fabricated. **Superseded by ADR-049**: the appointment/scheduling concept
+  this bullet describes as absent was built (owner-directed). The 5th KPI is now
+  a real "Next Appointment" widget; "Upcoming Follow-ups" still has no backing
+  concept (follow-up tracking is a distinct, still-unbuilt sub-project) and keeps
+  its honest-empty-state card, with copy corrected to say "follow-up," not
+  "appointment/follow-up."
 - **The Tip/Insight banner stays static inline copy** (not an API call, not a
   fixture import) — it was never a per-client computed insight even in the
   mockup, just generic educational text; no misrepresentation either way.
@@ -1937,3 +1942,80 @@ in `training_dataset/raw/sephora/` since 2026-08-02. No change to
 `recommendation_weights`' CHECK-enforced 50/35/15 sum. New worker-projected
 artifact needs the same rebuildability guarantee (ADR-010) as every other derived
 store — must be re-derivable from the raw CSVs, never hand-edited.
+
+## ADR-049 — Appointment booking/scheduling: new `appointments` service, computed slots, DB-level double-booking guard
+
+**Status:** Accepted (owner request, 2026-08-15 — supersedes the "no scheduling
+concept exists" statement in ADR-032's dashboard bullet, §4's service table note,
+and `docs/superpowers/specs/2026-08-15-appointment-system-design.md`'s own
+context section, all written when that was still true)
+
+**Context:** No appointment/availability/scheduling concept existed anywhere in
+this codebase — confirmed absent from `database_schemas/`, every backend router,
+and explicitly stated in this file's own ADR-032 entry. `consultant_profiles.
+availability` was (and remains) a free-text column, never structured.
+`consultant_clients` models consultant/dermatologist↔user *assignment*, not
+booking. The owner asked for a full booking system: provider-managed weekly
+availability, user-facing booking across consultant and dermatologist roles, and
+the two dashboard/nav slots that were already visually anticipating it (the 5th
+KPI's "No scheduling system yet." placeholder, and the `reminders`/`consultations`
+nav items' own subtitles — "Appointments & reminders", "Appointments & notes").
+
+**Decision:**
+1. **New service, not folded into `clinical_review`.** `backend/app/services/
+   appointments/` owns three new PG tables — `provider_availability` (recurring
+   weekly pattern), `availability_exceptions` (date-specific blocks, whole-day via
+   `start_time IS NULL`), `appointments` (booking rows) — plus a `consultation_modes
+   TEXT[]` column added to `dermatologist_profiles` for parity with
+   `consultant_profiles`. Single generic appointment slot per provider (duration =
+   `provider_availability.slot_duration_minutes`); no `AppointmentType` table.
+2. **Slots are computed on read, never materialized.** No slot-generation
+   background job, no slots table — `compute_available_slots` derives bookable
+   times from the weekly pattern minus exceptions minus existing pending/confirmed
+   appointments minus already-past times, every time it's called. Always
+   consistent with the underlying rows by construction, same rebuildability
+   discipline as every other derived view in this codebase.
+3. **Double-booking is prevented by a Postgres `EXCLUDE USING gist` constraint**
+   on `appointments(provider_id, tstzrange(start_time, end_time))` — the DB
+   rejects a second overlapping active booking outright. No app-level lock, no
+   Redis lock. This is the actual concurrency guarantee; `SlotUnavailableError`
+   in `service.py` is just a typed wrapper the router converts to HTTP 409.
+4. **Booking is open, not assignment-gated.** Any `user` can book any
+   `verification_status='approved'` consultant/dermatologist directly; the
+   booking itself activates the `consultant_clients` assignment row via the
+   existing `clinical_review.service.create_assignment` interface function
+   (never written directly — single-writer rule, ADR-005). No separate
+   consultant-initiated intake flow exists, so gating on prior assignment would
+   have made booking unusable.
+5. **Cancel/reschedule cutoff is a fixed 24h, user-only.** The provider can
+   cancel/reschedule their own calendar anytime; no per-provider-configurable
+   cutoff field — no precedent for that kind of policy config elsewhere in this
+   schema, and nothing asked for it.
+6. **`consultation_mode` is client-chosen (validated against the provider's
+   supported modes), `provider_role` is server-derived and never accepted from
+   the client** — the two look similar (both describe "how/who this booking is
+   with") but only `provider_role` is spoofable in a way that matters (a client
+   claiming a consultant booking is with a dermatologist); consultation mode
+   (video/in_person/chat) carries no such risk, so gating it server-side too
+   would just be friction with no security benefit.
+7. **No video-call integration.** `consultation_mode` is recorded as metadata
+   only — no adapter, no API key, not a scoped decision here (AGENTS.md §0.2).
+8. **No new nav items for consultant/dermatologist.** Both roles' nav already had
+   a slot subtitled for this (see Context) — `consultant/reminders` and
+   `dermatologist/consultations` were repurposed (their pages rebuilt; the
+   consultant page also keeps a `Reminders` tab as `ComingSoon`, a separate,
+   still-unbuilt sub-project). Exactly one new User-nav item was added
+   ("Appointments", `/appointments`) — same precedent as the M3-G Skin Profile
+   nav addition (AGENTS.md §4).
+
+**Consequences:** `docs/superpowers/specs/2026-08-15-appointment-system-design.md`
+is the full design doc (data model, API surface, RBAC table, frontend component
+tree); `docs/superpowers/plans/2026-08-15-appointment-system.md` is the 15-task
+implementation plan it was built from. Every endpoint's role gate matches
+`AGENTS.md` §5's ownership-checked-reads discipline (`deps.py`-equivalent checks
+live directly in `appointments/service.py`, matching this codebase's actual
+convention over the aspirational `deps.py`-per-service anatomy note — no service
+in this repo actually has a populated `deps.py`). Explicitly deferred, not built:
+reminders-tab content, video-call integration, per-provider cutoff config,
+`AppointmentType`/`AppointmentParticipant` tables, a separate reschedule-history
+table beyond the one-hop `original_start_time` column.
