@@ -12,6 +12,7 @@ from app.services.clinical_review.schemas import (
     ClientDetailRead,
     ClientListPage,
     ClientListPageMeta,
+    ClientScoreRead,
     ClinicalPortfolioStatsRead,
     ConsultantNoteCreate,
     ConsultantNoteListPage,
@@ -23,6 +24,7 @@ from app.services.progress.schemas import ProgressPhotosRead
 from app.services.recommendations.schemas import ProductRead
 from app.services.routines.schemas import RoutineRead, StepCreate, StepUpdate
 from app.services.routines.service import UnsafeProductError
+from app.services.scores.schemas import ScoreRead
 
 router = APIRouter()
 
@@ -93,6 +95,32 @@ async def get_client_photos(
     except ValueError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
     return await progress_service.get_progress_photos(db, user_id)
+
+
+@router.get("/clients/{user_id}/assessments")
+async def get_client_assessments(
+    user_id: str,
+    professional: Annotated[dict[str, Any], Depends(_professional)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    days: int = Query(default=365, ge=1, le=1825),
+) -> list[ClientScoreRead]:
+    try:
+        return await service.list_client_assessments(db, professional["id"], user_id, days=days)
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+
+
+@router.get("/clients/{user_id}/assessments/{score_id}")
+async def get_client_assessment_detail(
+    user_id: str,
+    score_id: int,
+    professional: Annotated[dict[str, Any], Depends(_professional)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> ScoreRead:
+    try:
+        return await service.get_client_assessment_detail(db, professional["id"], user_id, score_id)
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
 
 
 @router.get("/clients/{user_id}/notes")

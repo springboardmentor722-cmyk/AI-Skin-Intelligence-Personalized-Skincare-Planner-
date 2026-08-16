@@ -30,6 +30,7 @@ from app.services.progress.service import upload_progress_photo
 from app.services.recommendations.models import Product, ProductIngredient
 from app.services.routines import constants
 from app.services.routines.service import get_or_generate_routines
+from app.services.scores.service import compute_and_store_score
 from app.services.skin_profile.models import SkinType
 from app.services.skin_profile.schemas import SkinProfileCreate
 from app.services.skin_profile.service import create_profile
@@ -205,6 +206,61 @@ async def test_get_client_photos_assigned_ok_unassigned_404(
         app.dependency_overrides.pop(clinical_review_router._professional, None)
 
     assert forbidden.status_code == 404
+
+
+async def test_get_client_assessments_and_detail_assigned_ok_unassigned_404(
+    client: AsyncClient, router_professional_and_client: tuple[str, str]
+) -> None:
+    """`GET /clients/{user_id}/assessments` + `/assessments/{score_id}` (Consultant
+    Assessments page) — same assignment-gated shape as the analytics/photos routes
+    above, over a real committed skin profile + computed score."""
+    professional_id, client_user_id = router_professional_and_client
+    other_professional_id = f"test-other-professional-{uuid.uuid4().hex[:16]}"
+
+    async with async_session_factory() as session:
+        await create_profile(
+            session, client_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+        )
+        computed = await compute_and_store_score(session, client_user_id)
+
+    app.dependency_overrides[clinical_review_router._professional] = lambda: {
+        "id": professional_id,
+        "role": "consultant",
+        "claims": {},
+    }
+    try:
+        history = await client.get(f"/api/v1/clients/{client_user_id}/assessments")
+        detail = await client.get(
+            f"/api/v1/clients/{client_user_id}/assessments/{computed.score_id}"
+        )
+    finally:
+        app.dependency_overrides.pop(clinical_review_router._professional, None)
+
+    assert history.status_code == 200
+    history_body = history.json()
+    assert len(history_body) == 1
+    assert history_body[0]["score_id"] == computed.score_id
+
+    assert detail.status_code == 200
+    detail_body = detail.json()
+    assert detail_body["score_id"] == computed.score_id
+    assert detail_body["weights"] is not None
+
+    app.dependency_overrides[clinical_review_router._professional] = lambda: {
+        "id": other_professional_id,
+        "role": "consultant",
+        "claims": {},
+    }
+    try:
+        forbidden_history = await client.get(f"/api/v1/clients/{client_user_id}/assessments")
+        forbidden_detail = await client.get(
+            f"/api/v1/clients/{client_user_id}/assessments/{computed.score_id}"
+        )
+    finally:
+        app.dependency_overrides.pop(clinical_review_router._professional, None)
+
+    assert forbidden_history.status_code == 404
+    assert forbidden_detail.status_code == 404
 
 
 # --- Routine-overwrite (M3R Phase 5 Task 4) ---

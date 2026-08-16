@@ -18,8 +18,10 @@ from app.db.postgres import external_user_table
 from app.services.clinical_review.service import (
     add_note,
     create_assignment,
+    get_client_assessment_detail,
     get_client_detail,
     get_portfolio_stats,
+    list_client_assessments,
     list_my_clients,
     list_notes,
 )
@@ -461,3 +463,56 @@ async def test_list_my_clients_compliance_percentages_match_progress_service(
         assert expected.seven_day is not None
     finally:
         await get_mongo_db()["routine_logs"].delete_many({"user_id": client_user_id})
+
+
+async def test_list_client_assessments_rejects_an_unassigned_user(
+    db_session: AsyncSession, professional_id: str, client_user_id: str
+) -> None:
+    with pytest.raises(ValueError, match="isn.t assigned"):
+        await list_client_assessments(db_session, professional_id, client_user_id)
+
+
+async def test_get_client_assessment_detail_rejects_an_unassigned_user(
+    db_session: AsyncSession, professional_id: str, client_user_id: str
+) -> None:
+    with pytest.raises(ValueError, match="isn.t assigned"):
+        await get_client_assessment_detail(db_session, professional_id, client_user_id, score_id=1)
+
+
+async def test_list_client_assessments_returns_real_history_for_an_assigned_client(
+    db_session: AsyncSession, professional_id: str, client_user_id: str
+) -> None:
+    await create_profile(
+        db_session, client_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+    computed = await compute_and_store_score(db_session, client_user_id)
+    await create_assignment(db_session, professional_id, client_user_id)
+
+    history = await list_client_assessments(db_session, professional_id, client_user_id)
+
+    assert len(history) == 1
+    assert history[0].score_id == computed.score_id
+    assert history[0].overall_score == computed.overall_score
+
+
+async def test_get_client_assessment_detail_returns_full_score_and_404s_on_foreign_id(
+    db_session: AsyncSession, professional_id: str, client_user_id: str
+) -> None:
+    await create_profile(
+        db_session, client_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+    computed = await compute_and_store_score(db_session, client_user_id)
+    await create_assignment(db_session, professional_id, client_user_id)
+
+    detail = await get_client_assessment_detail(
+        db_session, professional_id, client_user_id, computed.score_id
+    )
+    assert detail.score_id == computed.score_id
+    assert detail.weights is not None
+
+    with pytest.raises(ValueError, match="not found"):
+        # A score_id that doesn't belong to this client must 404, not leak another
+        # client's assessment, even though the assignment itself is valid.
+        await get_client_assessment_detail(
+            db_session, professional_id, client_user_id, score_id=computed.score_id + 999_999
+        )
