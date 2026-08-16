@@ -126,8 +126,10 @@ models.py · deps.py`, mounted under `/api/v1`, matching the fixed service anato
   `consultation_mode`, there is no legitimate reason for the client to ever send this
   field). Creates/activates `consultant_clients`, inserts `status='pending'`.
   On `IntegrityError` from the `EXCLUDE` constraint, the router returns **409** with a
-  stable error body (`{"detail": "slot_unavailable"}`) — this is the conflict the
-  frontend spec below handles explicitly.
+  prose `detail` string (FastAPI's standard `HTTPException` shape) — the frontend never
+  parses the body, it keys off the HTTP status code alone (`response.status === 409`),
+  so the exact string isn't a contract. This is the conflict the frontend spec below
+  handles explicitly.
 
 **Management** (one role-aware endpoint, not two — a caller is never both sides of the
 FK):
@@ -243,7 +245,7 @@ Created → Upcoming/History Tabs
   available slots for this date." `StateCard` when empty.
 - **Confirm dialog:** provider, role, date, time, consultation-mode `Select` (options =
   that provider's `consultation_modes`), submit → `POST /appointments`.
-  - **On 409** (`slot_unavailable`): toast "This appointment slot is no longer
+  - **On 409**: toast "This appointment slot is no longer
     available. Please choose another time.", dialog closes, slot grid
     `invalidateQueries` to refetch real availability. No client-side reservation/lock —
     the grid re-fetching *is* the recovery path.
