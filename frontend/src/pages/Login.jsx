@@ -1,6 +1,7 @@
 ﻿import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../services/api";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import "../styles/login.css";
 function Login() {
 
@@ -12,6 +13,7 @@ function Login() {
     });
 
     const [message, setMessage] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleChange = (e) => {
         setForm({
@@ -142,9 +144,10 @@ required
 
 <label>Password</label>
 
+<div className="password-input">
 <input
 
-type="password"
+type={showPassword ? "text" : "password"}
 
 name="password"
 
@@ -155,6 +158,10 @@ onChange={handleChange}
 required
 
 />
+<button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Hide password" : "Show password"}>
+{showPassword ? <FaEyeSlash aria-hidden="true" /> : <FaEye aria-hidden="true" />}
+</button>
+</div>
 
 </div>
 

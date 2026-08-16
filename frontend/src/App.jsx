@@ -84,16 +84,16 @@ function App() {
         </ProtectedRoute>
     }
 />
-      <Route path="/manage-users" element={<ManageUsers />} />
+      <Route path="/manage-users" element={<ProtectedRoute allowedRoles={["ADMIN"]}><ManageUsers /></ProtectedRoute>} />
       <Route
     path="/admin-approval"
-    element={<PendingApprovals/>}
+    element={<ProtectedRoute allowedRoles={["ADMIN"]}><PendingApprovals/></ProtectedRoute>}
 />
 <Route
     path="/pending-users"
-    element={<PendingUsers />}
+    element={<ProtectedRoute allowedRoles={["ADMIN"]}><PendingUsers /></ProtectedRoute>}
 />
-<Route path="/profile" element={<Profile />} />
+<Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
 <Route path="/manage-products" element={<ProtectedRoute allowedRoles={["ADMIN"]}><ManageCatalog type="products" /></ProtectedRoute>} />
 <Route path="/manage-ingredients" element={<ProtectedRoute allowedRoles={["ADMIN"]}><ManageCatalog type="ingredients" /></ProtectedRoute>} />
 <Route path="/reports" element={<ProtectedRoute allowedRoles={["USER", "DERMATOLOGIST"]}><Reports /></ProtectedRoute>} />
@@ -108,7 +108,7 @@ function App() {
 <Route
     path="/pending-requests"
     element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={["CONSULTANT", "DERMATOLOGIST"]}>
             <PendingRequests/>
         </ProtectedRoute>
     }

@@ -110,6 +110,8 @@ function PendingRequests() {
 
                         <th>User ID</th>
 
+                        <th>User</th>
+
                         <th>Status</th>
 
                         <th width="320">
@@ -133,7 +135,7 @@ function PendingRequests() {
                             <tr>
 
                                 <td
-                                    colSpan="4"
+                                    colSpan="5"
                                     className="text-center"
                                 >
 
@@ -162,6 +164,12 @@ function PendingRequests() {
                                     <td>
 
                                         {request.user_id}
+
+                                    </td>
+
+                                    <td>
+
+                                        <strong>{request.user?.name || "Unknown"}</strong>
 
                                     </td>
 

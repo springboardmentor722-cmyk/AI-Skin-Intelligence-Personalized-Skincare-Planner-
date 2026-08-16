@@ -1,6 +1,7 @@
 ﻿import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../services/api";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import "../styles/register.css";
 function Register() {
 
@@ -20,6 +21,8 @@ function Register() {
 });
 
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const [message, setMessage] = useState("");
     const [isSuccess, setIsSuccess] = useState(false);
@@ -192,14 +195,17 @@ function Register() {
 
                     <label>Password</label>
 
+                    <div className="password-input">
                     <input
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         className="form-control"
                         name="password"
                         value={form.password}
                         onChange={handleChange}
                         required
                     />
+                    <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Hide password" : "Show password"}>{showPassword ? <FaEyeSlash aria-hidden="true" /> : <FaEye aria-hidden="true" />}</button>
+                    </div>
 
                 </div>
 
@@ -207,13 +213,16 @@ function Register() {
 
                     <label>Confirm Password</label>
 
+                    <div className="password-input">
                     <input
-                        type="password"
+                        type={showConfirmPassword ? "text" : "password"}
                         className="form-control"
                         value={confirmPassword}
                         onChange={(e)=>setConfirmPassword(e.target.value)}
                         required
                     />
+                    <button type="button" className="password-toggle" onClick={() => setShowConfirmPassword(!showConfirmPassword)} aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}>{showConfirmPassword ? <FaEyeSlash aria-hidden="true" /> : <FaEye aria-hidden="true" />}</button>
+                    </div>
 
                 </div>
 

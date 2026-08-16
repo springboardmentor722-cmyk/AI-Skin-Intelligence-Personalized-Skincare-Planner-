@@ -153,10 +153,18 @@ def pending_requests(
     if current_user.role not in ["CONSULTANT", "DERMATOLOGIST"]:
         raise HTTPException(status_code=403, detail="Professional access required.")
 
-    return db.query(Consultation).filter(
+    consultations = db.query(Consultation).filter(
         Consultation.expert_id == current_user.id,
         Consultation.status == "Pending"
     ).all()
+    users = {user.id: user for user in db.query(User).filter(User.id.in_([item.user_id for item in consultations])).all()} if consultations else {}
+    return [{
+        "id": consultation.id,
+        "user_id": consultation.user_id,
+        "expert_id": consultation.expert_id,
+        "status": consultation.status,
+        "user": UserResponse.model_validate(users[consultation.user_id]).model_dump() if consultation.user_id in users else None,
+    } for consultation in consultations]
 
 
 # ==========================================

@@ -118,6 +118,11 @@ padding:12px;
 
 }
 
+.password-input{ position:relative; }
+.password-input .form-control{ padding-right:44px; }
+.password-toggle{ position:absolute; top:50%; right:10px; transform:translateY(-50%); border:0; background:transparent; color:#6c757d; padding:4px; line-height:1; }
+.password-toggle:hover, .password-toggle:focus-visible{ color:#c45e8a; }
+
 .login-btn{
 
 width:100%;
