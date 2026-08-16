@@ -21,6 +21,7 @@ from app.services.recommendations.schemas import ProductRead
 from app.services.routines import service as routines_service
 from app.services.routines.schemas import RoutineRead
 from app.services.scores import service as scores_service
+from app.services.scores.schemas import ScoreRead
 from app.services.skin_profile import service as skin_profile_service
 from app.services.user import service as user_service
 
@@ -438,6 +439,34 @@ async def add_note(
         created_at=note.created_at,
         updated_at=note.updated_at,
     )
+
+
+async def list_client_assessments(
+    db: AsyncSession, professional_id: str, user_id: str, *, days: int = 365
+) -> list[ClientScoreRead]:
+    """Consultant Assessments page (M3R Phase 6) — full score history for one
+    assigned client, reusing scores_service.get_recent_scores (the same interface
+    function Progress Tracking already reads through, AGENTS.md §2 rule 4) rather
+    than a duplicate query against skin_assessments. Ascending by calculated_at,
+    same order get_recent_scores itself returns — oldest first, for a history/
+    trend view."""
+    await _verify_assignment(db, professional_id, user_id)
+    scores = await scores_service.get_recent_scores(db, user_id, days=days)
+    return [ClientScoreRead.model_validate(s) for s in scores]
+
+
+async def get_client_assessment_detail(
+    db: AsyncSession, professional_id: str, user_id: str, score_id: int
+) -> ScoreRead:
+    """Single assessment detail (skin age, band, weights) for compare/detail views
+    — delegates to scores_service.get_score_by_id, which already scopes the query
+    to `user_id` so a score_id belonging to a different client can't leak through
+    even if guessed."""
+    await _verify_assignment(db, professional_id, user_id)
+    result = await scores_service.get_score_by_id(db, user_id, score_id)
+    if result is None:
+        raise ValueError("Assessment not found")
+    return result
 
 
 # --- Routine-overwrite (M3R Phase 5 Task 4) ---

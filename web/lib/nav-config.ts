@@ -252,7 +252,7 @@ const RAW_NAV: Record<Role, RawNavSection[]> = {
           subtitle: "Skin assessments & analysis",
           path: "/assessments",
           icon: ClipboardCheck,
-          built: false,
+          built: true,
         },
         {
           id: "routine-plans",
