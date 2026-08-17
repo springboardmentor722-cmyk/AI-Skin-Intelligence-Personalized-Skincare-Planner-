@@ -4,6 +4,7 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.ai.trend import RealProgressTrendAnalyzer
+from app.core.storage import get_presigned_url
 from app.db.mongo import get_mongo_db
 from app.db.postgres import external_user_table
 from app.services.admin import service as admin_service
@@ -28,6 +29,9 @@ from app.services.recommendations.schemas import (
     ProductDetail,
     ProductRead,
 )
+from app.services.reports import service as reports_service
+from app.services.reports.models import ProgressReport
+from app.services.reports.schemas import ReportRead, ReportType
 from app.services.routines import service as routines_service
 from app.services.routines.schemas import RoutineRead
 from app.services.scores import service as scores_service
@@ -755,3 +759,65 @@ async def list_client_progress_logs(
         )
         for doc in docs
     ]
+
+
+# --- Reports (Reports nav item, consultant + dermatologist) ---
+# Same assignment-gated wrapper pattern as progress tracking above: reads
+# delegate straight to reports_service's queries; generation is a mutation so
+# it also gets an audit-log row like the routine/recommendation writes above.
+# Generated PDFs are written under the *client's* user_id, same registry row
+# the client's own Reports page reads — a professional-generated report is
+# visible to the client too, not a separate parallel store.
+
+_REPORT_GENERATED_ACTION = "client_report_generated"
+
+
+async def list_client_reports(
+    db: AsyncSession, professional_id: str, user_id: str
+) -> list[ReportRead]:
+    await _verify_assignment(db, professional_id, user_id)
+    result = await db.execute(
+        select(ProgressReport)
+        .where(ProgressReport.user_id == user_id)
+        .order_by(ProgressReport.generated_at.desc())
+    )
+    return [ReportRead.model_validate(r) for r in result.scalars().all()]
+
+
+async def generate_client_report(
+    db: AsyncSession,
+    professional_id: str,
+    user_id: str,
+    report_type: ReportType,
+    *,
+    include_profile_header: bool,
+) -> ReportRead:
+    await _verify_assignment(db, professional_id, user_id)
+    report = await reports_service.generate_report(
+        db, user_id, report_type, include_profile_header=include_profile_header
+    )
+    await admin_service.write_audit_log(
+        db,
+        actor_user_id=professional_id,
+        action=_REPORT_GENERATED_ACTION,
+        target_type="progress_reports",
+        target_id=str(report.report_id),
+        metadata={"client_user_id": user_id, "report_type": report_type},
+    )
+    await db.commit()
+    return ReportRead.model_validate(report)
+
+
+async def get_client_report_download_url(
+    db: AsyncSession, professional_id: str, user_id: str, report_id: int
+) -> str:
+    await _verify_assignment(db, professional_id, user_id)
+    result = await db.execute(
+        select(ProgressReport).where(
+            ProgressReport.report_id == report_id, ProgressReport.user_id == user_id
+        )
+    )
+    report = result.scalar_one_or_none()
+    if report is None or report.report_url is None:
+        raise ValueError("Report not found")
+    return await get_presigned_url(report.report_url)

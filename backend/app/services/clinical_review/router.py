@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import require_verified_professional
+from app.core.storage import FileValidationError
 from app.db.postgres import get_db
 from app.services.analytics import service as analytics_service
 from app.services.analytics.schemas import AnalyticsMeRead
@@ -32,6 +33,7 @@ from app.services.recommendations.schemas import (
     ProductRead,
 )
 from app.services.recommendations.service import NotProfessionalAssignedError
+from app.services.reports.schemas import ReportGenerateRequest, ReportRead
 from app.services.routines.schemas import (
     ClientRoutineActiveUpdate,
     ClientRoutineCreate,
@@ -434,3 +436,55 @@ async def delete_client_routine_step(
         return await service.delete_client_routine_step(db, professional["id"], user_id, step_id)
     except ValueError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+
+
+# --- Reports (Reports nav item, consultant + dermatologist) ---
+
+
+@router.get("/clients/{user_id}/reports")
+async def get_client_reports(
+    user_id: str,
+    professional: Annotated[dict[str, Any], Depends(_professional)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> list[ReportRead]:
+    try:
+        return await service.list_client_reports(db, professional["id"], user_id)
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+
+
+@router.post("/clients/{user_id}/reports/generate")
+async def generate_client_report(
+    user_id: str,
+    body: ReportGenerateRequest,
+    professional: Annotated[dict[str, Any], Depends(_professional)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> ReportRead:
+    try:
+        return await service.generate_client_report(
+            db,
+            professional["id"],
+            user_id,
+            body.report_type,
+            include_profile_header=body.include_profile_header,
+        )
+    except FileValidationError as exc:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+
+
+@router.get("/clients/{user_id}/reports/{report_id}/download")
+async def get_client_report_download(
+    user_id: str,
+    report_id: int,
+    professional: Annotated[dict[str, Any], Depends(_professional)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> dict[str, str]:
+    try:
+        url = await service.get_client_report_download_url(
+            db, professional["id"], user_id, report_id
+        )
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+    return {"url": url}

@@ -18,12 +18,15 @@ from app.db.postgres import external_user_table
 from app.services.clinical_review.service import (
     add_note,
     create_assignment,
+    generate_client_report,
     get_client_assessment_detail,
     get_client_detail,
     get_client_progress_summary,
+    get_client_report_download_url,
     get_portfolio_stats,
     list_client_assessments,
     list_client_progress_logs,
+    list_client_reports,
     list_my_clients,
     list_notes,
 )
@@ -574,3 +577,62 @@ async def test_list_client_progress_logs_returns_real_mongo_logs_for_an_assigned
         assert logs[0].trend_summary == "Improving"
     finally:
         await get_mongo_db()["progress_logs"].delete_many({"user_id": client_user_id})
+
+
+# --- Reports (Reports nav item, consultant + dermatologist) ---
+
+
+async def test_list_client_reports_rejects_an_unassigned_user(
+    db_session: AsyncSession, professional_id: str, client_user_id: str
+) -> None:
+    with pytest.raises(ValueError, match="isn.t assigned"):
+        await list_client_reports(db_session, professional_id, client_user_id)
+
+
+async def test_generate_client_report_rejects_an_unassigned_user(
+    db_session: AsyncSession, professional_id: str, client_user_id: str
+) -> None:
+    with pytest.raises(ValueError, match="isn.t assigned"):
+        await generate_client_report(
+            db_session, professional_id, client_user_id, "assessment", include_profile_header=True
+        )
+
+
+async def test_generate_client_report_writes_a_real_row_the_client_can_also_list(
+    db_session: AsyncSession, professional_id: str, client_user_id: str
+) -> None:
+    await create_assignment(db_session, professional_id, client_user_id)
+
+    generated = await generate_client_report(
+        db_session, professional_id, client_user_id, "assessment", include_profile_header=False
+    )
+    assert generated.report_type == "assessment"
+    assert generated.report_id is not None
+
+    reports = await list_client_reports(db_session, professional_id, client_user_id)
+    assert any(r.report_id == generated.report_id for r in reports)
+
+
+async def test_get_client_report_download_url_404s_for_a_foreign_report_id(
+    db_session: AsyncSession, professional_id: str, client_user_id: str
+) -> None:
+    await create_assignment(db_session, professional_id, client_user_id)
+
+    with pytest.raises(ValueError, match="not found"):
+        await get_client_report_download_url(
+            db_session, professional_id, client_user_id, report_id=999_999
+        )
+
+
+async def test_get_client_report_download_url_returns_a_real_presigned_url(
+    db_session: AsyncSession, professional_id: str, client_user_id: str
+) -> None:
+    await create_assignment(db_session, professional_id, client_user_id)
+    generated = await generate_client_report(
+        db_session, professional_id, client_user_id, "assessment", include_profile_header=False
+    )
+
+    url = await get_client_report_download_url(
+        db_session, professional_id, client_user_id, generated.report_id
+    )
+    assert url.startswith("http")
