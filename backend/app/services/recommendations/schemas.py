@@ -1,3 +1,4 @@
+import datetime
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
@@ -98,3 +99,44 @@ class ProductCompareRead(BaseModel):
 
 class ProductAlternativesRead(BaseModel):
     alternatives: list[ProductRead]
+
+
+class ClientRecommendationRead(BaseModel):
+    """ADR-051 — a real `product_recommendations` row, system-served or
+    consultant-assigned. `recommended_by_professional_id` is None for the
+    former, a real professional user_id for the latter. Built manually by
+    service.py (not `.model_validate(row)`) — `product` is resolved via
+    resolve_product_read(s), not an ORM relationship on ProductRecommendation."""
+
+    recommendation_id: int
+    product: ProductRead
+    recommendation_score: float | None
+    recommendation_reason: str | None
+    recommended_by_professional_id: str | None
+    usage_instructions: str | None
+    frequency: str | None
+    is_active: bool | None
+    created_at: datetime.datetime | None
+    updated_at: datetime.datetime | None
+
+
+class ClientRecommendationCreate(BaseModel):
+    product_id: int
+    usage_instructions: str | None = None
+    frequency: str | None = None
+    notes: str | None = None
+
+
+class ClientRecommendationActiveUpdate(BaseModel):
+    is_active: bool
+
+
+class ClientRecommendationListPageMeta(BaseModel):
+    page: int
+    page_size: int
+    total: int
+
+
+class ClientRecommendationListPage(BaseModel):
+    items: list[ClientRecommendationRead]
+    meta: ClientRecommendationListPageMeta

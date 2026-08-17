@@ -22,6 +22,8 @@ from app.services.recommendations.models import (
     RecommendationWeights,
 )
 from app.services.recommendations.schemas import (
+    ClientRecommendationCreate,
+    ClientRecommendationRead,
     ProductRead,
     RecommendationFeedbackCreate,
     RecommendationRead,
@@ -603,3 +605,110 @@ async def submit_feedback(user_id: str, feedback: RecommendationFeedbackCreate) 
             "created_at": datetime.datetime.now(datetime.UTC),
         }
     )
+
+
+# --- Consultant-assigned recommendations (ADR-051) ---
+# Additive to the AI-served history above, never a parallel table: same
+# `ProductRecommendation` model, only `recommended_by_professional_id`
+# distinguishes authorship.
+
+
+class NotProfessionalAssignedError(ValueError):
+    """A professional tried to activate/deactivate a system-served recommendation
+    — distinct from a plain not-found ValueError so the router can map it to 400
+    (a rejected action) rather than 404. Mirrors routines/service.py's
+    NotProfessionalAuthoredError (ADR-050)."""
+
+
+def _to_client_recommendation_read(
+    row: ProductRecommendation, product_read: ProductRead
+) -> ClientRecommendationRead:
+    return ClientRecommendationRead(
+        recommendation_id=row.recommendation_id,
+        product=product_read,
+        recommendation_score=row.recommendation_score,
+        recommendation_reason=row.recommendation_reason,
+        recommended_by_professional_id=row.recommended_by_professional_id,
+        usage_instructions=row.usage_instructions,
+        frequency=row.frequency,
+        is_active=row.is_active,
+        created_at=row.created_at,
+        updated_at=row.updated_at,
+    )
+
+
+async def list_client_recommendations(
+    db: AsyncSession, user_id: str, *, page: int = 1, page_size: int = 20
+) -> tuple[list[ClientRecommendationRead], int]:
+    count_result = await db.execute(
+        select(func.count())
+        .select_from(ProductRecommendation)
+        .where(ProductRecommendation.user_id == user_id)
+    )
+    total = count_result.scalar_one()
+
+    result = await db.execute(
+        select(ProductRecommendation)
+        .where(ProductRecommendation.user_id == user_id)
+        .order_by(ProductRecommendation.recommendation_id.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+    )
+    rows = list(result.scalars().all())
+    products_by_id = await get_products_by_ids(db, [r.product_id for r in rows])
+    # A row whose product was hard-deleted (no ON DELETE CASCADE from products ->
+    # product_recommendations) is skipped rather than raised on — same
+    # tolerant-of-missing-identity spirit as clinical_review's own _get_user_rows.
+    rows = [r for r in rows if r.product_id in products_by_id]
+    product_reads = await resolve_product_reads(db, [products_by_id[r.product_id] for r in rows])
+    items = [
+        _to_client_recommendation_read(row, product_read)
+        for row, product_read in zip(rows, product_reads, strict=True)
+    ]
+    return items, total
+
+
+async def create_professional_recommendation(
+    db: AsyncSession, user_id: str, professional_id: str, body: ClientRecommendationCreate
+) -> ClientRecommendationRead:
+    product = await db.get(Product, body.product_id)
+    if product is None:
+        raise ValueError("Product not found")
+
+    row = ProductRecommendation(
+        user_id=user_id,
+        product_id=body.product_id,
+        recommendation_reason=body.notes,
+        recommended_by_professional_id=professional_id,
+        usage_instructions=body.usage_instructions,
+        frequency=body.frequency,
+        is_active=True,
+    )
+    db.add(row)
+    await db.commit()
+    await db.refresh(row)
+    return _to_client_recommendation_read(row, await resolve_product_read(db, product))
+
+
+async def set_recommendation_active(
+    db: AsyncSession, user_id: str, recommendation_id: int, is_active: bool
+) -> ClientRecommendationRead:
+    result = await db.execute(
+        select(ProductRecommendation).where(
+            ProductRecommendation.recommendation_id == recommendation_id,
+            ProductRecommendation.user_id == user_id,
+        )
+    )
+    row = result.scalar_one_or_none()
+    if row is None:
+        raise ValueError("Recommendation not found")
+    if row.recommended_by_professional_id is None:
+        raise NotProfessionalAssignedError(
+            "System-served recommendations can't be activated/deactivated directly."
+        )
+    row.is_active = is_active
+    await db.commit()
+    await db.refresh(row)
+    product = await db.get(Product, row.product_id)
+    assert product is not None  # the FK guarantees the product row still exists
+    return _to_client_recommendation_read(row, await resolve_product_read(db, product))
