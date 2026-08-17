@@ -119,6 +119,16 @@ class ProductRecommendation(Base):
     product_id: Mapped[int] = mapped_column(ForeignKey("products.product_id"))
     recommendation_score: Mapped[float | None] = mapped_column(Numeric(5, 2), default=None)
     recommendation_reason: Mapped[str | None] = mapped_column(Text, default=None)
+    # ADR-051 — NULL: system-served (get_recommendations' own serving pipeline,
+    # unchanged). Non-NULL: the consultant/dermatologist who assigned this
+    # recommendation directly. Author, not owner — user_id above stays the client
+    # this recommendation is for either way.
+    recommended_by_professional_id: Mapped[str | None] = mapped_column(
+        ForeignKey("user.id"), default=None
+    )
+    usage_instructions: Mapped[str | None] = mapped_column(Text, default=None)
+    frequency: Mapped[str | None] = mapped_column(default=None)
+    is_active: Mapped[bool | None] = mapped_column(default=True)
     created_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
 

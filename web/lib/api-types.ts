@@ -1402,6 +1402,75 @@ export interface paths {
         patch: operations["reorder_client_routine_steps_api_v1_clients__user_id__routines__routine_id__steps_reorder_patch"];
         trace?: never;
     };
+    "/api/v1/clients/{user_id}/recommendations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Client Recommendations */
+        get: operations["get_client_recommendations_api_v1_clients__user_id__recommendations_get"];
+        put?: never;
+        /** Create Client Recommendation */
+        post: operations["create_client_recommendation_api_v1_clients__user_id__recommendations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/clients/{user_id}/recommendations/{recommendation_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Set Client Recommendation Active */
+        patch: operations["set_client_recommendation_active_api_v1_clients__user_id__recommendations__recommendation_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/clients/{user_id}/products/{product_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Client Product Detail */
+        get: operations["get_client_product_detail_api_v1_clients__user_id__products__product_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/clients/{user_id}/products/{product_id}/alternatives": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Client Product Alternatives */
+        get: operations["get_client_product_alternatives_api_v1_clients__user_id__products__product_id__alternatives_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/clients/{user_id}/routines/products/search": {
         parameters: {
             query?: never;
@@ -2159,6 +2228,66 @@ export interface components {
             page_size: number;
             /** Total */
             total: number;
+        };
+        /** ClientRecommendationActiveUpdate */
+        ClientRecommendationActiveUpdate: {
+            /** Is Active */
+            is_active: boolean;
+        };
+        /** ClientRecommendationCreate */
+        ClientRecommendationCreate: {
+            /** Product Id */
+            product_id: number;
+            /** Usage Instructions */
+            usage_instructions?: string | null;
+            /** Frequency */
+            frequency?: string | null;
+            /** Notes */
+            notes?: string | null;
+        };
+        /** ClientRecommendationListPage */
+        ClientRecommendationListPage: {
+            /** Items */
+            items: components["schemas"]["ClientRecommendationRead"][];
+            meta: components["schemas"]["ClientRecommendationListPageMeta"];
+        };
+        /** ClientRecommendationListPageMeta */
+        ClientRecommendationListPageMeta: {
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Total */
+            total: number;
+        };
+        /**
+         * ClientRecommendationRead
+         * @description ADR-051 — a real `product_recommendations` row, system-served or
+         *     consultant-assigned. `recommended_by_professional_id` is None for the
+         *     former, a real professional user_id for the latter. Built manually by
+         *     service.py (not `.model_validate(row)`) — `product` is resolved via
+         *     resolve_product_read(s), not an ORM relationship on ProductRecommendation.
+         */
+        ClientRecommendationRead: {
+            /** Recommendation Id */
+            recommendation_id: number;
+            product: components["schemas"]["ProductRead"];
+            /** Recommendation Score */
+            recommendation_score: number | null;
+            /** Recommendation Reason */
+            recommendation_reason: string | null;
+            /** Recommended By Professional Id */
+            recommended_by_professional_id: string | null;
+            /** Usage Instructions */
+            usage_instructions: string | null;
+            /** Frequency */
+            frequency: string | null;
+            /** Is Active */
+            is_active: boolean | null;
+            /** Created At */
+            created_at: string | null;
+            /** Updated At */
+            updated_at: string | null;
         };
         /** ClientRoutineActiveUpdate */
         ClientRoutineActiveUpdate: {
@@ -6713,6 +6842,175 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RoutineRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_client_recommendations_api_v1_clients__user_id__recommendations_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientRecommendationListPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_client_recommendation_api_v1_clients__user_id__recommendations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClientRecommendationCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientRecommendationRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_client_recommendation_active_api_v1_clients__user_id__recommendations__recommendation_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+                recommendation_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClientRecommendationActiveUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientRecommendationRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_client_product_detail_api_v1_clients__user_id__products__product_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+                product_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_client_product_alternatives_api_v1_clients__user_id__products__product_id__alternatives_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+                product_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductAlternativesRead"];
                 };
             };
             /** @description Validation Error */

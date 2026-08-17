@@ -2107,3 +2107,54 @@ badges). Leaves room for a future professional-authoring workflow (e.g.
 templated routine libraries) without ever requiring a second routine system —
 any future addition is still just rows in `skincare_routines` with this same
 column doing the provenance work.
+
+## ADR-051 — Consultant-assigned product recommendations: same `recommended_by_professional_id` pattern as ADR-050, applied to `product_recommendations`
+
+**Status:** Accepted (owner request, 2026-08-17 — Consultant Panel Product
+Recommendations module)
+
+**Context:** `product_recommendations` was AI-only and append-only — every row
+is auto-written by `recommendations/service.py`'s `get_recommendations()`
+serving pipeline (`_persist_recommendations`), with no consultant write path
+and no `usage_instructions`/`frequency`/status fields at all
+(`recommendation_score`/`recommendation_reason` only). The Consultant Panel's
+Product Recommendations page needs "recommend a product with usage
+instructions and frequency", "view previously recommended products", and
+"deactivate a recommendation" — none backed by the existing schema.
+
+**Decision:** Exactly ADR-050's shape, applied to a different table:
+1. **Four nullable columns, no new table.** `product_recommendations.
+   recommended_by_professional_id TEXT REFERENCES "user"(id) ON DELETE SET NULL`,
+   `usage_instructions TEXT`, `frequency VARCHAR(50)`, `is_active BOOLEAN
+   DEFAULT TRUE` (migration `b47becd1e4f6`). `NULL` professional = system-served
+   (existing rows/behavior unchanged); non-NULL = consultant-assigned.
+2. **The professional is the author, not the owner** — `user_id` (the client)
+   stays the sole ownership key; `recommended_by_professional_id` is
+   server-derived from the authenticated professional, never accepted from the
+   request body.
+3. **System-served recommendations can't be activated/deactivated directly.**
+   `set_recommendation_active` raises `NotProfessionalAssignedError` (400) if
+   `recommended_by_professional_id is None` — mirrors `NotProfessionalAuthoredError`.
+4. **`ClientRecommendationRead` carries a real resolved `product: ProductRead`**,
+   not just a bare `product_id` — built manually in `service.py`
+   (`_to_client_recommendation_read`) via the existing `resolve_product_read(s)`
+   presigned-URL resolution, never a duplicated product-serialization path.
+5. **Product browsing needed no new endpoint.** `GET /products` (`products_router.py`)
+   was already open to every signed-in role including consultant/dermatologist
+   — only the per-client *write* path and per-client *suitability* views
+   (`GET /clients/{id}/products/{id}`, `.../alternatives`) needed new,
+   assignment-gated wrappers around the existing `products_service` functions
+   (which already take a plain `user_id`, no role check inside).
+6. **Every mutation is assignment-gated and audit-logged**
+   (`recommendation_assigned`, `recommendation_activation_changed`), same
+   `_verify_assignment` + `admin_service.write_audit_log` pattern as every
+   other clinical_review wrapper.
+
+**Consequences:** The AI recommender's serving pipeline, cache, and ranking
+are unchanged. Consultant-assigned recommendations are visible in the same
+history alongside system-served ones (`GET /clients/{id}/recommendations`),
+distinguished by `recommended_by_professional_id` in the frontend ("AI Served"
+vs "Consultant" badges, `web/components/clinical-review/
+client-recommendations-view.tsx`). Same extensibility precedent as ADR-050 —
+no parallel recommendation system, just provenance metadata on the existing
+rows.

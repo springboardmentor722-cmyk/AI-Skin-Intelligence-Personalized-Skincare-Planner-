@@ -400,6 +400,12 @@ CREATE TABLE product_recommendations (
     product_id INTEGER NOT NULL REFERENCES products(product_id),
     recommendation_score DECIMAL(5,2),
     recommendation_reason TEXT,
+    recommended_by_professional_id TEXT REFERENCES "user"(id) ON DELETE SET NULL,  -- ADR-051:
+        -- NULL = system-served (get_recommendations' own pipeline). Non-NULL = the
+        -- consultant/dermatologist who assigned it directly.
+    usage_instructions TEXT,   -- ADR-051, consultant-assigned only
+    frequency VARCHAR(50),     -- ADR-051, consultant-assigned only
+    is_active BOOLEAN DEFAULT TRUE,  -- ADR-051, meaningful for consultant-assigned rows
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
