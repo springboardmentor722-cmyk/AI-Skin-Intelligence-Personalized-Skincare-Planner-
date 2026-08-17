@@ -33,54 +33,36 @@ export default function RoleAuth() {
   };
 
   const handleLogin = async (e) => {
-  e.preventDefault();
-  setError('');
-  setLoading(true);
+    e.preventDefault();
+    setError('');
+    setLoading(true);
 
-  if (!loginData.email || !loginData.password) {
-    setError('Please fill in all fields');
-    setLoading(false);
-    return;
-  }
-
-  try {
-    const result = await login(loginData.email, loginData.password);
-    
-    if (result.success) {
-      const roleRedirects = {
-        1: '/user/dashboard',
-        2: '/dermatologist/dashboard',
-        3: '/consultant/dashboard',
-        4: '/admin/dashboard'
-      };
-      setTimeout(() => navigate(roleRedirects[result.user.role_id] || '/user/dashboard'), 100);
-    } else {
-      // ✅ PROPER ERROR HANDLING
-      let errorMsg = 'Login failed';
-      
-      if (result.error) {
-        if (typeof result.error === 'string') {
-          errorMsg = result.error;
-        } else if (Array.isArray(result.error)) {
-          errorMsg = result.error.map(err => {
-            if (typeof err === 'string') return err;
-            if (err.msg) return err.msg;
-            return JSON.stringify(err);
-          }).join(', ');
-        } else if (typeof result.error === 'object') {
-          errorMsg = JSON.stringify(result.error);
-        }
-      }
-      
-      setError(errorMsg || 'Login failed. Please check your credentials.');
+    if (!loginData.email || !loginData.password) {
+      setError('Please fill in all fields');
+      setLoading(false);
+      return;
     }
-  } catch (err) {
-    console.error('Login error:', err);
-    setError('Error logging in: ' + (typeof err.message === 'string' ? err.message : 'Unknown error'));
-  } finally {
-    setLoading(false);
-  }
-};
+
+    try {
+      const result = await login(loginData.email, loginData.password);
+      
+      if (result.success) {
+        const roleRedirects = {
+          1: '/user/dashboard',
+          2: '/dermatologist/dashboard',
+          3: '/consultant/dashboard',
+          4: '/admin/dashboard'
+        };
+        setTimeout(() => navigate(roleRedirects[result.user.role_id] || '/user/dashboard'), 100);
+      } else {
+        setError(result.error || 'Login failed. Please check your credentials.');
+      }
+    } catch (err) {
+      setError('Error logging in: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // ============ REGISTER HANDLERS ============
   const handleRegisterChange = (e) => {
@@ -88,72 +70,54 @@ export default function RoleAuth() {
     setRegisterData(prev => ({ ...prev, [name]: value }));
   };
 
-const handleRegister = async (e) => {
-  e.preventDefault();
-  setError('');
-  setLoading(true);
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
 
-  if (!registerData.email || !registerData.password || !registerData.username || 
-      !registerData.first_name || !registerData.last_name) {
-    setError('Please fill in all required fields');
-    setLoading(false);
-    return;
-  }
-
-  if (registerData.password !== registerData.confirmPassword) {
-    setError('Passwords do not match');
-    setLoading(false);
-    return;
-  }
-
-  if (registerData.password.length < 8) {
-    setError('Password must be at least 8 characters');
-    setLoading(false);
-    return;
-  }
-
-  try {
-    const result = await register({
-      email: registerData.email,
-      password: registerData.password,
-      username: registerData.username,
-      first_name: registerData.first_name,
-      last_name: registerData.last_name,
-      role_id: parseInt(registerData.role_id)
-    });
-
-    if (result.success) {
-      setError('');
-      setMode('login');
-      setLoginData({ email: registerData.email, password: registerData.password });
-      alert('Registration successful! Please wait for admin approval before logging in.');
-    } else {
-      // ✅ PROPER ERROR HANDLING
-      let errorMsg = 'Registration failed';
-      
-      if (result.error) {
-        if (typeof result.error === 'string') {
-          errorMsg = result.error;
-        } else if (Array.isArray(result.error)) {
-          errorMsg = result.error.map(err => {
-            if (typeof err === 'string') return err;
-            if (err.msg) return err.msg;
-            return JSON.stringify(err);
-          }).join(', ');
-        } else if (typeof result.error === 'object') {
-          errorMsg = JSON.stringify(result.error);
-        }
-      }
-      
-      setError(errorMsg);
+    if (!registerData.email || !registerData.password || !registerData.username || 
+        !registerData.first_name || !registerData.last_name) {
+      setError('Please fill in all required fields');
+      setLoading(false);
+      return;
     }
-  } catch (err) {
-    console.error('Registration error:', err);
-    setError('Error registering: ' + (typeof err.message === 'string' ? err.message : 'Unknown error'));
-  } finally {
-    setLoading(false);
-  }
-};
+
+    if (registerData.password !== registerData.confirmPassword) {
+      setError('Passwords do not match');
+      setLoading(false);
+      return;
+    }
+
+    if (registerData.password.length < 8) {
+      setError('Password must be at least 8 characters');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const result = await register({
+        email: registerData.email,
+        password: registerData.password,
+        username: registerData.username,
+        first_name: registerData.first_name,
+        last_name: registerData.last_name,
+        role_id: parseInt(registerData.role_id)
+      });
+
+      if (result.success) {
+        setError('');
+        setMode('login');
+        setLoginData({ email: registerData.email, password: registerData.password });
+        alert('Registration successful! Please wait for admin approval before logging in.');
+      } else {
+        setError(result.error || 'Registration failed');
+      }
+    } catch (err) {
+      setError('Error registering: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="auth-container">

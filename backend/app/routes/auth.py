@@ -1,153 +1,237 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
 from app.database import get_db
 from app.models.user import User
-from app.schemas.user import UserRegister, UserLogin, TokenResponse, UserResponse
-from app.utils.security import hash_password, verify_password, create_access_token
-from sqlalchemy import func
+from app.utils.rbac import get_current_user_with_role
+from app.utils.security import (
+    hash_password,
+    verify_password,
+    create_access_token
+)
+from datetime import datetime
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
+# ============================================
+# PYDANTIC SCHEMAS
+# ============================================
+class UserRegister(BaseModel):
+    email: str
+    password: str
+    username: str
+    first_name: str
+    last_name: str
+    role_id: int = 1
 
-@router.post("/register", response_model=TokenResponse, status_code=201)
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+class UserResponse(BaseModel):
+    user_id: int
+    email: str
+    username: str
+    first_name: str
+    last_name: str
+    role_id: int
+    is_active: bool
+    is_approved: bool
+    
+    class Config:
+        from_attributes = True
+
+# ============================================
+# REGISTER ENDPOINT
+# ============================================
+@router.post("/register")
 async def register(user_data: UserRegister, db: Session = Depends(get_db)):
-    """
-    Register a new user with role selection
-    """
-    
-    # Check if user already exists
-    existing_user = db.query(User).filter(
-        func.lower(User.email) == func.lower(user_data.email)
-    ).first()
-    
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
+    """Register a new user"""
+    try:
+        print(f"Register attempt: {user_data.email}")
+        
+        # Validate email format
+        if not user_data.email or '@' not in user_data.email:
+            raise HTTPException(status_code=400, detail="Invalid email format")
+        
+        # Check if email already exists
+        existing_email = db.query(User).filter(User.email == user_data.email).first()
+        if existing_email:
+            raise HTTPException(status_code=400, detail="Email already registered")
+        
+        # Check if username already exists
+        existing_username = db.query(User).filter(User.username == user_data.username).first()
+        if existing_username:
+            raise HTTPException(status_code=400, detail="Username already taken")
+        
+        # Validate password length
+        if len(user_data.password) < 8:
+            raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
+        
+        # ✅ USE hash_password FROM security.py
+        hashed_password = hash_password(user_data.password)
+        
+        # Determine auto-approval: Only Admin (role_id=4) auto-approved
+        is_approved = (user_data.role_id == 4)
+        
+        # Create new user
+        new_user = User(
+            email=user_data.email,
+            password=hashed_password,
+            username=user_data.username,
+            first_name=user_data.first_name,
+            last_name=user_data.last_name,
+            role_id=user_data.role_id,
+            is_approved=is_approved,
+            is_active=True,
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
         )
-    
-    # Create new user with role_id
-    hashed_password = hash_password(user_data.password)
-    
-    # ✅ AUTO-APPROVE ADMINS (role_id = 4)
-    # Other roles require manual approval
-    is_approved_on_register = (user_data.role_id == 4)
-    
-    new_user = User(
-        email=user_data.email,
-        username=user_data.username,
-        password=hashed_password,
-        first_name=user_data.first_name,
-        last_name=user_data.last_name,
-        age=user_data.age,
-        gender=user_data.gender,
-        phone=user_data.phone,
-        role_id=user_data.role_id,
-        is_active=True,
-        is_approved=is_approved_on_register  # ✅ Admins auto-approved
-    )
-    
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    
-    # Generate JWT token
-    access_token = create_access_token(
-        data={"sub": str(new_user.user_id), "email": new_user.email, "role_id": new_user.role_id}
-    )
-    
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "user": UserResponse.from_orm(new_user)
-    }
+        
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        
+        print(f"User registered: {new_user.user_id}, approved: {is_approved}")
+        
+        # If auto-approved (admin), return token
+        if is_approved:
+            access_token = create_access_token({
+                "sub": str(new_user.user_id),
+                "email": new_user.email,
+                "role_id": new_user.role_id
+            })
+            
+            return {
+                "message": "Registration successful",
+                "access_token": access_token,
+                "token_type": "bearer",
+                "user": {
+                    "user_id": new_user.user_id,
+                    "email": new_user.email,
+                    "username": new_user.username,
+                    "first_name": new_user.first_name,
+                    "last_name": new_user.last_name,
+                    "role_id": new_user.role_id,
+                    "is_active": True,
+                    "is_approved": True
+                }
+            }
+        else:
+            # Non-admin users need approval
+            return {
+                "message": "Registration successful. Please wait for admin approval.",
+                "is_approved": False,
+                "user": {
+                    "user_id": new_user.user_id,
+                    "email": new_user.email,
+                    "username": new_user.username,
+                    "first_name": new_user.first_name,
+                    "last_name": new_user.last_name,
+                    "role_id": new_user.role_id,
+                    "is_active": True,
+                    "is_approved": False
+                }
+            }
+    except HTTPException as e:
+        db.rollback()
+        raise e
+    except Exception as e:
+        db.rollback()
+        print(f"Registration error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Registration failed: {str(e)}")
 
-
-@router.post("/login", response_model=TokenResponse)
+# ============================================
+# LOGIN ENDPOINT
+# ============================================
+@router.post("/login")
 async def login(login_data: UserLogin, db: Session = Depends(get_db)):
-    """
-    Login user - works for all roles
-    """
-    
-    # Find user by email
-    user = db.query(User).filter(
-        func.lower(User.email) == func.lower(login_data.email)
-    ).first()
-    
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password"
-        )
-    
-    # Verify password
-    if not verify_password(login_data.password, user.password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password"
-        )
-    
-    # Check if user is active
-    if not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User account is disabled"
-        )
-    
-    # ✅ NEW: Check if user is approved by admin
-    if not user.is_approved:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Your account is pending admin approval"
-        )
-    
-    # Generate JWT token with role_id
-    access_token = create_access_token(
-        data={"sub": str(user.user_id), "email": user.email, "role_id": user.role_id}
-    )
-    
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "user": UserResponse.from_orm(user)
-    }
+    """Login user and return token"""
+    try:
+        print(f"Login attempt: {login_data.email}")
+        
+        # Find user by email
+        user = db.query(User).filter(User.email == login_data.email).first()
+        
+        if not user:
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+        
+        # ✅ USE verify_password FROM security.py
+        if not verify_password(login_data.password, user.password):
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+        
+        # Check if approved
+        if not user.is_approved:
+            raise HTTPException(
+                status_code=403, 
+                detail="Your account is pending admin approval. Please wait."
+            )
+        
+        # Check if active
+        if not user.is_active:
+            raise HTTPException(status_code=403, detail="Your account has been disabled")
+        
+        # ✅ USE create_access_token FROM security.py
+        access_token = create_access_token({
+            "sub": str(user.user_id),
+            "email": user.email,
+            "role_id": user.role_id
+        })
+        
+        print(f"Login successful: {user.user_id}")
+        
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": {
+                "user_id": user.user_id,
+                "email": user.email,
+                "username": user.username,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "role_id": user.role_id,
+                "is_active": user.is_active,
+                "is_approved": user.is_approved
+            }
+        }
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        print(f"Login error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Login failed: {str(e)}")
 
-
-@router.get("/me", response_model=UserResponse)
+# ============================================
+# GET CURRENT USER
+# ============================================
+@router.get("/me")
 async def get_current_user(
-    authorization: str = None,
+    current_user: User = Depends(get_current_user_with_role),
     db: Session = Depends(get_db)
 ):
-    """Get current logged-in user details"""
-    if not authorization:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated"
-        )
-    
-    # Extract token from "Bearer <token>"
+    """Get current logged-in user"""
     try:
-        token = authorization.split(" ")[1]
-    except IndexError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token format"
-        )
-    
-    payload = verify_token(token)
-    if not payload:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token"
-        )
-    
-    user_id = payload.get("sub")
-    user = db.query(User).filter(User.user_id == int(user_id)).first()
-    
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
-    
-    return UserResponse.from_orm(user)
+        user = db.query(User).filter(User.user_id == current_user.user_id).first()
+        
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        return {
+            "user_id": user.user_id,
+            "email": user.email,
+            "username": user.username,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "role_id": user.role_id,
+            "is_active": user.is_active,
+            "is_approved": user.is_approved
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ============================================
+# LOGOUT
+# ============================================
+@router.post("/logout")
+async def logout(current_user: User = Depends(get_current_user_with_role)):
+    """Logout user (token is invalidated by client)"""
+    return {"message": "Logged out successfully"}

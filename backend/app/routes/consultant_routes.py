@@ -1,46 +1,59 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import text
+from pydantic import BaseModel
 from app.database import get_db
 from app.models.user import User
-from app.utils.rbac import require_consultant_role
+from app.utils.rbac import get_current_user_with_role, require_consultant_role
+from datetime import datetime
 
 router = APIRouter(prefix="/api/consultant", tags=["Consultant"])
 
+# ============================================
+# PYDANTIC SCHEMAS
+# ============================================
+class RecommendationData(BaseModel):
+    user_id: int
+    recommendation_text: str
+    product_suggestions: str = ""
+    routine_suggestions: str = ""
+
+class RoutineStep(BaseModel):
+    routine_step: str
+    frequency: str
+
+class RoutineUpdate(BaseModel):
+    routine_steps: list
+
+# ============================================
 # GET CONSULTANT PROFILE
+# ============================================
 @router.get("/profile")
 async def get_consultant_profile(
     current_user: User = Depends(require_consultant_role),
     db: Session = Depends(get_db)
 ):
-    """Get consultant's profile"""
+    """Get consultant profile"""
     try:
-        result = db.execute(
-            text("""
-                SELECT consultant_id, certification, specialization, company_name, 
-                       years_experience, bio, consultation_fee, is_verified
-                FROM consultant_profiles WHERE user_id = :user_id
-            """),
-            {"user_id": current_user.user_id}
-        ).first()
+        user = db.query(User).filter(User.user_id == current_user.user_id).first()
         
-        if not result:
-            raise HTTPException(status_code=404, detail="Profile not found")
+        if not user:
+            raise HTTPException(status_code=404, detail="Consultant not found")
         
         return {
-            "consultant_id": result[0],
-            "certification": result[1],
-            "specialization": result[2],
-            "company_name": result[3],
-            "years_experience": result[4],
-            "bio": result[5],
-            "consultation_fee": float(result[6]) if result[6] else 0,
-            "is_verified": bool(result[7])
+            "user_id": user.user_id,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "email": user.email,
+            "phone": user.phone,
+            "role_id": user.role_id
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# ============================================
 # UPDATE CONSULTANT PROFILE
+# ============================================
 @router.put("/profile/update")
 async def update_consultant_profile(
     profile_data: dict,
@@ -49,208 +62,365 @@ async def update_consultant_profile(
 ):
     """Update consultant profile"""
     try:
-        updates = []
-        params = {"user_id": current_user.user_id}
+        user = db.query(User).filter(User.user_id == current_user.user_id).first()
         
-        if "specialization" in profile_data:
-            updates.append("specialization = :specialization")
-            params["specialization"] = profile_data["specialization"]
-        if "company_name" in profile_data:
-            updates.append("company_name = :company_name")
-            params["company_name"] = profile_data["company_name"]
-        if "bio" in profile_data:
-            updates.append("bio = :bio")
-            params["bio"] = profile_data["bio"]
-        if "consultation_fee" in profile_data:
-            updates.append("consultation_fee = :fee")
-            params["fee"] = profile_data["consultation_fee"]
+        if not user:
+            raise HTTPException(status_code=404, detail="Consultant not found")
         
-        if updates:
-            query = f"UPDATE consultant_profiles SET {', '.join(updates)} WHERE user_id = :user_id"
-            db.execute(text(query), params)
-            db.commit()
+        if "phone" in profile_data:
+            user.phone = profile_data["phone"]
+        if "first_name" in profile_data:
+            user.first_name = profile_data["first_name"]
+        if "last_name" in profile_data:
+            user.last_name = profile_data["last_name"]
+        
+        user.updated_at = datetime.utcnow()
+        db.commit()
         
         return {"message": "Profile updated successfully"}
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
-# GET ASSIGNED PATIENTS
-@router.get("/patients")
-async def get_patients(
+# ============================================
+# CONSULTATION REQUESTS (ASSIGNED TO THIS CONSULTANT)
+# ============================================
+@router.get("/consultation-requests")
+async def get_consultation_requests(
     current_user: User = Depends(require_consultant_role),
     db: Session = Depends(get_db)
 ):
-    """Get list of assigned patients"""
+    """Get consultation requests assigned to this consultant"""
     try:
-        # Get consultant_id
-        consultant = db.execute(
-            text("SELECT consultant_id FROM consultant_profiles WHERE user_id = :user_id"),
-            {"user_id": current_user.user_id}
-        ).first()
-        
-        if not consultant:
-            raise HTTPException(status_code=404, detail="Consultant profile not found")
-        
-        patients = db.execute(
+        requests = db.execute(
             text("""
-                SELECT u.user_id, u.first_name, u.last_name, u.email, ca.assignment_date
-                FROM consultation_assignments ca
-                JOIN users u ON ca.user_id = u.user_id
-                WHERE ca.consultant_id = :consultant_id
-                ORDER BY ca.assignment_date DESC
+                SELECT cr.request_id, u.user_id, u.first_name, u.last_name, u.email,
+                       cr.title, cr.description, cr.status, cr.requested_date
+                FROM consultation_requests cr
+                JOIN users u ON cr.user_id = u.user_id
+                WHERE cr.assigned_consultant_id = :consultant_id
+                ORDER BY cr.requested_date DESC
             """),
-            {"consultant_id": consultant[0]}
+            {"consultant_id": current_user.user_id}
         ).all()
         
-        patient_list = [
+        request_list = [
             {
-                "user_id": r[0],
-                "name": f"{r[1]} {r[2]}",
-                "email": r[3],
-                "assigned_date": str(r[4])
+                "request_id": r[0],
+                "user_id": r[1],
+                "user_name": f"{r[2]} {r[3]}",
+                "email": r[4],
+                "title": r[5],
+                "description": r[6],
+                "status": r[7],
+                "requested_date": str(r[8])
             }
-            for r in patients
+            for r in requests
         ]
         
-        return {"patients": patient_list, "count": len(patient_list)}
+        return {"requests": request_list, "count": len(request_list)}
     except Exception as e:
+        print(f"Error fetching consultation requests: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-# SEND RECOMMENDATION TO PATIENT
-@router.post("/recommendations")
-async def send_recommendation(
-    recommendation_data: dict,
+# ============================================
+# APPROVE CONSULTATION REQUEST
+# ============================================
+@router.put("/consultation-requests/{request_id}/approve")
+async def approve_consultation_request(
+    request_id: int,
     current_user: User = Depends(require_consultant_role),
     db: Session = Depends(get_db)
 ):
-    """Send skincare recommendations to a patient"""
+    """Approve a consultation request"""
     try:
-        # Get consultant_id
-        consultant = db.execute(
-            text("SELECT consultant_id FROM consultant_profiles WHERE user_id = :user_id"),
-            {"user_id": current_user.user_id}
-        ).first()
-        
-        if not consultant:
-            raise HTTPException(status_code=404, detail="Consultant profile not found")
-        
-        user_id = recommendation_data.get("user_id")
-        
         db.execute(
             text("""
-                INSERT INTO consultant_recommendations 
-                (user_id, consultant_id, recommendation_text, product_suggestions, routine_suggestions, sent_date, created_at)
-                VALUES (:user_id, :consultant_id, :text, :products, :routine, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                UPDATE consultation_requests
+                SET status = 'assigned',
+                    responded_date = CURRENT_TIMESTAMP,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE request_id = :request_id
             """),
-            {
-                "user_id": user_id,
-                "consultant_id": consultant[0],
-                "text": recommendation_data.get("recommendation_text"),
-                "products": recommendation_data.get("product_suggestions"),
-                "routine": recommendation_data.get("routine_suggestions")
-            }
+            {"request_id": request_id}
         )
         db.commit()
         
-        return {"message": "Recommendation sent to patient"}
+        return {"message": "Consultation request approved"}
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
-# GET RECOMMENDATIONS SENT
-@router.get("/recommendations/{user_id}")
-async def get_patient_recommendations(
-    user_id: int,
+# ============================================
+# REJECT CONSULTATION REQUEST
+# ============================================
+@router.put("/consultation-requests/{request_id}/reject")
+async def reject_consultation_request(
+    request_id: int,
     current_user: User = Depends(require_consultant_role),
     db: Session = Depends(get_db)
 ):
-    """Get recommendations sent to a patient"""
+    """Reject a consultation request"""
     try:
-        recommendations = db.execute(
+        db.execute(
             text("""
-                SELECT recommendation_id, recommendation_text, product_suggestions, 
-                       routine_suggestions, sent_date
-                FROM consultant_recommendations 
-                WHERE user_id = :user_id AND consultant_id = (
-                    SELECT consultant_id FROM consultant_profiles WHERE user_id = :consultant_user_id
-                )
-                ORDER BY sent_date DESC
+                UPDATE consultation_requests
+                SET status = 'rejected',
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE request_id = :request_id
             """),
-            {"user_id": user_id, "consultant_user_id": current_user.user_id}
-        ).all()
+            {"request_id": request_id}
+        )
+        db.commit()
         
-        rec_list = [
-            {
-                "recommendation_id": r[0],
-                "text": r[1],
-                "products": r[2],
-                "routine": r[3],
-                "sent_date": str(r[4])
-            }
-            for r in recommendations
-        ]
-        
-        return {"recommendations": rec_list, "count": len(rec_list)}
+        return {"message": "Consultation request rejected"}
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
-# VIEW PATIENT PROGRESS REPORTS
-@router.get("/reports/{user_id}")
-async def get_patient_report(
+# ============================================
+# GET CONSULTANT'S ASSIGNED PATIENTS
+# ============================================
+@router.get("/my-patients")
+async def get_my_patients(
+    current_user: User = Depends(require_consultant_role),
+    db: Session = Depends(get_db)
+):
+    """Get all patients assigned to this consultant"""
+    try:
+        patients = db.execute(
+            text("""
+                SELECT DISTINCT u.user_id, u.first_name, u.last_name, u.email,
+                       u.health_score, u.compliance_percentage
+                FROM users u
+                JOIN consultation_requests cr ON u.user_id = cr.user_id
+                WHERE cr.assigned_consultant_id = :consultant_id
+                ORDER BY u.first_name ASC
+            """),
+            {"consultant_id": current_user.user_id}
+        ).all()
+        
+        patient_list = [
+            {
+                "user_id": p[0],
+                "first_name": p[1],
+                "last_name": p[2],
+                "email": p[3],
+                "health_score": float(p[4]) if p[4] else 7.0,
+                "compliance_percentage": float(p[5]) if p[5] else 0
+            }
+            for p in patients
+        ]
+        
+        print(f"Consultant {current_user.user_id} has {len(patient_list)} patients")
+        
+        return {"patients": patient_list, "count": len(patient_list)}
+    except Exception as e:
+        print(f"Error fetching patients: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ============================================
+# GET PATIENT INSPECTION DETAILS
+# ============================================
+@router.get("/patient-inspection/{user_id}")
+async def get_patient_inspection(
     user_id: int,
     current_user: User = Depends(require_consultant_role),
     db: Session = Depends(get_db)
 ):
-    """Get patient's progress report"""
+    """Get detailed inspection data for a patient"""
     try:
-        # Get progress data
-        progress = db.execute(
+        # Get user basic info
+        user = db.execute(
             text("""
-                SELECT photo_id, before_image_url, after_image_url, improvement_percentage,
-                       before_upload_date, after_upload_date, skin_concern
-                FROM before_after_photos WHERE user_id = :user_id
+                SELECT user_id, first_name, last_name, email, age, gender, 
+                       health_score, compliance_percentage
+                FROM users WHERE user_id = :user_id
             """),
             {"user_id": user_id}
         ).first()
         
-        # Get lifestyle data
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get lifestyle data (last 30 days)
         lifestyle = db.execute(
             text("""
-                SELECT AVG(sleep_duration), AVG(water_intake), AVG(stress_level), COUNT(*)
-                FROM lifestyle_tracking WHERE user_id = :user_id AND tracking_date >= CURRENT_DATE - INTERVAL '30 days'
+                SELECT tracking_date, sleep_duration, water_intake, stress_level, exercise_type
+                FROM lifestyle_tracking
+                WHERE user_id = :user_id
+                ORDER BY tracking_date DESC
+                LIMIT 30
             """),
             {"user_id": user_id}
-        ).first()
+        ).all()
         
-        # Get latest screening
+        # Get skin screening
         screening = db.execute(
             text("""
-                SELECT analysis_result, confidence_score, screening_date
-                FROM skin_screening WHERE user_id = :user_id
-                ORDER BY screening_date DESC LIMIT 1
+                SELECT screening_id, image_url, analysis_json, created_at
+                FROM skin_screening
+                WHERE user_id = :user_id
+                ORDER BY created_at DESC
+                LIMIT 1
             """),
             {"user_id": user_id}
         ).first()
         
+        # Get current routine
+        routine = db.execute(
+            text("""
+                SELECT routine_id, routine_step, frequency
+                FROM skincare_routines
+                WHERE user_id = :user_id
+                ORDER BY step_order ASC
+            """),
+            {"user_id": user_id}
+        ).all()
+        
         return {
-            "progress": {
-                "before_image": progress[1] if progress else None,
-                "after_image": progress[2] if progress else None,
-                "improvement": float(progress[3]) if progress and progress[3] else 0
+            "user": {
+                "user_id": user[0],
+                "first_name": user[1],
+                "last_name": user[2],
+                "email": user[3],
+                "age": user[4],
+                "gender": user[5],
+                "health_score": float(user[6]) if user[6] else 7.0,
+                "compliance_percentage": float(user[7]) if user[7] else 0
             },
-            "lifestyle_30days": {
-                "avg_sleep": float(lifestyle[0]) if lifestyle and lifestyle[0] else 0,
-                "avg_water": float(lifestyle[1]) if lifestyle and lifestyle[1] else 0,
-                "avg_stress": float(lifestyle[2]) if lifestyle and lifestyle[2] else 0,
-                "total_logs": lifestyle[3] if lifestyle else 0
-            },
-            "latest_screening": {
-                "condition": screening[0] if screening else None,
-                "confidence": float(screening[1]) if screening and screening[1] else 0,
-                "date": str(screening[2]) if screening else None
-            }
+            "lifestyle": [
+                {
+                    "date": str(l[0]),
+                    "sleep": float(l[1]) if l[1] else 0,
+                    "water": int(l[2]) if l[2] else 0,
+                    "stress": l[3],
+                    "exercise": l[4] or ""
+                }
+                for l in lifestyle
+            ],
+            "screening": {
+                "screening_id": screening[0],
+                "image_url": screening[1],
+                "analysis": screening[2],
+                "created_at": str(screening[3])
+            } if screening else None,
+            "routine": [
+                {
+                    "routine_id": r[0],
+                    "routine_step": r[1],
+                    "frequency": r[2]
+                }
+                for r in routine
+            ]
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
+# ============================================
+# SEND RECOMMENDATION
+# ============================================
+@router.post("/send-recommendation")
+async def send_recommendation(
+    recommendation_data: RecommendationData,
+    current_user: User = Depends(require_consultant_role),
+    db: Session = Depends(get_db)
+):
+    """Send recommendation to a patient"""
+    try:
+        db.execute(
+            text("""
+                INSERT INTO consultant_recommendations
+                (user_id, professional_id, recommendation_text, product_suggestions, routine_suggestions, created_at, sent_date)
+                VALUES (:user_id, :professional_id, :recommendation_text, :product_suggestions, :routine_suggestions, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            """),
+            {
+                "user_id": recommendation_data.user_id,
+                "professional_id": current_user.user_id,
+                "recommendation_text": recommendation_data.recommendation_text,
+                "product_suggestions": recommendation_data.product_suggestions,
+                "routine_suggestions": recommendation_data.routine_suggestions
+            }
+        )
+        db.commit()
+        
+        return {"message": "Recommendation sent successfully"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ============================================
+# UPDATE PATIENT ROUTINE
+# ============================================
+@router.put("/update-patient-routine/{user_id}")
+async def update_patient_routine(
+    user_id: int,
+    routine_data: RoutineUpdate,
+    current_user: User = Depends(require_consultant_role),
+    db: Session = Depends(get_db)
+):
+    """Update a patient's routine"""
+    try:
+        # Delete existing routine for user
+        db.execute(
+            text("DELETE FROM skincare_routines WHERE user_id = :user_id"),
+            {"user_id": user_id}
+        )
+        
+        # Add new routine steps
+        for i, step in enumerate(routine_data.routine_steps):
+            db.execute(
+                text("""
+                    INSERT INTO skincare_routines
+                    (user_id, routine_step, frequency, step_order, created_at, updated_at)
+                    VALUES (:user_id, :routine_step, :frequency, :step_order, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                """),
+                {
+                    "user_id": user_id,
+                    "routine_step": step.routine_step,
+                    "frequency": step.frequency,
+                    "step_order": i + 1
+                }
+            )
+        
+        db.commit()
+        return {"message": "Routine updated successfully"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ============================================
+# GET CONSULTANT DASHBOARD STATS
+# ============================================
+@router.get("/dashboard-stats")
+async def get_dashboard_stats(
+    current_user: User = Depends(require_consultant_role),
+    db: Session = Depends(get_db)
+):
+    """Get dashboard statistics for consultant"""
+    try:
+        total_patients = db.execute(
+            text("""
+                SELECT COUNT(DISTINCT u.user_id)
+                FROM users u
+                JOIN consultation_requests cr ON u.user_id = cr.user_id
+                WHERE cr.assigned_consultant_id = :consultant_id
+            """),
+            {"consultant_id": current_user.user_id}
+        ).scalar()
+        
+        pending_requests = db.execute(
+            text("""
+                SELECT COUNT(*)
+                FROM consultation_requests
+                WHERE assigned_consultant_id = :consultant_id AND status IN ('pending', 'assigned')
+            """),
+            {"consultant_id": current_user.user_id}
+        ).scalar()
+        
+        return {
+            "total_patients": total_patients or 0,
+            "pending_requests": pending_requests or 0
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

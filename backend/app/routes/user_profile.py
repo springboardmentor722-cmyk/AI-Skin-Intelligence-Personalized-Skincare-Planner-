@@ -1,169 +1,178 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from pydantic import BaseModel
 from app.database import get_db
 from app.models.user import User
-from app.utils.rbac import get_current_user_with_role
+from app.utils.rbac import get_current_user_with_role, require_user_role
+from datetime import datetime
 
 router = APIRouter(prefix="/api/user", tags=["User Profile"])
 
-# ✅ PYDANTIC SCHEMAS
+# ============================================
+# PYDANTIC SCHEMAS
+# ============================================
 class UserProfileUpdate(BaseModel):
-    first_name: str = None
-    last_name: str = None
-    phone: str = None
     age: int = None
     gender: str = None
+    phone: str = None
 
 class SkinProfileUpdate(BaseModel):
     skin_type: str
-    primary_concern: str
-    sensitivity_level: str
+    skin_tone: str = ""
+    allergies: str = ""
+    sensitivities: str = ""
 
+# ============================================
 # GET USER PROFILE
+# ============================================
 @router.get("/profile")
 async def get_user_profile(
-    current_user: User = Depends(get_current_user_with_role),
+    current_user: User = Depends(require_user_role),
     db: Session = Depends(get_db)
 ):
-    """Get user profile"""
+    """Get user profile information"""
     try:
-        result = db.execute(
-            text("""
-                SELECT user_id, email, first_name, last_name, phone, age, gender
-                FROM users WHERE user_id = :user_id
-            """),
-            {"user_id": current_user.user_id}
-        ).first()
+        user = db.query(User).filter(User.user_id == current_user.user_id).first()
         
-        if not result:
+        if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
         return {
-            "user_id": result[0],
-            "email": result[1],
-            "first_name": result[2],
-            "last_name": result[3],
-            "phone": result[4],
-            "age": result[5],
-            "gender": result[6]
+            "user_id": user.user_id,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "email": user.email,
+            "age": user.age,
+            "gender": user.gender,
+            "phone": user.phone,
+            "role_id": user.role_id
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# ============================================
 # UPDATE USER PROFILE
-@router.put("/profile")
+# ============================================
+@router.put("/profile/update")
 async def update_user_profile(
     profile_data: UserProfileUpdate,
-    current_user: User = Depends(get_current_user_with_role),
+    current_user: User = Depends(require_user_role),
     db: Session = Depends(get_db)
 ):
-    """Update user profile"""
+    """Update user profile information"""
     try:
-        updates = []
-        params = {"user_id": current_user.user_id}
+        user = db.query(User).filter(User.user_id == current_user.user_id).first()
         
-        if profile_data.first_name:
-            updates.append("first_name = :first_name")
-            params["first_name"] = profile_data.first_name
-        if profile_data.last_name:
-            updates.append("last_name = :last_name")
-            params["last_name"] = profile_data.last_name
-        if profile_data.phone:
-            updates.append("phone = :phone")
-            params["phone"] = profile_data.phone
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
         if profile_data.age:
-            updates.append("age = :age")
-            params["age"] = profile_data.age
+            user.age = profile_data.age
         if profile_data.gender:
-            updates.append("gender = :gender")
-            params["gender"] = profile_data.gender
+            user.gender = profile_data.gender
+        if profile_data.phone:
+            user.phone = profile_data.phone
         
-        if updates:
-            updates.append("updated_at = CURRENT_TIMESTAMP")
-            query = f"UPDATE users SET {', '.join(updates)} WHERE user_id = :user_id"
-            db.execute(text(query), params)
-            db.commit()
+        user.updated_at = datetime.utcnow()
+        db.commit()
         
         return {"message": "Profile updated successfully"}
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
+# ============================================
 # GET SKIN PROFILE
+# ============================================
 @router.get("/skin-profile")
 async def get_skin_profile(
-    current_user: User = Depends(get_current_user_with_role),
+    current_user: User = Depends(require_user_role),
     db: Session = Depends(get_db)
 ):
-    """Get user skin profile"""
+    """Get user's skin profile"""
     try:
-        result = db.execute(
+        profile = db.execute(
             text("""
-                SELECT up.skin_type, up.primary_concern, up.sensitivity_level
-                FROM user_profiles up
-                WHERE up.user_id = :user_id
+                SELECT profile_id, user_id, skin_type, skin_tone, allergies, sensitivities
+                FROM user_profiles
+                WHERE user_id = :user_id
             """),
             {"user_id": current_user.user_id}
         ).first()
         
-        if not result:
+        if not profile:
             return {
-                "skin_type": "",
-                "primary_concern": "",
-                "sensitivity_level": ""
+                "profile_id": None,
+                "user_id": current_user.user_id,
+                "skin_type": None,
+                "skin_tone": None,
+                "allergies": None,
+                "sensitivities": None
             }
         
         return {
-            "skin_type": result[0],
-            "primary_concern": result[1],
-            "sensitivity_level": result[2]
+            "profile_id": profile[0],
+            "user_id": profile[1],
+            "skin_type": profile[2],
+            "skin_tone": profile[3],
+            "allergies": profile[4],
+            "sensitivities": profile[5]
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# UPDATE SKIN PROFILE
-@router.put("/skin-profile")
+# ============================================
+# CREATE OR UPDATE SKIN PROFILE
+# ============================================
+@router.put("/skin-profile/update")
 async def update_skin_profile(
-    profile_data: SkinProfileUpdate,
-    current_user: User = Depends(get_current_user_with_role),
+    skin_data: SkinProfileUpdate,
+    current_user: User = Depends(require_user_role),
     db: Session = Depends(get_db)
 ):
-    """Update skin profile"""
+    """Create or update user's skin profile"""
     try:
-        # Check if exists
-        exists = db.execute(
+        # Check if profile exists
+        existing = db.execute(
             text("SELECT profile_id FROM user_profiles WHERE user_id = :user_id"),
             {"user_id": current_user.user_id}
         ).first()
         
-        if exists:
+        if existing:
+            # Update existing
             db.execute(
                 text("""
-                    UPDATE user_profiles 
-                    SET skin_type = :skin_type, primary_concern = :concern, 
-                        sensitivity_level = :sensitivity, updated_at = CURRENT_TIMESTAMP
+                    UPDATE user_profiles
+                    SET skin_type = :skin_type,
+                        skin_tone = :skin_tone,
+                        allergies = :allergies,
+                        sensitivities = :sensitivities,
+                        updated_at = CURRENT_TIMESTAMP
                     WHERE user_id = :user_id
                 """),
                 {
                     "user_id": current_user.user_id,
-                    "skin_type": profile_data.skin_type,
-                    "concern": profile_data.primary_concern,
-                    "sensitivity": profile_data.sensitivity_level
+                    "skin_type": skin_data.skin_type,
+                    "skin_tone": skin_data.skin_tone,
+                    "allergies": skin_data.allergies,
+                    "sensitivities": skin_data.sensitivities
                 }
             )
         else:
+            # Create new
             db.execute(
                 text("""
-                    INSERT INTO user_profiles (user_id, skin_type, primary_concern, sensitivity_level, created_at)
-                    VALUES (:user_id, :skin_type, :concern, :sensitivity, CURRENT_TIMESTAMP)
+                    INSERT INTO user_profiles
+                    (user_id, skin_type, skin_tone, allergies, sensitivities, created_at, updated_at)
+                    VALUES (:user_id, :skin_type, :skin_tone, :allergies, :sensitivities, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                 """),
                 {
                     "user_id": current_user.user_id,
-                    "skin_type": profile_data.skin_type,
-                    "concern": profile_data.primary_concern,
-                    "sensitivity": profile_data.sensitivity_level
+                    "skin_type": skin_data.skin_type,
+                    "skin_tone": skin_data.skin_tone,
+                    "allergies": skin_data.allergies,
+                    "sensitivities": skin_data.sensitivities
                 }
             )
         

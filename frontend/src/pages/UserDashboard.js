@@ -642,14 +642,16 @@ function AISkinScreening() {
 // SKIN PROFILE
 // ============================================
 function SkinProfile() {
-  const [skinProfile, setSkinProfile] = useState({
+  const [profile, setProfile] = useState({
     skin_type: '',
-    primary_concern: '',
-    sensitivity_level: ''
+    skin_tone: '',
+    allergies: '',
+    sensitivities: ''
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     fetchSkinProfile();
@@ -659,31 +661,38 @@ function SkinProfile() {
     try {
       const response = await apiFetch(`${API_BASE}/user/skin-profile`);
       const data = await response.json();
-      setSkinProfile(data);
+      setProfile(data);
       setLoading(false);
     } catch (err) {
+      setError('Failed to load skin profile');
       setLoading(false);
     }
   };
 
-  const handleChange = (e) => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setSkinProfile(prev => ({ ...prev, [name]: value }));
+    setProfile(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async () => {
+  const handleSave = async () => {
     try {
-      const response = await apiFetch(`${API_BASE}/user/skin-profile`, {
+      const response = await apiFetch(`${API_BASE}/user/skin-profile/update`, {
         method: 'PUT',
-        body: JSON.stringify(skinProfile)
+        body: JSON.stringify(profile)
       });
 
       if (response.ok) {
         setSuccess('Skin profile updated successfully');
+        setIsEditing(false);
+        fetchSkinProfile();
         setTimeout(() => setSuccess(''), 3000);
       } else {
         const data = await response.json();
-        setError(data.detail || 'Failed to update');
+        let errorMsg = 'Failed to update profile';
+        if (data.detail) {
+          errorMsg = typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail);
+        }
+        setError(errorMsg);
       }
     } catch (err) {
       setError('Error: ' + err.message);
@@ -695,83 +704,120 @@ function SkinProfile() {
   return (
     <div className="page-container">
       <div className="card-container">
-        <h2>Your Skin Profile</h2>
-        <p style={{ color: '#666', marginBottom: '20px' }}>Define your skin characteristics for personalized recommendations</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h2>Skin Profile</h2>
+          <button
+            className={`btn ${isEditing ? 'btn-secondary' : 'btn-primary'} btn-sm`}
+            onClick={() => setIsEditing(!isEditing)}
+          >
+            {isEditing ? 'Cancel' : 'Edit'}
+          </button>
+        </div>
+
+        <p style={{ color: '#666', marginBottom: '20px' }}>Your personalized skin information</p>
 
         {error && <div className="error-message">{error}</div>}
         {success && <div className="success-message">{success}</div>}
 
-        <div className="inspection-section">
-          <h3>Skin Type</h3>
-          <p style={{ color: '#666', marginBottom: '15px' }}>Select your dominant skin type</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '15px', marginBottom: '20px' }}>
-            {['Oily', 'Dry', 'Combination', 'Sensitive'].map(type => (
-              <label key={type} style={{
-                padding: '15px',
-                border: skinProfile.skin_type === type ? '2px solid var(--primary-rose)' : '2px solid var(--border-light)',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                background: skinProfile.skin_type === type ? 'var(--shadow-light)' : 'var(--white)',
-                transition: 'all 0.3s'
-              }}>
-                <input 
-                  type="radio" 
-                  name="skin_type" 
-                  value={type} 
-                  checked={skinProfile.skin_type === type}
-                  onChange={handleChange}
-                  style={{ marginRight: '8px' }}
-                />
-                {type}
-              </label>
-            ))}
-          </div>
-        </div>
+        {isEditing ? (
+          <div className="skin-profile-form">
+            <div className="form-group">
+              <label>Skin Type</label>
+              <select name="skin_type" value={profile.skin_type} onChange={handleInputChange}>
+                <option value="">Select skin type</option>
+                <option value="Dry">Dry</option>
+                <option value="Oily">Oily</option>
+                <option value="Combination">Combination</option>
+                <option value="Normal">Normal</option>
+                <option value="Sensitive">Sensitive</option>
+              </select>
+            </div>
 
-        <div className="inspection-section">
-          <h3>Primary Concern</h3>
-          <div className="form-group">
-            <select name="primary_concern" value={skinProfile.primary_concern} onChange={handleChange}>
-              <option value="">Select primary concern</option>
-              <option value="Acne">Acne</option>
-              <option value="Wrinkles">Wrinkles & Fine Lines</option>
-              <option value="Dark Spots">Dark Spots & Hyperpigmentation</option>
-              <option value="Sensitivity">Sensitivity & Redness</option>
-              <option value="Dryness">Dryness & Dehydration</option>
-              <option value="Oiliness">Oiliness & Shine</option>
-              <option value="Uneven Tone">Uneven Skin Tone</option>
-            </select>
-          </div>
-        </div>
+            <div className="form-group">
+              <label>Skin Tone</label>
+              <input
+                type="text"
+                name="skin_tone"
+                value={profile.skin_tone}
+                onChange={handleInputChange}
+                placeholder="e.g., Fair, Medium, Dark"
+              />
+            </div>
 
-        <div className="inspection-section">
-          <h3>Sensitivity Level</h3>
-          <div className="form-group">
-            <select name="sensitivity_level" value={skinProfile.sensitivity_level} onChange={handleChange}>
-              <option value="">Select sensitivity</option>
-              <option value="Low">Low - Can tolerate most products</option>
-              <option value="Medium">Medium - Need to be careful</option>
-              <option value="High">High - Very reactive to products</option>
-              <option value="Reactive">Reactive - Known allergies</option>
-            </select>
-          </div>
-        </div>
+            <div className="form-group">
+              <label>Allergies</label>
+              <textarea
+                name="allergies"
+                value={profile.allergies}
+                onChange={handleInputChange}
+                placeholder="List any known allergies (comma separated)"
+                rows="3"
+              ></textarea>
+            </div>
 
-        <button className="btn btn-primary" onClick={handleSubmit}>Save Skin Profile</button>
+            <div className="form-group">
+              <label>Sensitivities</label>
+              <textarea
+                name="sensitivities"
+                value={profile.sensitivities}
+                onChange={handleInputChange}
+                placeholder="List sensitive ingredients or concerns"
+                rows="3"
+              ></textarea>
+            </div>
+
+            <button className="btn btn-primary" onClick={handleSave}>
+              Save Profile
+            </button>
+          </div>
+        ) : (
+          <div className="skin-profile-display">
+            <div style={{ padding: '15px', background: '#f9f9f9', borderRadius: '8px', marginBottom: '15px' }}>
+              <p><strong>Skin Type:</strong> {profile.skin_type || 'Not specified'}</p>
+              <p><strong>Skin Tone:</strong> {profile.skin_tone || 'Not specified'}</p>
+            </div>
+
+            {profile.allergies && (
+              <div style={{ padding: '15px', background: '#fff5f5', borderRadius: '8px', marginBottom: '15px', border: '1px solid #fdd' }}>
+                <p><strong>Allergies:</strong></p>
+                <p style={{ color: '#666', margin: '5px 0' }}>{profile.allergies}</p>
+              </div>
+            )}
+
+            {profile.sensitivities && (
+              <div style={{ padding: '15px', background: '#f5f9ff', borderRadius: '8px', border: '1px solid #ddf' }}>
+                <p><strong>Sensitivities:</strong></p>
+                <p style={{ color: '#666', margin: '5px 0' }}>{profile.sensitivities}</p>
+              </div>
+            )}
+
+            {!profile.skin_type && (
+              <div style={{ padding: '20px', background: '#f9f9f9', borderRadius: '8px', textAlign: 'center' }}>
+                <p>No skin profile data yet</p>
+                <p style={{ fontSize: '13px', color: '#999' }}>Click Edit to add your skin information</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
 }
-
 // ============================================
 // MY ROUTINE
 // ============================================
 function MyRoutine() {
   const [routine, setRoutine] = useState([]);
-  const [newStep, setNewStep] = useState({ routine_step: '', frequency: '' });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({
+    routine_type: '',
+    product_name: '',
+    duration_minutes: 0,
+    description: ''
+  });
 
   useEffect(() => {
     fetchRoutine();
@@ -789,47 +835,74 @@ function MyRoutine() {
     }
   };
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'duration_minutes' ? parseInt(value) || 0 : value
+    }));
+  };
+
   const handleAddStep = async () => {
-    if (!newStep.routine_step || !newStep.frequency) {
-      setError('Please fill all fields');
+    if (!formData.routine_type) {
+      setError('Please fill in routine type');
       return;
     }
 
     try {
       const response = await apiFetch(`${API_BASE}/routine/`, {
         method: 'POST',
-        body: JSON.stringify(newStep)
+        body: JSON.stringify(formData)
       });
 
       if (response.ok) {
-        setNewStep({ routine_step: '', frequency: '' });
+        setSuccess('Routine step added successfully');
+        setFormData({
+          routine_type: '',
+          product_name: '',
+          duration_minutes: 0,
+          description: ''
+        });
+        setShowForm(false);
         fetchRoutine();
-        setSuccess('Step added successfully');
         setTimeout(() => setSuccess(''), 3000);
       } else {
         const data = await response.json();
-        setError(data.detail || 'Failed to add step');
+        // Properly extract error message
+        let errorMsg = 'Failed to add routine step';
+        if (data.detail) {
+          if (typeof data.detail === 'string') {
+            errorMsg = data.detail;
+          } else if (Array.isArray(data.detail)) {
+            errorMsg = data.detail.map(err => 
+              typeof err === 'string' ? err : (err.msg || JSON.stringify(err))
+            ).join(', ');
+          }
+        }
+        setError(errorMsg);
       }
     } catch (err) {
-      setError('Error: ' + err.message);
+      setError('Error: ' + (typeof err.message === 'string' ? err.message : 'Unknown error'));
     }
   };
 
   const handleDeleteStep = async (routineId) => {
-    try {
-      const response = await apiFetch(`${API_BASE}/routine/${routineId}`, {
-        method: 'DELETE'
-      });
+    if (window.confirm('Delete this routine step?')) {
+      try {
+        const response = await apiFetch(`${API_BASE}/routine/${routineId}`, {
+          method: 'DELETE'
+        });
 
-      if (response.ok) {
-        fetchRoutine();
-        setSuccess('Step deleted successfully');
-        setTimeout(() => setSuccess(''), 3000);
-      } else {
-        setError('Failed to delete step');
+        if (response.ok) {
+          setSuccess('Routine step deleted');
+          fetchRoutine();
+          setTimeout(() => setSuccess(''), 3000);
+        } else {
+          setError('Failed to delete step');
+        }
+      } catch (err) {
+        setError('Error: ' + err.message);
       }
-    } catch (err) {
-      setError('Error: ' + err.message);
     }
   };
 
@@ -838,83 +911,117 @@ function MyRoutine() {
   return (
     <div className="page-container">
       <div className="card-container">
-        <h2>My Skincare Routine</h2>
-        <p style={{ color: '#666', marginBottom: '20px' }}>Create and manage your personalized skincare routine</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h2>My Skincare Routine</h2>
+          <button
+            className="btn btn-primary btn-sm"
+            onClick={() => setShowForm(!showForm)}
+          >
+            {showForm ? 'Cancel' : 'Add Step'}
+          </button>
+        </div>
+
+        <p style={{ color: '#666', marginBottom: '20px' }}>Build your personalized skincare routine</p>
 
         {error && <div className="error-message">{error}</div>}
         {success && <div className="success-message">{success}</div>}
 
-        <div className="inspection-section">
-          <h3>Add New Step</h3>
-          <div className="routine-form">
+        {showForm && (
+          <div className="inspection-section" style={{ marginBottom: '30px' }}>
+            <h3>Add New Routine Step</h3>
+
+            <div className="form-group">
+              <label>Routine Type (e.g., Cleanse, Tone, Moisturize, Treat)</label>
+              <input
+                type="text"
+                name="routine_type"
+                value={formData.routine_type}
+                onChange={handleInputChange}
+                placeholder="e.g., Apply cleanser"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Product Name (Optional)</label>
+              <input
+                type="text"
+                name="product_name"
+                value={formData.product_name}
+                onChange={handleInputChange}
+                placeholder="e.g., CeraVe Cleanser"
+              />
+            </div>
+
             <div className="form-row">
               <div className="form-group">
-                <label>Routine Step</label>
-                <input 
-                  type="text" 
-                  value={newStep.routine_step}
-                  onChange={(e) => setNewStep(prev => ({ ...prev, routine_step: e.target.value }))}
-                  placeholder="e.g., Apply Facial Cleanser"
+                <label>Duration (Minutes)</label>
+                <input
+                  type="number"
+                  name="duration_minutes"
+                  value={formData.duration_minutes}
+                  onChange={handleInputChange}
+                  placeholder="0"
+                  min="0"
                 />
               </div>
+
               <div className="form-group">
-                <label>Frequency</label>
-                <select 
-                  value={newStep.frequency}
-                  onChange={(e) => setNewStep(prev => ({ ...prev, frequency: e.target.value }))}
-                >
-                  <option value="">Select frequency</option>
-                  <option value="Morning">Morning Only</option>
-                  <option value="Evening">Evening Only</option>
-                  <option value="Twice Daily">Twice Daily</option>
-                  <option value="Weekly">Weekly</option>
-                  <option value="As Needed">As Needed</option>
-                </select>
+                <label>Description (Optional)</label>
+                <input
+                  type="text"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  placeholder="e.g., Massage gently"
+                />
               </div>
             </div>
-            <button className="btn btn-primary" onClick={handleAddStep}>Add Step</button>
-          </div>
-        </div>
 
-        <div className="inspection-section">
-          <h3>Current Routine</h3>
-          {routine.length === 0 ? (
-            <p style={{ color: '#999', fontStyle: 'italic' }}>No routine steps yet. Add your first step above.</p>
-          ) : (
-            <div className="routine-display">
-              <ul>
-                {routine.map(step => (
-                  <li key={step.routine_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <strong>{step.routine_step}</strong>
-                      <br />
-                      <small style={{ color: '#999' }}>{step.frequency}</small>
-                    </div>
-                    <button 
-                      className="btn btn-danger btn-sm"
-                      onClick={() => handleDeleteStep(step.routine_id)}
-                    >
-                      Remove
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
+            <button className="btn btn-primary" onClick={handleAddStep}>
+              Add Step
+            </button>
+          </div>
+        )}
+
+        {routine.length === 0 ? (
+          <div style={{ padding: '20px', background: '#f9f9f9', borderRadius: '8px', textAlign: 'center' }}>
+            <p>No routine steps yet</p>
+            <p style={{ fontSize: '13px', color: '#999' }}>Add steps to build your routine</p>
+          </div>
+        ) : (
+          <div className="routine-list">
+            {routine.map((step, idx) => (
+              <div key={step.routine_id} className="routine-step-card" style={{ marginBottom: '15px', padding: '15px', border: '1px solid #eee', borderRadius: '8px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                  <div style={{ flex: 1 }}>
+                    <h4 style={{ margin: '0 0 5px 0' }}>Step {idx + 1}: {step.routine_type}</h4>
+                    {step.product_name && <p style={{ margin: '5px 0', color: '#666', fontSize: '14px' }}><strong>Product:</strong> {step.product_name}</p>}
+                    {step.duration_minutes > 0 && <p style={{ margin: '5px 0', color: '#666', fontSize: '14px' }}><strong>Duration:</strong> {step.duration_minutes} min</p>}
+                    {step.description && <p style={{ margin: '5px 0', color: '#666', fontSize: '14px' }}><strong>Notes:</strong> {step.description}</p>}
+                  </div>
+                  <button
+                    className="btn btn-danger btn-sm"
+                    onClick={() => handleDeleteStep(step.routine_id)}
+                    style={{ marginLeft: '10px' }}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-// ============================================
-// PRODUCTS
-// ============================================
 function Products() {
-  const [products, setProducts] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
+  const [recommendedProducts, setRecommendedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState('recommended');
 
   useEffect(() => {
     fetchProducts();
@@ -922,9 +1029,28 @@ function Products() {
 
   const fetchProducts = async () => {
     try {
-      const response = await apiFetch(`${API_BASE}/user/products?limit=500`);
-      const data = await response.json();
-      setProducts(data.products || []);
+      // Fetch recommended products
+      try {
+        const recResponse = await apiFetch(`${API_BASE}/user/products/recommended`);
+        const recData = await recResponse.json();
+        if (recData.recommended_products) {
+          setRecommendedProducts(recData.recommended_products);
+        }
+      } catch (err) {
+        console.log('Recommended products not available');
+      }
+
+      // Fetch all products
+      try {
+        const allResponse = await apiFetch(`${API_BASE}/user/products/`);
+        const allData = await allResponse.json();
+        if (allData.products) {
+          setAllProducts(allData.products);
+        }
+      } catch (err) {
+        console.log('All products error:', err);
+      }
+
       setLoading(false);
     } catch (err) {
       setError('Failed to load products');
@@ -934,43 +1060,269 @@ function Products() {
 
   if (loading) return <div className="page-container"><p>Loading...</p></div>;
 
-  const filteredProducts = products.filter(p =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   return (
     <div className="page-container">
       <div className="card-container">
         <h2>Skincare Products</h2>
-        <p style={{ color: '#666', marginBottom: '20px' }}>Explore our curated collection of skincare products</p>
+        <p style={{ color: '#666', marginBottom: '20px' }}>Discover products tailored to your skin needs</p>
 
         {error && <div className="error-message">{error}</div>}
 
-        <div className="search-box">
-          <input 
-            type="text"
-            placeholder="Search products by name or category..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+        {/* TABS */}
+        {recommendedProducts.length > 0 && (
+          <div style={{ display: 'flex', gap: '10px', marginBottom: '25px', borderBottom: '2px solid #eee', paddingBottom: '10px' }}>
+            <button
+              onClick={() => setActiveTab('recommended')}
+              style={{
+                padding: '10px 20px',
+                background: activeTab === 'recommended' ? 'var(--primary-rose)' : 'transparent',
+                color: activeTab === 'recommended' ? 'white' : 'var(--text-dark)',
+                border: 'none',
+                borderRadius: '8px 8px 0 0',
+                cursor: 'pointer',
+                fontWeight: '600',
+                fontSize: '14px'
+              }}
+            >
+              ⭐ Recommended For You ({recommendedProducts.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('all')}
+              style={{
+                padding: '10px 20px',
+                background: activeTab === 'all' ? 'var(--primary-rose)' : 'transparent',
+                color: activeTab === 'all' ? 'white' : 'var(--text-dark)',
+                border: 'none',
+                borderRadius: '8px 8px 0 0',
+                cursor: 'pointer',
+                fontWeight: '600',
+                fontSize: '14px'
+              }}
+            >
+              📦 All Products ({allProducts.length})
+            </button>
+          </div>
+        )}
 
-        {filteredProducts.length === 0 ? (
-          <p style={{ textAlign: 'center', color: '#999' }}>No products found</p>
-        ) : (
-          <div className="products-grid">
-            {filteredProducts.map(product => (
-              <div key={product.product_id} className="product-card">
-                <div className="product-category">{product.category}</div>
-                <h4>{product.name}</h4>
-                <p style={{ fontSize: '13px', color: '#666', marginBottom: '10px' }}>{product.brand}</p>
-                <div className="product-info">
-                  <span className="product-rating">★ {product.rating || '4.5'}</span>
-                  <span className="product-price">${product.price || '29.99'}</span>
+        {/* RECOMMENDED PRODUCTS SECTION */}
+        {activeTab === 'recommended' && recommendedProducts.length > 0 && (
+          <div style={{ marginBottom: '30px' }}>
+            <div style={{ marginBottom: '20px' }}>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 15px 0' }}>
+                <span style={{ fontSize: '24px' }}>✨</span> Recommended For You
+              </h3>
+              <p style={{ color: '#666', margin: '0', fontSize: '14px' }}>
+                Based on your skin profile, we've selected these products perfect for your skincare routine
+              </p>
+            </div>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+              gap: '20px',
+              marginBottom: '30px'
+            }}>
+              {recommendedProducts.map((product) => (
+                <div
+                  key={product.product_id}
+                  style={{
+                    padding: '15px',
+                    background: 'linear-gradient(135deg, #FFF8F6 0%, #fff5f1 100%)',
+                    border: '2px solid var(--primary-rose)',
+                    borderRadius: '12px',
+                    transition: 'all 0.3s',
+                    cursor: 'pointer'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-5px)';
+                    e.currentTarget.style.boxShadow = '0 10px 25px rgba(183, 110, 121, 0.2)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  {/* Badge */}
+                  <div style={{
+                    display: 'inline-block',
+                    background: 'var(--primary-rose)',
+                    color: 'white',
+                    padding: '4px 10px',
+                    borderRadius: '20px',
+                    fontSize: '11px',
+                    fontWeight: '600',
+                    marginBottom: '10px'
+                  }}>
+                    💡 {product.reason}
+                  </div>
+
+                  {/* Product Name */}
+                  <h4 style={{
+                    margin: '10px 0 5px 0',
+                    fontSize: '16px',
+                    color: 'var(--text-dark)',
+                    fontWeight: '600'
+                  }}>
+                    {product.name}
+                  </h4>
+
+                  {/* Brand */}
+                  <p style={{
+                    margin: '0 0 10px 0',
+                    fontSize: '13px',
+                    color: 'var(--text-light)'
+                  }}>
+                    {product.brand}
+                  </p>
+
+                  {/* Rating */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    marginBottom: '10px'
+                  }}>
+                    <span style={{ color: 'var(--gold-accent)', fontSize: '14px' }}>
+                      {'⭐'.repeat(Math.round(product.rating))}
+                    </span>
+                    <span style={{ fontSize: '13px', color: '#666' }}>
+                      {product.rating ? product.rating.toFixed(1) : 'N/A'}
+                    </span>
+                  </div>
+
+                  {/* Price & Size */}
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    paddingTop: '10px',
+                    borderTop: '1px solid rgba(183, 110, 121, 0.2)'
+                  }}>
+                    <div>
+                      <p style={{ margin: '0', fontSize: '14px', fontWeight: '600', color: 'var(--primary-rose)' }}>
+                        ${product.price.toFixed(2)}
+                      </p>
+                      <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#999' }}>
+                        {product.size}
+                      </p>
+                    </div>
+                    <button
+                      className="btn btn-sm"
+                      style={{
+                        padding: '6px 12px',
+                        background: 'var(--primary-rose)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        fontWeight: '600'
+                      }}
+                    >
+                      Learn More
+                    </button>
+                  </div>
                 </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ALL PRODUCTS SECTION */}
+        {(activeTab === 'all' || recommendedProducts.length === 0) && (
+          <div>
+            <div style={{ marginBottom: '20px' }}>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 15px 0' }}>
+                <span style={{ fontSize: '24px' }}>📦</span> All Skincare Products
+              </h3>
+              <p style={{ color: '#666', margin: '0', fontSize: '14px' }}>
+                Browse our complete collection of skincare products
+              </p>
+            </div>
+
+            {allProducts.length === 0 ? (
+              <div style={{ padding: '40px', background: '#f9f9f9', borderRadius: '8px', textAlign: 'center' }}>
+                <p style={{ fontSize: '16px', color: '#666' }}>No products available</p>
               </div>
-            ))}
+            ) : (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                gap: '15px'
+              }}>
+                {allProducts.map((product) => (
+                  <div
+                    key={product.product_id}
+                    style={{
+                      padding: '12px',
+                      background: 'white',
+                      border: '1px solid #eee',
+                      borderRadius: '8px',
+                      transition: 'all 0.3s',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.boxShadow = '0 5px 15px rgba(0,0,0,0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                  >
+                    {/* Product Name */}
+                    <h4 style={{
+                      margin: '0 0 5px 0',
+                      fontSize: '14px',
+                      color: 'var(--text-dark)',
+                      fontWeight: '600'
+                    }}>
+                      {product.name}
+                    </h4>
+
+                    {/* Brand */}
+                    <p style={{
+                      margin: '0 0 8px 0',
+                      fontSize: '12px',
+                      color: 'var(--text-light)'
+                    }}>
+                      {product.brand}
+                    </p>
+
+                    {/* Rating */}
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      marginBottom: '8px'
+                    }}>
+                      <span style={{ fontSize: '12px', color: 'var(--gold-accent)' }}>
+                        {'⭐'.repeat(Math.round(product.rating))}
+                      </span>
+                      <span style={{ fontSize: '11px', color: '#999' }}>
+                        {product.rating ? product.rating.toFixed(1) : 'N/A'}
+                      </span>
+                    </div>
+
+                    {/* Price & Size */}
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      paddingTop: '8px',
+                      borderTop: '1px solid #eee'
+                    }}>
+                      <div>
+                        <p style={{ margin: '0', fontSize: '12px', fontWeight: '600', color: 'var(--primary-rose)' }}>
+                          ${product.price.toFixed(2)}
+                        </p>
+                        <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#999' }}>
+                          {product.size}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -1049,83 +1401,388 @@ function Ingredients() {
 // PROGRESS
 // ============================================
 function Progress() {
-  const [progress, setProgress] = useState({
-    before_photo: '',
-    current_photo: '',
-    improvement_percentage: 0
-  });
+  const [photos, setPhotos] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [beforePhoto, setBeforePhoto] = useState(null);
+  const [afterPhoto, setAfterPhoto] = useState(null);
+  const [uploadingBefore, setUploadingBefore] = useState(false);
+  const [uploadingAfter, setUploadingAfter] = useState(false);
+  const [progressPercentage, setProgressPercentage] = useState(0);
+  const [progressNotes, setProgressNotes] = useState('');
+  const [showProgressForm, setShowProgressForm] = useState(false);
+  const [tempProgress, setTempProgress] = useState(50);
+
+  useEffect(() => {
+    fetchPhotos();
+    fetchProgress();
+  }, []);
+
+  const fetchPhotos = async () => {
+    try {
+      const response = await apiFetch(`${API_BASE}/user/progress/photos`);
+      const data = await response.json();
+      setPhotos(data.photos || []);
+      setLoading(false);
+    } catch (err) {
+      setError('Failed to load photos');
+      setLoading(false);
+    }
+  };
+
+  const fetchProgress = async () => {
+    try {
+      const response = await apiFetch(`${API_BASE}/user/progress/stats`);
+      if (response.ok) {
+        const data = await response.json();
+        setProgressPercentage(data.progress_percentage || 0);
+        setProgressNotes(data.notes || '');
+      }
+    } catch (err) {
+      // Progress stats might not exist yet
+    }
+  };
+
+  const handleBeforePhotoChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setBeforePhoto(e.target.files[0]);
+    }
+  };
+
+  const handleAfterPhotoChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setAfterPhoto(e.target.files[0]);
+    }
+  };
+
+  const uploadPhoto = async (file, type) => {
+    if (!file) {
+      setError('Please select a photo');
+      return;
+    }
+
+    try {
+      if (type === 'before') setUploadingBefore(true);
+      if (type === 'after') setUploadingAfter(true);
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('photo_type', type);
+
+      const token = getToken();
+      const response = await fetch(`${API_BASE}/user/progress/upload-photo`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      if (response.ok) {
+        setSuccess(`${type === 'before' ? 'Before' : 'After'} photo uploaded successfully`);
+        if (type === 'before') {
+          setBeforePhoto(null);
+          document.getElementById('beforePhotoInput').value = '';
+        } else {
+          setAfterPhoto(null);
+          document.getElementById('afterPhotoInput').value = '';
+        }
+        fetchPhotos();
+        setTimeout(() => setSuccess(''), 3000);
+      } else {
+        const data = await response.json();
+        setError(data.detail || 'Upload failed');
+      }
+    } catch (err) {
+      setError('Error uploading photo: ' + err.message);
+    } finally {
+      if (type === 'before') setUploadingBefore(false);
+      if (type === 'after') setUploadingAfter(false);
+    }
+  };
+
+  const handleSaveProgress = async () => {
+    try {
+      const response = await apiFetch(`${API_BASE}/user/progress/update`, {
+        method: 'POST',
+        body: JSON.stringify({
+          progress_percentage: tempProgress,
+          notes: progressNotes
+        })
+      });
+
+      if (response.ok) {
+        setProgressPercentage(tempProgress);
+        setSuccess('Progress updated successfully');
+        setShowProgressForm(false);
+        setTimeout(() => setSuccess(''), 3000);
+      } else {
+        const data = await response.json();
+        setError(data.detail || 'Failed to update progress');
+      }
+    } catch (err) {
+      setError('Error: ' + err.message);
+    }
+  };
+
+  if (loading) return <div className="page-container"><p>Loading...</p></div>;
+
+  // Separate before and after photos
+  const beforePhotos = photos.filter(p => p.photo_type === 'before');
+  const afterPhotos = photos.filter(p => p.photo_type === 'after');
 
   return (
     <div className="page-container">
       <div className="card-container">
-        <h2>Your Progress</h2>
-        <p style={{ color: '#666', marginBottom: '20px' }}>Track your skin improvement over time with before and after photos</p>
+        <h2>Progress Tracking</h2>
+        <p style={{ color: '#666', marginBottom: '30px' }}>Track your skincare journey with before and after photos</p>
 
         {error && <div className="error-message">{error}</div>}
         {success && <div className="success-message">{success}</div>}
 
-        <div className="inspection-section">
-          <h3>Progress Comparison</h3>
-          <div className="progress-comparison">
-            <div className="photo-container">
-              <h4>Before</h4>
-              <div style={{ 
-                width: '150px', 
-                height: '150px', 
-                background: 'var(--shadow-light)', 
-                borderRadius: '8px',
+        {/* PROGRESS BAR */}
+        <div style={{ marginBottom: '30px', padding: '20px', background: '#f9f9f9', borderRadius: '8px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+            <h3 style={{ margin: 0 }}>Overall Progress</h3>
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={() => setShowProgressForm(!showProgressForm)}
+            >
+              {showProgressForm ? 'Cancel' : 'Update Progress'}
+            </button>
+          </div>
+
+          {/* Progress Bar */}
+          <div style={{ marginBottom: '10px' }}>
+            <div style={{
+              width: '100%',
+              height: '30px',
+              background: '#eee',
+              borderRadius: '15px',
+              overflow: 'hidden',
+              border: '2px solid var(--primary-rose)'
+            }}>
+              <div style={{
+                width: `${progressPercentage}%`,
+                height: '100%',
+                background: `linear-gradient(90deg, var(--primary-rose), var(--gold-accent))`,
+                transition: 'width 0.3s ease',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                margin: '0 auto'
+                color: 'white',
+                fontSize: '14px',
+                fontWeight: 'bold'
               }}>
-                <span style={{ color: '#999' }}>No photo yet</span>
+                {progressPercentage > 10 && `${progressPercentage}%`}
               </div>
             </div>
+            {progressPercentage <= 10 && (
+              <div style={{ textAlign: 'right', marginTop: '5px', fontWeight: 'bold', color: 'var(--primary-rose)' }}>
+                {progressPercentage}%
+              </div>
+            )}
+          </div>
 
-            <div className="improvement-display">
-              <h4>Overall Improvement</h4>
-              <p style={{ fontSize: '32px', color: 'var(--primary-rose)', fontWeight: 'bold', margin: '10px 0' }}>
-                {progress.improvement_percentage || 0}%
-              </p>
-              <small>Based on your progress</small>
+          {progressPercentage < 50 && (
+            <p style={{ color: '#ff9800', margin: '10px 0 0 0', fontSize: '13px' }}>
+              Keep going! You're on your way to better skin. 💪
+            </p>
+          )}
+          {progressPercentage >= 50 && progressPercentage < 80 && (
+            <p style={{ color: '#2196f3', margin: '10px 0 0 0', fontSize: '13px' }}>
+              Great progress! Your efforts are showing results. ✨
+            </p>
+          )}
+          {progressPercentage >= 80 && (
+            <p style={{ color: '#51cf66', margin: '10px 0 0 0', fontSize: '13px' }}>
+              Fantastic! You've achieved significant improvement! 🎉
+            </p>
+          )}
+
+          {/* Progress Update Form */}
+          {showProgressForm && (
+            <div style={{ marginTop: '20px', padding: '15px', background: 'white', borderRadius: '8px', border: '1px solid var(--border-light)' }}>
+              <div className="form-group">
+                <label>Progress Percentage</label>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={tempProgress}
+                    onChange={(e) => setTempProgress(parseInt(e.target.value))}
+                    style={{ flex: 1 }}
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={tempProgress}
+                    onChange={(e) => setTempProgress(Math.min(100, Math.max(0, parseInt(e.target.value) || 0)))}
+                    style={{ width: '60px' }}
+                  />
+                  <span>%</span>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Progress Notes</label>
+                <textarea
+                  value={progressNotes}
+                  onChange={(e) => setProgressNotes(e.target.value)}
+                  placeholder="e.g., Skin looks clearer, fewer breakouts, more radiant..."
+                  rows="3"
+                ></textarea>
+              </div>
+
+              <button className="btn btn-primary" onClick={handleSaveProgress}>
+                Save Progress
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* PHOTO UPLOAD SECTION */}
+        <div className="progress-upload-section" style={{ marginBottom: '30px', padding: '20px', background: '#f9f9f9', borderRadius: '8px' }}>
+          <h3>Upload Progress Photos</h3>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '20px' }}>
+            {/* BEFORE PHOTO */}
+            <div>
+              <label style={{ display: 'block', marginBottom: '10px', fontWeight: '600' }}>Before Photo</label>
+              <div style={{ border: '2px dashed #ddd', borderRadius: '8px', padding: '20px', textAlign: 'center' }}>
+                {beforePhoto ? (
+                  <div>
+                    <img
+                      src={URL.createObjectURL(beforePhoto)}
+                      alt="Before"
+                      style={{ maxHeight: '150px', borderRadius: '8px', marginBottom: '10px' }}
+                    />
+                    <p style={{ fontSize: '13px', color: '#666' }}>{beforePhoto.name}</p>
+                  </div>
+                ) : (
+                  <div>
+                    <p style={{ fontSize: '40px', marginBottom: '10px' }}>📸</p>
+                    <p style={{ color: '#666' }}>Select a before photo</p>
+                  </div>
+                )}
+              </div>
+
+              <input
+                id="beforePhotoInput"
+                type="file"
+                accept="image/*"
+                onChange={handleBeforePhotoChange}
+                style={{ marginTop: '10px', display: 'block', width: '100%' }}
+              />
+
+              <button
+                className="btn btn-primary"
+                onClick={() => uploadPhoto(beforePhoto, 'before')}
+                disabled={!beforePhoto || uploadingBefore}
+                style={{ width: '100%', marginTop: '10px' }}
+              >
+                {uploadingBefore ? 'Uploading...' : 'Upload Before Photo'}
+              </button>
             </div>
 
-            <div className="photo-container">
-              <h4>Current</h4>
-              <div style={{ 
-                width: '150px', 
-                height: '150px', 
-                background: 'var(--shadow-light)', 
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto'
-              }}>
-                <span style={{ color: '#999' }}>No photo yet</span>
+            {/* AFTER PHOTO */}
+            <div>
+              <label style={{ display: 'block', marginBottom: '10px', fontWeight: '600' }}>After Photo</label>
+              <div style={{ border: '2px dashed #ddd', borderRadius: '8px', padding: '20px', textAlign: 'center' }}>
+                {afterPhoto ? (
+                  <div>
+                    <img
+                      src={URL.createObjectURL(afterPhoto)}
+                      alt="After"
+                      style={{ maxHeight: '150px', borderRadius: '8px', marginBottom: '10px' }}
+                    />
+                    <p style={{ fontSize: '13px', color: '#666' }}>{afterPhoto.name}</p>
+                  </div>
+                ) : (
+                  <div>
+                    <p style={{ fontSize: '40px', marginBottom: '10px' }}>📸</p>
+                    <p style={{ color: '#666' }}>Select an after photo</p>
+                  </div>
+                )}
               </div>
+
+              <input
+                id="afterPhotoInput"
+                type="file"
+                accept="image/*"
+                onChange={handleAfterPhotoChange}
+                style={{ marginTop: '10px', display: 'block', width: '100%' }}
+              />
+
+              <button
+                className="btn btn-primary"
+                onClick={() => uploadPhoto(afterPhoto, 'after')}
+                disabled={!afterPhoto || uploadingAfter}
+                style={{ width: '100%', marginTop: '10px' }}
+              >
+                {uploadingAfter ? 'Uploading...' : 'Upload After Photo'}
+              </button>
             </div>
           </div>
         </div>
 
-        <div className="inspection-section">
-          <h3>Upload Progress Photos</h3>
-          <div className="form-row">
-            <div className="form-group">
-              <label>Before Photo</label>
-              <input type="file" accept="image/*" />
-              <small>Upload your starting photo</small>
-            </div>
-            <div className="form-group">
-              <label>Current Photo</label>
-              <input type="file" accept="image/*" />
-              <small>Upload your latest photo</small>
+        {/* BEFORE/AFTER COMPARISON */}
+        {beforePhotos.length > 0 && afterPhotos.length > 0 && (
+          <div style={{ marginBottom: '30px' }}>
+            <h3>Before & After Comparison</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '15px' }}>
+              <div>
+                <h4 style={{ textAlign: 'center', marginBottom: '10px' }}>Before</h4>
+                <img
+                  src={`http://127.0.0.1:8000${beforePhotos[0].image_url}`}
+                  alt="Before"
+                  style={{ width: '100%', borderRadius: '8px', border: '2px solid #ddd' }}
+                />
+              </div>
+              <div>
+                <h4 style={{ textAlign: 'center', marginBottom: '10px' }}>After</h4>
+                <img
+                  src={`http://127.0.0.1:8000${afterPhotos[0].image_url}`}
+                  alt="After"
+                  style={{ width: '100%', borderRadius: '8px', border: '2px solid #51cf66' }}
+                />
+              </div>
             </div>
           </div>
-          <button className="btn btn-primary">Upload Photos</button>
+        )}
+
+        {/* GALLERY */}
+        <div>
+          <h3>Your Progress Gallery</h3>
+          {photos.length === 0 ? (
+            <div style={{ padding: '20px', background: '#f9f9f9', borderRadius: '8px', textAlign: 'center' }}>
+              <p>No photos uploaded yet</p>
+              <p style={{ fontSize: '13px', color: '#999' }}>Upload photos above to start tracking progress</p>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '15px', marginTop: '15px' }}>
+              {photos.map((photo, idx) => (
+                <div key={idx} style={{ borderRadius: '8px', overflow: 'hidden', border: photo.photo_type === 'after' ? '3px solid #51cf66' : '2px solid #ddd' }}>
+                  <img
+                    src={`http://127.0.0.1:8000${photo.image_url}`}
+                    alt={`Progress ${idx + 1}`}
+                    style={{ width: '100%', height: '150px', objectFit: 'cover' }}
+                  />
+                  <div style={{ padding: '8px', background: '#f9f9f9' }}>
+                    <p style={{ margin: '0', fontSize: '12px', fontWeight: '600', textTransform: 'capitalize' }}>
+                      {photo.photo_type}
+                    </p>
+                    <p style={{ margin: '3px 0', fontSize: '11px', color: '#999' }}>
+                      {new Date(photo.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -1136,43 +1793,54 @@ function Progress() {
 // CONSULT EXPERT
 // ============================================
 function ConsultExpert() {
-  const [dermatologists, setDermatologists] = useState([
-    { id: 1, name: 'Dr. Sarah Mitchell', specialty: 'Dermatologist', experience: '15 years' },
-    { id: 2, name: 'Dr. Emily Chen', specialty: 'Skincare Specialist', experience: '12 years' },
-    { id: 3, name: 'Dr. James Cooper', specialty: 'Clinical Dermatologist', experience: '18 years' }
-  ]);
-  const [selectedDerm, setSelectedDerm] = useState(null);
-  const [reason, setReason] = useState('');
+  const [formData, setFormData] = useState({
+    request_type: 'consultant',
+    title: '',
+    description: ''
+  });
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const handleSubmitRequest = async () => {
-    if (!selectedDerm || !reason) {
-      setError('Please select a dermatologist and provide a reason');
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!formData.title || !formData.description) {
+      setError('Please fill in all fields');
       return;
     }
 
+    setLoading(true);
+    setError('');
+
     try {
-      const response = await apiFetch(`${API_BASE}/consultation/request`, {
+      const response = await apiFetch(`${API_BASE}/user/consultation/submit`, {
         method: 'POST',
-        body: JSON.stringify({
-          dermatologist_id: selectedDerm,
-          reason: reason,
-          status: 'pending'
-        })
+        body: JSON.stringify(formData)
       });
 
       if (response.ok) {
-        setSuccess('Consultation request submitted successfully');
-        setSelectedDerm(null);
-        setReason('');
-        setTimeout(() => setSuccess(''), 3000);
+        const data = await response.json();
+        setSuccess('Consultation request submitted successfully! Admin will review and assign a professional.');
+        setFormData({
+          request_type: 'consultant',
+          title: '',
+          description: ''
+        });
+        setTimeout(() => setSuccess(''), 5000);
       } else {
         const data = await response.json();
         setError(data.detail || 'Failed to submit request');
       }
     } catch (err) {
       setError('Error: ' + err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -1180,50 +1848,67 @@ function ConsultExpert() {
     <div className="page-container">
       <div className="card-container">
         <h2>Consult an Expert</h2>
-        <p style={{ color: '#666', marginBottom: '20px' }}>Connect with professional dermatologists for personalized advice</p>
+        <p style={{ color: '#666', marginBottom: '20px' }}>
+          Request a consultation with a skincare consultant or dermatologist for personalized advice
+        </p>
 
         {error && <div className="error-message">{error}</div>}
         {success && <div className="success-message">{success}</div>}
 
-        <div className="inspection-section">
-          <h3>Select a Dermatologist</h3>
-          <div className="patients-roster">
-            {dermatologists.map(derm => (
-              <div 
-                key={derm.id}
-                className="patient-roster-card"
-                onClick={() => setSelectedDerm(derm.id)}
-                style={{
-                  cursor: 'pointer',
-                  border: selectedDerm === derm.id ? '2px solid var(--primary-rose)' : '2px solid var(--border-light)',
-                  background: selectedDerm === derm.id ? 'var(--shadow-light)' : 'var(--white)'
-                }}
-              >
-                <div className="patient-header">
-                  <h4>{derm.name}</h4>
-                  {selectedDerm === derm.id && <span style={{ color: 'var(--primary-rose)' }}>✓ Selected</span>}
-                </div>
-                <p><strong>Specialty:</strong> {derm.specialty}</p>
-                <p><strong>Experience:</strong> {derm.experience}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="inspection-section">
-          <h3>Reason for Consultation</h3>
+        <form onSubmit={handleSubmit} className="consultation-form">
           <div className="form-group">
-            <label>Tell us why you need consultation</label>
-            <textarea 
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              placeholder="Describe your skin concerns, symptoms, or goals..."
+            <label>What type of professional do you need?</label>
+            <select
+              name="request_type"
+              value={formData.request_type}
+              onChange={handleInputChange}
+            >
+              <option value="consultant">Skincare Consultant</option>
+              <option value="dermatologist">Dermatologist (Medical Expert)</option>
+            </select>
+            <small style={{ color: '#999', display: 'block', marginTop: '5px' }}>
+              {formData.request_type === 'consultant' 
+                ? 'Consultants provide skincare advice and routine recommendations'
+                : 'Dermatologists provide medical expertise for skin conditions'}
+            </small>
+          </div>
+
+          <div className="form-group">
+            <label>Issue Title</label>
+            <input
+              type="text"
+              name="title"
+              value={formData.title}
+              onChange={handleInputChange}
+              placeholder="e.g., Persistent Acne, Wrinkle Prevention, Sensitive Skin"
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Describe Your Concern</label>
+            <textarea
+              name="description"
+              value={formData.description}
+              onChange={handleInputChange}
+              placeholder="Provide details about your skin condition, symptoms, and what you've tried so far..."
               rows="5"
             ></textarea>
           </div>
-        </div>
 
-        <button className="btn btn-primary" onClick={handleSubmitRequest}>Submit Request</button>
+          <button type="submit" className="btn btn-primary" disabled={loading}>
+            {loading ? 'Submitting...' : 'Submit Consultation Request'}
+          </button>
+        </form>
+
+        <div style={{ marginTop: '30px', padding: '15px', background: '#f9f9f9', borderRadius: '8px' }}>
+          <h4>What Happens Next?</h4>
+          <ol style={{ margin: '10px 0', paddingLeft: '20px', lineHeight: '1.8' }}>
+            <li>Your request is submitted to our admin team</li>
+            <li>Admin assigns an appropriate professional (consultant or dermatologist)</li>
+            <li>The professional reviews your case</li>
+            <li>You receive personalized recommendations in "My Consultation" section</li>
+          </ol>
+        </div>
       </div>
     </div>
   );
@@ -1233,94 +1918,187 @@ function ConsultExpert() {
 // MY CONSULTANT
 // ============================================
 function MyConsultant() {
-  const [consultant, setConsultant] = useState(null);
-  const [recommendations, setRecommendations] = useState([]);
+  const [requests, setRequests] = useState([]);
+  const [recommendation, setRecommendation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState('requests');
 
   useEffect(() => {
-    fetchConsultant();
+    fetchData();
   }, []);
 
-  const fetchConsultant = async () => {
+  const fetchData = async () => {
     try {
-      const response = await apiFetch(`${API_BASE}/consultation/assigned-consultant`);
-      const data = await response.json();
-      if (data.consultant) {
-        setConsultant(data.consultant);
-        setRecommendations(data.recommendations || []);
-      }
+      // Fetch all requests
+      const reqResponse = await apiFetch(`${API_BASE}/user/consultation/my-requests`);
+      const reqData = await reqResponse.json();
+      setRequests(reqData.requests || []);
+
+      // Fetch latest recommendation
+      const recResponse = await apiFetch(`${API_BASE}/user/consultation/latest-recommendation`);
+      const recData = await recResponse.json();
+      setRecommendation(recData);
+
       setLoading(false);
     } catch (err) {
-      setError('No consultant assigned yet');
+      setError('Failed to load consultation data');
       setLoading(false);
+    }
+  };
+
+  const handleCancel = async (requestId) => {
+    if (window.confirm('Cancel this consultation request?')) {
+      try {
+        const response = await apiFetch(`${API_BASE}/user/consultation/request/${requestId}/cancel`, {
+          method: 'PUT'
+        });
+
+        if (response.ok) {
+          alert('Request cancelled');
+          fetchData();
+        } else {
+          alert('Cannot cancel this request');
+        }
+      } catch (err) {
+        alert('Error cancelling request');
+      }
     }
   };
 
   if (loading) return <div className="page-container"><p>Loading...</p></div>;
 
-  if (!consultant) {
-    return (
-      <div className="page-container">
-        <div className="card-container">
-          <h2>My Consultant</h2>
-          <div style={{ padding: '40px', textAlign: 'center', background: 'var(--shadow-light)', borderRadius: '8px' }}>
-            <p style={{ fontSize: '16px', color: '#666' }}>No consultant assigned yet</p>
-            <p style={{ fontSize: '14px', color: '#999', marginTop: '10px' }}>
-              Submit a consultation request to get started
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="page-container">
       <div className="card-container">
-        <h2>My Consultant</h2>
+        <h2>My Consultation</h2>
+        <p style={{ color: '#666', marginBottom: '20px' }}>
+          Track your consultation requests and view professional recommendations
+        </p>
 
-        <div className="inspection-section">
-          <h3>Your Assigned Expert</h3>
-          <div className="patient-roster-card" style={{ borderColor: 'var(--primary-rose)' }}>
-            <div className="patient-header">
-              <h4>{consultant.first_name} {consultant.last_name}</h4>
-              <div className="assigned-badge">Assigned</div>
-            </div>
-            <p><strong>Email:</strong> {consultant.email}</p>
-            <p><strong>Phone:</strong> {consultant.phone}</p>
-            <p style={{ fontSize: '13px', color: '#999', marginTop: '10px' }}>
-              Assigned on: {new Date().toLocaleDateString()}
-            </p>
-          </div>
+        {error && <div className="error-message">{error}</div>}
+
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '2px solid var(--border-light)', paddingBottom: '10px' }}>
+          <button
+            className={`btn ${activeTab === 'requests' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => setActiveTab('requests')}
+          >
+            My Requests ({requests.length})
+          </button>
+          <button
+            className={`btn ${activeTab === 'recommendations' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => setActiveTab('recommendations')}
+          >
+            Recommendations
+          </button>
         </div>
 
-        {recommendations.length > 0 && (
-          <div className="inspection-section">
-            <h3>Latest Recommendations</h3>
-            {recommendations.map((rec, idx) => (
-              <div key={idx} style={{
-                background: 'var(--white)',
-                border: '1px solid var(--border-light)',
-                borderRadius: '8px',
-                padding: '15px',
-                marginBottom: '15px'
-              }}>
-                <p style={{ color: 'var(--text-dark)', lineHeight: '1.8' }}>
-                  {rec.recommendation_text}
-                </p>
-                {rec.product_suggestions && (
-                  <p style={{ marginTop: '10px', color: '#666' }}>
-                    <strong>Suggested Products:</strong> {rec.product_suggestions}
-                  </p>
-                )}
-                {rec.routine_suggestions && (
-                  <p style={{ color: '#666' }}>
-                    <strong>Routine Changes:</strong> {rec.routine_suggestions}
-                  </p>
-                )}
+        {activeTab === 'requests' && (
+          <div>
+            {requests.length === 0 ? (
+              <div style={{ padding: '20px', background: '#f9f9f9', borderRadius: '8px', textAlign: 'center' }}>
+                <p>No consultation requests yet</p>
+                <p style={{ fontSize: '13px', color: '#999' }}>Go to "Consult Expert" to submit one</p>
               </div>
-            ))}
+            ) : (
+              <div className="requests-timeline">
+                {requests.map(req => (
+                  <div key={req.request_id} className="timeline-item" style={{ marginBottom: '20px', padding: '15px', border: '1px solid var(--border-light)', borderRadius: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                      <div style={{ flex: 1 }}>
+                        <h4>{req.title}</h4>
+                        <p style={{ color: '#666', marginBottom: '10px' }}>{req.description}</p>
+                      </div>
+                      <span className={`status status-${req.status}`} style={{ whiteSpace: 'nowrap', marginLeft: '10px' }}>
+                        {req.status.toUpperCase()}
+                      </span>
+                    </div>
+
+                    <div style={{ marginTop: '10px', fontSize: '13px', color: '#999' }}>
+                      <p><strong>Type:</strong> {req.request_type}</p>
+                      <p><strong>Submitted:</strong> {new Date(req.requested_date).toLocaleDateString()}</p>
+                      {req.status === 'pending' && (
+                        <p style={{ color: '#ff9800', marginTop: '10px' }}>
+                          ⏳ Waiting for admin to assign a professional
+                        </p>
+                      )}
+                      {req.status === 'assigned' && (
+                        <p style={{ color: '#2196f3', marginTop: '10px' }}>
+                          👤 Professional is reviewing your case
+                        </p>
+                      )}
+                      {req.status === 'completed' && (
+                        <p style={{ color: '#51cf66', marginTop: '10px' }}>
+                          ✅ Treatment plan is ready
+                        </p>
+                      )}
+                    </div>
+
+                    {req.status === 'pending' && (
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() => handleCancel(req.request_id)}
+                        style={{ marginTop: '10px' }}
+                      >
+                        Cancel Request
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'recommendations' && (
+          <div>
+            {recommendation?.has_recommendation ? (
+              <div className="recommendation-card" style={{ padding: '20px', background: '#fff9f6', border: '2px solid var(--primary-rose)', borderRadius: '8px' }}>
+                <div style={{ marginBottom: '15px' }}>
+                  <h3>{recommendation.recommendation.professional_role}</h3>
+                  <p style={{ color: '#666', fontSize: '14px' }}>
+                    <strong>From:</strong> {recommendation.recommendation.professional_name}
+                  </p>
+                  <p style={{ color: '#999', fontSize: '13px' }}>
+                    {new Date(recommendation.recommendation.sent_date).toLocaleDateString()}
+                  </p>
+                </div>
+
+                <div className="recommendation-sections">
+                  <div style={{ marginBottom: '15px' }}>
+                    <h4>Assessment & Recommendations</h4>
+                    <p style={{ lineHeight: '1.6', color: '#333' }}>
+                      {recommendation.recommendation.recommendation_text}
+                    </p>
+                  </div>
+
+                  {recommendation.recommendation.product_suggestions && (
+                    <div style={{ marginBottom: '15px' }}>
+                      <h4>Suggested Products</h4>
+                      <p style={{ lineHeight: '1.6', color: '#333', whiteSpace: 'pre-wrap' }}>
+                        {recommendation.recommendation.product_suggestions}
+                      </p>
+                    </div>
+                  )}
+
+                  {recommendation.recommendation.routine_suggestions && (
+                    <div>
+                      <h4>Routine Guidelines</h4>
+                      <p style={{ lineHeight: '1.6', color: '#333', whiteSpace: 'pre-wrap' }}>
+                        {recommendation.recommendation.routine_suggestions}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div style={{ padding: '20px', background: '#f9f9f9', borderRadius: '8px', textAlign: 'center' }}>
+                <p>No recommendations yet</p>
+                <p style={{ fontSize: '13px', color: '#999' }}>
+                  Once a professional reviews your consultation request, recommendations will appear here
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>

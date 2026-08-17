@@ -30,28 +30,71 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const register = async (userData) => {
-    try {
-      const response = await authAPI.register(userData);
-      
-      if (response.data && response.data.access_token) {
-        localStorage.setItem('token', response.data.access_token);
-        
-        const userWithRole = {
-          ...response.data.user,
-          role_id: userData.role_id
-        };
-        setUser(userWithRole);
-        localStorage.setItem('userRole', userData.role_id);
-        
-        return { success: true, user: userWithRole };
-      }
-    } catch (error) {
-      const errorMsg = error.response?.data?.detail || error.message || 'Registration failed';
-      console.error('Registration error:', errorMsg);
-      return { success: false, error: errorMsg };
+const register = async (userData) => {
+  try {
+    console.log('Registration data:', userData);
+    
+    const payload = {
+      email: userData.email,
+      password: userData.password,
+      username: userData.username,
+      first_name: userData.first_name,
+      last_name: userData.last_name,
+      role_id: userData.role_id || 1
+    };
+    
+    console.log('Sending payload:', JSON.stringify(payload, null, 2));
+    
+    const response = await authAPI.register(payload);
+    
+    console.log('Register response:', response.data);
+    
+    // Handle both token and non-token responses
+    if (response.data?.access_token) {
+      // Admin auto-approved - store token and user
+      localStorage.setItem('token', response.data.access_token);
+      localStorage.setItem('userRole', response.data.user.role_id);
+      setUser(response.data.user);
+      return { success: true, user: response.data.user };
+    } else if (response.data?.is_approved === false) {
+      // Non-admin pending approval
+      return { 
+        success: true, 
+        user: response.data.user,
+        message: response.data.message || 'Registration successful. Awaiting admin approval.'
+      };
+    } else if (response.data?.message) {
+      // Generic success
+      return { 
+        success: true, 
+        message: response.data.message,
+        user: response.data.user
+      };
     }
-  };
+    
+    return { success: false, error: 'Registration failed' };
+  } catch (error) {
+    console.error('Registration error:', error);
+    
+    let errorMsg = 'Registration failed';
+    
+    if (error.response?.data?.detail) {
+      if (typeof error.response.data.detail === 'string') {
+        errorMsg = error.response.data.detail;
+      } else if (Array.isArray(error.response.data.detail)) {
+        errorMsg = error.response.data.detail.map(err => {
+          if (typeof err === 'string') return err;
+          if (err.msg) return `${err.msg}`;
+          return JSON.stringify(err);
+        }).join('; ');
+      }
+    } else if (error.message) {
+      errorMsg = error.message;
+    }
+    
+    return { success: false, error: errorMsg };
+  }
+};
 
   // ✅ SIMPLIFIED LOGIN
   const login = async (email, password) => {

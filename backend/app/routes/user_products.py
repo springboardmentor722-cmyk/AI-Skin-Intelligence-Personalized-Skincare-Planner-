@@ -1,218 +1,234 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from app.database import get_db
 from app.models.user import User
-from app.utils.rbac import get_current_user_with_role
+from app.utils.rbac import get_current_user_with_role, require_user_role
 
-router = APIRouter(prefix="/api/products", tags=["Products"])
+router = APIRouter(prefix="/api/user/products", tags=["Products"])
 
-# GET ALL PRODUCTS WITH SEARCH & FILTER
-@router.get("/")
-async def get_products(
-    search: str = Query(None),
-    category: str = Query(None),
-    min_price: float = Query(None),
-    max_price: float = Query(None),
-    min_rating: float = Query(None),
-    limit: int = Query(20),
-    offset: int = Query(0),
+# ============================================
+# GET RECOMMENDED PRODUCTS (MUST BE FIRST!)
+# ============================================
+@router.get("/recommended")
+async def get_recommended_products(
+    current_user: User = Depends(require_user_role),
     db: Session = Depends(get_db)
 ):
-    """Get products with search, filter, and pagination"""
+    """Get recommended products based on user's skin profile"""
     try:
-        query = "SELECT product_id, brand, name, price, review_score, n_of_reviews FROM products WHERE 1=1"
-        params = {}
+        # 1️⃣ GET USER'S SKIN PROFILE
+        skin_profile = db.execute(
+            text("""
+                SELECT skin_type, allergies, sensitivities
+                FROM user_profiles
+                WHERE user_id = :user_id
+            """),
+            {"user_id": current_user.user_id}
+        ).first()
         
-        # Search by name or brand
-        if search:
-            query += " AND (LOWER(name) LIKE LOWER(:search) OR LOWER(brand) LIKE LOWER(:search))"
-            params["search"] = f"%{search}%"
+        if not skin_profile:
+            # No skin profile, return top rated products
+            products = db.execute(
+                text("""
+                    SELECT product_id, name, brand, price, review_score, size
+                    FROM products
+                    WHERE review_score IS NOT NULL
+                    ORDER BY review_score DESC
+                    LIMIT 10
+                """)
+            ).all()
+            
+            product_list = [
+                {
+                    "product_id": p[0],
+                    "name": p[1],
+                    "brand": p[2],
+                    "price": float(p[3]) if p[3] else 0,
+                    "rating": float(p[4]) if p[4] else 0,
+                    "size": p[5],
+                    "reason": "Highly Rated Product"
+                }
+                for p in products
+            ]
+            
+            return {"recommended_products": product_list, "count": len(product_list)}
         
-        # Filter by category
-        if category:
-            category_col = f"category_{category.lower()}"
-            query += f" AND {category_col} = true"
+        skin_type = skin_profile[0]
+        allergies = skin_profile[1] or ""
+        sensitivities = skin_profile[2] or ""
         
-        # Price range
-        if min_price is not None:
-            query += " AND price >= :min_price"
-            params["min_price"] = min_price
-        if max_price is not None:
-            query += " AND price <= :max_price"
-            params["max_price"] = max_price
-        
-        # Rating filter
-        if min_rating is not None:
-            query += " AND review_score >= :min_rating"
-            params["min_rating"] = min_rating
-        
-        # Add pagination
-        query += " LIMIT :limit OFFSET :offset"
-        params["limit"] = limit
-        params["offset"] = offset
-        
-        results = db.execute(text(query), params).all()
-        
-        products = [
-            {
-                "product_id": r[0],
-                "brand": r[1],
-                "name": r[2],
-                "price": float(r[3]),
-                "rating": float(r[4]) if r[4] else 0,
-                "reviews": r[5]
+        # 2️⃣ BUILD CATEGORY FILTER BASED ON SKIN TYPE
+        category_filters = {
+            "Oily": {
+                "categories": ["category_face_wash", "category_toners", "category_serums"],
+                "reason": "Ideal for Oily Skin - Controls oil & balances"
+            },
+            "Dry": {
+                "categories": ["category_moisturizer", "category_oils", "category_serums"],
+                "reason": "Hydrating Solution - Deep moisture for dry skin"
+            },
+            "Combination": {
+                "categories": ["category_moisturizer", "category_face_wash", "category_serums"],
+                "reason": "Balanced Care - Works for combination skin"
+            },
+            "Normal": {
+                "categories": ["category_moisturizer", "category_serums", "category_face_wash"],
+                "reason": "Perfect for Normal Skin - Maintains healthy balance"
+            },
+            "Sensitive": {
+                "categories": ["category_face_wash", "category_serums"],
+                "reason": "Gentle Formula - Soothing for sensitive skin"
             }
-            for r in results
-        ]
+        }
         
-        return {"products": products, "count": len(products)}
+        # Get recommendation reason and categories
+        reason = "Recommended Product"
+        categories_to_query = []
+        
+        if skin_type in category_filters:
+            reason = category_filters[skin_type]["reason"]
+            categories_to_query = category_filters[skin_type]["categories"]
+        
+        # Add sunscreen for all skin types
+        if "category_sunscreen" not in categories_to_query:
+            categories_to_query.append("category_sunscreen")
+        
+        # 3️⃣ BUILD QUERY TO FILTER PRODUCTS
+        # Create WHERE clause for categories
+        category_conditions = " OR ".join([f"{cat} = true" for cat in categories_to_query])
+        
+        query = f"""
+            SELECT product_id, name, brand, price, review_score, size,
+                   category_face_wash, category_moisturizer, category_serums,
+                   category_sunscreen, category_toners, category_oils
+            FROM products
+            WHERE ({category_conditions})
+            AND review_score IS NOT NULL
+            AND review_score > 0
+            ORDER BY review_score DESC
+            LIMIT 10
+        """
+        
+        print(f"[RECOMMENDED] Skin Type: {skin_type}, Query: {query[:100]}...")
+        
+        products = db.execute(text(query)).all()
+        
+        print(f"[RECOMMENDED] Found {len(products)} products")
+        
+        product_list = []
+        for p in products:
+            product_id, name, brand, price, rating, size = p[0:6]
+            
+            # Build category labels
+            category_labels = []
+            if p[6]:  # face_wash
+                category_labels.append("Face Wash")
+            if p[7]:  # moisturizer
+                category_labels.append("Moisturizer")
+            if p[8]:  # serums
+                category_labels.append("Serum")
+            if p[9]:  # sunscreen
+                category_labels.append("Sunscreen")
+            if p[10]:  # toners
+                category_labels.append("Toner")
+            if p[11]:  # oils
+                category_labels.append("Oil")
+            
+            category_str = " + ".join(category_labels[:2])  # Show first 2 categories
+            
+            # Build complete reason
+            if category_str:
+                full_reason = f"{reason} - {category_str}"
+            else:
+                full_reason = reason
+            
+            product_list.append({
+                "product_id": product_id,
+                "name": name,
+                "brand": brand,
+                "price": float(price) if price else 0,
+                "rating": float(rating) if rating else 0,
+                "size": size,
+                "reason": full_reason
+            })
+        
+        return {"recommended_products": product_list, "count": len(product_list)}
+    
     except Exception as e:
+        print(f"Error fetching recommended products: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-# GET PRODUCT DETAILS
+# ============================================
+# GET ALL PRODUCTS
+# ============================================
+@router.get("/")
+async def get_products(
+    current_user: User = Depends(require_user_role),
+    limit: int = 100,
+    db: Session = Depends(get_db)
+):
+    """Get all available products"""
+    try:
+        products = db.execute(
+            text("""
+                SELECT product_id, name, brand, price, review_score, size, category_moisturizer,
+                       category_face_wash, category_serums, category_sunscreen, category_masks
+                FROM products
+                LIMIT :limit
+            """),
+            {"limit": limit}
+        ).all()
+        
+        product_list = [
+            {
+                "product_id": p[0],
+                "name": p[1],
+                "brand": p[2],
+                "price": float(p[3]) if p[3] else 0,
+                "rating": float(p[4]) if p[4] else 0,
+                "size": p[5],
+                "category": "Moisturizer" if p[6] else "Face Wash" if p[7] else "Serum" if p[8] else "Sunscreen" if p[9] else "Mask" if p[10] else "Other"
+            }
+            for p in products
+        ]
+        
+        return {"products": product_list, "count": len(product_list)}
+    except Exception as e:
+        print(f"Error fetching products: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ============================================
+# GET PRODUCT DETAILS (GENERIC - MUST BE LAST!)
+# ============================================
 @router.get("/{product_id}")
 async def get_product_details(
     product_id: int,
+    current_user: User = Depends(require_user_role),
     db: Session = Depends(get_db)
 ):
-    """Get detailed product information"""
+    """Get details of a specific product"""
     try:
-        result = db.execute(
+        product = db.execute(
             text("""
-                SELECT product_id, brand, name, price, review_score, n_of_reviews, 
-                       size, clean_product, price_per_ounce
-                FROM products WHERE product_id = :product_id
+                SELECT product_id, name, brand, price, review_score, size, clean_product
+                FROM products
+                WHERE product_id = :product_id
             """),
             {"product_id": product_id}
         ).first()
         
-        if not result:
+        if not product:
             raise HTTPException(status_code=404, detail="Product not found")
         
         return {
-            "product_id": result[0],
-            "brand": result[1],
-            "name": result[2],
-            "price": float(result[3]),
-            "rating": float(result[4]) if result[4] else 0,
-            "reviews": result[5],
-            "size": result[6],
-            "clean_product": bool(result[7]),
-            "price_per_ounce": float(result[8]) if result[8] else 0
+            "product_id": product[0],
+            "name": product[1],
+            "brand": product[2],
+            "price": float(product[3]) if product[3] else 0,
+            "rating": float(product[4]) if product[4] else 0,
+            "size": product[5],
+            "is_clean": product[6]
         }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-# SAVE FAVORITE PRODUCT
-@router.post("/favorite/{product_id}")
-async def save_favorite(
-    product_id: int,
-    current_user: User = Depends(get_current_user_with_role),
-    db: Session = Depends(get_db)
-):
-    """Save product as favorite"""
-    try:
-        # Check if already favorited
-        existing = db.execute(
-            text("""
-                SELECT favorite_id FROM favorite_products 
-                WHERE user_id = :user_id AND product_id = :product_id
-            """),
-            {"user_id": current_user.user_id, "product_id": product_id}
-        ).first()
-        
-        if existing:
-            raise HTTPException(status_code=400, detail="Already added to favorites")
-        
-        db.execute(
-            text("""
-                INSERT INTO favorite_products (user_id, product_id, saved_date)
-                VALUES (:user_id, :product_id, CURRENT_TIMESTAMP)
-            """),
-            {"user_id": current_user.user_id, "product_id": product_id}
-        )
-        db.commit()
-        
-        return {"message": "Added to favorites"}
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-
-# REMOVE FAVORITE PRODUCT
-@router.delete("/favorite/{product_id}")
-async def remove_favorite(
-    product_id: int,
-    current_user: User = Depends(get_current_user_with_role),
-    db: Session = Depends(get_db)
-):
-    """Remove product from favorites"""
-    try:
-        db.execute(
-            text("""
-                DELETE FROM favorite_products 
-                WHERE user_id = :user_id AND product_id = :product_id
-            """),
-            {"user_id": current_user.user_id, "product_id": product_id}
-        )
-        db.commit()
-        
-        return {"message": "Removed from favorites"}
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-
-# GET USER'S FAVORITE PRODUCTS
-@router.get("/favorites/list")
-async def get_favorites(
-    current_user: User = Depends(get_current_user_with_role),
-    db: Session = Depends(get_db)
-):
-    """Get user's favorite products"""
-    try:
-        results = db.execute(
-            text("""
-                SELECT p.product_id, p.brand, p.name, p.price, p.review_score
-                FROM favorite_products fp
-                JOIN products p ON fp.product_id = p.product_id
-                WHERE fp.user_id = :user_id
-                ORDER BY fp.saved_date DESC
-            """),
-            {"user_id": current_user.user_id}
-        ).all()
-        
-        products = [
-            {
-                "product_id": r[0],
-                "brand": r[1],
-                "name": r[2],
-                "price": float(r[3]),
-                "rating": float(r[4]) if r[4] else 0
-            }
-            for r in results
-        ]
-        
-        return {"favorites": products, "count": len(products)}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-# CHECK IF PRODUCT IS FAVORITED
-@router.get("/favorite/{product_id}/status")
-async def check_favorite(
-    product_id: int,
-    current_user: User = Depends(get_current_user_with_role),
-    db: Session = Depends(get_db)
-):
-    """Check if product is favorited"""
-    try:
-        result = db.execute(
-            text("""
-                SELECT favorite_id FROM favorite_products 
-                WHERE user_id = :user_id AND product_id = :product_id
-            """),
-            {"user_id": current_user.user_id, "product_id": product_id}
-        ).first()
-        
-        return {"is_favorited": bool(result)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

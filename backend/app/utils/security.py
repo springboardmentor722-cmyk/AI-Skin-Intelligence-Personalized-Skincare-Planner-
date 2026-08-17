@@ -6,10 +6,10 @@ from jose import JWTError, jwt
 # Password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# JWT Settings
-SECRET_KEY = "your-secret-key-change-this-in-production-12345"
+# ✅ JWT Settings - UNIFIED SECRET KEY
+SECRET_KEY = "glow-thrive-skincare-ai-secret-key-2024"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 1440  # 24 hours
 
 
 def hash_password(password: str) -> str:
@@ -35,6 +35,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     
     try:
         encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+        print(f"Token created successfully with key: {SECRET_KEY[:20]}...")
         return encoded_jwt
     except Exception as e:
         print(f"Token creation error: {str(e)}")
@@ -45,6 +46,7 @@ def verify_token(token: str) -> Optional[dict]:
     """Verify JWT token"""
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        print(f"Token verified successfully")
         return payload
     except JWTError as e:
         print(f"Token verification error: {str(e)}")

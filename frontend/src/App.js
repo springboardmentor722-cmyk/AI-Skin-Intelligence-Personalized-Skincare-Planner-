@@ -1,142 +1,102 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, AuthContext } from './context/AuthContext';
+import React, { useContext } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthContext } from './context/AuthContext';
 import Landing from './pages/Landing';
 import RoleAuth from './pages/RoleAuth';
-import UserAssessment from './pages/UserAssessment';
 import UserDashboard from './pages/UserDashboard';
-import DermatologistApplication from './pages/DermatologistApplication';
-import ConsultantApplication from './pages/ConsultantApplication';
-import AdminApplication from './pages/AdminApplication';
-import DermatologistDashboard from './pages/DermatologistDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import ConsultantDashboard from './pages/ConsultantDashboard';
-import Dashboard from './pages/Dashboard';
-import Profile from './pages/Profile';
-import Lifestyle from './pages/Lifestyle';
-import './App.css';
-import './styles/theme.css';
+import DermatologistDashboard from './pages/DermatologistDashboard';
+import './styles/Dashboard.css';
+import './styles/Auth.css';
+import './styles/Landing.css';
 
-function ProtectedRoute({ children, requiredRole }) {
-  const { user, loading } = React.useContext(AuthContext);
-
-  if (loading) {
-    return <div className="loading">Loading...</div>;
-  }
+// ============================================
+// PROTECTED ROUTE COMPONENT
+// ============================================
+function ProtectedRoute({ children, requiredRole = null }) {
+  const { user } = useContext(AuthContext);
 
   if (!user) {
-    return <Navigate to="/" />;
+    return <Navigate to="/" replace />;
   }
 
   if (requiredRole && user.role_id !== requiredRole) {
-    return <Navigate to="/" />;
+    return <Navigate to="/" replace />;
   }
 
   return children;
 }
 
+// ============================================
+// MAIN APP COMPONENT
+// ============================================
 function App() {
+  const { user } = useContext(AuthContext);
+
+  const roleRedirects = {
+    1: '/user/dashboard',
+    2: '/dermatologist/dashboard',
+    3: '/consultant/dashboard',
+    4: '/admin/dashboard'
+  };
+
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<Landing />} />
-          <Route path="/auth" element={<RoleAuth />} />
+    <Router>
+      <Routes>
+        {/* LANDING PAGE - DEFAULT ROUTE */}
+        <Route 
+          path="/" 
+          element={user ? <Navigate to={roleRedirects[user.role_id] || '/user/dashboard'} /> : <Landing />} 
+        />
 
-          {/* USER ROUTES */}
-          <Route
-            path="/user/assessment"
-            element={
-              <ProtectedRoute requiredRole={1}>
-                <UserAssessment />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/user/dashboard"
-            element={
-              <ProtectedRoute requiredRole={1}>
-                <UserDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/user/profile"
-            element={
-              <ProtectedRoute requiredRole={1}>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/user/lifestyle"
-            element={
-              <ProtectedRoute requiredRole={1}>
-                <Lifestyle />
-              </ProtectedRoute>
-            }
-          />
+        {/* LOGIN/REGISTER PAGE */}
+        <Route path="/auth" element={<RoleAuth />} />
 
-          {/* DERMATOLOGIST ROUTES */}
-          <Route
-            path="/dermatologist/application"
-            element={
-              <ProtectedRoute requiredRole={2}>
-                <DermatologistApplication />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dermatologist/dashboard"
-            element={
-              <ProtectedRoute requiredRole={2}>
-                <DermatologistDashboard />
-              </ProtectedRoute>
-            }
-          />
+        {/* USER ROUTES (role_id = 1) */}
+        <Route
+          path="/user/dashboard"
+          element={
+            <ProtectedRoute requiredRole={1}>
+              <UserDashboard />
+            </ProtectedRoute>
+          }
+        />
 
-          {/* CONSULTANT ROUTES */}
-          <Route
-            path="/consultant/application"
-            element={
-              <ProtectedRoute requiredRole={3}>
-                <ConsultantApplication />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/consultant/dashboard"
-            element={
-              <ProtectedRoute requiredRole={3}>
-                <ConsultantDashboard />
-              </ProtectedRoute>
-            }
-          />
+        {/* DERMATOLOGIST ROUTES (role_id = 2) */}
+        <Route
+          path="/dermatologist/dashboard"
+          element={
+            <ProtectedRoute requiredRole={2}>
+              <DermatologistDashboard />
+            </ProtectedRoute>
+          }
+        />
 
-          {/* ADMIN ROUTES */}
-          <Route
-            path="/admin/application"
-            element={
-              <ProtectedRoute requiredRole={4}>
-                <AdminApplication />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/dashboard"
-            element={
-              <ProtectedRoute requiredRole={4}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
+        {/* CONSULTANT ROUTES (role_id = 3) */}
+        <Route
+          path="/consultant/dashboard"
+          element={
+            <ProtectedRoute requiredRole={3}>
+              <ConsultantDashboard />
+            </ProtectedRoute>
+          }
+        />
 
-          {/* Catch All */}
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+        {/* ADMIN ROUTES (role_id = 4) */}
+        <Route
+          path="/admin/dashboard"
+          element={
+            <ProtectedRoute requiredRole={4}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* FALLBACK */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Router>
   );
 }
 

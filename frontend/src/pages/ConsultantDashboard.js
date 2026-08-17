@@ -20,77 +20,20 @@ async function apiFetch(url, options = {}) {
   const response = await fetch(url, { ...options, headers });
   if (response.status === 401) {
     localStorage.removeItem('token');
-    window.location.href = '/auth';
+    window.location.href = '/';
   }
   return response;
 }
 
-const MENU_ITEMS = [
-  { id: 'dashboard', label: 'Dashboard', icon: '🏠' },
-  { id: 'patients', label: 'My Patients', icon: '👥' },
-  { id: 'recommendations', label: 'Send Recommendations', icon: '💬' },
-  { id: 'profile', label: 'My Profile', icon: '👤' },
-];
-
-export default function ConsultantDashboard() {
-  const [activePage, setActivePage] = useState('dashboard');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const { user, logout } = useContext(AuthContext);
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    if (window.confirm('Logout?')) {
-      logout();
-      navigate('/');
-    }
-  };
-
-  const renderPage = () => {
-    switch(activePage) {
-      case 'patients': return <MyPatients />;
-      case 'recommendations': return <SendRecommendations />;
-      case 'profile': return <ConsultantProfile />;
-      default: return <ConsultantHome user={user} />;
-    }
-  };
-
-  return (
-    <div className="dashboard-container">
-      <aside className={`dashboard-sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
-        <div className="sidebar-header">
-          <h2>Glow & Thrive</h2>
-          <button className="toggle-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>☰</button>
-        </div>
-        <nav className="sidebar-menu">
-          {MENU_ITEMS.map(item => (
-            <button key={item.id} className={`menu-item ${activePage === item.id ? 'active' : ''}`} onClick={() => setActivePage(item.id)}>
-              <span className="menu-icon">{item.icon}</span>
-              {sidebarOpen && <span>{item.label}</span>}
-            </button>
-          ))}
-        </nav>
-        <div className="sidebar-footer">
-          <button className="logout-btn" onClick={handleLogout}>
-            <span>🚪</span>
-            {sidebarOpen && <span>Logout</span>}
-          </button>
-        </div>
-      </aside>
-
-      <main className="dashboard-main">
-        <header className="dashboard-header">
-          <h1>{MENU_ITEMS.find(m => m.id === activePage)?.label || 'Dashboard'}</h1>
-          <div className="user-info"><span>{user?.first_name}!</span></div>
-        </header>
-        <section className="dashboard-content">{renderPage()}</section>
-      </main>
-    </div>
-  );
-}
-
-// ============ HOME ============
-function ConsultantHome({ user }) {
-  const [stats, setStats] = useState({ patients: 0 });
+// ============================================
+// DASHBOARD HOME
+// ============================================
+function DashboardHome() {
+  const [stats, setStats] = useState({
+    total_patients: 0,
+    pending_requests: 0
+  });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchStats();
@@ -98,60 +41,180 @@ function ConsultantHome({ user }) {
 
   const fetchStats = async () => {
     try {
-      const response = await apiFetch(`${API_BASE}/consultant/my-patients`);
+      const response = await apiFetch(`${API_BASE}/consultant/dashboard-stats`);
       const data = await response.json();
-      setStats({ patients: data.count || 0 });
-    } catch (e) { console.error(e); }
+      setStats(data);
+      setLoading(false);
+    } catch (err) {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="dashboard-home">
-      <div className="welcome-section">
-        <h2>Welcome {user?.first_name}! 💄</h2>
-        <p>Help your patients achieve skincare goals</p>
-      </div>
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon">👥</div>
-          <div className="stat-content">
-            <h3>Assigned Patients</h3>
-            <p>{stats.patients}</p>
+    <div className="page-container">
+      <div className="dashboard-home">
+        <div className="welcome-section">
+          <h2>Consultant Dashboard</h2>
+          <p>Manage patient consultations and provide expert skincare guidance</p>
+        </div>
+
+        <div className="stats-grid">
+          <div className="stat-card">
+            <div className="stat-icon">P</div>
+            <div className="stat-content">
+              <h3>My Patients</h3>
+              <p>{stats.total_patients}</p>
+            </div>
+          </div>
+
+          <div className="stat-card">
+            <div className="stat-icon">R</div>
+            <div className="stat-content">
+              <h3>Pending Requests</h3>
+              <p>{stats.pending_requests}</p>
+            </div>
           </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-icon">💬</div>
-          <div className="stat-content">
-            <h3>Recommendations</h3>
-            <p>Active</p>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon">📊</div>
-          <div className="stat-content">
-            <h3>Avg Compliance</h3>
-            <p>85%</p>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon">⭐</div>
-          <div className="stat-content">
-            <h3>Rating</h3>
-            <p>4.8/5</p>
-          </div>
+
+        <div className="card-container" style={{ marginTop: '30px' }}>
+          <h2>Your Role</h2>
+          <p style={{ color: '#666', lineHeight: '1.8' }}>
+            As a skincare consultant, you review consultation requests from users and approve them for dermatologist review. 
+            Once approved, you can monitor patient progress, provide recommendations, and update their skincare routines.
+          </p>
         </div>
       </div>
     </div>
   );
 }
 
-// ============ MY PATIENTS (ROSTER) ============
+// ============================================
+// CONSULTATION REQUESTS (REVIEW & APPROVE)
+// ============================================
+function ConsultationRequests() {
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  useEffect(() => {
+    fetchRequests();
+  }, []);
+
+  const fetchRequests = async () => {
+    try {
+      const response = await apiFetch(`${API_BASE}/consultant/consultation-requests`);
+      const data = await response.json();
+      setRequests(data.requests || []);
+      setLoading(false);
+    } catch (err) {
+      setError('Failed to load requests');
+      setLoading(false);
+    }
+  };
+
+  const handleApprove = async (requestId) => {
+    try {
+      const response = await apiFetch(
+        `${API_BASE}/consultant/consultation-requests/${requestId}/approve`,
+        { method: 'PUT' }
+      );
+
+      if (response.ok) {
+        setSuccess('Request approved');
+        fetchRequests();
+        setTimeout(() => setSuccess(''), 3000);
+      } else {
+        const data = await response.json();
+        setError(data.detail || 'Failed to approve');
+      }
+    } catch (err) {
+      setError('Error: ' + err.message);
+    }
+  };
+
+  const handleReject = async (requestId) => {
+    const reason = prompt('Enter rejection reason (optional):');
+    if (reason === null) return;
+
+    try {
+      const response = await apiFetch(
+        `${API_BASE}/consultant/consultation-requests/${requestId}/reject`,
+        { method: 'PUT' }
+      );
+
+      if (response.ok) {
+        setSuccess('Request rejected');
+        fetchRequests();
+        setTimeout(() => setSuccess(''), 3000);
+      } else {
+        const data = await response.json();
+        setError(data.detail || 'Failed to reject');
+      }
+    } catch (err) {
+      setError('Error: ' + err.message);
+    }
+  };
+
+  if (loading) return <div className="page-container"><p>Loading...</p></div>;
+
+  return (
+    <div className="page-container">
+      <div className="card-container">
+        <h2>Consultation Requests</h2>
+        <p style={{ color: '#666', marginBottom: '20px' }}>Review and approve user consultation requests</p>
+
+        {error && <div className="error-message">{error}</div>}
+        {success && <div className="success-message">{success}</div>}
+
+        {requests.length === 0 ? (
+          <div style={{ padding: '20px', background: '#f9f9f9', borderRadius: '8px', textAlign: 'center' }}>
+            <p>No pending requests</p>
+          </div>
+        ) : (
+          <div className="requests-list">
+            {requests.map(req => (
+              <div key={req.request_id} className="request-item">
+                <div className="request-header">
+                  <h4>{req.user_name}</h4>
+                  <span className="status status-pending">PENDING</span>
+                </div>
+                <p><strong>Email:</strong> {req.email}</p>
+                <p><strong>Title:</strong> {req.title}</p>
+                <p><strong>Description:</strong> {req.description}</p>
+                <p className="request-date">Requested: {req.requested_date}</p>
+                
+                <div className="action-buttons">
+                  <button
+                    className="btn btn-success btn-sm"
+                    onClick={() => handleApprove(req.request_id)}
+                  >
+                    Approve
+                  </button>
+                  <button
+                    className="btn btn-danger btn-sm"
+                    onClick={() => handleReject(req.request_id)}
+                  >
+                    Reject
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================
+// MY PATIENTS
+// ============================================
 function MyPatients() {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedPatient, setSelectedPatient] = useState(null);
-  const [inspection, setInspection] = useState(null);
-  const [showInspection, setShowInspection] = useState(false);
 
   useEffect(() => {
     fetchPatients();
@@ -164,50 +227,43 @@ function MyPatients() {
       setPatients(data.patients || []);
       setLoading(false);
     } catch (err) {
-      setError('Failed: ' + err.message);
+      setError('Failed to load patients');
       setLoading(false);
-    }
-  };
-
-  const handleViewInspection = async (patient) => {
-    try {
-      const response = await apiFetch(`${API_BASE}/consultant/patient-inspection/${patient.user_id}`);
-      const data = await response.json();
-      setInspection(data);
-      setSelectedPatient(patient);
-      setShowInspection(true);
-    } catch (err) {
-      setError('Failed to load inspection');
     }
   };
 
   if (loading) return <div className="page-container"><p>Loading...</p></div>;
 
-  if (showInspection && inspection) {
-    return <PatientInspection patient={selectedPatient} inspection={inspection} onBack={() => setShowInspection(false)} />;
+  if (selectedPatient) {
+    return <PatientInspection patientId={selectedPatient} onBack={() => setSelectedPatient(null)} />;
   }
 
   return (
     <div className="page-container">
       <div className="card-container">
-        <h2>👥 My Assigned Patients ({patients.length})</h2>
+        <h2>My Patients</h2>
+        <p style={{ color: '#666', marginBottom: '20px' }}>Monitor your assigned patients and their progress</p>
+
         {error && <div className="error-message">{error}</div>}
 
         {patients.length === 0 ? (
           <div style={{ padding: '20px', background: '#f9f9f9', borderRadius: '8px', textAlign: 'center' }}>
             <p>No patients assigned yet</p>
-            <p style={{ fontSize: '12px', color: '#999' }}>Admin will assign patients to you</p>
           </div>
         ) : (
           <div className="patients-roster">
             {patients.map(patient => (
-              <div key={patient.user_id} className="patient-roster-card">
+              <div
+                key={patient.user_id}
+                className="patient-roster-card"
+                onClick={() => setSelectedPatient(patient.user_id)}
+                style={{ cursor: 'pointer' }}
+              >
                 <div className="patient-header">
-                  <h4>{patient.name}</h4>
-                  <span className="assigned-badge">Assigned</span>
+                  <h4>{patient.first_name} {patient.last_name}</h4>
+                  <div className="assigned-badge">Assigned</div>
                 </div>
-                <p>📧 {patient.email}</p>
-                
+                <p><strong>Email:</strong> {patient.email}</p>
                 <div className="patient-metrics">
                   <div className="metric">
                     <span className="metric-label">Health Score</span>
@@ -215,18 +271,10 @@ function MyPatients() {
                   </div>
                   <div className="metric">
                     <span className="metric-label">Compliance</span>
-                    <span className="metric-value">{patient.compliance_percentage.toFixed(1)}%</span>
+                    <span className="metric-value">{patient.compliance_percentage}%</span>
                   </div>
                 </div>
-
-                <p className="assigned-date">📅 Assigned: {patient.assigned_date.split(' ')[0]}</p>
-
-                <button 
-                  className="btn btn-primary"
-                  onClick={() => handleViewInspection(patient)}
-                >
-                  🔍 View Inspection
-                </button>
+                <p className="assigned-date">Assigned: {patient.assigned_date || 'Recently'}</p>
               </div>
             ))}
           </div>
@@ -236,262 +284,169 @@ function MyPatients() {
   );
 }
 
-// ============ PATIENT INSPECTION VIEW ============
-function PatientInspection({ patient, inspection, onBack }) {
-  const [showRoutineForm, setShowRoutineForm] = useState(false);
-  const [showRecommendationForm, setShowRecommendationForm] = useState(false);
-  const [routine, setRoutine] = useState(inspection.current_routine || []);
-  const [recommendation, setRecommendation] = useState({
-    recommendation_text: '',
-    product_suggestions: '',
-    routine_suggestions: ''
-  });
+// ============================================
+// PATIENT INSPECTION
+// ============================================
+function PatientInspection({ patientId, onBack }) {
+  const [patient, setPatient] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [activeTab, setActiveTab] = useState('overview');
 
-  const handleRoutineChange = (index, field, value) => {
-    const updated = [...routine];
-    updated[index][field] = value;
-    setRoutine(updated);
-  };
+  useEffect(() => {
+    fetchPatientData();
+  }, [patientId]);
 
-  const handleAddRoutineStep = () => {
-    setRoutine([...routine, { step: '', frequency: '' }]);
-  };
-
-  const handleRemoveRoutineStep = (index) => {
-    setRoutine(routine.filter((_, i) => i !== index));
-  };
-
-  const handleSaveRoutine = async () => {
+  const fetchPatientData = async () => {
     try {
-      const response = await apiFetch(`${API_BASE}/consultant/update-patient-routine/${patient.user_id}`, {
-        method: 'PUT',
-        body: JSON.stringify({ routine_steps: routine })
-      });
-
-      if (response.ok) {
-        setSuccess('Routine updated! Patient will see changes immediately.');
-        setShowRoutineForm(false);
-        setTimeout(() => setSuccess(''), 3000);
-      } else {
-        setError('Failed to save routine');
-      }
+      const response = await apiFetch(`${API_BASE}/consultant/patient-inspection/${patientId}`);
+      const data = await response.json();
+      setPatient(data);
+      setLoading(false);
     } catch (err) {
-      setError('Error: ' + err.message);
+      setError('Failed to load patient data');
+      setLoading(false);
     }
   };
 
-  const handleSendRecommendation = async () => {
-    if (!recommendation.recommendation_text) {
-      setError('Please enter recommendation text');
-      return;
-    }
+  if (loading) return <div className="page-container"><p>Loading...</p></div>;
 
-    try {
-      const response = await apiFetch(`${API_BASE}/consultant/recommendations`, {
-        method: 'POST',
-        body: JSON.stringify({
-          user_id: patient.user_id,
-          ...recommendation
-        })
-      });
-
-      if (response.ok) {
-        setSuccess('Recommendation sent!');
-        setRecommendation({ recommendation_text: '', product_suggestions: '', routine_suggestions: '' });
-        setShowRecommendationForm(false);
-        setTimeout(() => setSuccess(''), 3000);
-      } else {
-        setError('Failed to send');
-      }
-    } catch (err) {
-      setError('Error: ' + err.message);
-    }
-  };
+  if (!patient) return <div className="page-container"><p>Patient not found</p></div>;
 
   return (
     <div className="page-container">
       <div className="card-container">
+        <button onClick={onBack} className="btn btn-secondary btn-sm" style={{ marginBottom: '20px' }}>
+          Back to Patients
+        </button>
+
         <div className="inspection-header">
-          <button className="btn btn-secondary" onClick={onBack}>← Back</button>
-          <h2>Patient Inspection: {patient.name}</h2>
+          <div>
+            <h2>{patient.user.first_name} {patient.user.last_name}</h2>
+            <p style={{ color: '#666' }}>{patient.user.email}</p>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <p><strong>Health Score:</strong> {patient.user.health_score}/10</p>
+            <p><strong>Compliance:</strong> {patient.user.compliance_percentage}%</p>
+          </div>
         </div>
 
-        {error && <div className="error-message">{error}</div>}
-        {success && <div className="success-message">{success}</div>}
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '2px solid var(--border-light)', paddingBottom: '10px' }}>
+          {['overview', 'lifestyle', 'screening', 'routine'].map(tab => (
+            <button
+              key={tab}
+              className={`btn ${activeTab === tab ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setActiveTab(tab)}
+              style={{ textTransform: 'capitalize' }}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
 
-        {/* PROGRESS PHOTOS */}
-        {inspection.progress_photos && (
-          <div className="inspection-section">
-            <h3>📸 Progress Photos</h3>
-            <div className="progress-comparison">
-              <div className="photo-container">
-                <h4>Before</h4>
-                <div style={{ background: '#f0f0f0', padding: '20px', borderRadius: '8px', textAlign: 'center', minHeight: '150px' }}>
-                  {inspection.progress_photos.before_image ? '📷 Before' : 'No before photo'}
-                </div>
-              </div>
-              <div className="improvement-display">
-                <h4>Improvement</h4>
-                <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--primary-rose)' }}>
-                  {inspection.progress_photos.improvement_percentage}%
-                </div>
-              </div>
-              <div className="photo-container">
-                <h4>After</h4>
-                <div style={{ background: '#f0f0f0', padding: '20px', borderRadius: '8px', textAlign: 'center', minHeight: '150px' }}>
-                  {inspection.progress_photos.after_image ? '📷 After' : 'No after photo'}
-                </div>
-              </div>
+        {activeTab === 'overview' && (
+          <div>
+            <div className="inspection-section">
+              <h3>Patient Information</h3>
+              <p><strong>Age:</strong> {patient.user.age || '-'}</p>
+              <p><strong>Gender:</strong> {patient.user.gender || '-'}</p>
+              <p><strong>Health Score:</strong> {patient.user.health_score}/10</p>
+              <p><strong>Compliance Rate:</strong> {patient.user.compliance_percentage}%</p>
             </div>
           </div>
         )}
 
-        {/* LIFESTYLE STATS */}
-        <div className="inspection-section">
-          <h3>📊 Lifestyle (Last 30 Days)</h3>
-          <div className="lifestyle-stats">
-            <div className="stat">
-              <span className="stat-icon">😴</span>
-              <h4>Avg Sleep</h4>
-              <p>{inspection.lifestyle_30days.avg_sleep.toFixed(1)} hours</p>
-            </div>
-            <div className="stat">
-              <span className="stat-icon">💧</span>
-              <h4>Avg Water</h4>
-              <p>{inspection.lifestyle_30days.avg_water.toFixed(1)} glasses</p>
-            </div>
-            <div className="stat">
-              <span className="stat-icon">😰</span>
-              <h4>Avg Stress</h4>
-              <p>{inspection.lifestyle_30days.avg_stress.toFixed(1)}/10</p>
-            </div>
-            <div className="stat">
-              <span className="stat-icon">📝</span>
-              <h4>Total Logs</h4>
-              <p>{inspection.lifestyle_30days.total_logs}</p>
-            </div>
+        {activeTab === 'lifestyle' && (
+          <div className="inspection-section">
+            <h3>Lifestyle Data (Last 30 Days)</h3>
+            {patient.lifestyle && patient.lifestyle.length > 0 ? (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ background: 'var(--primary-rose)', color: 'white' }}>
+                      <th style={{ padding: '12px', textAlign: 'left' }}>Date</th>
+                      <th style={{ padding: '12px', textAlign: 'center' }}>Sleep (h)</th>
+                      <th style={{ padding: '12px', textAlign: 'center' }}>Water (L)</th>
+                      <th style={{ padding: '12px', textAlign: 'center' }}>Stress</th>
+                      <th style={{ padding: '12px', textAlign: 'center' }}>Exercise</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {patient.lifestyle.map((log, idx) => (
+                      <tr key={idx} style={{ borderBottom: '1px solid #eee' }}>
+                        <td style={{ padding: '12px' }}>{log.date}</td>
+                        <td style={{ padding: '12px', textAlign: 'center' }}>{log.sleep}</td>
+                        <td style={{ padding: '12px', textAlign: 'center' }}>{log.water}</td>
+                        <td style={{ padding: '12px', textAlign: 'center' }}>{log.stress}/10</td>
+                        <td style={{ padding: '12px', textAlign: 'center' }}>{log.exercise}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p>No lifestyle data available</p>
+            )}
           </div>
-        </div>
+        )}
 
-        {/* CURRENT ROUTINE */}
-        <div className="inspection-section">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-            <h3>💆 Current Routine</h3>
-            <button className="btn btn-primary btn-sm" onClick={() => setShowRoutineForm(!showRoutineForm)}>
-              {showRoutineForm ? '✕ Cancel' : '✎ Update Routine'}
-            </button>
+        {activeTab === 'screening' && (
+          <div className="inspection-section">
+            <h3>AI Skin Screening</h3>
+            {patient.screening ? (
+              <>
+                <p><strong>Condition:</strong> {patient.screening.analysis?.condition || '-'}</p>
+                <p><strong>Confidence:</strong> {patient.screening.analysis?.confidence || '-'}%</p>
+                <p><strong>Recommendations:</strong> {patient.screening.analysis?.recommendations || '-'}</p>
+                <p style={{ fontSize: '12px', color: '#999' }}>Analyzed: {patient.screening.created_at}</p>
+              </>
+            ) : (
+              <p>No screening data available</p>
+            )}
           </div>
+        )}
 
-          {showRoutineForm ? (
-            <div className="routine-form">
-              {routine.map((step, idx) => (
-                <div key={idx} className="routine-step">
-                  <input 
-                    type="text" 
-                    placeholder="Step (e.g., Cleanser)" 
-                    value={step.step}
-                    onChange={(e) => handleRoutineChange(idx, 'step', e.target.value)}
-                  />
-                  <input 
-                    type="text" 
-                    placeholder="Frequency (e.g., AM/PM, 2x/week)" 
-                    value={step.frequency}
-                    onChange={(e) => handleRoutineChange(idx, 'frequency', e.target.value)}
-                  />
-                  <button className="btn btn-sm btn-danger" onClick={() => handleRemoveRoutineStep(idx)}>✕</button>
-                </div>
-              ))}
-              <button className="btn btn-secondary btn-sm" onClick={handleAddRoutineStep}>+ Add Step</button>
-              <button className="btn btn-primary" onClick={handleSaveRoutine}>Save Routine</button>
-            </div>
-          ) : (
-            <div className="routine-display">
-              {inspection.current_routine.length === 0 ? (
-                <p>No routine steps</p>
-              ) : (
+        {activeTab === 'routine' && (
+          <div className="inspection-section">
+            <h3>Current Skincare Routine</h3>
+            {patient.routine && patient.routine.length > 0 ? (
+              <div className="routine-display">
                 <ul>
-                  {inspection.current_routine.map((step, idx) => (
-                    <li key={idx}>
-                      <strong>{step.step}</strong> - {step.frequency}
+                  {patient.routine.map(step => (
+                    <li key={step.routine_id}>
+                      <strong>{step.routine_step}</strong>
+                      <br />
+                      <small style={{ color: '#999' }}>{step.frequency}</small>
                     </li>
                   ))}
                 </ul>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* SEND RECOMMENDATION */}
-        <div className="inspection-section">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-            <h3>💬 Send Recommendation</h3>
-            <button className="btn btn-primary btn-sm" onClick={() => setShowRecommendationForm(!showRecommendationForm)}>
-              {showRecommendationForm ? '✕ Cancel' : '✎ New Recommendation'}
-            </button>
+              </div>
+            ) : (
+              <p>No routine defined</p>
+            )}
           </div>
+        )}
 
-          {showRecommendationForm && (
-            <div className="recommendation-form">
-              <div className="form-group">
-                <label>Recommendation Text *</label>
-                <textarea 
-                  value={recommendation.recommendation_text}
-                  onChange={(e) => setRecommendation({...recommendation, recommendation_text: e.target.value})}
-                  placeholder="Personalized skincare advice..."
-                  rows="4"
-                ></textarea>
-              </div>
-              <div className="form-group">
-                <label>Product Suggestions</label>
-                <textarea 
-                  value={recommendation.product_suggestions}
-                  onChange={(e) => setRecommendation({...recommendation, product_suggestions: e.target.value})}
-                  placeholder="Specific products to recommend..."
-                  rows="3"
-                ></textarea>
-              </div>
-              <div className="form-group">
-                <label>Routine Suggestions</label>
-                <textarea 
-                  value={recommendation.routine_suggestions}
-                  onChange={(e) => setRecommendation({...recommendation, routine_suggestions: e.target.value})}
-                  placeholder="Routine tips..."
-                  rows="3"
-                ></textarea>
-              </div>
-              <button className="btn btn-primary" onClick={handleSendRecommendation}>Send Recommendation</button>
-            </div>
-          )}
-        </div>
-
-        {/* TIMELINE */}
-        <div className="inspection-section">
-          <h3>📅 Activity Timeline</h3>
-          <div className="timeline">
-            {inspection.timeline.map((event, idx) => (
-              <div key={idx} className="timeline-event">
-                <div className="timeline-marker"></div>
-                <div className="timeline-content">
-                  <p className="timeline-date">{event.date}</p>
-                  <p className="timeline-type">{event.type}</p>
-                  <p>{event.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+        <div style={{ marginTop: '30px', display: 'flex', gap: '10px' }}>
+          <button
+            className="btn btn-primary"
+            onClick={() => onBack()}
+          >
+            Back to Patients
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
-// ============ SEND RECOMMENDATIONS ============
-function SendRecommendations() {
+// ============================================
+// SEND RECOMMENDATION
+// ============================================
+function SendRecommendation() {
   const [patients, setPatients] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState('');
-  const [recommendation, setRecommendation] = useState({
+  const [formData, setFormData] = useState({
     recommendation_text: '',
     product_suggestions: '',
     routine_suggestions: ''
@@ -511,33 +466,43 @@ function SendRecommendations() {
       setPatients(data.patients || []);
       setLoading(false);
     } catch (err) {
-      setError('Failed: ' + err.message);
+      setError('Failed to load patients');
       setLoading(false);
     }
   };
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
   const handleSend = async () => {
-    if (!selectedPatient || !recommendation.recommendation_text) {
-      setError('Select patient and enter recommendation');
+    if (!selectedPatient || !formData.recommendation_text) {
+      setError('Please select a patient and enter a recommendation');
       return;
     }
 
     try {
-      const response = await apiFetch(`${API_BASE}/consultant/recommendations`, {
+      const response = await apiFetch(`${API_BASE}/consultant/send-recommendation`, {
         method: 'POST',
         body: JSON.stringify({
           user_id: parseInt(selectedPatient),
-          ...recommendation
+          ...formData
         })
       });
 
       if (response.ok) {
-        setSuccess('Recommendation sent!');
-        setRecommendation({ recommendation_text: '', product_suggestions: '', routine_suggestions: '' });
+        setSuccess('Recommendation sent successfully');
+        setFormData({
+          recommendation_text: '',
+          product_suggestions: '',
+          routine_suggestions: ''
+        });
         setSelectedPatient('');
         setTimeout(() => setSuccess(''), 3000);
       } else {
-        setError('Failed to send');
+        const data = await response.json();
+        setError(data.detail || 'Failed to send recommendation');
       }
     } catch (err) {
       setError('Error: ' + err.message);
@@ -549,68 +514,80 @@ function SendRecommendations() {
   return (
     <div className="page-container">
       <div className="card-container">
-        <h2>💬 Send Skincare Recommendations</h2>
+        <h2>Send Recommendation</h2>
+        <p style={{ color: '#666', marginBottom: '20px' }}>Provide personalized recommendations to your patients</p>
 
         {error && <div className="error-message">{error}</div>}
         {success && <div className="success-message">{success}</div>}
 
-        <div className="form-group">
-          <label>Select Patient *</label>
-          <select value={selectedPatient} onChange={(e) => setSelectedPatient(e.target.value)}>
-            <option value="">-- Choose a patient --</option>
-            {patients.map(p => (
-              <option key={p.user_id} value={p.user_id}>{p.name}</option>
-            ))}
-          </select>
-        </div>
+        <div className="recommendation-form">
+          <div className="form-group">
+            <label>Select Patient</label>
+            <select
+              value={selectedPatient}
+              onChange={(e) => setSelectedPatient(e.target.value)}
+            >
+              <option value="">Choose a patient...</option>
+              {patients.map(p => (
+                <option key={p.user_id} value={p.user_id}>
+                  {p.first_name} {p.last_name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <div className="form-group">
-          <label>Recommendation Text *</label>
-          <textarea 
-            value={recommendation.recommendation_text}
-            onChange={(e) => setRecommendation({...recommendation, recommendation_text: e.target.value})}
-            placeholder="Write personalized skincare recommendations..."
-            rows="5"
-          ></textarea>
-        </div>
+          <div className="form-group">
+            <label>Recommendation</label>
+            <textarea
+              name="recommendation_text"
+              value={formData.recommendation_text}
+              onChange={handleInputChange}
+              placeholder="Write your recommendation for the patient..."
+              rows="5"
+            ></textarea>
+          </div>
 
-        <div className="form-group">
-          <label>Product Suggestions</label>
-          <textarea 
-            value={recommendation.product_suggestions}
-            onChange={(e) => setRecommendation({...recommendation, product_suggestions: e.target.value})}
-            placeholder="Suggest specific products..."
-            rows="4"
-          ></textarea>
-        </div>
+          <div className="form-group">
+            <label>Suggested Products</label>
+            <textarea
+              name="product_suggestions"
+              value={formData.product_suggestions}
+              onChange={handleInputChange}
+              placeholder="List recommended products..."
+              rows="3"
+            ></textarea>
+          </div>
 
-        <div className="form-group">
-          <label>Routine Suggestions</label>
-          <textarea 
-            value={recommendation.routine_suggestions}
-            onChange={(e) => setRecommendation({...recommendation, routine_suggestions: e.target.value})}
-            placeholder="Suggest a routine..."
-            rows="4"
-          ></textarea>
-        </div>
+          <div className="form-group">
+            <label>Routine Suggestions</label>
+            <textarea
+              name="routine_suggestions"
+              value={formData.routine_suggestions}
+              onChange={handleInputChange}
+              placeholder="Suggest routine adjustments..."
+              rows="3"
+            ></textarea>
+          </div>
 
-        <button className="btn btn-primary" onClick={handleSend}>Send Recommendation</button>
+          <button className="btn btn-primary" onClick={handleSend}>
+            Send Recommendation
+          </button>
+        </div>
       </div>
     </div>
   );
 }
 
-// ============ CONSULTANT PROFILE ============
-function ConsultantProfile() {
+// ============================================
+// PROFILE
+// ============================================
+function Profile() {
   const [profile, setProfile] = useState({
-    certification: '',
-    specialization: '',
-    company_name: '',
-    years_experience: '',
-    bio: '',
-    consultation_fee: ''
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: ''
   });
-  const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -623,17 +600,10 @@ function ConsultantProfile() {
     try {
       const response = await apiFetch(`${API_BASE}/consultant/profile`);
       const data = await response.json();
-      setProfile({
-        certification: data.certification || '',
-        specialization: data.specialization || '',
-        company_name: data.company_name || '',
-        years_experience: data.years_experience || '',
-        bio: data.bio || '',
-        consultation_fee: data.consultation_fee || ''
-      });
+      setProfile(data);
       setLoading(false);
     } catch (err) {
-      setError('Failed: ' + err.message);
+      setError('Failed to load profile');
       setLoading(false);
     }
   };
@@ -643,7 +613,7 @@ function ConsultantProfile() {
     setProfile(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = async () => {
+  const handleSubmit = async () => {
     try {
       const response = await apiFetch(`${API_BASE}/consultant/profile/update`, {
         method: 'PUT',
@@ -651,11 +621,11 @@ function ConsultantProfile() {
       });
 
       if (response.ok) {
-        setSuccess('Profile updated!');
-        setEditing(false);
+        setSuccess('Profile updated successfully');
         setTimeout(() => setSuccess(''), 3000);
       } else {
-        setError('Failed to save');
+        const data = await response.json();
+        setError(data.detail || 'Failed to update');
       }
     } catch (err) {
       setError('Error: ' + err.message);
@@ -667,44 +637,137 @@ function ConsultantProfile() {
   return (
     <div className="page-container">
       <div className="card-container">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h2>👤 My Professional Profile</h2>
-          <button className="btn btn-secondary" onClick={() => setEditing(!editing)}>
-            {editing ? 'Cancel' : 'Edit'}
-          </button>
-        </div>
+        <h2>Your Profile</h2>
+        <p style={{ color: '#666', marginBottom: '20px' }}>Manage your consultant profile</p>
 
         {error && <div className="error-message">{error}</div>}
         {success && <div className="success-message">{success}</div>}
 
         <div className="profile-form">
-          <div className="form-group">
-            <label>Certification</label>
-            <input type="text" name="certification" value={profile.certification} onChange={handleChange} disabled={!editing} />
-          </div>
-          <div className="form-group">
-            <label>Specialization</label>
-            <input type="text" name="specialization" value={profile.specialization} onChange={handleChange} disabled={!editing} />
-          </div>
-          <div className="form-group">
-            <label>Company/Clinic</label>
-            <input type="text" name="company_name" value={profile.company_name} onChange={handleChange} disabled={!editing} />
-          </div>
           <div className="form-row">
             <div className="form-group">
-              <label>Experience (years)</label>
-              <input type="number" name="years_experience" value={profile.years_experience} onChange={handleChange} disabled={!editing} />
+              <label>First Name</label>
+              <input
+                type="text"
+                name="first_name"
+                value={profile.first_name}
+                onChange={handleChange}
+              />
             </div>
             <div className="form-group">
-              <label>Consultation Fee ($)</label>
-              <input type="number" name="consultation_fee" value={profile.consultation_fee} onChange={handleChange} disabled={!editing} />
+              <label>Last Name</label>
+              <input
+                type="text"
+                name="last_name"
+                value={profile.last_name}
+                onChange={handleChange}
+              />
             </div>
           </div>
+
           <div className="form-group">
-            <label>Bio</label>
-            <textarea name="bio" value={profile.bio} onChange={handleChange} disabled={!editing} rows="4"></textarea>
+            <label>Email</label>
+            <input
+              type="email"
+              value={profile.email}
+              disabled
+              style={{ opacity: 0.6, cursor: 'not-allowed' }}
+            />
           </div>
-          {editing && <button className="btn btn-primary" onClick={handleSave}>Save Changes</button>}
+
+          <div className="form-group">
+            <label>Phone</label>
+            <input
+              type="tel"
+              name="phone"
+              value={profile.phone}
+              onChange={handleChange}
+            />
+          </div>
+
+          <button className="btn btn-primary" onClick={handleSubmit}>
+            Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================
+// MAIN COMPONENT
+// ============================================
+export default function ConsultantDashboard() {
+  const { user, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState('home');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
+  const menuItems = [
+    { id: 'home', label: 'Dashboard', icon: '▦' },
+    { id: 'requests', label: 'Consultations', icon: 'C' },
+    { id: 'patients', label: 'My Patients', icon: 'P' },
+    { id: 'recommendation', label: 'Recommendations', icon: 'R' },
+    { id: 'profile', label: 'My Profile', icon: 'U' }
+  ];
+
+  const renderPage = () => {
+    switch(currentPage) {
+      case 'home': return <DashboardHome />;
+      case 'requests': return <ConsultationRequests />;
+      case 'patients': return <MyPatients />;
+      case 'recommendation': return <SendRecommendation />;
+      case 'profile': return <Profile />;
+      default: return <DashboardHome />;
+    }
+  };
+
+  return (
+    <div className="dashboard-container">
+      <div className={`dashboard-sidebar ${!sidebarOpen ? 'closed' : ''}`}>
+        <div className="sidebar-header">
+          <h2>Glow & Thrive</h2>
+          <button className="toggle-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>
+            {sidebarOpen ? '‹' : '›'}
+          </button>
+        </div>
+
+        <div className="sidebar-menu">
+          {menuItems.map(item => (
+            <button
+              key={item.id}
+              className={`menu-item ${currentPage === item.id ? 'active' : ''}`}
+              onClick={() => setCurrentPage(item.id)}
+            >
+              <span className="menu-icon">{item.icon}</span>
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </div>
+
+        <div className="sidebar-footer">
+          <button className="logout-btn" onClick={handleLogout}>
+            <span>Exit</span>
+            <span>Logout</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="dashboard-main">
+        <div className="dashboard-header">
+          <h1>{menuItems.find(m => m.id === currentPage)?.label || 'Dashboard'}</h1>
+          <div className="user-info">
+            <span>{user?.first_name} {user?.last_name}</span>
+          </div>
+        </div>
+
+        <div className="dashboard-content">
+          {renderPage()}
         </div>
       </div>
     </div>
