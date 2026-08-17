@@ -47,18 +47,19 @@ export default function ConsultantCustomers() {
     const loadInitialData = async () => {
       try {
         const [patientsRes, catalogRes] = await Promise.all([
-          api.get("/workspace/consultant/patients"),
-          api.get("/recommendations/").catch(() => ({ data: { recommendations: [] } }))
+          api.get("/workspace/consultant/patients").catch(() => ({ data: [] })),
+          api.get("/admin/products").catch(async () => {
+            return api.get("/v1/products/all").catch(() => ({ data: [] }));
+          })
         ]);
         
-        setCustomers(patientsRes.data);
-        if (patientsRes.data.length > 0) {
+        setCustomers(patientsRes.data || []);
+        if (patientsRes.data && patientsRes.data.length > 0) {
           setSelectedCustomerId(patientsRes.data[0].id);
         }
         
-        if (catalogRes.data?.recommendations) {
-          setCatalogProducts(catalogRes.data.recommendations);
-        }
+        const prods = Array.isArray(catalogRes.data) ? catalogRes.data : (catalogRes.data?.recommendations || []);
+        setCatalogProducts(prods);
       } catch (err) {
         setStatus({ type: "error", text: "Couldn't load workspace data." });
       } finally {

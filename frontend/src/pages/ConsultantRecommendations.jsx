@@ -25,7 +25,12 @@ export default function ConsultantRecommendations() {
         api.get("/recommendations/all").catch(() => ({ data: [] }))
       ]);
       setPatients(patientsRes.data || []);
-      setProducts(productsRes.data || []);
+      if (productsRes.data && productsRes.data.length > 0) {
+        setProducts(productsRes.data);
+      } else {
+        const fallback = await api.get("/v1/products/all").catch(() => ({ data: [] }));
+        setProducts(fallback.data || []);
+      }
       setRecommendationLogs(logsRes.data || []);
     } catch (err) {
       console.error("Failed to load recommendations workspace data", err);
@@ -132,8 +137,10 @@ export default function ConsultantRecommendations() {
                 required
               >
                 <option value="">-- Choose Catalog Product --</option>
-                {products.map(p => (
-                  <option key={p.id || p.name} value={p.id || p.name}>[{p.brand}] {p.name} - ₹{p.price}</option>
+                {products.map((p, idx) => (
+                  <option key={p.id || idx} value={p.id || p.name}>
+                    [{p.brand || "Derma"}] {p.name} - ₹{Math.round(p.price || p.price_inr || 499)}
+                  </option>
                 ))}
               </select>
             </div>

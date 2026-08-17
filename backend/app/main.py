@@ -49,11 +49,10 @@ app.include_router(skin_profile.router)
 app.include_router(lifestyle.router)
 app.include_router(assessment.router)
 app.include_router(routine.router)
-app.include_router(admin.router)
-app.include_router(photos.router)
-app.include_router(checkins.router)
 app.include_router(ingredients.router)
 app.include_router(analytics.router)
+from app.routers import notifications
+app.include_router(notifications.router)
 
 
 

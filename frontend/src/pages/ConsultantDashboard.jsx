@@ -105,8 +105,11 @@ export default function ConsultantDashboard() {
       setProfile(profileRes.data);
       setPatients(patientsRes.data);
       setDermatologists(dermatologistsRes.data);
-      if (recsRes.data) {
+      if (recsRes.data && recsRes.data.length > 0) {
         setProducts(recsRes.data);
+      } else {
+        const fallback = await api.get("/v1/products/all").catch(() => ({ data: [] }));
+        setProducts(fallback.data || []);
       }
       setRecommendationLogs(allRecsRes.data || []);
     } finally {
@@ -321,8 +324,10 @@ export default function ConsultantDashboard() {
                 required
               >
                 <option value="">-- Choose Product from Catalog --</option>
-                {products.map(p => (
-                  <option key={p.id || p.name} value={p.id || p.name}>[{p.brand}] {p.name} - ₹{p.price}</option>
+                {products.map((p, idx) => (
+                  <option key={p.id || idx} value={p.id || p.name}>
+                    [{p.brand || "Derma"}] {p.name} - ₹{Math.round(p.price || p.price_inr || 499)}
+                  </option>
                 ))}
               </select>
             </div>
