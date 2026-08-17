@@ -4,4 +4,4 @@ AI Skin Intelligence &amp; Personalized Skincare Planner Group 2
 
 Click below to view the complete project demonstration:
 
-[▶️ Watch Project Demo](./demo/project%20recording.mp4)
+[▶️ Watch Project Demo](https://drive.google.com/file/d/1WiQnzV4NXlQ_AU6FIjKKQDJj7pO2sKM2/view?usp=drive_link)
