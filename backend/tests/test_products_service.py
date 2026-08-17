@@ -40,13 +40,21 @@ async def _create_profile(
 
 
 async def test_list_products_via_es_filters_by_category(db_session: AsyncSession) -> None:
+    # Results sort alphabetically by product_name (never by relevance), and the
+    # real Kaggle-ingested catalog now sitting alongside the hand-seeded ~20
+    # products (docs/DATASETS_AND_APIS.md §2) has thousands of entries whose
+    # ingredient lists happen to mention "Vitamin C" too — a bare q="Vitamin C"
+    # match no longer guarantees this specific seeded product lands within the
+    # first page alphabetically. "Lumina Labs" is a seed-only brand name no real
+    # ingested product uses, so adding it narrows the ES match back down to
+    # exactly the one product this test cares about, independent of catalog size.
     page = await products_service.list_products(
         db_session,
         page=1,
         page_size=50,
         q="Vitamin C",
         category="Treatment Products",
-        brand=None,
+        brand="Lumina Labs",
         budget_min=None,
         budget_max=None,
         skin_type=None,
