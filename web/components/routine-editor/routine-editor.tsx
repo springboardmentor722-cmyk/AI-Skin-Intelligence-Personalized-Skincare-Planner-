@@ -160,8 +160,8 @@ export interface RoutineEditorProps {
   backHref: string;
   /**
    * Set when a professional is editing a client's routine — routes mutations through
-   * Task 4's `/api/v1/clients/{user_id}/routines/*` endpoints instead of the user's own
-   * `/api/v1/routines/*`, and disables reordering (no client-scoped reorder endpoint exists).
+   * `/api/v1/clients/{user_id}/routines/*` endpoints instead of the user's own
+   * `/api/v1/routines/*` (including reorder, ADR-050).
    */
   clientUserId?: string;
 }
@@ -170,10 +170,9 @@ export function RoutineEditor({ routine, backHref, clientUserId }: RoutineEditor
   const routineId = routine.routine_id;
   const router = useRouter();
   const queryClient = useQueryClient();
-  // ponytail: no /api/v1/clients/{user_id}/routines/{routine_id}/steps/reorder endpoint
-  // exists yet (Task 4 didn't add one) — hide reordering rather than let a professional's
-  // drag silently fail to persist. Add real reorder support here once that endpoint exists.
-  const canReorder = clientUserId == null;
+  // ADR-050 added the client-scoped reorder endpoint — available in both the
+  // user's own editor and a professional's.
+  const canReorder = true;
 
   const [steps, setSteps] = useState<EditableStep[]>(() => toEditableSteps(routine));
   const [deletedStepIds, setDeletedStepIds] = useState<number[]>([]);
@@ -304,10 +303,15 @@ export function RoutineEditor({ routine, backHref, clientUserId }: RoutineEditor
         const newOrder = existingSteps.map((s) => s.stepId!).filter((id) => !deletedStepIds.includes(id));
         const orderChanged = JSON.stringify(originalOrder.filter((id) => newOrder.includes(id))) !== JSON.stringify(newOrder);
         if (orderChanged && newOrder.length > 0) {
-          const { error } = await api.PATCH("/api/v1/routines/{routine_id}/steps/reorder", {
-            params: { path: { routine_id: routineId } },
-            body: { step_ids: newOrder },
-          });
+          const { error } = clientUserId
+            ? await api.PATCH("/api/v1/clients/{user_id}/routines/{routine_id}/steps/reorder", {
+                params: { path: { user_id: clientUserId, routine_id: routineId } },
+                body: { step_ids: newOrder },
+              })
+            : await api.PATCH("/api/v1/routines/{routine_id}/steps/reorder", {
+                params: { path: { routine_id: routineId } },
+                body: { step_ids: newOrder },
+              });
           if (error) throw new Error("Couldn't save the new step order.");
         }
       }
