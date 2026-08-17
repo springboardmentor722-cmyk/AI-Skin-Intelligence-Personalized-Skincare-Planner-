@@ -3,15 +3,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.database import Base, engine
-from app.routers import auth, users, skin_profile, lifestyle, dermatologists, recommendations, appointments, progress, workspace, assessment, routine, admin, photos, checkins, ingredients, analytics
+from app.routers import auth, users, skin_profile, lifestyle, dermatologists, recommendations, appointments, progress, workspace, assessment, routine, admin, photos, checkins, ingredients, analytics, reports, notifications
 
 # Creates tables if they don't exist. In production, use Alembic migrations instead.
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Skin Intelligence & Personalized Skincare Planner API",
-    description="Milestone 3: role-based skincare safety checkins, compliance dashboards, photo tracking.",
-    version="0.3.0",
+    description="Milestones 3 & 4: Ingredient Intelligence, Product Recommendation Engine, Progress Tracking & Interactive Dashboards.",
+    version="0.4.0",
 )
 
 import os
@@ -54,6 +54,8 @@ app.include_router(photos.router)
 app.include_router(checkins.router)
 app.include_router(ingredients.router)
 app.include_router(analytics.router)
+app.include_router(reports.router)
+app.include_router(notifications.router)
 
 
 

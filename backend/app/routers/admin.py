@@ -165,11 +165,24 @@ def get_stats(db: Session = Depends(get_db)):
 def get_catalog_products():
     try:
         from app.database import get_mongo_db
+        import os, json
         mongo = get_mongo_db()
         products = list(mongo.products.find())
+        if not products:
+            prod_path = os.path.join("seed", "products.json")
+            if os.path.exists(prod_path):
+                with open(prod_path, "r", encoding="utf-8") as f:
+                    seeded = json.load(f)
+                if seeded:
+                    mongo.products.insert_many(seeded)
+                    products = list(mongo.products.find())
         for p in products:
             p["id"] = str(p["_id"])
             del p["_id"]
+            if "price" not in p or not p["price"]:
+                p["price"] = p.get("price_inr", 499.0)
+            if "price_inr" not in p or not p["price_inr"]:
+                p["price_inr"] = p.get("price", 499.0)
         return products
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch catalog: {str(e)}")
