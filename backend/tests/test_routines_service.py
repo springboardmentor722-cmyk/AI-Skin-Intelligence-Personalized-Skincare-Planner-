@@ -1651,7 +1651,9 @@ async def test_duplicate_client_routine_copies_steps_and_products(
     routines = await get_or_generate_routines(db_session, test_user_id)
     am = next(r for r in routines if r.routine_type == "AM")
 
-    duplicate = await duplicate_client_routine(db_session, test_user_id, professional_id, am.routine_id)
+    duplicate = await duplicate_client_routine(
+        db_session, test_user_id, professional_id, am.routine_id
+    )
 
     assert duplicate.routine_id != am.routine_id
     assert duplicate.created_by_professional_id == professional_id

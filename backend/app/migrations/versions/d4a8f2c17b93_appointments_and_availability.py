@@ -95,7 +95,9 @@ def upgrade() -> None:
         ),
     )
     op.create_index("idx_appointments_user", "appointments", ["user_id"])
-    op.create_index("idx_appointments_provider_start", "appointments", ["provider_id", "start_time"])
+    op.create_index(
+        "idx_appointments_provider_start", "appointments", ["provider_id", "start_time"]
+    )
     # Raw SQL: no Alembic/SQLAlchemy op helper for EXCLUDE constraints.
     op.execute(
         """

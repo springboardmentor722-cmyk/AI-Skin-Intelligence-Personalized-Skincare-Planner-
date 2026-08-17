@@ -51,7 +51,9 @@ class Appointment(Base):
     status: Mapped[str] = mapped_column(default="pending", server_default="pending")
     cancelled_by: Mapped[str | None] = mapped_column(ForeignKey("user.id"), default=None)
     cancellation_reason: Mapped[str | None] = mapped_column(Text, default=None)
-    original_start_time: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    original_start_time: Mapped[datetime.datetime | None] = mapped_column(
+        DateTime(timezone=True), default=None
+    )
     notes: Mapped[str | None] = mapped_column(Text, default=None)
     created_at: Mapped[datetime.datetime | None] = mapped_column(default=None)
     updated_at: Mapped[datetime.datetime | None] = mapped_column(default=None)
