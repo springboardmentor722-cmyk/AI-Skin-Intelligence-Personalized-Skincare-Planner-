@@ -20,7 +20,7 @@ from app.services.clinical_review.schemas import (
     ConsultantNoteRead,
 )
 from app.services.progress import service as progress_service
-from app.services.progress.schemas import ProgressPhotosRead
+from app.services.progress.schemas import ProgressLogRead, ProgressPhotosRead, ProgressSummaryRead
 from app.services.recommendations.schemas import (
     ClientRecommendationActiveUpdate,
     ClientRecommendationCreate,
@@ -140,6 +140,32 @@ async def get_client_assessment_detail(
 ) -> ScoreRead:
     try:
         return await service.get_client_assessment_detail(db, professional["id"], user_id, score_id)
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+
+
+@router.get("/clients/{user_id}/progress/summary")
+async def get_client_progress_summary(
+    user_id: str,
+    professional: Annotated[dict[str, Any], Depends(_professional)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    days: int = Query(default=30, ge=1, le=365),
+) -> ProgressSummaryRead:
+    try:
+        return await service.get_client_progress_summary(db, professional["id"], user_id, days=days)
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+
+
+@router.get("/clients/{user_id}/progress/logs")
+async def get_client_progress_logs(
+    user_id: str,
+    professional: Annotated[dict[str, Any], Depends(_professional)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    limit: int = Query(default=12, ge=1, le=52),
+) -> list[ProgressLogRead]:
+    try:
+        return await service.list_client_progress_logs(db, professional["id"], user_id, limit=limit)
     except ValueError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
 

@@ -4,6 +4,7 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.ai.trend import RealProgressTrendAnalyzer
+from app.db.mongo import get_mongo_db
 from app.db.postgres import external_user_table
 from app.services.admin import service as admin_service
 from app.services.clinical_review.models import ConsultantClient, ConsultantNote
@@ -17,6 +18,7 @@ from app.services.clinical_review.schemas import (
     PortfolioRecentAssessment,
 )
 from app.services.progress import service as progress_service
+from app.services.progress.schemas import ConcernChangeRead, ProgressLogRead, ProgressSummaryRead
 from app.services.recommendations import products_service
 from app.services.recommendations import service as recommendations_service
 from app.services.recommendations.schemas import (
@@ -719,3 +721,37 @@ async def get_client_product_alternatives(
 ) -> ProductAlternativesRead:
     await _verify_assignment(db, professional_id, user_id)
     return await products_service.get_alternatives(db, product_id, user_id)
+
+
+# --- Progress tracking (M3R Progress Tracking module) ---
+# Thin assignment-gated wrappers around progress_service's real functions —
+# the same score-trend/adherence-heat-grid/insight/milestones and weekly
+# concern-progression logs the client's own Progress Tracking page reads,
+# never a duplicated computation.
+
+
+async def get_client_progress_summary(
+    db: AsyncSession, professional_id: str, user_id: str, *, days: int = 30
+) -> ProgressSummaryRead:
+    await _verify_assignment(db, professional_id, user_id)
+    return await progress_service.get_progress_summary(db, user_id, days=days)
+
+
+async def list_client_progress_logs(
+    db: AsyncSession, professional_id: str, user_id: str, *, limit: int = 12
+) -> list[ProgressLogRead]:
+    await _verify_assignment(db, professional_id, user_id)
+    docs = await progress_service.list_progress_logs(get_mongo_db(), user_id, limit=limit)
+    return [
+        ProgressLogRead(
+            week_number=doc["week_number"],
+            before_image_url=doc.get("before_image"),
+            after_image_url=doc.get("after_image"),
+            improvement_score=doc.get("improvement_score"),
+            concern_changes=[ConcernChangeRead(**c) for c in doc.get("concern_changes", [])],
+            trend_summary=doc.get("trend_summary"),
+            notes=doc.get("notes"),
+            created_at=doc["created_at"],
+        )
+        for doc in docs
+    ]
