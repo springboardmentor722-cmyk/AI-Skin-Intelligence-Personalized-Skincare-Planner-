@@ -480,6 +480,89 @@ async def get_client_assessment_detail(
 # flushes (admin/service.py), it never commits.
 
 _ROUTINE_OVERWRITE_ACTION = "routine_step_overwrite"
+_ROUTINE_CREATED_ACTION = "routine_created"
+_ROUTINE_DUPLICATED_ACTION = "routine_duplicated"
+_ROUTINE_ACTIVATION_ACTION = "routine_activation_changed"
+_ROUTINE_REORDER_ACTION = "routine_step_reorder"
+
+
+async def create_client_routine(
+    db: AsyncSession,
+    professional_id: str,
+    user_id: str,
+    routine_name: str,
+    routine_type: str,
+    description: str | None,
+) -> RoutineRead:
+    """ADR-050 — consultant-authored routine, additive to the client's existing
+    AI-generated ones (never replaces them)."""
+    await _verify_assignment(db, professional_id, user_id)
+    result = await routines_service.create_client_routine(
+        db, user_id, professional_id, routine_name, routine_type, description
+    )
+    await admin_service.write_audit_log(
+        db,
+        actor_user_id=professional_id,
+        action=_ROUTINE_CREATED_ACTION,
+        target_type="skincare_routines",
+        target_id=str(result.routine_id),
+        metadata={"client_user_id": user_id, "routine_name": routine_name},
+    )
+    await db.commit()
+    return result
+
+
+async def duplicate_client_routine(
+    db: AsyncSession, professional_id: str, user_id: str, source_routine_id: int
+) -> RoutineRead:
+    await _verify_assignment(db, professional_id, user_id)
+    result = await routines_service.duplicate_client_routine(
+        db, user_id, professional_id, source_routine_id
+    )
+    await admin_service.write_audit_log(
+        db,
+        actor_user_id=professional_id,
+        action=_ROUTINE_DUPLICATED_ACTION,
+        target_type="skincare_routines",
+        target_id=str(result.routine_id),
+        metadata={"client_user_id": user_id, "source_routine_id": source_routine_id},
+    )
+    await db.commit()
+    return result
+
+
+async def set_client_routine_active(
+    db: AsyncSession, professional_id: str, user_id: str, routine_id: int, is_active: bool
+) -> RoutineRead:
+    await _verify_assignment(db, professional_id, user_id)
+    result = await routines_service.set_client_routine_active(db, user_id, routine_id, is_active)
+    await admin_service.write_audit_log(
+        db,
+        actor_user_id=professional_id,
+        action=_ROUTINE_ACTIVATION_ACTION,
+        target_type="skincare_routines",
+        target_id=str(routine_id),
+        metadata={"client_user_id": user_id, "is_active": is_active},
+    )
+    await db.commit()
+    return result
+
+
+async def reorder_client_routine_steps(
+    db: AsyncSession, professional_id: str, user_id: str, routine_id: int, step_ids: list[int]
+) -> RoutineRead:
+    await _verify_assignment(db, professional_id, user_id)
+    result = await routines_service.reorder_steps(db, user_id, routine_id, step_ids)
+    await admin_service.write_audit_log(
+        db,
+        actor_user_id=professional_id,
+        action=_ROUTINE_REORDER_ACTION,
+        target_type="skincare_routines",
+        target_id=str(routine_id),
+        metadata={"client_user_id": user_id},
+    )
+    await db.commit()
+    return result
 
 
 async def search_client_products(

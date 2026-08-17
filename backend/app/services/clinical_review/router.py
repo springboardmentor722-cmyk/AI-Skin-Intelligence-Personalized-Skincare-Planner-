@@ -22,8 +22,19 @@ from app.services.clinical_review.schemas import (
 from app.services.progress import service as progress_service
 from app.services.progress.schemas import ProgressPhotosRead
 from app.services.recommendations.schemas import ProductRead
-from app.services.routines.schemas import RoutineRead, StepCreate, StepUpdate
-from app.services.routines.service import UnsafeProductError
+from app.services.routines.schemas import (
+    ClientRoutineActiveUpdate,
+    ClientRoutineCreate,
+    RoutineRead,
+    StepCreate,
+    StepReorderUpdate,
+    StepUpdate,
+)
+from app.services.routines.service import (
+    NotProfessionalAuthoredError,
+    UnsafeProductError,
+    get_or_generate_routines,
+)
 from app.services.scores.schemas import ScoreRead
 
 router = APIRouter()
@@ -161,6 +172,81 @@ async def add_client_note(
 # mirrors routines/router.py's own request/response/error shapes exactly, just
 # professional-scoped. Each successful mutation also writes an audit-log row
 # (service.py) before the professional sees the updated routine.
+
+
+@router.get("/clients/{user_id}/routines")
+async def get_client_routines(
+    user_id: str,
+    professional: Annotated[dict[str, Any], Depends(_professional)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> list[RoutineRead]:
+    try:
+        await service.verify_assignment(db, professional["id"], user_id)
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+    return await get_or_generate_routines(db, user_id)
+
+
+@router.post("/clients/{user_id}/routines")
+async def create_client_routine(
+    user_id: str,
+    body: ClientRoutineCreate,
+    professional: Annotated[dict[str, Any], Depends(_professional)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> RoutineRead:
+    try:
+        return await service.create_client_routine(
+            db, professional["id"], user_id, body.routine_name, body.routine_type, body.description
+        )
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+
+
+@router.post("/clients/{user_id}/routines/{routine_id}/duplicate")
+async def duplicate_client_routine(
+    user_id: str,
+    routine_id: int,
+    professional: Annotated[dict[str, Any], Depends(_professional)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> RoutineRead:
+    try:
+        return await service.duplicate_client_routine(db, professional["id"], user_id, routine_id)
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+
+
+@router.patch("/clients/{user_id}/routines/{routine_id}")
+async def set_client_routine_active(
+    user_id: str,
+    routine_id: int,
+    body: ClientRoutineActiveUpdate,
+    professional: Annotated[dict[str, Any], Depends(_professional)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> RoutineRead:
+    try:
+        return await service.set_client_routine_active(
+            db, professional["id"], user_id, routine_id, body.is_active
+        )
+    except NotProfessionalAuthoredError as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+
+
+@router.patch("/clients/{user_id}/routines/{routine_id}/steps/reorder")
+async def reorder_client_routine_steps(
+    user_id: str,
+    routine_id: int,
+    body: StepReorderUpdate,
+    professional: Annotated[dict[str, Any], Depends(_professional)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> RoutineRead:
+    try:
+        return await service.reorder_client_routine_steps(
+            db, professional["id"], user_id, routine_id, body.step_ids
+        )
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
 
 
 @router.get("/clients/{user_id}/routines/products/search")
