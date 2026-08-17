@@ -9,6 +9,7 @@ shape as test_progress_router.py/test_ingredients_router.py's `router_test_user`
 `assigned_consultant_and_client` fixtures.
 """
 
+import datetime
 import io
 import uuid
 from collections.abc import AsyncGenerator
@@ -18,6 +19,7 @@ from httpx import AsyncClient
 from PIL import Image
 from sqlalchemy import delete, select
 
+from app.db.mongo import get_mongo_db
 from app.db.postgres import async_session_factory, external_user_table
 from app.main import app
 from app.services.admin.models import AuditLog
@@ -738,3 +740,66 @@ async def test_deactivate_a_system_served_recommendation_over_http_is_rejected(
             )
         )
         await session.commit()
+
+
+# --- Progress tracking (M3R Progress Tracking module) ---
+
+
+async def test_client_progress_summary_and_logs_assigned_ok_unassigned_404(
+    client: AsyncClient, router_professional_and_client: tuple[str, str]
+) -> None:
+    professional_id, client_user_id = router_professional_and_client
+    other_professional_id = f"test-other-professional-{uuid.uuid4().hex[:16]}"
+
+    async with async_session_factory() as session:
+        await create_profile(
+            session, client_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+        )
+        await compute_and_store_score(session, client_user_id)
+
+    await get_mongo_db()["progress_logs"].insert_one(
+        {
+            "user_id": client_user_id,
+            "week_number": 1,
+            "before_image": None,
+            "after_image": None,
+            "improvement_score": 5.0,
+            "concern_changes": [],
+            "trend_summary": "Improving",
+            "notes": None,
+            "created_at": datetime.datetime.now(datetime.UTC),
+        }
+    )
+
+    app.dependency_overrides[clinical_review_router._professional] = lambda: {
+        "id": professional_id,
+        "role": "consultant",
+        "claims": {},
+    }
+    try:
+        summary = await client.get(f"/api/v1/clients/{client_user_id}/progress/summary")
+        logs = await client.get(f"/api/v1/clients/{client_user_id}/progress/logs")
+    finally:
+        app.dependency_overrides.pop(clinical_review_router._professional, None)
+        await get_mongo_db()["progress_logs"].delete_many({"user_id": client_user_id})
+
+    assert summary.status_code == 200
+    assert len(summary.json()["points"]) == 1
+
+    assert logs.status_code == 200
+    assert len(logs.json()) == 1
+    assert logs.json()[0]["trend_summary"] == "Improving"
+
+    app.dependency_overrides[clinical_review_router._professional] = lambda: {
+        "id": other_professional_id,
+        "role": "consultant",
+        "claims": {},
+    }
+    try:
+        forbidden_summary = await client.get(f"/api/v1/clients/{client_user_id}/progress/summary")
+        forbidden_logs = await client.get(f"/api/v1/clients/{client_user_id}/progress/logs")
+    finally:
+        app.dependency_overrides.pop(clinical_review_router._professional, None)
+
+    assert forbidden_summary.status_code == 404
+    assert forbidden_logs.status_code == 404

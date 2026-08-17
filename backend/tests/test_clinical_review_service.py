@@ -20,8 +20,10 @@ from app.services.clinical_review.service import (
     create_assignment,
     get_client_assessment_detail,
     get_client_detail,
+    get_client_progress_summary,
     get_portfolio_stats,
     list_client_assessments,
+    list_client_progress_logs,
     list_my_clients,
     list_notes,
 )
@@ -516,3 +518,59 @@ async def test_get_client_assessment_detail_returns_full_score_and_404s_on_forei
         await get_client_assessment_detail(
             db_session, professional_id, client_user_id, score_id=computed.score_id + 999_999
         )
+
+
+async def test_get_client_progress_summary_rejects_an_unassigned_user(
+    db_session: AsyncSession, professional_id: str, client_user_id: str
+) -> None:
+    with pytest.raises(ValueError, match="isn.t assigned"):
+        await get_client_progress_summary(db_session, professional_id, client_user_id)
+
+
+async def test_list_client_progress_logs_rejects_an_unassigned_user(
+    db_session: AsyncSession, professional_id: str, client_user_id: str
+) -> None:
+    with pytest.raises(ValueError, match="isn.t assigned"):
+        await list_client_progress_logs(db_session, professional_id, client_user_id)
+
+
+async def test_get_client_progress_summary_returns_real_score_history_for_an_assigned_client(
+    db_session: AsyncSession, professional_id: str, client_user_id: str
+) -> None:
+    await create_profile(
+        db_session, client_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+    computed = await compute_and_store_score(db_session, client_user_id)
+    await create_assignment(db_session, professional_id, client_user_id)
+
+    summary = await get_client_progress_summary(db_session, professional_id, client_user_id)
+
+    assert len(summary.points) == 1
+    assert summary.points[0].overall_score == computed.overall_score
+
+
+async def test_list_client_progress_logs_returns_real_mongo_logs_for_an_assigned_client(
+    db_session: AsyncSession, professional_id: str, client_user_id: str
+) -> None:
+    await create_assignment(db_session, professional_id, client_user_id)
+    doc = {
+        "user_id": client_user_id,
+        "week_number": 1,
+        "before_image": None,
+        "after_image": None,
+        "improvement_score": 5.0,
+        "concern_changes": [{"concern": "Acne", "before": 7, "after": 5}],
+        "trend_summary": "Improving",
+        "notes": "Client reports fewer breakouts.",
+        "created_at": datetime.datetime.now(datetime.UTC),
+    }
+    await get_mongo_db()["progress_logs"].insert_one(doc)
+    try:
+        logs = await list_client_progress_logs(db_session, professional_id, client_user_id)
+
+        assert len(logs) == 1
+        assert logs[0].week_number == 1
+        assert logs[0].concern_changes[0].concern == "Acne"
+        assert logs[0].trend_summary == "Improving"
+    finally:
+        await get_mongo_db()["progress_logs"].delete_many({"user_id": client_user_id})

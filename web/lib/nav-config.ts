@@ -276,7 +276,7 @@ const RAW_NAV: Record<Role, RawNavSection[]> = {
           subtitle: "Track client progress",
           path: "/progress",
           icon: TrendingUp,
-          built: false,
+          built: true,
         },
         {
           id: "reports",
