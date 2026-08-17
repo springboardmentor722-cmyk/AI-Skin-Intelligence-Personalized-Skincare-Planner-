@@ -110,6 +110,10 @@ async def _read_with_steps(db: AsyncSession, routine: Routine) -> RoutineRead:
         routine_type=routine.routine_type,
         description=routine.description,
         score_id=routine.score_id,
+        is_active=routine.is_active,
+        created_by_professional_id=routine.created_by_professional_id,
+        created_at=routine.created_at,
+        updated_at=routine.updated_at,
         steps=step_reads,
     )
 
@@ -318,8 +322,16 @@ async def get_or_generate_routines(db: AsyncSession, user_id: str) -> list[Routi
         select(Routine).where(Routine.user_id == user_id, Routine.is_active.is_(True))
     )
     existing = list(existing_result.scalars().all())
-    core = [r for r in existing if r.routine_type != "Seasonal"]
-    seasonal = next((r for r in existing if r.routine_type == "Seasonal"), None)
+    # ADR-050 — consultant-authored routines (created_by_professional_id set) never
+    # participate in the AI regeneration trigger below: they have no skin_profile_id
+    # of their own, and including them in `core` would falsely detect a profile-
+    # version mismatch on every read and regenerate AM/PM/Weekly needlessly. They
+    # still ride along in every returned list (`existing` below, and appended to
+    # `all_routines` further down) — only excluded from the trigger/refresh logic.
+    professional_authored = [r for r in existing if r.created_by_professional_id is not None]
+    engine_managed = [r for r in existing if r.created_by_professional_id is None]
+    core = [r for r in engine_managed if r.routine_type != "Seasonal"]
+    seasonal = next((r for r in engine_managed if r.routine_type == "Seasonal"), None)
 
     profile = await skin_profile_service.get_current_profile(db, user_id)
 
@@ -435,9 +447,10 @@ async def get_or_generate_routines(db: AsyncSession, user_id: str) -> list[Routi
     assert seasonal is not None
 
     await db.commit()
-    all_routines = [*core, seasonal]
-    for routine in all_routines:
+    engine_routines = [*core, seasonal]
+    for routine in engine_routines:
         await db.refresh(routine)
+    all_routines = [*engine_routines, *professional_authored]
 
     return [await _read_with_steps(db, routine) for routine in all_routines]
 
@@ -768,6 +781,119 @@ async def update_step(
 
     await db.commit()
     routine = await _get_owned_routine(db, user_id, step.routine_id)
+    return await _read_with_steps(db, routine)
+
+
+# --- Consultant-authored routines (ADR-050) ---
+# Additive to the AI engine above, never a parallel routine system: same Routine/
+# RoutineStep/RoutineProduct tables, same _read_with_steps projection, same
+# _get_owned_routine ownership check (scoped to the client's user_id, not the
+# professional) — only `created_by_professional_id` distinguishes authorship.
+
+
+class NotProfessionalAuthoredError(ValueError):
+    """A professional tried to activate/deactivate one of the engine's own AI
+    routines — distinct from a plain not-found ValueError so the router can map
+    it to 400 (a rejected action) rather than 404 (a missing resource). Per
+    ADR-050: a professional customizes via Create/Duplicate, never by toggling
+    the AI engine's own AM/PM/Weekly/Seasonal rows directly."""
+
+
+async def create_client_routine(
+    db: AsyncSession,
+    user_id: str,
+    professional_id: str,
+    routine_name: str,
+    routine_type: str,
+    description: str | None,
+) -> RoutineRead:
+    routine = Routine(
+        user_id=user_id,
+        routine_name=routine_name,
+        routine_type=routine_type,
+        description=description,
+        is_active=True,
+        generated_by_ai=False,
+        created_by_professional_id=professional_id,
+    )
+    db.add(routine)
+    await db.commit()
+    await db.refresh(routine)
+    return await _read_with_steps(db, routine)
+
+
+async def duplicate_client_routine(
+    db: AsyncSession, user_id: str, professional_id: str, source_routine_id: int
+) -> RoutineRead:
+    source = await _get_owned_routine(db, user_id, source_routine_id)
+    steps_result = await db.execute(
+        select(RoutineStep)
+        .where(RoutineStep.routine_id == source.routine_id)
+        .order_by(RoutineStep.step_order)
+    )
+    source_steps = list(steps_result.scalars().all())
+    source_step_ids = [s.step_id for s in source_steps]
+    products_by_step: dict[int, list[RoutineProduct]] = defaultdict(list)
+    if source_step_ids:
+        rp_result = await db.execute(
+            select(RoutineProduct).where(RoutineProduct.step_id.in_(source_step_ids))
+        )
+        for rp in rp_result.scalars().all():
+            if rp.step_id is not None:
+                products_by_step[rp.step_id].append(rp)
+
+    routine = Routine(
+        user_id=user_id,
+        routine_name=f"{source.routine_name} (Copy)" if source.routine_name else "Copied routine",
+        routine_type=source.routine_type,
+        description=source.description,
+        is_active=True,
+        generated_by_ai=False,
+        created_by_professional_id=professional_id,
+    )
+    db.add(routine)
+    await db.flush()  # assigns routine.routine_id
+
+    for step in source_steps:
+        new_step = RoutineStep(
+            routine_id=routine.routine_id,
+            step_order=step.step_order,
+            step_name=step.step_name,
+            category=step.category,
+            instruction=step.instruction,
+            rationale=step.rationale,
+            safety_flag=step.safety_flag,
+            duration_minutes=step.duration_minutes,
+        )
+        db.add(new_step)
+        await db.flush()  # assigns new_step.step_id
+        for rp in products_by_step[step.step_id]:
+            db.add(
+                RoutineProduct(
+                    routine_id=routine.routine_id,
+                    product_id=rp.product_id,
+                    step_id=new_step.step_id,
+                    usage_notes=rp.usage_notes,
+                )
+            )
+
+    await db.commit()
+    await db.refresh(routine)
+    return await _read_with_steps(db, routine)
+
+
+async def set_client_routine_active(
+    db: AsyncSession, user_id: str, routine_id: int, is_active: bool
+) -> RoutineRead:
+    routine = await _get_owned_routine(db, user_id, routine_id)
+    if routine.created_by_professional_id is None:
+        raise NotProfessionalAuthoredError(
+            "AI-generated routines can't be activated/deactivated directly — "
+            "duplicate it into a consultant-authored routine to customize."
+        )
+    routine.is_active = is_active
+    await db.commit()
+    await db.refresh(routine)
     return await _read_with_steps(db, routine)
 
 
