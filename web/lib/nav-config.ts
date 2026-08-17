@@ -268,7 +268,7 @@ const RAW_NAV: Record<Role, RawNavSection[]> = {
           subtitle: "View & recommend products",
           path: "/recommendations",
           icon: Sparkles,
-          built: false,
+          built: true,
         },
         {
           id: "progress",
