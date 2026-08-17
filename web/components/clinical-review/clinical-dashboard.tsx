@@ -7,6 +7,7 @@ import {
   Sparkles,
   TrendingUp,
 } from "lucide-react";
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { DonutBreakdown, type DonutSlice } from "@/components/charts/donut-breakdown";
@@ -104,9 +105,17 @@ export function ClinicalDashboard({ role }: ClinicalDashboardProps) {
   });
 
   const appointmentsQuery = useMyAppointmentsQuery();
-  const nextAppointment = (appointmentsQuery.data ?? [])
-    .filter((a) => ["pending", "confirmed"].includes(a.status) && new Date(a.start_time).getTime() > Date.now())
-    .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())[0];
+  const nextAppointment = useMemo(() => {
+    // React Compiler's purity rule forbids Date.now() during render (it makes
+    // render non-deterministic) — dataUpdatedAt (when React Query last fetched
+    // this data) is already a stable, render-safe stand-in for "now" here.
+    const asOf = appointmentsQuery.dataUpdatedAt;
+    return (appointmentsQuery.data ?? [])
+      .filter(
+        (a) => ["pending", "confirmed"].includes(a.status) && new Date(a.start_time).getTime() > asOf
+      )
+      .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())[0];
+  }, [appointmentsQuery.data, appointmentsQuery.dataUpdatedAt]);
 
   const roster = rosterQuery.data?.items ?? [];
   const stats = statsQuery.data;

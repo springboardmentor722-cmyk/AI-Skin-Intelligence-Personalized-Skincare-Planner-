@@ -125,7 +125,7 @@ export function ClientReportsView({ userId, backHref }: { userId: string; backHr
           {clientQuery.data?.name ?? clientQuery.data?.email ?? "Client"} — Reports
         </h1>
         <p className="text-on-surface-variant mt-1 font-sans text-sm">
-          Generate a PDF snapshot of this client's skin data.
+          Generate a PDF snapshot of this client&apos;s skin data.
         </p>
       </div>
 

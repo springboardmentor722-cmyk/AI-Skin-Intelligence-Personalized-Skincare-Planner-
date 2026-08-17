@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ClipboardCheck, Loader2, RotateCw, Search, ShieldBan, ShieldCheck, TriangleAlert } from "lucide-react";
@@ -46,10 +46,14 @@ export default function AdminUsersPage() {
   // Re-sync when the command palette navigates here from an already-open
   // /admin/users tab (same route, new ?search=) — a same-route client
   // navigation doesn't remount the page, so the useState initializer above
-  // only fires once and would otherwise miss the new value.
-  useEffect(() => {
+  // only fires once and would otherwise miss the new value. Adjusted during
+  // render (React's own recommended pattern for this) rather than an effect,
+  // which would cause an extra render pass after every navigation.
+  const [prevSearchParam, setPrevSearchParam] = useState(searchParam);
+  if (searchParam !== prevSearchParam) {
+    setPrevSearchParam(searchParam);
     setSearch(searchParam);
-  }, [searchParam]);
+  }
 
   const usersQuery = useQuery({
     queryKey: ["admin", "users", search, page],

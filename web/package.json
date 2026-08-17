@@ -12,7 +12,8 @@
     "format:check": "prettier --check .",
     "test": "playwright test",
     "test:e2e": "playwright test",
-    "test:unit": "node --test lib/__tests__/**/*.test.ts"
+    "test:unit": "node --test lib/__tests__/**/*.test.ts",
+    "postinstall": "node scripts/eslint-ts6-shim.mjs && patch-package"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
@@ -53,12 +54,18 @@
     "eslint": "^10.8.1",
     "eslint-config-next": "^16.3.1",
     "mongodb": "^7.5.0",
+    "patch-package": "^8.0.1",
     "prettier": "^3.9.6",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2"
   },
   "overrides": {
-    "postcss": "^8.5.10"
+    "postcss": "^8.5.10",
+    "eslint-config-next": {
+      "typescript-eslint": {
+        "typescript": "^5.9.3"
+      }
+    }
   }
 }
