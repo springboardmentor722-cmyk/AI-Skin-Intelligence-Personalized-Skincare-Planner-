@@ -572,6 +572,13 @@ async def seed_demo_clients() -> int:
             # so the roster's score_trend sparkline and the portfolio's trend
             # analysis (app/ai/trend.py) have more than one real point to work
             # with. A gentle real improvement slope, not a random walk.
+            #
+            # weight_id must reference the real active scoring_weights row, not
+            # None: scores_service.get_score_by_id treats a null weight_id as
+            # "incomplete" and 404s (found via the clinical Assessments compare
+            # dialog on these exact backdated rows) — every SkinScore, backdated
+            # or not, was computed against real weights and should say so.
+            active_weights = await scores_service.get_active_weights(db)
             base = latest.overall_score or 70.0
             for days_ago, delta in ((21, -6.0), (14, -3.5), (7, -1.5)):
                 db.add(
@@ -583,7 +590,7 @@ async def seed_demo_clients() -> int:
                         hydration_score=latest.hydration_score,
                         routine_adherence_score=latest.routine_adherence_score,
                         overall_score=max(0.0, min(100.0, base + delta)),
-                        weight_id=None,
+                        weight_id=active_weights.weight_id,
                         calculated_at=datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
                         - datetime.timedelta(days=days_ago),
                     )
