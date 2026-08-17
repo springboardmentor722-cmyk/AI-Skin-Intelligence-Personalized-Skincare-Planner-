@@ -2019,3 +2019,91 @@ in this repo actually has a populated `deps.py`). Explicitly deferred, not built
 reminders-tab content, video-call integration, per-provider cutoff config,
 `AppointmentType`/`AppointmentParticipant` tables, a separate reschedule-history
 table beyond the one-hop `original_start_time` column.
+
+## ADR-050 — Consultant-authored routines: `created_by_professional_id` extends the existing single-writer routine engine, no parallel routine system
+
+**Status:** Accepted (owner request, 2026-08-17 — Consultant Panel Routine Plans
+module)
+
+**Context:** `routines/service.py`'s `get_or_generate_routines` is a real
+single-writer engine: every user always has exactly four AI-generated routines
+(AM/PM/Weekly/Seasonal), auto-regenerated when their `skin_profile_id` version
+changes or the season turns over. There was no concept anywhere in
+`database_schemas/` or the service layer of a consultant *creating*,
+*duplicating*, or manually *activating* a routine for a client — the Consultant
+Panel's Routine Plans page originally specified exactly that (Create, Duplicate,
+Activate/Deactivate), which would have meant either fabricating a schema the
+codebase doesn't have, or forking the routine engine into two systems.
+
+**Decision:**
+1. **One nullable column, not a new table.** `skincare_routines.
+   created_by_professional_id TEXT REFERENCES "user"(id) ON DELETE SET NULL`
+   (migration `5f6e0ea439c6`). `NULL` = AI-generated (today's engine,
+   byte-for-byte unchanged behavior). Non-NULL = the consultant/dermatologist
+   `user_id` who authored it. `SET NULL` rather than `CASCADE`/`RESTRICT`: the
+   routine belongs to the *client* (`user_id`, `ON DELETE CASCADE` there,
+   unchanged) — if the authoring professional's own account is ever deleted,
+   the client's routine must survive; it just loses provenance and reads as
+   AI-managed from then on, which is an acceptable edge case for data that was
+   never the professional's to lose. Same `Routine`/`RoutineStep`/`RoutineProduct` tables, same
+   `_read_with_steps` projection, same `_get_owned_routine` ownership check
+   (scoped to the *client's* `user_id`, never the professional's) — a
+   consultant-authored routine is a normal row in the same tables, not a
+   parallel model.
+2. **The professional is the author, not the owner.** `user_id` (the client)
+   stays the sole ownership key everywhere — `created_by_professional_id` is
+   provenance metadata only, and is always server-derived from the
+   authenticated professional (`clinical_review/router.py`'s `_professional`
+   dependency), never accepted from the request body.
+3. **AI regeneration trigger excludes professional-authored routines.**
+   `get_or_generate_routines` used to compute `core` (the AM/PM/Weekly set that
+   drives `needs_core_refresh`) from every active non-Seasonal routine. A
+   consultant-authored routine has no `skin_profile_id` of its own, so it would
+   have permanently tripped `needs_core_refresh` and silently deactivated the
+   real AM/PM/Weekly routines on every read. Fixed by splitting `existing` into
+   `engine_managed` (drives the regeneration trigger, exactly as before) and
+   `professional_authored` (rides along in every returned list — the "no
+   change needed" fast path, the "no profile yet" fallback, and the
+   regeneration branch's final `all_routines` — but never touched by the
+   `is_active = False` deactivation loop or the trigger check). Covered by
+   `test_routines_service.py::test_professional_authored_routine_survives_ai_regeneration_and_never_triggers_it`.
+4. **New `routines/service.py` functions, reusing every existing safety layer.**
+   `create_client_routine`, `duplicate_client_routine` (copies routine + steps +
+   products, never raw-copies primary keys), `set_client_routine_active` — all
+   plain functions taking `user_id` (client) + `professional_id` (author), no
+   new safety/validation path. Adding steps to a consultant-authored routine
+   goes through the exact same `add_step`/`_assert_product_is_safe` guardrail
+   every AI-generated routine's steps already go through — a consultant cannot
+   add an unsafe product just because the routine is custom.
+5. **AI routines can't be activated/deactivated directly.** `set_client_routine_active`
+   raises `NotProfessionalAuthoredError` (mapped to 400) if
+   `created_by_professional_id is None` — a professional customizes via
+   Duplicate, never by toggling the engine's own AM/PM/Weekly/Seasonal rows.
+   Prevents an accidental deactivate-then-silent-regenerate loop through the
+   fixed trigger above.
+6. **`routine_type` stays free-text, no new enum.** `"Custom"` is this module's
+   convention for a consultant-created routine's default type
+   (`ClientRoutineCreate.routine_type`), not a CHECK-constrained value — the
+   column already had no constraint (`VARCHAR(50)`, unconstrained).
+7. **Every mutation is assignment-gated and audit-logged**, same pattern as the
+   existing step wrappers: `clinical_review/service.py`'s
+   `create_client_routine`/`duplicate_client_routine`/`set_client_routine_active`/
+   `reorder_client_routine_steps` each call `_verify_assignment` first, then
+   `admin_service.write_audit_log` (actions `routine_created`,
+   `routine_duplicated`, `routine_activation_changed`, `routine_step_reorder`).
+   New endpoints: `GET/POST /clients/{id}/routines`,
+   `POST /clients/{id}/routines/{id}/duplicate`,
+   `PATCH /clients/{id}/routines/{id}` (activate/deactivate),
+   `PATCH /clients/{id}/routines/{id}/steps/reorder` (the one step operation —
+   add/update/delete — that wasn't already wrapped for consultants).
+
+**Consequences:** The four existing AI-generated routines and their
+regeneration behavior are unchanged and covered by the existing test suite plus
+the new regression test in point 3. Consultant-authored routines are visible on
+the client's own `GET /routine` (they see what their consultant assigned them),
+distinguished in the frontend by `RoutineRead.created_by_professional_id`
+(`web/app/consultant/routine-plans/`: "AI Generated" vs "Consultant Created"
+badges). Leaves room for a future professional-authoring workflow (e.g.
+templated routine libraries) without ever requiring a second routine system —
+any future addition is still just rows in `skincare_routines` with this same
+column doing the provenance work.
