@@ -1333,6 +1333,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/clients/{user_id}/routines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Client Routines */
+        get: operations["get_client_routines_api_v1_clients__user_id__routines_get"];
+        put?: never;
+        /** Create Client Routine */
+        post: operations["create_client_routine_api_v1_clients__user_id__routines_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/clients/{user_id}/routines/{routine_id}/duplicate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Duplicate Client Routine */
+        post: operations["duplicate_client_routine_api_v1_clients__user_id__routines__routine_id__duplicate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/clients/{user_id}/routines/{routine_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Set Client Routine Active */
+        patch: operations["set_client_routine_active_api_v1_clients__user_id__routines__routine_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/clients/{user_id}/routines/{routine_id}/steps/reorder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Reorder Client Routine Steps */
+        patch: operations["reorder_client_routine_steps_api_v1_clients__user_id__routines__routine_id__steps_reorder_patch"];
+        trace?: never;
+    };
     "/api/v1/clients/{user_id}/routines/products/search": {
         parameters: {
             query?: never;
@@ -2090,6 +2159,23 @@ export interface components {
             page_size: number;
             /** Total */
             total: number;
+        };
+        /** ClientRoutineActiveUpdate */
+        ClientRoutineActiveUpdate: {
+            /** Is Active */
+            is_active: boolean;
+        };
+        /** ClientRoutineCreate */
+        ClientRoutineCreate: {
+            /** Routine Name */
+            routine_name: string;
+            /**
+             * Routine Type
+             * @default Custom
+             */
+            routine_type: string;
+            /** Description */
+            description?: string | null;
         };
         /**
          * ClientScoreRead
@@ -3342,6 +3428,14 @@ export interface components {
             description: string | null;
             /** Score Id */
             score_id: number | null;
+            /** Is Active */
+            is_active: boolean | null;
+            /** Created By Professional Id */
+            created_by_professional_id?: string | null;
+            /** Created At */
+            created_at?: string | null;
+            /** Updated At */
+            updated_at?: string | null;
             /** Steps */
             steps: components["schemas"]["RoutineStepRead"][];
         };
@@ -6449,6 +6543,176 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ConsultantNoteRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_client_routines_api_v1_clients__user_id__routines_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoutineRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_client_routine_api_v1_clients__user_id__routines_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClientRoutineCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoutineRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    duplicate_client_routine_api_v1_clients__user_id__routines__routine_id__duplicate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+                routine_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoutineRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_client_routine_active_api_v1_clients__user_id__routines__routine_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+                routine_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClientRoutineActiveUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoutineRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reorder_client_routine_steps_api_v1_clients__user_id__routines__routine_id__steps_reorder_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+                routine_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StepReorderUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoutineRead"];
                 };
             };
             /** @description Validation Error */

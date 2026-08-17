@@ -500,3 +500,124 @@ async def test_add_and_swap_client_routine_step_rejects_unsafe_product(
         )
         await session.execute(delete(Product).where(Product.product_id == unsafe_product_id))
         await session.commit()
+
+
+# --- Consultant-authored routines (ADR-050) ---
+
+
+async def test_client_routine_lifecycle_over_http_is_assigned_and_audited(
+    client: AsyncClient, router_professional_and_client: tuple[str, str]
+) -> None:
+    """Create -> list -> duplicate -> activate/deactivate -> reorder, all over the
+    real HTTP round trip, each ownership-gated the same way as the step wrappers,
+    and each leaving a real audit-log row (admin_service.write_audit_log)."""
+    professional_id, client_user_id = router_professional_and_client
+    other_professional_id = f"test-other-professional-{uuid.uuid4().hex[:16]}"
+
+    app.dependency_overrides[clinical_review_router._professional] = lambda: {
+        "id": professional_id,
+        "role": "consultant",
+        "claims": {},
+    }
+    try:
+        created = await client.post(
+            f"/api/v1/clients/{client_user_id}/routines",
+            json={"routine_name": "Consultant Custom", "routine_type": "Custom"},
+        )
+        assert created.status_code == 200
+        created_body = created.json()
+        assert created_body["created_by_professional_id"] == professional_id
+        routine_id = created_body["routine_id"]
+
+        listed = await client.get(f"/api/v1/clients/{client_user_id}/routines")
+        assert listed.status_code == 200
+        assert any(r["routine_id"] == routine_id for r in listed.json())
+
+        duplicated = await client.post(
+            f"/api/v1/clients/{client_user_id}/routines/{routine_id}/duplicate"
+        )
+        assert duplicated.status_code == 200
+        duplicate_id = duplicated.json()["routine_id"]
+        assert duplicate_id != routine_id
+
+        deactivated = await client.patch(
+            f"/api/v1/clients/{client_user_id}/routines/{routine_id}",
+            json={"is_active": False},
+        )
+        assert deactivated.status_code == 200
+        assert deactivated.json()["is_active"] is False
+
+        reordered = await client.patch(
+            f"/api/v1/clients/{client_user_id}/routines/{duplicate_id}/steps/reorder",
+            json={"step_ids": []},
+        )
+        assert reordered.status_code == 200
+    finally:
+        app.dependency_overrides.pop(clinical_review_router._professional, None)
+
+    async with async_session_factory() as session:
+        audit_actions = (
+            (
+                await session.execute(
+                    select(AuditLog.action).where(AuditLog.actor_user_id == professional_id)
+                )
+            )
+            .scalars()
+            .all()
+        )
+    assert "routine_created" in audit_actions
+    assert "routine_duplicated" in audit_actions
+    assert "routine_activation_changed" in audit_actions
+    assert "routine_step_reorder" in audit_actions
+
+    async with async_session_factory() as session:
+        # The shared `router_professional_and_client` fixture's teardown deletes
+        # the professional's `user` row; audit_logs.actor_user_id has no cascade,
+        # so leftover rows here would block that delete with a FK violation —
+        # same cleanup precedent as test_client_routine_step_crud_over_http's own.
+        await session.execute(delete(AuditLog).where(AuditLog.actor_user_id == professional_id))
+        await session.commit()
+
+    app.dependency_overrides[clinical_review_router._professional] = lambda: {
+        "id": other_professional_id,
+        "role": "consultant",
+        "claims": {},
+    }
+    try:
+        forbidden_create = await client.post(
+            f"/api/v1/clients/{client_user_id}/routines",
+            json={"routine_name": "Should not persist", "routine_type": "Custom"},
+        )
+        forbidden_list = await client.get(f"/api/v1/clients/{client_user_id}/routines")
+    finally:
+        app.dependency_overrides.pop(clinical_review_router._professional, None)
+
+    assert forbidden_create.status_code == 404
+    assert forbidden_list.status_code == 404
+
+
+async def test_activate_an_ai_generated_routine_over_http_is_rejected(
+    client: AsyncClient, router_professional_and_client: tuple[str, str]
+) -> None:
+    professional_id, client_user_id = router_professional_and_client
+    async with async_session_factory() as session:
+        await create_profile(
+            session, client_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+        )
+        routines = await get_or_generate_routines(session, client_user_id)
+    am_routine_id = next(r.routine_id for r in routines if r.routine_type == "AM")
+
+    app.dependency_overrides[clinical_review_router._professional] = lambda: {
+        "id": professional_id,
+        "role": "consultant",
+        "claims": {},
+    }
+    try:
+        response = await client.patch(
+            f"/api/v1/clients/{client_user_id}/routines/{am_routine_id}",
+            json={"is_active": False},
+        )
+    finally:
+        app.dependency_overrides.pop(clinical_review_router._professional, None)
+
+    assert response.status_code == 400

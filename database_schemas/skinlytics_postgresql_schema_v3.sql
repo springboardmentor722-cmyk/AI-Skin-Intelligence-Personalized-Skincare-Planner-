@@ -209,6 +209,10 @@ CREATE TABLE skincare_routines (
         -- get_or_generate_routines detect a re-assessment (a new profile version) and
         -- regenerate, the same way a season change already regenerates Seasonal Care.
         -- Nullable: routines generated before this column existed have no value here.
+    created_by_professional_id TEXT REFERENCES "user"(id) ON DELETE SET NULL,  -- ADR-050: NULL = AI-generated
+        -- (the existing engine, unchanged). Non-NULL = the consultant/dermatologist
+        -- user_id who authored this routine. Author, not owner — user_id above stays
+        -- the client the routine belongs to either way. Migration 5f6e0ea439c6.
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

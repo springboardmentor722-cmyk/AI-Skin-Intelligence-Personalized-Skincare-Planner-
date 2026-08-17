@@ -42,6 +42,12 @@ class Routine(Base):
     skin_profile_id: Mapped[int | None] = mapped_column(
         ForeignKey("skin_profiles.skin_profile_id"), default=None
     )
+    # ADR-050 — NULL: AI-generated (the existing engine, untouched). Non-NULL: the
+    # consultant/dermatologist who authored this routine. Author, not owner —
+    # `user_id` above stays the client the routine belongs to either way.
+    created_by_professional_id: Mapped[str | None] = mapped_column(
+        ForeignKey("user.id"), default=None
+    )
     created_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())
 

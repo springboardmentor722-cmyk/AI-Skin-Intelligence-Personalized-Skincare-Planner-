@@ -10,6 +10,7 @@ testing against data shaped nothing like production.
 """
 
 import datetime
+import uuid
 
 import pytest
 from sqlalchemy import event as sa_event
@@ -34,17 +35,21 @@ from app.services.routines.guardrails import (
 )
 from app.services.routines.models import Routine, RoutineStep
 from app.services.routines.service import (
+    NotProfessionalAuthoredError,
     UnsafeProductError,
     _assert_product_is_safe,
     _current_season,
     add_step,
     count_completed_steps_by_user,
+    create_client_routine,
     delete_step,
+    duplicate_client_routine,
     get_or_generate_routines,
     list_active_step_counts_by_user,
     list_historical_active_step_ids,
     reorder_steps,
     search_products_for_edit,
+    set_client_routine_active,
     toggle_step_completion,
     update_step,
 )
@@ -1598,3 +1603,141 @@ async def test_list_historical_active_step_ids_uses_the_routine_active_on_each_d
 
     assert result[old_day] == {old_step.step_id}
     assert result[new_day] == {new_step.step_id}
+
+
+# --- Consultant-authored routines (ADR-050) ---
+
+
+async def _professional_user_id(db_session: AsyncSession) -> str:
+    professional_id = f"test-professional-{uuid.uuid4().hex[:16]}"
+    await db_session.execute(
+        external_user_table.insert().values(
+            id=professional_id,
+            email=f"{professional_id}@test.invalid",
+            name="Test Professional",
+            emailVerified=False,
+        )
+    )
+    await db_session.flush()
+    return professional_id
+
+
+async def test_create_client_routine_is_professional_authored_and_active(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    professional_id = await _professional_user_id(db_session)
+
+    routine = await create_client_routine(
+        db_session, test_user_id, professional_id, "Custom AM", "Custom", "A hand-built routine."
+    )
+
+    assert routine.created_by_professional_id == professional_id
+    assert routine.is_active is True
+    assert routine.steps == []
+
+    stored = await db_session.get(Routine, routine.routine_id)
+    assert stored is not None
+    assert stored.generated_by_ai is False
+    assert stored.user_id == test_user_id
+
+
+async def test_duplicate_client_routine_copies_steps_and_products(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    professional_id = await _professional_user_id(db_session)
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+    routines = await get_or_generate_routines(db_session, test_user_id)
+    am = next(r for r in routines if r.routine_type == "AM")
+
+    duplicate = await duplicate_client_routine(db_session, test_user_id, professional_id, am.routine_id)
+
+    assert duplicate.routine_id != am.routine_id
+    assert duplicate.created_by_professional_id == professional_id
+    assert duplicate.routine_type == am.routine_type
+    assert [s.step_name for s in duplicate.steps] == [s.step_name for s in am.steps]
+    assert [s.products[0].product.product_id for s in duplicate.steps if s.products] == [
+        s.products[0].product.product_id for s in am.steps if s.products
+    ]
+    # Original untouched.
+    original = await db_session.get(Routine, am.routine_id)
+    assert original is not None
+    assert original.is_active is True
+
+
+async def test_set_client_routine_active_toggles_a_professional_authored_routine(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    professional_id = await _professional_user_id(db_session)
+    routine = await create_client_routine(
+        db_session, test_user_id, professional_id, "Custom PM", "Custom", None
+    )
+    assert routine.is_active is True
+
+    deactivated = await set_client_routine_active(
+        db_session, test_user_id, routine.routine_id, False
+    )
+    assert deactivated.is_active is False
+
+    reactivated = await set_client_routine_active(
+        db_session, test_user_id, routine.routine_id, True
+    )
+    assert reactivated.is_active is True
+
+
+async def test_set_client_routine_active_rejects_an_ai_generated_routine(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+    routines = await get_or_generate_routines(db_session, test_user_id)
+    am = next(r for r in routines if r.routine_type == "AM")
+
+    with pytest.raises(NotProfessionalAuthoredError):
+        await set_client_routine_active(db_session, test_user_id, am.routine_id, False)
+
+
+async def test_professional_authored_routine_survives_ai_regeneration_and_never_triggers_it(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    """ADR-050's central regression: a consultant-authored routine has no
+    skin_profile_id of its own — before the fix, including it in the AI engine's
+    `core` list would falsely trip `needs_core_refresh` on every single read and
+    silently deactivate the real AM/PM/Weekly routines, even with no real
+    re-assessment. Also confirms the consultant routine keeps appearing in the
+    client's own GET /routine response across repeated reads and a real
+    reassessment."""
+    professional_id = await _professional_user_id(db_session)
+    await create_profile(
+        db_session, test_user_id, SkinProfileCreate(skin_type_id=_SKIN_TYPE_WITH_SEEDED_PRODUCTS)
+    )
+    first = await get_or_generate_routines(db_session, test_user_id)
+    first_am_id = next(r for r in first if r.routine_type == "AM").routine_id
+
+    custom = await create_client_routine(
+        db_session, test_user_id, professional_id, "Consultant Custom", "Custom", None
+    )
+
+    # Repeated reads must NOT regenerate the AI routines just because a
+    # professional-authored routine with no skin_profile_id now exists.
+    second = await get_or_generate_routines(db_session, test_user_id)
+    second_am_id = next(r for r in second if r.routine_type == "AM").routine_id
+    assert second_am_id == first_am_id
+
+    custom_ids_in_second = [r.routine_id for r in second if r.routine_id == custom.routine_id]
+    assert custom_ids_in_second == [custom.routine_id]
+
+    # A real re-assessment still regenerates AM/PM/Weekly as before, and the
+    # professional-authored routine survives untouched, still present.
+    sensitive_id = await _sensitive_skin_type_id(db_session)
+    await create_profile(db_session, test_user_id, SkinProfileCreate(skin_type_id=sensitive_id))
+    third = await get_or_generate_routines(db_session, test_user_id)
+    third_am_id = next(r for r in third if r.routine_type == "AM").routine_id
+    assert third_am_id != first_am_id
+    assert any(r.routine_id == custom.routine_id for r in third)
+
+    still_active_custom = await db_session.get(Routine, custom.routine_id)
+    assert still_active_custom is not None
+    assert still_active_custom.is_active is True

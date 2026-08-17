@@ -260,7 +260,7 @@ const RAW_NAV: Record<Role, RawNavSection[]> = {
           subtitle: "Create & manage routines",
           path: "/routine-plans",
           icon: ClipboardList,
-          built: false,
+          built: true,
         },
         {
           id: "recommendations",
