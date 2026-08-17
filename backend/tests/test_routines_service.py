@@ -938,6 +938,17 @@ async def test_update_step_rejects_an_avoid_flagged_product_swap(
 async def test_search_products_for_edit_excludes_avoid_flagged_and_respects_category(
     db_session: AsyncSession, test_user_id: str
 ) -> None:
+    # The real Kaggle-ingested catalog (docs/DATASETS_AND_APIS.md §2) has
+    # thousands of Treatment products, many mentioning "Salicylic" in the name,
+    # that the hand-curated ingredient master (db/seed.py's own docstring: 10
+    # ingredients, "quality over quantity", not the full real catalog) has no
+    # product_ingredients link for at all — so a blanket "no product_name
+    # contains Salicylic" scan is no longer a valid proxy for "avoid-flagged
+    # products got excluded". product_id 4 ("2% Salicylic Acid Treatment",
+    # db/seed.py's _PRODUCTS) is the one product this app's real ingredient
+    # data actually links to Salicylic Acid, which is avoid-flagged for
+    # Sensitive skin (ingredient_skintype_avoid) — asserting on that specific,
+    # known-flagged id is what this test can actually still prove.
     sensitive_id = await _sensitive_skin_type_id(db_session)
     await create_profile(db_session, test_user_id, SkinProfileCreate(skin_type_id=sensitive_id))
 
@@ -947,7 +958,7 @@ async def test_search_products_for_edit_excludes_avoid_flagged_and_respects_cate
 
     assert treatment_results, "Sensitive skin should have safe Treatment candidates"
     assert all(p.category == "Treatment Products" for p in treatment_results)
-    assert not any("Salicylic" in (p.product_name or "") for p in treatment_results)
+    assert not any(p.product_id == 4 for p in treatment_results)
 
 
 # --- Allergy safety gate (Task 9 — reachable now that Task 7 gave routines a real,

@@ -23,7 +23,7 @@ from app.core.security import require_user
 from app.db.mongo import get_mongo_db
 from app.db.postgres import external_user_table
 from app.main import app
-from app.services.routines.service import get_or_generate_routines, toggle_step_completion
+from app.services.routines.service import get_or_generate_routines
 from app.services.scores import constants
 from app.services.scores.models import SkinScore
 from app.services.scores.scoring_engine import (
@@ -434,7 +434,14 @@ async def test_compute_and_store_score_is_perfect_for_an_ideal_profile(
     """Milestone 2 Step 6.1 Test 1: a perfect data input outputs a perfect score.
     Zero concerns (skin_condition=100), one lifestyle log with ideal values covers
     lifestyle/sleep/hydration in one shot (they all read the same `logs` list), and
-    every generated routine step checked off today gives 100% routine_adherence."""
+    a full ADHERENCE_WINDOW_DAYS (14) days of every step completed gives 100%
+    routine_adherence. `toggle_step_completion` only ever writes *today's* log, and
+    `_routine_adherence_score`'s denominator is the fixed 14-day window
+    (scoring_engine.py — a deliberate bug fix, ADR-028's "bug_report.md 2026-07-30,
+    bug #1"), so a single day's completion caps out around 1/14 ≈ 7% adherence, not
+    100%; the full window is seeded directly here — same "insert real rows, don't
+    re-derive" pattern `db/seed.py`'s backdated SkinScore history already uses —
+    rather than looping `toggle_step_completion` over 14 fake "today"s."""
     await create_profile(
         db_session,
         scored_test_user_id,
@@ -453,9 +460,24 @@ async def test_compute_and_store_score_is_perfect_for_an_ideal_profile(
         ),
     )
     routines = await get_or_generate_routines(db_session, scored_test_user_id)
-    for routine in routines:
-        for step in routine.steps:
-            await toggle_step_completion(scored_test_user_id, step.step_id, True)
+    step_ids = [step.step_id for routine in routines for step in routine.steps]
+
+    today = datetime.datetime.now(datetime.UTC).date()
+    routine_logs = get_mongo_db()["routine_logs"]
+    for days_ago in range(constants.ADHERENCE_WINDOW_DAYS):
+        log_date = datetime.datetime.combine(
+            today - datetime.timedelta(days=days_ago), datetime.time.min
+        )
+        await routine_logs.insert_one(
+            {
+                "user_id": scored_test_user_id,
+                "log_date": log_date,
+                "completed_steps": [
+                    {"routine_step_id": step_id, "completed_at": log_date}
+                    for step_id in step_ids
+                ],
+            }
+        )
 
     result = await compute_and_store_score(db_session, scored_test_user_id)
 
