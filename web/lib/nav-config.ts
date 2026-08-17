@@ -284,7 +284,7 @@ const RAW_NAV: Record<Role, RawNavSection[]> = {
           subtitle: "Client reports & analytics",
           path: "/reports",
           icon: FileText,
-          built: false,
+          built: true,
         },
         {
           id: "follow-ups",
@@ -399,7 +399,7 @@ const RAW_NAV: Record<Role, RawNavSection[]> = {
           subtitle: "Clinical reports & analytics",
           path: "/reports",
           icon: FileText,
-          built: false,
+          built: true,
         },
         {
           id: "consultations",

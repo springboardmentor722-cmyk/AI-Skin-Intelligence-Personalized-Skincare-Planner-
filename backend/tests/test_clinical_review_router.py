@@ -30,6 +30,7 @@ from app.services.ingredients.models import Ingredient
 from app.services.progress.models import ProgressImage
 from app.services.progress.service import upload_progress_photo
 from app.services.recommendations.models import Product, ProductIngredient, ProductRecommendation
+from app.services.reports.models import ProgressReport
 from app.services.routines import constants
 from app.services.routines.service import get_or_generate_routines
 from app.services.scores.service import compute_and_store_score
@@ -803,3 +804,75 @@ async def test_client_progress_summary_and_logs_assigned_ok_unassigned_404(
 
     assert forbidden_summary.status_code == 404
     assert forbidden_logs.status_code == 404
+
+
+# --- Reports (Reports nav item, consultant + dermatologist) ---
+
+
+async def test_client_report_generate_list_download_over_http(
+    client: AsyncClient, router_professional_and_client: tuple[str, str]
+) -> None:
+    professional_id, client_user_id = router_professional_and_client
+    other_professional_id = f"test-other-professional-{uuid.uuid4().hex[:16]}"
+
+    app.dependency_overrides[clinical_review_router._professional] = lambda: {
+        "id": professional_id,
+        "role": "dermatologist",
+        "claims": {},
+    }
+    try:
+        generated = await client.post(
+            f"/api/v1/clients/{client_user_id}/reports/generate",
+            json={"report_type": "assessment", "include_profile_header": False},
+        )
+        assert generated.status_code == 200
+        report_id = generated.json()["report_id"]
+
+        listed = await client.get(f"/api/v1/clients/{client_user_id}/reports")
+        assert listed.status_code == 200
+        assert any(r["report_id"] == report_id for r in listed.json())
+
+        download = await client.get(
+            f"/api/v1/clients/{client_user_id}/reports/{report_id}/download"
+        )
+        assert download.status_code == 200
+        assert download.json()["url"].startswith("http")
+    finally:
+        app.dependency_overrides.pop(clinical_review_router._professional, None)
+
+    async with async_session_factory() as session:
+        audit_rows = (
+            (
+                await session.execute(
+                    select(AuditLog).where(
+                        AuditLog.actor_user_id == professional_id,
+                        AuditLog.action == "client_report_generated",
+                    )
+                )
+            )
+            .scalars()
+            .all()
+        )
+        assert len(audit_rows) == 1
+        await session.execute(delete(AuditLog).where(AuditLog.actor_user_id == professional_id))
+        await session.execute(
+            delete(ProgressReport).where(ProgressReport.user_id == client_user_id)
+        )
+        await session.commit()
+
+    app.dependency_overrides[clinical_review_router._professional] = lambda: {
+        "id": other_professional_id,
+        "role": "dermatologist",
+        "claims": {},
+    }
+    try:
+        forbidden_generate = await client.post(
+            f"/api/v1/clients/{client_user_id}/reports/generate",
+            json={"report_type": "assessment", "include_profile_header": False},
+        )
+        forbidden_list = await client.get(f"/api/v1/clients/{client_user_id}/reports")
+    finally:
+        app.dependency_overrides.pop(clinical_review_router._professional, None)
+
+    assert forbidden_generate.status_code == 404
+    assert forbidden_list.status_code == 404
