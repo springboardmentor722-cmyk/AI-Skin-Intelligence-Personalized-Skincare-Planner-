@@ -17,7 +17,15 @@ from app.services.clinical_review.schemas import (
     PortfolioRecentAssessment,
 )
 from app.services.progress import service as progress_service
-from app.services.recommendations.schemas import ProductRead
+from app.services.recommendations import products_service
+from app.services.recommendations import service as recommendations_service
+from app.services.recommendations.schemas import (
+    ClientRecommendationCreate,
+    ClientRecommendationRead,
+    ProductAlternativesRead,
+    ProductDetail,
+    ProductRead,
+)
 from app.services.routines import service as routines_service
 from app.services.routines.schemas import RoutineRead
 from app.services.scores import service as scores_service
@@ -637,3 +645,77 @@ async def delete_client_routine_step(
     )
     await db.commit()
     return result
+
+
+# --- Product recommendations (ADR-051) ---
+# Same assignment-gated + audit-logged wrapper pattern as the routine
+# operations above — delegates to recommendations/service.py's real
+# single-writer functions, never a duplicated write.
+
+_RECOMMENDATION_ASSIGNED_ACTION = "recommendation_assigned"
+_RECOMMENDATION_ACTIVATION_ACTION = "recommendation_activation_changed"
+
+
+async def list_client_recommendations(
+    db: AsyncSession, professional_id: str, user_id: str, *, page: int = 1, page_size: int = 20
+) -> tuple[list[ClientRecommendationRead], int]:
+    await _verify_assignment(db, professional_id, user_id)
+    return await recommendations_service.list_client_recommendations(
+        db, user_id, page=page, page_size=page_size
+    )
+
+
+async def create_client_recommendation(
+    db: AsyncSession, professional_id: str, user_id: str, body: ClientRecommendationCreate
+) -> ClientRecommendationRead:
+    await _verify_assignment(db, professional_id, user_id)
+    result = await recommendations_service.create_professional_recommendation(
+        db, user_id, professional_id, body
+    )
+    await admin_service.write_audit_log(
+        db,
+        actor_user_id=professional_id,
+        action=_RECOMMENDATION_ASSIGNED_ACTION,
+        target_type="product_recommendations",
+        target_id=str(result.recommendation_id),
+        metadata={"client_user_id": user_id, "product_id": body.product_id},
+    )
+    await db.commit()
+    return result
+
+
+async def set_client_recommendation_active(
+    db: AsyncSession, professional_id: str, user_id: str, recommendation_id: int, is_active: bool
+) -> ClientRecommendationRead:
+    await _verify_assignment(db, professional_id, user_id)
+    result = await recommendations_service.set_recommendation_active(
+        db, user_id, recommendation_id, is_active
+    )
+    await admin_service.write_audit_log(
+        db,
+        actor_user_id=professional_id,
+        action=_RECOMMENDATION_ACTIVATION_ACTION,
+        target_type="product_recommendations",
+        target_id=str(recommendation_id),
+        metadata={"client_user_id": user_id, "is_active": is_active},
+    )
+    await db.commit()
+    return result
+
+
+async def get_client_product_detail(
+    db: AsyncSession, professional_id: str, user_id: str, product_id: int
+) -> ProductDetail | None:
+    """Suitability/avoid/allergy annotations computed against the *client's*
+    profile, not the professional's — products_service.get_product_detail
+    already takes a plain user_id, so this is a thin assignment-gated wrapper,
+    not a second implementation."""
+    await _verify_assignment(db, professional_id, user_id)
+    return await products_service.get_product_detail(db, product_id, user_id)
+
+
+async def get_client_product_alternatives(
+    db: AsyncSession, professional_id: str, user_id: str, product_id: int
+) -> ProductAlternativesRead:
+    await _verify_assignment(db, professional_id, user_id)
+    return await products_service.get_alternatives(db, product_id, user_id)

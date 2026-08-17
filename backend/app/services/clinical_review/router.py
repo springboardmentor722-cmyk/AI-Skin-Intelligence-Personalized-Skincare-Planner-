@@ -21,7 +21,17 @@ from app.services.clinical_review.schemas import (
 )
 from app.services.progress import service as progress_service
 from app.services.progress.schemas import ProgressPhotosRead
-from app.services.recommendations.schemas import ProductRead
+from app.services.recommendations.schemas import (
+    ClientRecommendationActiveUpdate,
+    ClientRecommendationCreate,
+    ClientRecommendationListPage,
+    ClientRecommendationListPageMeta,
+    ClientRecommendationRead,
+    ProductAlternativesRead,
+    ProductDetail,
+    ProductRead,
+)
+from app.services.recommendations.service import NotProfessionalAssignedError
 from app.services.routines.schemas import (
     ClientRoutineActiveUpdate,
     ClientRoutineCreate,
@@ -244,6 +254,88 @@ async def reorder_client_routine_steps(
     try:
         return await service.reorder_client_routine_steps(
             db, professional["id"], user_id, routine_id, body.step_ids
+        )
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+
+
+@router.get("/clients/{user_id}/recommendations")
+async def get_client_recommendations(
+    user_id: str,
+    professional: Annotated[dict[str, Any], Depends(_professional)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
+) -> ClientRecommendationListPage:
+    try:
+        items, total = await service.list_client_recommendations(
+            db, professional["id"], user_id, page=page, page_size=page_size
+        )
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+    meta = ClientRecommendationListPageMeta(page=page, page_size=page_size, total=total)
+    return ClientRecommendationListPage(items=items, meta=meta)
+
+
+@router.post("/clients/{user_id}/recommendations")
+async def create_client_recommendation(
+    user_id: str,
+    body: ClientRecommendationCreate,
+    professional: Annotated[dict[str, Any], Depends(_professional)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> ClientRecommendationRead:
+    try:
+        return await service.create_client_recommendation(db, professional["id"], user_id, body)
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+
+
+@router.patch("/clients/{user_id}/recommendations/{recommendation_id}")
+async def set_client_recommendation_active(
+    user_id: str,
+    recommendation_id: int,
+    body: ClientRecommendationActiveUpdate,
+    professional: Annotated[dict[str, Any], Depends(_professional)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> ClientRecommendationRead:
+    try:
+        return await service.set_client_recommendation_active(
+            db, professional["id"], user_id, recommendation_id, body.is_active
+        )
+    except NotProfessionalAssignedError as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+
+
+@router.get("/clients/{user_id}/products/{product_id}")
+async def get_client_product_detail(
+    user_id: str,
+    product_id: int,
+    professional: Annotated[dict[str, Any], Depends(_professional)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> ProductDetail:
+    try:
+        detail = await service.get_client_product_detail(
+            db, professional["id"], user_id, product_id
+        )
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+    if detail is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Product not found")
+    return detail
+
+
+@router.get("/clients/{user_id}/products/{product_id}/alternatives")
+async def get_client_product_alternatives(
+    user_id: str,
+    product_id: int,
+    professional: Annotated[dict[str, Any], Depends(_professional)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> ProductAlternativesRead:
+    try:
+        return await service.get_client_product_alternatives(
+            db, professional["id"], user_id, product_id
         )
     except ValueError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
