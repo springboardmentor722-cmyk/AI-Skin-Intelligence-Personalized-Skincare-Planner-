@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 
 import { ClientAssessmentsView } from "@/components/clinical-review/client-assessments-view";
 
-export default function ConsultantAssessmentDetailPage() {
+export default function DermatologistAssessmentDetailPage() {
   const params = useParams<{ userId: string }>();
-  return <ClientAssessmentsView userId={params.userId} backHref="/consultant/assessments" />;
+  return <ClientAssessmentsView userId={params.userId} backHref="/dermatologist/assessments" />;
 }

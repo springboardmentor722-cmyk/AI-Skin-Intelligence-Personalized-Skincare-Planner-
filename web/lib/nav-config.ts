@@ -359,7 +359,7 @@ const RAW_NAV: Record<Role, RawNavSection[]> = {
           subtitle: "Skin assessments & analysis",
           path: "/assessments",
           icon: ClipboardCheck,
-          built: false,
+          built: true,
         },
         {
           id: "clinical-insights",
@@ -375,7 +375,7 @@ const RAW_NAV: Record<Role, RawNavSection[]> = {
           subtitle: "Create & manage plans",
           path: "/treatment-plans",
           icon: Stethoscope,
-          built: false,
+          built: true,
         },
         {
           id: "progress",
@@ -383,7 +383,7 @@ const RAW_NAV: Record<Role, RawNavSection[]> = {
           subtitle: "Monitor patient progress",
           path: "/progress",
           icon: TrendingUp,
-          built: false,
+          built: true,
         },
         {
           id: "prescriptions",
