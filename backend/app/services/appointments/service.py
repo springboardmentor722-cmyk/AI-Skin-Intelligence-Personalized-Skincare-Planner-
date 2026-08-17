@@ -45,7 +45,9 @@ async def replace_availability(
     for day_rules in by_day.values():
         ordered = sorted(day_rules, key=lambda r: r.start_time)
         for first, second in zip(ordered, ordered[1:], strict=False):
-            if _ranges_overlap(first.start_time, first.end_time, second.start_time, second.end_time):
+            if _ranges_overlap(
+                first.start_time, first.end_time, second.start_time, second.end_time
+            ):
                 raise ValueError("Availability ranges overlap on the same day")
 
     existing = await get_availability(db, provider_id)
@@ -146,7 +148,11 @@ async def compute_available_slots(
             Appointment.start_time >= datetime.datetime.combine(
                 target_date, datetime.time.min
             ),
-            Appointment.start_time < (datetime.datetime.combine(target_date, datetime.time.min) + datetime.timedelta(days=1)),
+            Appointment.start_time
+            < (
+                datetime.datetime.combine(target_date, datetime.time.min)
+                + datetime.timedelta(days=1)
+            ),
         )
     )
     booked_starts = {a.start_time for a in existing_result.scalars().all()}

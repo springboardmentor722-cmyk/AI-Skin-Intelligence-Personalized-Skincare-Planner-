@@ -126,8 +126,12 @@ async def test_replace_availability_rejects_overlapping_ranges_same_day(
     db_session: AsyncSession, provider_id: str
 ) -> None:
     rules = [
-        AvailabilityRule(day_of_week=1, start_time=datetime.time(9, 0), end_time=datetime.time(13, 0)),
-        AvailabilityRule(day_of_week=1, start_time=datetime.time(12, 0), end_time=datetime.time(17, 0)),
+        AvailabilityRule(
+            day_of_week=1, start_time=datetime.time(9, 0), end_time=datetime.time(13, 0)
+        ),
+        AvailabilityRule(
+            day_of_week=1, start_time=datetime.time(12, 0), end_time=datetime.time(17, 0)
+        ),
     ]
     with pytest.raises(ValueError, match="overlap"):
         await replace_availability(db_session, provider_id, rules)
@@ -190,7 +194,9 @@ async def test_delete_exception_rejects_a_different_providers_row(
     )
     await db_session.flush()
     exc = await add_exception(
-        db_session, other_provider, AvailabilityExceptionCreate(exception_date=datetime.date(2026, 9, 1))
+        db_session,
+        other_provider,
+        AvailabilityExceptionCreate(exception_date=datetime.date(2026, 9, 1)),
     )
     with pytest.raises(ValueError, match="not found"):
         await delete_exception(db_session, provider_id, exc.exception_id)
@@ -254,7 +260,9 @@ async def test_compute_available_slots_excludes_a_whole_day_exception(
         ],
     )
     await add_exception(
-        db_session, provider_id, AvailabilityExceptionCreate(exception_date=datetime.date(2026, 9, 7))
+        db_session,
+        provider_id,
+        AvailabilityExceptionCreate(exception_date=datetime.date(2026, 9, 7)),
     )
     slots = await compute_available_slots(db_session, provider_id, datetime.date(2026, 9, 7))
     assert slots == []
@@ -263,8 +271,8 @@ async def test_compute_available_slots_excludes_a_whole_day_exception(
 async def test_compute_available_slots_excludes_an_existing_appointment(
     db_session: AsyncSession, provider_id: str, test_user_id: str
 ) -> None:
-    from app.services.appointments.service import book_appointment, compute_available_slots
     from app.services.appointments.schemas import AppointmentCreate
+    from app.services.appointments.service import book_appointment, compute_available_slots
 
     await replace_availability(
         db_session,
@@ -300,7 +308,11 @@ async def test_compute_available_slots_excludes_past_times_for_today(
     await replace_availability(
         db_session,
         provider_id,
-        [AvailabilityRule(day_of_week=weekday, start_time=datetime.time(0, 0), end_time=datetime.time(23, 30))],
+        [
+            AvailabilityRule(
+                day_of_week=weekday, start_time=datetime.time(0, 0), end_time=datetime.time(23, 30)
+            )
+        ],
     )
     slots = await compute_available_slots(
         db_session, provider_id, today.date(), now=today
@@ -362,7 +374,10 @@ async def test_book_appointment_rejects_an_overlapping_slot(
     other_user = f"test-{uuid.uuid4().hex[:16]}"
     await db_session.execute(
         external_user_table.insert().values(
-            id=other_user, email=f"{other_user}@test.invalid", name="Other User", emailVerified=False
+            id=other_user,
+            email=f"{other_user}@test.invalid",
+            name="Other User",
+            emailVerified=False,
         )
     )
     await db_session.flush()
@@ -527,7 +542,9 @@ async def test_confirm_then_complete_transition(
     )
     confirmed = await confirm_appointment(db_session, provider_id, appointment.appointment_id)
     assert confirmed.status == "confirmed"
-    completed = await complete_appointment(db_session, provider_id, appointment.appointment_id, notes="Went well")
+    completed = await complete_appointment(
+        db_session, provider_id, appointment.appointment_id, notes="Went well"
+    )
     assert completed.status == "completed"
     assert completed.notes == "Went well"
 
@@ -569,8 +586,11 @@ async def test_cancel_by_user_within_24h_is_rejected(
         db_session, provider_id, datetime.datetime.now(datetime.UTC) + datetime.timedelta(hours=2)
     )
     appointment = await book_appointment(
-        db_session, test_user_id,
-        AppointmentCreate(provider_id=provider_id, start_time=near_future, consultation_mode="video"),
+        db_session,
+        test_user_id,
+        AppointmentCreate(
+            provider_id=provider_id, start_time=near_future, consultation_mode="video"
+        ),
     )
     with pytest.raises(PermissionError, match="24"):
         await cancel_appointment(db_session, test_user_id, appointment.appointment_id, reason=None)
@@ -585,10 +605,15 @@ async def test_cancel_by_provider_within_24h_is_allowed(
         db_session, provider_id, datetime.datetime.now(datetime.UTC) + datetime.timedelta(hours=2)
     )
     appointment = await book_appointment(
-        db_session, test_user_id,
-        AppointmentCreate(provider_id=provider_id, start_time=near_future, consultation_mode="video"),
+        db_session,
+        test_user_id,
+        AppointmentCreate(
+            provider_id=provider_id, start_time=near_future, consultation_mode="video"
+        ),
     )
-    cancelled = await cancel_appointment(db_session, provider_id, appointment.appointment_id, reason="Emergency")
+    cancelled = await cancel_appointment(
+        db_session, provider_id, appointment.appointment_id, reason="Emergency"
+    )
     assert cancelled.status == "cancelled"
     assert cancelled.cancelled_by == provider_id
 
@@ -602,11 +627,16 @@ async def test_reschedule_updates_time_and_stamps_original(
         db_session, provider_id, datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=10)
     )
     appointment = await book_appointment(
-        db_session, test_user_id,
-        AppointmentCreate(provider_id=provider_id, start_time=far_future, consultation_mode="video"),
+        db_session,
+        test_user_id,
+        AppointmentCreate(
+            provider_id=provider_id, start_time=far_future, consultation_mode="video"
+        ),
     )
     new_time = far_future + datetime.timedelta(days=1)
-    rescheduled = await reschedule_appointment(db_session, test_user_id, appointment.appointment_id, new_time)
+    rescheduled = await reschedule_appointment(
+        db_session, test_user_id, appointment.appointment_id, new_time
+    )
     assert rescheduled.start_time == new_time
     assert rescheduled.original_start_time == far_future
 
@@ -624,8 +654,11 @@ async def test_cancel_rejects_an_already_completed_appointment(
         db_session, provider_id, datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=10)
     )
     appointment = await book_appointment(
-        db_session, test_user_id,
-        AppointmentCreate(provider_id=provider_id, start_time=far_future, consultation_mode="video"),
+        db_session,
+        test_user_id,
+        AppointmentCreate(
+            provider_id=provider_id, start_time=far_future, consultation_mode="video"
+        ),
     )
     await confirm_appointment(db_session, provider_id, appointment.appointment_id)
     await complete_appointment(db_session, provider_id, appointment.appointment_id)
@@ -668,13 +701,21 @@ async def test_reschedule_rejects_an_already_cancelled_appointment(
         db_session, provider_id, datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=10)
     )
     appointment = await book_appointment(
-        db_session, test_user_id,
-        AppointmentCreate(provider_id=provider_id, start_time=far_future, consultation_mode="video"),
+        db_session,
+        test_user_id,
+        AppointmentCreate(
+            provider_id=provider_id, start_time=far_future, consultation_mode="video"
+        ),
     )
-    await cancel_appointment(db_session, test_user_id, appointment.appointment_id, reason="Changed my mind")
+    await cancel_appointment(
+        db_session, test_user_id, appointment.appointment_id, reason="Changed my mind"
+    )
     with pytest.raises(ValueError, match="Cannot reschedule"):
         await reschedule_appointment(
-            db_session, test_user_id, appointment.appointment_id, far_future + datetime.timedelta(days=1)
+            db_session,
+            test_user_id,
+            appointment.appointment_id,
+            far_future + datetime.timedelta(days=1),
         )
 
 

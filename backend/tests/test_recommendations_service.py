@@ -613,7 +613,10 @@ async def test_create_professional_recommendation_rejects_an_unknown_product(
     professional_id = await _professional_user_id(db_session)
     with pytest.raises(ValueError, match="not found"):
         await create_professional_recommendation(
-            db_session, test_user_id, professional_id, ClientRecommendationCreate(product_id=999_999)
+            db_session,
+            test_user_id,
+            professional_id,
+            ClientRecommendationCreate(product_id=999_999),
         )
 
 
