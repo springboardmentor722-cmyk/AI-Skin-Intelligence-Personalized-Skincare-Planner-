@@ -6,9 +6,13 @@ around). Redis is real too (tests/conftest.py disposes/clears cached clients per
 behavior worth covering, not incidental plumbing.
 """
 
+import uuid
+
+import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.postgres import external_user_table
 from app.db.redis import get_redis
 from app.services.ingredients.models import Ingredient
 from app.services.recommendations.models import (
@@ -17,15 +21,20 @@ from app.services.recommendations.models import (
     ProductRecommendation,
     ProductSkinType,
 )
+from app.services.recommendations.schemas import ClientRecommendationCreate
 from app.services.recommendations.service import (
+    NotProfessionalAssignedError,
+    create_professional_recommendation,
     evaluate_products_suitability,
     get_active_recommendation_weights,
     get_products_by_ids,
     get_recommendations,
     list_all_products,
     list_avoided_ingredient_product_ids,
+    list_client_recommendations,
     list_concern_ids_for_products,
     list_products_for_skin_type,
+    set_recommendation_active,
 )
 from app.services.skin_profile.models import SkinType
 from app.services.skin_profile.schemas import SkinProfileConcernInput, SkinProfileCreate
@@ -554,3 +563,99 @@ async def test_get_active_recommendation_weights_returns_the_seeded_active_row(
     assert float(weights.concern_weight) == 0.50
     assert float(weights.skin_type_fit_weight) == 0.35
     assert float(weights.rating_weight) == 0.15
+
+
+# --- Consultant-assigned recommendations (ADR-051) ---
+
+
+async def _professional_user_id(db_session: AsyncSession) -> str:
+    professional_id = f"test-professional-{uuid.uuid4().hex[:16]}"
+    await db_session.execute(
+        external_user_table.insert().values(
+            id=professional_id,
+            email=f"{professional_id}@test.invalid",
+            name="Test Professional",
+            emailVerified=False,
+        )
+    )
+    await db_session.flush()
+    return professional_id
+
+
+async def test_create_professional_recommendation_persists_real_fields(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    professional_id = await _professional_user_id(db_session)
+
+    result = await create_professional_recommendation(
+        db_session,
+        test_user_id,
+        professional_id,
+        ClientRecommendationCreate(
+            product_id=1, usage_instructions="Apply nightly.", frequency="Daily", notes="Good fit."
+        ),
+    )
+
+    assert result.recommended_by_professional_id == professional_id
+    assert result.usage_instructions == "Apply nightly."
+    assert result.frequency == "Daily"
+    assert result.is_active is True
+    assert result.recommendation_reason == "Good fit."
+
+    stored = await db_session.get(ProductRecommendation, result.recommendation_id)
+    assert stored is not None
+    assert stored.user_id == test_user_id
+
+
+async def test_create_professional_recommendation_rejects_an_unknown_product(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    professional_id = await _professional_user_id(db_session)
+    with pytest.raises(ValueError, match="not found"):
+        await create_professional_recommendation(
+            db_session, test_user_id, professional_id, ClientRecommendationCreate(product_id=999_999)
+        )
+
+
+async def test_list_client_recommendations_includes_professional_assigned(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    professional_id = await _professional_user_id(db_session)
+    created = await create_professional_recommendation(
+        db_session, test_user_id, professional_id, ClientRecommendationCreate(product_id=1)
+    )
+
+    items, total = await list_client_recommendations(db_session, test_user_id)
+
+    assert total == 1
+    assert items[0].recommendation_id == created.recommendation_id
+
+
+async def test_set_recommendation_active_toggles_a_professional_assigned_row(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    professional_id = await _professional_user_id(db_session)
+    created = await create_professional_recommendation(
+        db_session, test_user_id, professional_id, ClientRecommendationCreate(product_id=1)
+    )
+
+    deactivated = await set_recommendation_active(
+        db_session, test_user_id, created.recommendation_id, False
+    )
+    assert deactivated.is_active is False
+
+
+async def test_set_recommendation_active_rejects_a_system_served_row(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    row = ProductRecommendation(
+        user_id=test_user_id,
+        product_id=1,
+        recommendation_score=80.0,
+        recommendation_reason="System served",
+    )
+    db_session.add(row)
+    await db_session.flush()
+
+    with pytest.raises(NotProfessionalAssignedError):
+        await set_recommendation_active(db_session, test_user_id, row.recommendation_id, False)

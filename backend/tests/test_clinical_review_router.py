@@ -27,7 +27,7 @@ from app.services.clinical_review.models import ConsultantClient
 from app.services.ingredients.models import Ingredient
 from app.services.progress.models import ProgressImage
 from app.services.progress.service import upload_progress_photo
-from app.services.recommendations.models import Product, ProductIngredient
+from app.services.recommendations.models import Product, ProductIngredient, ProductRecommendation
 from app.services.routines import constants
 from app.services.routines.service import get_or_generate_routines
 from app.services.scores.service import compute_and_store_score
@@ -621,3 +621,120 @@ async def test_activate_an_ai_generated_routine_over_http_is_rejected(
         app.dependency_overrides.pop(clinical_review_router._professional, None)
 
     assert response.status_code == 400
+
+
+# --- Consultant-assigned recommendations (ADR-051) ---
+
+
+async def test_client_recommendation_lifecycle_over_http_is_assigned_and_audited(
+    client: AsyncClient, router_professional_and_client: tuple[str, str]
+) -> None:
+    professional_id, client_user_id = router_professional_and_client
+    other_professional_id = f"test-other-professional-{uuid.uuid4().hex[:16]}"
+
+    app.dependency_overrides[clinical_review_router._professional] = lambda: {
+        "id": professional_id,
+        "role": "consultant",
+        "claims": {},
+    }
+    try:
+        created = await client.post(
+            f"/api/v1/clients/{client_user_id}/recommendations",
+            json={"product_id": 1, "usage_instructions": "Apply nightly.", "frequency": "Daily"},
+        )
+        assert created.status_code == 200
+        created_body = created.json()
+        assert created_body["recommended_by_professional_id"] == professional_id
+        recommendation_id = created_body["recommendation_id"]
+
+        listed = await client.get(f"/api/v1/clients/{client_user_id}/recommendations")
+        assert listed.status_code == 200
+        assert listed.json()["meta"]["total"] == 1
+
+        deactivated = await client.patch(
+            f"/api/v1/clients/{client_user_id}/recommendations/{recommendation_id}",
+            json={"is_active": False},
+        )
+        assert deactivated.status_code == 200
+        assert deactivated.json()["is_active"] is False
+
+        detail = await client.get(f"/api/v1/clients/{client_user_id}/products/1")
+        assert detail.status_code == 200
+        assert detail.json()["product_id"] == 1
+
+        alternatives = await client.get(f"/api/v1/clients/{client_user_id}/products/1/alternatives")
+        assert alternatives.status_code == 200
+    finally:
+        app.dependency_overrides.pop(clinical_review_router._professional, None)
+
+    async with async_session_factory() as session:
+        audit_actions = (
+            (
+                await session.execute(
+                    select(AuditLog.action).where(AuditLog.actor_user_id == professional_id)
+                )
+            )
+            .scalars()
+            .all()
+        )
+        assert "recommendation_assigned" in audit_actions
+        assert "recommendation_activation_changed" in audit_actions
+        await session.execute(delete(AuditLog).where(AuditLog.actor_user_id == professional_id))
+        await session.commit()
+
+    app.dependency_overrides[clinical_review_router._professional] = lambda: {
+        "id": other_professional_id,
+        "role": "consultant",
+        "claims": {},
+    }
+    try:
+        forbidden_create = await client.post(
+            f"/api/v1/clients/{client_user_id}/recommendations",
+            json={"product_id": 1},
+        )
+        forbidden_list = await client.get(f"/api/v1/clients/{client_user_id}/recommendations")
+    finally:
+        app.dependency_overrides.pop(clinical_review_router._professional, None)
+
+    assert forbidden_create.status_code == 404
+    assert forbidden_list.status_code == 404
+
+
+async def test_deactivate_a_system_served_recommendation_over_http_is_rejected(
+    client: AsyncClient, router_professional_and_client: tuple[str, str]
+) -> None:
+    professional_id, client_user_id = router_professional_and_client
+    async with async_session_factory() as session:
+        row = ProductRecommendation(
+            user_id=client_user_id,
+            product_id=1,
+            recommendation_score=80.0,
+            recommendation_reason="System served",
+        )
+        session.add(row)
+        await session.commit()
+        await session.refresh(row)
+        recommendation_id = row.recommendation_id
+
+    app.dependency_overrides[clinical_review_router._professional] = lambda: {
+        "id": professional_id,
+        "role": "consultant",
+        "claims": {},
+    }
+    try:
+        response = await client.patch(
+            f"/api/v1/clients/{client_user_id}/recommendations/{recommendation_id}",
+            json={"is_active": False},
+        )
+    finally:
+        app.dependency_overrides.pop(clinical_review_router._professional, None)
+
+    assert response.status_code == 400
+
+    async with async_session_factory() as session:
+        await session.execute(
+            delete(ProductRecommendation).where(
+                ProductRecommendation.recommendation_id == recommendation_id
+            )
+        )
+        await session.commit()
