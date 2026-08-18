@@ -84,6 +84,23 @@ graphify-out/
 /docs/Skinlytics_Stitch_UI_Prompt_Pack_v2.md
 /docs/milestones/milestone_2/MASTER_PROMPT.md
 /.agents/
+# Owner call 2026-08-19: stop tracking new plan/spec docs going forward, despite 16
+# already-committed files here (AGENTS.md's repo-layout tree still describes them as
+# tracked) — those existing files stay tracked (gitignore doesn't retroactively untrack
+# anything; `git rm --cached` would be the separate step for that). Only new/untracked
+# files under these two paths are affected.
+/docs/superpowers/plans/
+/docs/superpowers/specs/
+# Next.js 16 auto-scaffolds its own AGENTS.md/CLAUDE.md into web/ on install/dev/build
+# (referenced in node_modules/next/package.json) — vendor-generated noise, not
+# hand-authored, duplicates the real root AGENTS.md/CLAUDE.md's purpose. Same
+# treatment as the root pair above.
+/web/AGENTS.md
+/web/CLAUDE.md
+
+# --- Recorded demo videos (video_flow.md's browser-automation recordings) — real,
+# useful local artifacts, but binary and large; never meant for GitHub. ---
+/demo_video/
 
 # --- OS / editor ---
 .DS_Store
