@@ -56,22 +56,30 @@ API conventions, and every structural decision: [`docs/DESIGN.md`](docs/DESIGN.m
 
 **Prerequisites:** Docker, Node.js 22+, Python 3.11+ with [`uv`](https://docs.astral.sh/uv/).
 
+Three small, cross-platform runner scripts (stdlib only — nothing to install to run
+the scripts themselves), one per concern, each in its own terminal:
+
 ```bash
-# 1. Copy the env template and fill in real values (never commit this file)
-cp .env.example .env
+python3 docker_run.py    # 1. data stores (Postgres/Mongo/Redis/Elasticsearch) — also
+                          #    bootstraps the root .env (from .env.development) and the
+                          #    web/.env symlink on first run
+python3 backend_run.py   # 2. FastAPI backend — uvicorn --reload, :8000
+python3 web_run.py       # 3. Next.js frontend — npm run dev, :3000
+```
 
-# 2. Start data stores (Postgres, Mongo, Redis, Elasticsearch, MinIO) + worker
-make up
+Run `docker_run.py` first; the other two each check their required data stores are
+reachable and print a clear warning (instead of a confusing 500) if you skip it. Apply
+database migrations once the data stores are up:
 
-# 3. Apply database migrations
-make migrate
-
-# 4. Run the frontend and backend together (native, hot-reload)
-make dev
+```bash
+cd backend && uv run alembic upgrade head
 ```
 
 The app is then available at `http://localhost:3000` (frontend) and
 `http://localhost:8000` (API, mounted under `/api/v1`).
+
+*(Equivalent `make up` / `make migrate` / `make dev` targets also exist in the
+`Makefile`, if you prefer that path — same effect, POSIX shell instead of Python.)*
 
 ### Running everything in Docker instead
 
@@ -94,6 +102,9 @@ make test       # pytest (backend) + Playwright (frontend e2e)
 
 ```
 Skinlytics
+├── docker_run.py                 ← 1. start data stores + bootstrap .env
+├── backend_run.py                ← 2. start FastAPI backend
+├── web_run.py                    ← 3. start Next.js frontend
 ├── AGENTS.md                     ← canonical architecture/conventions rules
 ├── docs/                         ← architecture, design system, decisions, milestones
 ├── database_schemas/             ← canonical PostgreSQL/MongoDB/Elasticsearch/vector schemas
