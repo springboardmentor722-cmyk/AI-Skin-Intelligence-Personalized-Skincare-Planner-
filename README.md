@@ -104,10 +104,3 @@ Skinlytics
 ├── training_dataset/             ← dataset manifest + local working directory
 └── docker-compose.yml
 ```
-
-## Status
-
-Milestone-based delivery: Milestone 1 (setup, auth, profiles) and Milestone 2
-(assessment, routines, scoring) are delivered; ingredient/product intelligence,
-progress/analytics, dashboards, reports, and full production deployment are in
-progress.
