@@ -1,9 +1,5 @@
 # AI Skin Intelligence & Personalized Skincare Planner
 
-# video of the project
-
-https://github.com/user-attachments/assets/3082a3a7-acb7-486e-abcb-85ec7f2b5754
-
 **Milestone 1 — Foundation**
 
 This milestone establishes the application's foundation: project structure, secure authentication, role-based access control, and skin/lifestyle data collection. No AI features are included in this phase (by design — see brief).
