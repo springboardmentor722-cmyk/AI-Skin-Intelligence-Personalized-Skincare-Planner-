@@ -11,10 +11,7 @@ progress tracking, analytics, exportable reports, and reminders — across four 
 
 ## Preview
 
-<video src="Skinlytics-preview.mp4" controls width="100%">
-  Your browser doesn't support inline video — download and watch it directly:
-  <a href="https://drive.google.com/file/d/1RKpk1LK1lt1q5w7SPbJ4YDiZs9g0-JZ_/view">Skinlytics-preview.mp4</a>.
-</video>
+  "https://drive.google.com/file/d/1RKpk1LK1lt1q5w7SPbJ4YDiZs9g0-JZ_/view">Skinlytics-preview.mp4
 
 *(GitHub renders the video above once it's committed to the repo. If you're reading
 this from a clone or the video didn't load, open `Skinlytics-preview.mp4` at the repo
