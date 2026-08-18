@@ -11,7 +11,7 @@ progress tracking, analytics, exportable reports, and reminders — across four 
 
 ## Preview
 
-  "https://drive.google.com/file/d/1RKpk1LK1lt1q5w7SPbJ4YDiZs9g0-JZ_/view">Skinlytics-preview.mp4
+  https://drive.google.com/file/d/1RKpk1LK1lt1q5w7SPbJ4YDiZs9g0-JZ_/view?usp=sharing
 
 *(GitHub renders the video above once it's committed to the repo. If you're reading
 this from a clone or the video didn't load, open `Skinlytics-preview.mp4` at the repo
