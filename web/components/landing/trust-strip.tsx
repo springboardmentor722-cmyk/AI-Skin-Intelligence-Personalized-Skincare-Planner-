@@ -43,7 +43,7 @@ export function TrustStrip() {
               className="rounded-[2rem] border border-white/10 bg-white/5 p-8"
             >
               <point.icon className="text-secondary mb-6 size-8" strokeWidth={1.5} />
-              <p className="mb-2 font-sans text-lg leading-snug font-bold">{point.title}</p>
+              <h3 className="mb-2 font-sans text-lg leading-snug font-bold">{point.title}</h3>
               <p className="text-on-primary-container/60 font-sans text-sm">{point.body}</p>
             </div>
           ))}
