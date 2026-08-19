@@ -17,7 +17,24 @@ test("TrustStrip shows real capability statements", async ({ page }) => {
   await expect(
     page.getByText("Skin Score weighted across 5 clinical dimensions")
   ).toBeVisible();
+  await expect(page.getByText("50+ lifestyle and environmental data points")).toBeVisible();
+  await expect(page.getByText("Ingredient-level product match scoring")).toBeVisible();
   await expect(page.getByText("Advisory AI, never a diagnosis")).toBeVisible();
+});
+
+test("ScoreExplainerBand renders the real scoring-engine weight percentages", async ({
+  page,
+}) => {
+  // Locks in the binding constraint from score-explainer-band.tsx's own comment: this
+  // must stay the real calculate_skin_health_score weights (35/20/20/15/10), never the
+  // wireframe's invented Hydration/Texture/Elasticity/Tone/Barrier figures.
+  await page.goto("/");
+  for (const weight of ["35%", "20%", "15%", "10%"]) {
+    await expect(page.getByText(weight, { exact: false }).first()).toBeVisible();
+  }
+  // 20% appears twice (Lifestyle Habits + Routine Consistency) — assert both labels.
+  await expect(page.getByText("20% LIFESTYLE HABITS")).toBeVisible();
+  await expect(page.getByText("20% ROUTINE CONSISTENCY")).toBeVisible();
 });
 
 test("RolesSection uses title-case role labels matching the wireframe", async ({ page }) => {

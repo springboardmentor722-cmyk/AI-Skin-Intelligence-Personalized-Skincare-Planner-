@@ -154,7 +154,7 @@ export function LandingNavbar() {
                   scrollbar to reveal it, since the header is `fixed`). Login stays
                   reachable via the signup page's own link at that width; nav feature
                   links already accept the same "hidden below a breakpoint, no mobile
-                  menu" trade-off (`hidden ... md:flex` above). */}
+                  menu" trade-off (`hidden ... lg:flex` above). */}
               <Button
                 variant="ghost"
                 nativeButton={false}

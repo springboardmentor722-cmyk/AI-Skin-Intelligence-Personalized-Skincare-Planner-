@@ -40,7 +40,7 @@ export function TrustStrip() {
           {PROOF_POINTS.map((point) => (
             <div
               key={point.title}
-              className="rounded-[2rem] border border-white/10 bg-white/5 p-8"
+              className="border-on-primary-container/20 bg-on-primary-container/5 rounded-[2rem] border p-8"
             >
               <point.icon className="text-secondary mb-6 size-8" strokeWidth={1.5} />
               <h3 className="mb-2 font-sans text-lg leading-snug font-bold">{point.title}</h3>

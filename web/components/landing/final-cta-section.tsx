@@ -39,7 +39,7 @@ export function FinalCtaSection() {
           </p>
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
             {isPending ? (
-              <Skeleton className="h-14 w-44 rounded-full bg-white/20" />
+              <Skeleton className="h-14 w-44 rounded-full bg-on-primary-container/20" />
             ) : role ? (
               <Button
                 size="lg"
