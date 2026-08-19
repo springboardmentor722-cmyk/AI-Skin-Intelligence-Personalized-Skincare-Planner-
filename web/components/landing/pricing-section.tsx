@@ -57,7 +57,10 @@ export function PricingSection() {
               </li>
             ))}
           </ul>
-          <Button size="lg" className="h-auto bg-white py-4 text-black hover:bg-white/90">
+          <Button
+            size="lg"
+            className="h-auto bg-white py-4 text-black transition-transform hover:scale-[1.02] hover:bg-white/90"
+          >
             Get Pro now
           </Button>
         </div>
