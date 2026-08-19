@@ -288,6 +288,7 @@ export default function UserDashboardPage() {
         subtitle={`Here's your skin summary and personalized recommendations for ${today}.`}
       >
         <div className="flex flex-col items-center gap-2">
+          <p className="text-muted-foreground self-start text-xs font-medium">Skin Health Score</p>
           <SkinScoreRing
             score={score.overall_score ?? 0}
             size={110}
