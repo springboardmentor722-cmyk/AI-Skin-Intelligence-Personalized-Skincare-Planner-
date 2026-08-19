@@ -2,7 +2,11 @@ import { Info } from "lucide-react";
 
 // Real Skin Health Score weights (docs/AGENTS.md §4 / docs/AI_ML.md) — not the
 // wireframe's invented "Hydration/Texture/Elasticity/Tone/Barrier" figures, which
-// don't match the actual scoring engine used everywhere else in the app.
+// don't match the actual scoring engine used everywhere else in the app. Canonical
+// source: calculate_skin_health_score in
+// backend/app/services/scores/scoring_engine.py:224-261 (weights are config-driven
+// from the `scoring_weights` table there — these are static marketing copies of the
+// current defaults, not a live read, since this is a public unauthenticated page).
 const SCORE_COMPONENTS = [
   { label: "Skin Condition", weight: 35 },
   { label: "Lifestyle Habits", weight: 20 },
