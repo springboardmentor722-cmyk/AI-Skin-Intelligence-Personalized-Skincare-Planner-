@@ -88,6 +88,10 @@ test("consultant dashboard: client vocabulary, 3-cell footer, Skin Concerns Guid
     for (const label of ["Total Clients", "Client Overview", "Clients by Skin Type"]) {
       await expect(page.getByText(label).first()).toBeVisible({ timeout: 10_000 });
     }
+    // HeroBand ("clinical" tint): reads as client-management intelligence, not a
+    // reskinned end-user skin-hero.
+    await expect(page.getByText("Client overview")).toBeVisible();
+    await expect(page.getByText("Client Intelligence")).toBeVisible();
     await expect(page.getByText("Ananya Verma").first()).toBeVisible();
     // 3-cell stat footer (not 4) — UI_SPEC.md §4.2.
     await expect(page.getByText("Avg. Improvement").first()).toBeVisible();
@@ -161,6 +165,9 @@ test("dermatologist dashboard: patient vocabulary, 4-cell footer w/ Stable, mixe
     for (const label of ["Total Patients", "Patients Overview", "Skin Concerns Distribution"]) {
       await expect(page.getByText(label).first()).toBeVisible({ timeout: 10_000 });
     }
+    // HeroBand ("clinical" tint), dermatologist copy divergence from Consultant.
+    await expect(page.getByText("Patient overview")).toBeVisible();
+    await expect(page.getByText("Clinical Intelligence")).toBeVisible();
     // 4-cell stat footer including the neutral "Stable" cell — UI_SPEC.md §4.3.
     await expect(page.getByText("Avg. Improvement").first()).toBeVisible();
     await expect(page.getByText("Patients Improved").first()).toBeVisible();

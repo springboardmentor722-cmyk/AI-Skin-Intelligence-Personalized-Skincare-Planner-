@@ -30,6 +30,9 @@ const DELTA_ICON = { up: ArrowUp, down: ArrowDown, neutral: Minus } as const;
 interface StatCardProps extends WidgetStateProps {
   label: string;
   value?: string | number;
+  /** Renders instead of the plain `value` text (e.g. SeverityIndicator) — the two
+   * are mutually exclusive; when both are passed, valueSlot wins. */
+  valueSlot?: ReactNode;
   delta?: { label: string; direction: "up" | "down" | "neutral" };
   icon: LucideIcon;
   tint?: StatTint;
@@ -47,6 +50,7 @@ export function StatCard({
   state = "ready",
   label,
   value,
+  valueSlot,
   delta,
   icon: Icon,
   tint = "primary",
@@ -76,7 +80,7 @@ export function StatCard({
       </div>
     );
   }
-  if (state === "empty" || value == null) {
+  if (state === "empty" || (value == null && valueSlot == null)) {
     return (
       <div className="border-border bg-card rounded-2xl border p-5">
         <WidgetEmpty icon={emptyIcon ?? Icon} message={emptyMessage} actionLabel={emptyActionLabel} actionHref={emptyActionHref} />
@@ -96,7 +100,7 @@ export function StatCard({
           <p className="text-muted-foreground text-xs font-medium">{label}</p>
           {badge}
         </div>
-        <p className="font-mono text-2xl font-bold tabular-nums">{value}</p>
+        {valueSlot ?? <p className="font-mono text-2xl font-bold tabular-nums">{value}</p>}
         <StatCardFooter delta={delta} DeltaIcon={DeltaIcon} footerLink={footerLink} />
       </div>
     );
@@ -110,7 +114,7 @@ export function StatCard({
           <Icon className="size-4" strokeWidth={1.75} />
         </div>
       </div>
-      <p className="font-mono text-3xl font-bold tabular-nums">{value}</p>
+      {valueSlot ?? <p className="font-mono text-3xl font-bold tabular-nums">{value}</p>}
       <StatCardFooter delta={delta} DeltaIcon={DeltaIcon} footerLink={footerLink} />
     </div>
   );
