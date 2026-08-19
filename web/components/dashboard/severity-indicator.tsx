@@ -29,13 +29,27 @@ const PERCENT_TONE_CLASS: Record<PercentTone, string> = {
 // color-only). The bar is `aria-hidden` — decorative reinforcement of what the
 // label already states in words.
 export function SeverityIndicator(props: SeverityIndicatorProps) {
-  const fillPercent =
-    props.mode === "tier" ? TIER_FILL_PERCENT[getSeverityBand(props.rating).tier] : Math.max(0, Math.min(100, props.value));
-  const barClass = props.mode === "tier" ? TIER_BAR_CLASS[getSeverityBand(props.rating).tier] : PERCENT_TONE_CLASS[props.tone];
+  let fillPercent: number;
+  let barClass: string;
+  let text: string;
+
+  if (props.mode === "tier") {
+    const band = getSeverityBand(props.rating);
+    fillPercent = TIER_FILL_PERCENT[band.tier];
+    barClass = TIER_BAR_CLASS[band.tier];
+    // Tier mode's text must state the severity word itself, not just the concern
+    // name — otherwise the bar's color/fill would be the only signal, which is
+    // exactly what "never color-only" (brief §19) rules out.
+    text = `${props.label} — ${band.label}`;
+  } else {
+    fillPercent = Math.max(0, Math.min(100, props.value));
+    barClass = PERCENT_TONE_CLASS[props.tone];
+    text = props.label;
+  }
 
   return (
     <div className="flex flex-col gap-1.5">
-      <p className="text-sm font-medium">{props.label}</p>
+      <p className="text-sm font-medium">{text}</p>
       <div aria-hidden="true" className="bg-surface-container h-1.5 w-full overflow-hidden rounded-full">
         <div className={cn("h-full rounded-full transition-[width]", barClass)} style={{ width: `${fillPercent}%` }} />
       </div>
