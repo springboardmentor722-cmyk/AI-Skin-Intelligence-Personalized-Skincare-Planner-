@@ -15,9 +15,11 @@ import {
 import type { LucideIcon } from "lucide-react";
 
 import { ChecklistStrip, type ChecklistTask } from "@/components/dashboard/checklist-strip";
+import { HeroBand } from "@/components/dashboard/hero-band";
 import { InsightBanner } from "@/components/dashboard/insight-banner";
 import { ProductCarousel, type CarouselProduct } from "@/components/dashboard/product-carousel";
 import { RoutineChain, type RoutineChainStep } from "@/components/dashboard/routine-chain";
+import { SeverityIndicator } from "@/components/dashboard/severity-indicator";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { DonutBreakdown } from "@/components/charts/donut-breakdown";
 import { ScoreAdherenceChart } from "@/components/charts/score-adherence-chart";
@@ -183,13 +185,14 @@ export default function UserDashboardPage() {
     return skinTypesQuery.data?.find((t) => t.skin_type_id === typeId)?.skin_type_name ?? null;
   }, [skinProfileQuery.data, skinTypesQuery.data]);
 
-  const topConcernName = useMemo(() => {
+  const topConcern = useMemo(() => {
     const concerns = skinProfileQuery.data?.concerns ?? [];
     if (concerns.length === 0) return null;
     const top = [...concerns].sort(
       (a, b) => (b.severity_rating ?? 0) - (a.severity_rating ?? 0)
     )[0];
-    return skinConcernsQuery.data?.find((c) => c.concern_id === top.concern_id)?.concern_name ?? null;
+    const name = skinConcernsQuery.data?.find((c) => c.concern_id === top.concern_id)?.concern_name ?? null;
+    return name ? { name, rating: top.severity_rating ?? 0 } : null;
   }, [skinProfileQuery.data, skinConcernsQuery.data]);
 
   const concernDonutData = useMemo(() => {
@@ -278,17 +281,13 @@ export default function UserDashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="font-heading text-on-surface text-2xl font-bold">{greeting}! 👋</h1>
-        <p className="text-on-surface-variant mt-1 font-sans text-sm">
-          Here&apos;s your skin summary and personalized recommendations for {today}.
-        </p>
-      </div>
-
-      {/* Row 1 — 5 KPI cards, UI_SPEC.md §4.1 (unequal widths: hero card widest) */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-12">
-        <div className="border-border bg-card flex flex-col items-center gap-3 rounded-2xl border p-5 lg:col-span-4">
-          <p className="text-muted-foreground self-start text-xs font-medium">Skin Health Score</p>
+      <HeroBand
+        tint="user"
+        eyebrow="AI Skin Intelligence"
+        title={`${greeting}! 👋`}
+        subtitle={`Here's your skin summary and personalized recommendations for ${today}.`}
+      >
+        <div className="flex flex-col items-center gap-2">
           <SkinScoreRing
             score={score.overall_score ?? 0}
             size={110}
@@ -309,7 +308,11 @@ export default function UserDashboardPage() {
             </span>
           )}
         </div>
-        <div className="lg:col-span-2">
+      </HeroBand>
+
+      {/* Row 1 — 4 KPI cards, UI_SPEC.md §4.1 (Skin Score moved into the hero above) */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-12">
+        <div className="lg:col-span-3">
           <StatCard
             label="Skin Type"
             value={skinTypeName ?? undefined}
@@ -334,16 +337,18 @@ export default function UserDashboardPage() {
             emptyActionHref="/profile"
           />
         </div>
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-3">
           <StatCard
             label="Top Concerns"
-            value={topConcernName ?? undefined}
+            valueSlot={
+              topConcern ? <SeverityIndicator mode="tier" rating={topConcern.rating} label={topConcern.name} /> : undefined
+            }
             state={
               skinProfileQuery.isLoading || skinConcernsQuery.isLoading
                 ? "loading"
                 : skinProfileQuery.isError || skinConcernsQuery.isError
                   ? "error"
-                  : !topConcernName
+                  : !topConcern
                     ? "empty"
                     : "ready"
             }
@@ -357,7 +362,7 @@ export default function UserDashboardPage() {
             emptyMessage="No concerns logged."
           />
         </div>
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-3">
           <StatCard
             label="Skin Age"
             value={score.skin_age != null ? Math.round(score.skin_age) : undefined}
@@ -367,10 +372,19 @@ export default function UserDashboardPage() {
             footerLink={{ label: "View Details", href: "/progress" }}
           />
         </div>
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-3">
           <StatCard
             label="Hydration Level"
-            value={hydrationLabel}
+            valueSlot={
+              hydrationPercent != null ? (
+                <SeverityIndicator
+                  mode="percent"
+                  value={hydrationPercent}
+                  label={`${hydrationLabel} — ${hydrationPercent}%`}
+                  tone={hydrationPercent >= 80 ? "good" : hydrationPercent >= 50 ? "mid" : "low"}
+                />
+              ) : undefined
+            }
             state={widgetStateFor(lifestyleQuery, hydrationPercent == null)}
             onRetry={retryFor(lifestyleQuery)}
             icon={Droplet}
