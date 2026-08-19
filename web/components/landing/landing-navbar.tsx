@@ -54,7 +54,12 @@ export function LandingNavbar() {
           <Link href="/" className="font-heading text-on-surface text-xl font-bold">
             Skinlytics
           </Link>
-          <div className="hidden items-center gap-8 md:flex">
+          {/* lg not md: measured via Playwright at 768px (the exact `md` breakpoint,
+              also this task's tablet-check width) — all four links plus the logo and
+              right-side controls don't fit on one line at 768px, so "How it works" and
+              "For Professionals" wrap to 2-3 lines. Nav overflow-hidden clips it silently
+              (no page-level scrollbar), so it reads as fine until you actually look. */}
+          <div className="hidden items-center gap-8 lg:flex">
             {NAV_LINKS.map((link) => (
               <a
                 key={link.href}
@@ -143,9 +148,17 @@ export function LandingNavbar() {
             </DropdownMenu>
           ) : (
             <>
+              {/* Hidden below sm: the ghost Login button plus the full-width primary
+                  CTA overflow the 375px viewport (measured via Playwright — the CTA's
+                  right edge landed 31px past the screen edge with no page-level
+                  scrollbar to reveal it, since the header is `fixed`). Login stays
+                  reachable via the signup page's own link at that width; nav feature
+                  links already accept the same "hidden below a breakpoint, no mobile
+                  menu" trade-off (`hidden ... md:flex` above). */}
               <Button
                 variant="ghost"
                 nativeButton={false}
+                className="hidden sm:inline-flex"
                 render={<Link href="/login">Login</Link>}
               />
               <Button

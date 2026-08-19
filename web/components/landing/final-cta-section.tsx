@@ -58,7 +58,7 @@ export function FinalCtaSection() {
             <Button
               size="lg"
               variant="outline"
-              className="h-auto border-white/20 bg-transparent px-10 py-4 text-base text-white hover:bg-white/10"
+              className="border-on-primary-container/20 hover:bg-on-primary-container/10 h-auto bg-transparent px-10 py-4 text-base text-on-primary-container"
               nativeButton={false}
               render={<Link href="#pricing">View pricing</Link>}
             />
