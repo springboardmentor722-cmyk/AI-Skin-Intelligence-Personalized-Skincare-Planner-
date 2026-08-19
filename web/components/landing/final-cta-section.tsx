@@ -17,8 +17,19 @@ export function FinalCtaSection() {
     <section className="mx-auto max-w-7xl px-6 py-16">
       {/* primary-container (not primary) — a fixed dark navy accent band in both
           themes, unlike `primary` which inverts per theme (docs/DESIGN.md). */}
-      <div className="bg-primary-container text-on-primary-container rounded-[3rem] p-16 text-center">
-        <div className="mx-auto max-w-2xl">
+      <div className="bg-primary-container text-on-primary-container relative overflow-hidden rounded-[3rem] p-16 text-center">
+        {/* Local depth texture only — not the global .aurora (layout.tsx), scoped to
+            this one high-impact CTA band, static (no WebGL/animation), matches
+            wireframe's locally-layered shader wash at equivalent low opacity. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 opacity-30"
+          style={{
+            background:
+              "radial-gradient(circle at 20% 20%, var(--tertiary), transparent 55%), radial-gradient(circle at 80% 80%, var(--secondary), transparent 55%)",
+          }}
+        />
+        <div className="relative z-10 mx-auto max-w-2xl">
           <h2 className="font-heading mb-6 text-3xl leading-tight font-bold lg:text-5xl">
             Begin your skin&apos;s digital transformation.
           </h2>
@@ -32,14 +43,14 @@ export function FinalCtaSection() {
             ) : role ? (
               <Button
                 size="lg"
-                className="h-auto bg-white px-10 py-4 text-base text-black hover:bg-white/90"
+                className="h-auto bg-white px-10 py-4 text-base text-black shadow-xl transition-transform hover:scale-[1.02] hover:bg-white/90 active:scale-[0.98]"
                 nativeButton={false}
                 render={<Link href={ROLE_HOME[role]}>Go to Dashboard</Link>}
               />
             ) : (
               <Button
                 size="lg"
-                className="h-auto bg-white px-10 py-4 text-base text-black hover:bg-white/90"
+                className="h-auto bg-white px-10 py-4 text-base text-black shadow-xl transition-transform hover:scale-[1.02] hover:bg-white/90 active:scale-[0.98]"
                 nativeButton={false}
                 render={<Link href="/signup">Start assessment</Link>}
               />
