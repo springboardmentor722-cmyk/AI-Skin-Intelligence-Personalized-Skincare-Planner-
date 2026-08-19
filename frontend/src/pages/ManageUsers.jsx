@@ -55,7 +55,7 @@ const deleteUser = async (id) => {
 
         <DashboardLayout>
 
-            <div className="container">
+            <div className="container management-page">
 
                 <h2 className="mb-4">
 
@@ -63,14 +63,14 @@ const deleteUser = async (id) => {
 
                 </h2>
 
-                <input
-                    className="form-control mb-4"
-                    placeholder="Search user..."
+                <div className="management-search mb-4"><input
+                    className="form-control"
+                    placeholder="Search users by name or email..."
                     value={search}
                     onChange={(e)=>setSearch(e.target.value)}
-                />
+                /></div>
 
-                <table className="table table-hover shadow">
+                <div className="table-responsive management-table"><table className="table table-hover">
 
                     <thead className="table-success">
 
@@ -139,7 +139,7 @@ const deleteUser = async (id) => {
 
                     </tbody>
 
-                </table>
+                </table></div>
 
             </div>
 

@@ -37,13 +37,24 @@
 
 .dashboard-content{
     flex:1 0 auto;
-    padding:35px;
+    padding:38px;
     background:#F9F6FA;
     overflow:visible;
 }
 
 .dashboard-page-content{
     width:100%;
+}
+
+.dashboard-footer{
+    background:#342c34 !important;
+    border-top:1px solid rgba(255,255,255,.08);
+    color:#f9f4f7 !important;
+}
+
+.dashboard-footer p{
+    color:inherit;
+    font-size:14px;
 }
 
 /* The shared layout owns one footer after the complete page content. */
@@ -100,18 +111,18 @@
     border:none;
 }
 
-.btn-primary{
+.dashboard-hero .btn-primary{
     background:white !important;
     color:#D86D9D !important;
 }
 
-.btn-outline-primary{
+.dashboard-hero .btn-outline-primary{
     border:2px solid white !important;
     color:white !important;
     background:transparent !important;
 }
 
-.btn-outline-primary:hover{
+.dashboard-hero .btn-outline-primary:hover{
     background:white !important;
     color:#D86D9D !important;
 }
@@ -123,16 +134,21 @@
 .stat-card{
     background:white;
     border-radius:24px;
-    padding:28px;
-    transition:.35s;
-    box-shadow:0 15px 35px rgba(0,0,0,.05);
-    border:1px solid #F4E7ED;
+    padding:26px;
+    transition:transform .2s ease,box-shadow .2s ease;
+    box-shadow:var(--skin-shadow);
+    border:1px solid var(--skin-border);
     height:100%;
 }
 
 .stat-card:hover{
-    transform:translateY(-8px);
+    transform:translateY(-3px);
+    box-shadow:var(--skin-shadow-hover);
 }
+
+.stat-card:nth-child(2n) .icon{background:linear-gradient(135deg,#fce8f0,#f9dce8)}
+.stat-card:nth-child(3n) .icon{background:linear-gradient(135deg,#f5ecfc,#ebdcf8);color:#8769ab}
+.stat-card:nth-child(4n) .icon{background:linear-gradient(135deg,#e8f7f0,#d9f0e5);color:#3c906d}
 
 .stat-card .icon{
     width:60px;
@@ -166,8 +182,8 @@
     background:white;
     border-radius:24px;
     padding:30px;
-    box-shadow:0 15px 35px rgba(0,0,0,.05);
-    border:1px solid #F3E9EE;
+    box-shadow:var(--skin-shadow);
+    border:1px solid var(--skin-border);
 }
 
 .activity-card h4{
@@ -200,8 +216,8 @@
     background:white;
     border-radius:24px;
     padding:30px;
-    box-shadow:0 15px 35px rgba(0,0,0,.05);
-    border:1px solid #F3E9EE;
+    box-shadow:var(--skin-shadow);
+    border:1px solid var(--skin-border);
 }
 
 .quick-card h4{
@@ -220,13 +236,18 @@
     justify-content:space-between;
     align-items:center;
     font-weight:600;
-    transition:.3s;
+    transition:transform .2s ease,background-color .2s ease,color .2s ease,box-shadow .2s ease;
 }
 
 .quick-card button:hover{
     background:#D86D9D;
     color:white;
+    transform:translateX(4px);
+    box-shadow:0 10px 22px rgba(217,108,149,.2);
 }
+
+.quick-card button svg{transition:transform .2s ease}
+.quick-card button:hover svg{transform:translateX(3px)}
 
 /* =========================================
    TABLES
@@ -238,7 +259,7 @@ table{
     border-radius:20px;
     overflow:hidden;
     border-collapse:collapse;
-    box-shadow:0 10px 30px rgba(0,0,0,.05);
+    box-shadow:var(--skin-shadow);
 }
 
 thead{
@@ -264,10 +285,10 @@ td{
 .product-card,
 .form-card{
     background:white;
-    border-radius:24px;
+    border-radius:var(--skin-radius);
     padding:28px;
-    box-shadow:0 15px 35px rgba(0,0,0,.05);
-    border:1px solid #F4E8EE;
+    box-shadow:var(--skin-shadow);
+    border:1px solid var(--skin-border);
 }
 
 /* =========================================
@@ -291,6 +312,9 @@ align-items:flex-start;
 gap:25px;
 }
 
+.dashboard-hero-image{width:100%}
+.dashboard-hero-image img{max-width:520px}
+
 }
 
 @media(max-width:768px){
@@ -311,7 +335,7 @@ width:100%;
 }
 
 .dashboard-content{
-padding:20px;
+padding:20px 16px;
 }
 
 .dashboard-hero{
@@ -321,6 +345,10 @@ padding:30px;
 .hero-buttons{
 flex-direction:column;
 }
+
+.primary-button,.secondary-button{width:100%;justify-content:center;}
+.stat-card,.activity-card,.quick-card{padding:22px;}
+.dashboard-footer{padding:16px 20px!important;text-align:center;}
 
 }
 /* ===========================

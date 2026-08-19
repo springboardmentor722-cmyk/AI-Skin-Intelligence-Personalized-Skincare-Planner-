@@ -9,11 +9,11 @@ background-position:center;
 
 padding:60px;
 
-border-radius:20px;
+border-radius:var(--skin-radius-lg);
 
 color:white;
 
-box-shadow:0 10px 25px rgba(0,0,0,.08);
+box-shadow:var(--skin-shadow);
 
 }
 
@@ -37,11 +37,11 @@ margin-top:10px;
 
 background:white;
 
-border-radius:20px;
+border-radius:var(--skin-radius);
 
 overflow:hidden;
 
-box-shadow:0 10px 25px rgba(0,0,0,.08);
+box-shadow:var(--skin-shadow);
 
 transition:.3s;
 
@@ -51,7 +51,8 @@ height:100%;
 
 .ingredient-card:hover{
 
-transform:translateY(-8px);
+    transform:translateY(-3px);
+    box-shadow:var(--skin-shadow-hover);
 
 }
 

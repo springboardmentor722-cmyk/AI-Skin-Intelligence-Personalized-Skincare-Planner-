@@ -19,7 +19,8 @@
 
     padding:25px;
 
-    box-shadow:0 10px 25px rgba(0,0,0,.08);
+    box-shadow:var(--skin-shadow);
+    border:1px solid var(--skin-border);
 
     transition:.3s;
 
@@ -29,7 +30,8 @@
 
 .expert-card:hover{
 
-    transform:translateY(-6px);
+    transform:translateY(-3px);
+    box-shadow:var(--skin-shadow-hover);
 
 }
 
@@ -61,6 +63,7 @@
 
 .expert-card button{
 
-    border-radius:10px;
+    border-radius:var(--skin-radius-sm);
+    min-height:42px;
 
 }

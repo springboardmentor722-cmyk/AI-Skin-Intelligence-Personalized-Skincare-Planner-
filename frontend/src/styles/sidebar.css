@@ -5,7 +5,7 @@
 .sidebar{
     width:100%;
     height:100vh;
-    background:#ffffff;
+    background:#fffdfd;
 
     display:flex;
     flex-direction:column;
@@ -18,7 +18,7 @@
 
     scrollbar-width:thin;
     scrollbar-color:#d96c95 #f5f5f5;
-    border-right:1px solid #f3e7ee;
+    border-right:1px solid var(--skin-border);
 }
 
 /* Logo */
@@ -67,7 +67,7 @@
     margin-bottom:10px;
     color:#65606B;
     text-decoration:none;
-    transition:.30s;
+    transition:background-color .2s ease,color .2s ease,transform .2s ease;
     font-weight:500;
 }
 
@@ -78,7 +78,7 @@
 .menu-item:hover{
     background:#FFF2F7;
     color:#D96C95;
-    transform:translateX(5px);
+    transform:translateX(3px);
 }
 
 .menu-item.active{
