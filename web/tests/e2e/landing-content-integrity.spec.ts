@@ -22,7 +22,7 @@ test("TrustStrip shows real capability statements", async ({ page }) => {
 
 test("RolesSection uses title-case role labels matching the wireframe", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "For Individuals" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "For Consultants" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "For Dermatologists" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "For Individuals", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "For Consultants", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "For Dermatologists", exact: true })).toBeVisible();
 });
