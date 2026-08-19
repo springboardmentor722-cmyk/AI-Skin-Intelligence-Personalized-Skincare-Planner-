@@ -153,6 +153,13 @@ test("signup -> real profile -> dashboard/routine/recommendations/profile/check-
     for (const label of ["Skin Type", "Top Concerns", "Skin Age", "Hydration Level"]) {
       await expect(page.getByText(label).first()).toBeVisible();
     }
+    // HeroBand: glass hero band above the KPI row communicates "AI skin
+    // intelligence" instead of a bare greeting.
+    await expect(page.getByText("AI Skin Intelligence")).toBeVisible();
+    // SeverityIndicator (tier mode): Top Concerns must state the severity word
+    // in text, not just the concern name — the seeded severity_rating is 7,
+    // which bands to Medium (backend/app/services/scores/constants.py).
+    await expect(page.getByText(/Medium/i)).toBeVisible();
     await expect(page.getByText(/today's routine/i)).toBeVisible();
     // The AM/PM-only filter fixed this session — Weekly must never leak onto the
     // dashboard's daily checklist card.
