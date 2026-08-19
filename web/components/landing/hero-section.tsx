@@ -84,8 +84,8 @@ export function HeroSection() {
                 ))}
               </div>
               <span className="font-sans text-sm font-medium">
-                12,000+ skin profiles analyzed ·{" "}
-                <span className="text-secondary">Dermatologist-informed</span>
+                AI-powered skin analysis ·{" "}
+                <span className="text-secondary">Personalized routines</span>
               </span>
             </div>
           </div>

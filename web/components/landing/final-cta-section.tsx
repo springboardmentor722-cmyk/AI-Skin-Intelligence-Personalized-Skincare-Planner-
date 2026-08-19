@@ -23,8 +23,8 @@ export function FinalCtaSection() {
             Begin your skin&apos;s digital transformation.
           </h2>
           <p className="mb-10 font-sans text-lg opacity-80">
-            Join 12,000+ users who have optimized their skin health with clinical-grade
-            intelligence.
+            AI-powered skin analysis, weighted scoring, and a routine built around your
+            own data.
           </p>
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
             {isPending ? (
