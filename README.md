@@ -3,7 +3,7 @@
 
 Watch the complete application workflow:
 
-👉 [Click here to watch the project demonstration]
+👉 [Click here to watch the project demonstration](https://drive.google.com/file/d/1zzlzVfoYGho7oaVARqlxZtUo8gk7773M/view?usp=sharing)
 ## 🛠️ Technologies Used
 
 ### Frontend
