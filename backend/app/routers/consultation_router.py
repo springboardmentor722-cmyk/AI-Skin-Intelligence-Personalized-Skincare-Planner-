@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.database.database import get_db
 
 from app.models.consultation import Consultation
+from app.models.notification import Notification
 from app.models.user import User
 from app.models.skin_profile import SkinProfile
 from app.models.lifestyle import Lifestyle
@@ -158,13 +159,26 @@ def pending_requests(
         Consultation.status == "Pending"
     ).all()
     users = {user.id: user for user in db.query(User).filter(User.id.in_([item.user_id for item in consultations])).all()} if consultations else {}
-    return [{
-        "id": consultation.id,
-        "user_id": consultation.user_id,
-        "expert_id": consultation.expert_id,
-        "status": consultation.status,
-        "user": UserResponse.model_validate(users[consultation.user_id]).model_dump() if consultation.user_id in users else None,
-    } for consultation in consultations]
+    response = []
+    for consultation in consultations:
+        consultant_referral = None
+        if current_user.role == "DERMATOLOGIST":
+            consultant_referral = db.query(Consultation).join(User, Consultation.expert_id == User.id).filter(
+                Consultation.user_id == consultation.user_id,
+                User.role == "CONSULTANT",
+                Consultation.requires_dermatologist.is_(True),
+            ).order_by(Consultation.id.desc()).first()
+        response.append({
+            "id": consultation.id,
+            "user_id": consultation.user_id,
+            "expert_id": consultation.expert_id,
+            "status": consultation.status,
+            "user": UserResponse.model_validate(users[consultation.user_id]).model_dump() if consultation.user_id in users else None,
+            "is_consultant_referral": consultant_referral is not None,
+            "consultant_recommendation": consultant_referral.recommendation if consultant_referral else None,
+            "consultant_consultation_id": consultant_referral.id if consultant_referral else None,
+        })
+    return response
 
 
 # ==========================================
@@ -298,9 +312,13 @@ def submit_consultant_review(
     was_referred = consultation.requires_dermatologist
     review_fields = ("recommendation", "consultant_notes", "progress_observations", "routine_suggestions", "follow_up_suggestion", "requires_dermatologist")
     review_changed = any(getattr(consultation, field) != getattr(data, field) for field in review_fields)
-    for field, value in data.model_dump().items():
+    # Once a direct referral exists, saving later report/review edits must not
+    # silently remove its visible state from the consultant case.
+    submitted = data.model_dump()
+    submitted["requires_dermatologist"] = data.requires_dermatologist or was_referred
+    for field, value in submitted.items():
         setattr(consultation, field, value)
-    consultation.status = "Dermatologist Recommended" if data.requires_dermatologist else "Completed"
+    consultation.status = "Dermatologist Recommended" if consultation.requires_dermatologist else "Completed"
     consultation.reviewed_at = datetime.now(timezone.utc)
     if review_changed:
         message = ("Your consultant has reviewed your case and recommends consulting a dermatologist."
@@ -310,6 +328,42 @@ def submit_consultant_review(
         create_notification(db, consultation.user_id, "Dermatologist Recommended", "Our consultant recommends that you consult a dermatologist. Please check your consultation for the next step.", "dermatologist_recommended", f"dermatologist-recommended-{consultation.id}")
     db.commit(); db.refresh(consultation)
     return {"message": "Consultant review saved.", "consultation": consultation}
+
+
+@router.post("/{consultation_id}/recommend-dermatologist")
+def recommend_dermatologist(consultation_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Route an assigned consultant case into the existing dermatologist queue."""
+    if current_user.role != "CONSULTANT":
+        raise HTTPException(status_code=403, detail="Only the assigned consultant can recommend a dermatologist.")
+    consultation = db.query(Consultation).filter(Consultation.id == consultation_id, Consultation.expert_id == current_user.id).first()
+    if consultation is None:
+        raise HTTPException(status_code=404, detail="Consultation not found")
+
+    event_key = f"dermatologist-recommendation-{consultation.id}"
+    if db.query(Notification.id).filter(Notification.event_key == event_key).first():
+        return {"message": "Dermatologist recommendation already sent.", "recommended": True, "already_sent": True}
+
+    dermatologist = db.query(User).filter(User.role == "DERMATOLOGIST", User.verification_status == "Approved").order_by(User.id).first()
+    if dermatologist is None:
+        raise HTTPException(status_code=503, detail="No approved dermatologist is available right now.")
+
+    # Reuse consultations so the referral appears in the normal dermatologist
+    # pending-request, case, and report workflow; no new table is required.
+    dermatologist_consultation = Consultation(user_id=consultation.user_id, expert_id=dermatologist.id, status="Pending")
+    db.add(dermatologist_consultation)
+    consultation.requires_dermatologist = True
+    consultation.status = "Dermatologist Recommended"
+    patient = db.query(User).filter(User.id == consultation.user_id).first()
+    patient_name = patient.name if patient else "the patient"
+    create_notification(db, dermatologist.id, "Dermatologist Consultation Recommended", f"A consultant recommended {patient_name} for a dermatologist consultation.", "dermatologist_referral", event_key)
+    create_notification(db, consultation.user_id, "Dermatologist Recommended", "Your consultant recommends a dermatologist consultation. A dermatologist has been notified.", "dermatologist_recommended", f"dermatologist-recommended-{consultation.id}")
+    try:
+        db.commit()
+    except Exception as error:
+        db.rollback()
+        raise HTTPException(status_code=503, detail="Unable to send the dermatologist recommendation right now. Please try again.") from error
+    db.refresh(dermatologist_consultation)
+    return {"message": "Dermatologist recommendation sent.", "recommended": True, "already_sent": False, "dermatologist_consultation_id": dermatologist_consultation.id}
 
 
 @router.get("/consultant/dashboard")
