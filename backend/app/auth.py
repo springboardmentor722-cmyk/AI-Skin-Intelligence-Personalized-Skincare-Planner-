@@ -1,62 +1,68 @@
-from datetime import datetime, timedelta
-from typing import Optional
-
+import hashlib
+import hmac
+import re
+import jwt
+from datetime import datetime, timedelta, timezone
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt
-from passlib.context import CryptContext
 from sqlalchemy.orm import Session
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError, InvalidHashError
 
-from app.config import settings
-from app.database import get_db
-from app import models
+from .config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
+from .database import get_db
+from .models import User
 
-import bcrypt
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+ph = PasswordHasher()
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
-
+def is_legacy_sha256(hashed_password: str) -> bool:
+    """Check if stored hash matches legacy 64-char SHA-256 hex string format."""
+    if not hashed_password or len(hashed_password) != 64:
+        return False
+    return bool(re.match(r"^[a-fA-F0-9]{64}$", hashed_password))
 
 def hash_password(password: str) -> str:
-    pw_bytes = password.encode("utf-8")[:72]
-    salt = bcrypt.gensalt()
-    hashed = bcrypt.hashpw(pw_bytes, salt)
-    return hashed.decode("utf-8")
-
+    """Hash password using Argon2id."""
+    return ph.hash(password)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """
+    Verifies plain password against Argon2id or legacy SHA-256.
+    """
+    if not hashed_password:
+        return False
+    if is_legacy_sha256(hashed_password):
+        legacy_hash = hashlib.sha256(plain_password.encode("utf-8")).hexdigest()
+        return hmac.compare_digest(legacy_hash, hashed_password)
     try:
-        pw_bytes = plain_password.encode("utf-8")[:72]
-        hash_bytes = hashed_password.encode("utf-8")
-        return bcrypt.checkpw(pw_bytes, hash_bytes)
+        return ph.verify(hashed_password, plain_password)
+    except (VerifyMismatchError, InvalidHashError):
+        return False
     except Exception:
         return False
 
-
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
     to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=settings.access_token_expire_minutes))
+    expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-
-def decode_access_token(token: str) -> dict:
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
     try:
-        return jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
-    except JWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> models.User:
-    payload = decode_access_token(token)
-    user_id = payload.get("sub")
-    if user_id is None:
-        raise HTTPException(status_code=401, detail="Invalid token payload")
-
-    user = db.query(models.User).filter(models.User.id == user_id).first()
-    if user is None or not user.is_active:
-        raise HTTPException(status_code=401, detail="User not found or inactive")
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise credentials_exception
+    except jwt.PyJWTError:
+        raise credentials_exception
+    
+    user = db.query(User).filter(User.id == user_id).first()
+    if user is None:
+        raise credentials_exception
     return user

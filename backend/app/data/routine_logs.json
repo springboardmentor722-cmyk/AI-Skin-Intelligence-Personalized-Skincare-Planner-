@@ -1,0 +1,2082 @@
+[
+  {
+    "user_id": "5e316501-c7f9-4e4f-af15-bdff1abc5866",
+    "log_date": "2026-08-13",
+    "completed_steps": [
+      "fea301e9-8dab-427a-a229-b98f9fd3f6e1"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 8
+  },
+  {
+    "user_id": "5e316501-c7f9-4e4f-af15-bdff1abc5866",
+    "log_date": "2026-08-16",
+    "completed_steps": [
+      "fea301e9-8dab-427a-a229-b98f9fd3f6e1"
+    ],
+    "water_intake_ml": 2300,
+    "sleep_hours": 7
+  },
+  {
+    "user_id": "c016b24f-87de-433e-b6b8-127cfc3679ac",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "ab2a2a80-f633-4b01-8cf8-97b783080fe0",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Cleansing"
+    ],
+    "water_intake_ml": 3000,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "23d8daab-7b30-4169-a737-78a4dafcb05b",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "fd82ba0a-4703-4eb5-b6a5-def3a2e28230",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "Morning Routine",
+      "Drink Water"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "3d9bccc7-5a6a-4622-b7b2-8ff99e0cfa90",
+    "log_date": "2026-08-13",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "5dba318e-c525-4653-aabe-b06f538c65f8",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "32ff2b4a-ff30-4962-ab8a-cff6b133f55b",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied",
+      "Night Routine",
+      "8 hrs Sleep"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "896abb75-928e-4113-acfa-a1fed088c4e7",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Drink Water"
+    ],
+    "water_intake_ml": 2000,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "17386873-cdc0-404a-a16f-df2262bff060",
+    "log_date": "2026-08-01",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "17386873-cdc0-404a-a16f-df2262bff060",
+    "log_date": "2026-08-02",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "17386873-cdc0-404a-a16f-df2262bff060",
+    "log_date": "2026-08-03",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "17386873-cdc0-404a-a16f-df2262bff060",
+    "log_date": "2026-08-04",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "17386873-cdc0-404a-a16f-df2262bff060",
+    "log_date": "2026-08-05",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "17386873-cdc0-404a-a16f-df2262bff060",
+    "log_date": "2026-08-06",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "17386873-cdc0-404a-a16f-df2262bff060",
+    "log_date": "2026-08-07",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "17386873-cdc0-404a-a16f-df2262bff060",
+    "log_date": "2026-08-08",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "17386873-cdc0-404a-a16f-df2262bff060",
+    "log_date": "2026-08-09",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "17386873-cdc0-404a-a16f-df2262bff060",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "d6ece740-1cad-4603-afe6-d018706de374",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "cc9e32ea-a404-470f-ace8-b1673deab526",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Cleansing"
+    ],
+    "water_intake_ml": 3000,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "d206aafa-32eb-4390-af17-0c1a34d0249f",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "6b9a72b7-8cc1-4217-a4d2-7c22f369e936",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "Morning Routine",
+      "Drink Water"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "7dc7ed79-ec5a-426f-94fc-7c3c461b2abc",
+    "log_date": "2026-08-13",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "55ba4c26-938b-40c7-a1fc-6e5b61636f44",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "a7e00388-220a-4d81-bec0-365ee642b451",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied",
+      "Night Routine",
+      "8 hrs Sleep"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "e2b792c2-beba-478a-bf8f-7c1d070c53d3",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Drink Water"
+    ],
+    "water_intake_ml": 2000,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "a361e346-d463-471d-bbbf-518a5c2888ca",
+    "log_date": "2026-08-01",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "a361e346-d463-471d-bbbf-518a5c2888ca",
+    "log_date": "2026-08-02",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "a361e346-d463-471d-bbbf-518a5c2888ca",
+    "log_date": "2026-08-03",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "a361e346-d463-471d-bbbf-518a5c2888ca",
+    "log_date": "2026-08-04",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "a361e346-d463-471d-bbbf-518a5c2888ca",
+    "log_date": "2026-08-05",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "a361e346-d463-471d-bbbf-518a5c2888ca",
+    "log_date": "2026-08-06",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "a361e346-d463-471d-bbbf-518a5c2888ca",
+    "log_date": "2026-08-07",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "a361e346-d463-471d-bbbf-518a5c2888ca",
+    "log_date": "2026-08-08",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "a361e346-d463-471d-bbbf-518a5c2888ca",
+    "log_date": "2026-08-09",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "a361e346-d463-471d-bbbf-518a5c2888ca",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "2a206c5b-aaa9-49e4-bd34-2f935d2d4b80",
+    "log_date": "2026-08-13",
+    "completed_steps": [
+      "Morning Routine",
+      "Drink Water (8 glasses)"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 8
+  },
+  {
+    "user_id": "5ac9f359-1620-4f9b-889a-9e4d088b9163",
+    "log_date": "2026-08-13",
+    "completed_steps": [
+      "Morning Routine",
+      "Drink Water (8 glasses)"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 8
+  },
+  {
+    "user_id": "6f652c54-149b-4768-8731-e4ea5f561613",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "d70ab9a0-2632-4073-9431-8b8585786f3f",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Cleansing"
+    ],
+    "water_intake_ml": 3000,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "912735bb-9be3-419d-b2ca-1a296b7a3cf7",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "d9b3bbea-c71b-46c2-a086-34a4232bdd5f",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "Morning Routine",
+      "Drink Water"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "c7a7cbad-e08b-4b95-90cc-cbbed14ca36b",
+    "log_date": "2026-08-13",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "3b426cd9-8593-438d-b2a2-d70d7a58ee8c",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "6714f27a-fcc2-4c01-b683-98fb6b0edf6f",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied",
+      "Night Routine",
+      "8 hrs Sleep"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "a707e77e-9cf3-48d2-9a28-9875f25919c1",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Drink Water"
+    ],
+    "water_intake_ml": 2000,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "1ce95747-7356-4997-8055-f54af20cd2e3",
+    "log_date": "2026-08-01",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "1ce95747-7356-4997-8055-f54af20cd2e3",
+    "log_date": "2026-08-02",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "1ce95747-7356-4997-8055-f54af20cd2e3",
+    "log_date": "2026-08-03",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "1ce95747-7356-4997-8055-f54af20cd2e3",
+    "log_date": "2026-08-04",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "1ce95747-7356-4997-8055-f54af20cd2e3",
+    "log_date": "2026-08-05",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "1ce95747-7356-4997-8055-f54af20cd2e3",
+    "log_date": "2026-08-06",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "1ce95747-7356-4997-8055-f54af20cd2e3",
+    "log_date": "2026-08-07",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "1ce95747-7356-4997-8055-f54af20cd2e3",
+    "log_date": "2026-08-08",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "1ce95747-7356-4997-8055-f54af20cd2e3",
+    "log_date": "2026-08-09",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "1ce95747-7356-4997-8055-f54af20cd2e3",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "4bf37c98-b0a1-48c7-9f54-8bf6c9cb8805",
+    "log_date": "2026-08-13",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "eff50f2f-0f89-4e5e-b9d5-cffa8a80aae8",
+    "log_date": "2026-08-13",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 8
+  },
+  {
+    "user_id": "c8f5e93e-4aa7-4fdc-8a77-a3998b6b8a0a",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "922fb5b9-26a0-4747-928a-b754c65968d3",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Cleansing"
+    ],
+    "water_intake_ml": 3000,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "9560c3c6-83a2-4d4b-b63f-311c318abbc6",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "89d2dcd1-63b4-46ea-8b80-a1eb37669fb6",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "Morning Routine",
+      "Drink Water"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "f0bb7fcd-8e11-4227-bc67-bd0a553462b7",
+    "log_date": "2026-08-13",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "df136834-52f8-430c-ba6b-4bc65f21dd0e",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "f3043dac-10f7-441b-8b88-2105ddd389d9",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied",
+      "Night Routine",
+      "8 hrs Sleep"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "e6660f1c-83eb-4cd2-b9d4-be90cad418be",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Drink Water"
+    ],
+    "water_intake_ml": 2000,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "7deee68d-5ef9-4215-b475-806591a93bdb",
+    "log_date": "2026-08-01",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "7deee68d-5ef9-4215-b475-806591a93bdb",
+    "log_date": "2026-08-02",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "7deee68d-5ef9-4215-b475-806591a93bdb",
+    "log_date": "2026-08-03",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "7deee68d-5ef9-4215-b475-806591a93bdb",
+    "log_date": "2026-08-04",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "7deee68d-5ef9-4215-b475-806591a93bdb",
+    "log_date": "2026-08-05",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "7deee68d-5ef9-4215-b475-806591a93bdb",
+    "log_date": "2026-08-06",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "7deee68d-5ef9-4215-b475-806591a93bdb",
+    "log_date": "2026-08-07",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "7deee68d-5ef9-4215-b475-806591a93bdb",
+    "log_date": "2026-08-08",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "7deee68d-5ef9-4215-b475-806591a93bdb",
+    "log_date": "2026-08-09",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "7deee68d-5ef9-4215-b475-806591a93bdb",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "b0a75d96-a42b-40c0-994f-f4acc0f13632",
+    "log_date": "2026-08-13",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "9e89c42e-7c22-43b1-86d5-5f8fb4ef12a7",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "9f1c6fc3-8187-4edb-99d9-935ce2c7d647",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Cleansing"
+    ],
+    "water_intake_ml": 3000,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "d34bbbe6-b18c-406b-89e7-2efc2b3dafef",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "6caccd7f-3eb3-41fa-8c1c-46a5e0328cbb",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "Morning Routine",
+      "Drink Water"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "f7f161a6-d52b-4cfa-80ac-0b2afa24609f",
+    "log_date": "2026-08-13",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "31e50a02-2a46-414e-be4d-3f976ced76c9",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "adae09ea-38ea-4c2c-ad51-46c3edf3868d",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied",
+      "Night Routine",
+      "8 hrs Sleep"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "d38c3646-681c-421d-8d7b-79ffd87388da",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Drink Water"
+    ],
+    "water_intake_ml": 2000,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "f778637e-569e-4074-9c0c-d35118cdd471",
+    "log_date": "2026-08-01",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "f778637e-569e-4074-9c0c-d35118cdd471",
+    "log_date": "2026-08-02",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "f778637e-569e-4074-9c0c-d35118cdd471",
+    "log_date": "2026-08-03",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "f778637e-569e-4074-9c0c-d35118cdd471",
+    "log_date": "2026-08-04",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "f778637e-569e-4074-9c0c-d35118cdd471",
+    "log_date": "2026-08-05",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "f778637e-569e-4074-9c0c-d35118cdd471",
+    "log_date": "2026-08-06",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "f778637e-569e-4074-9c0c-d35118cdd471",
+    "log_date": "2026-08-07",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "f778637e-569e-4074-9c0c-d35118cdd471",
+    "log_date": "2026-08-08",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "f778637e-569e-4074-9c0c-d35118cdd471",
+    "log_date": "2026-08-09",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "f778637e-569e-4074-9c0c-d35118cdd471",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "a4718b36-5598-4ef8-b830-35ceac624fb5",
+    "log_date": "2026-08-13",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "332d9a36-0b07-40b9-ad55-361f45b05c2a",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "3583b81f-e9b4-4b42-a0d2-c81526dbcf90",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Cleansing"
+    ],
+    "water_intake_ml": 3000,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "72bf9283-0f6b-4b1f-9ce1-8824b0074234",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "fad8ac0d-fd30-4ef2-9c48-3d4c71221280",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "Morning Routine",
+      "Drink Water"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "4125a870-6133-4486-be9c-57cb6f973ece",
+    "log_date": "2026-08-13",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "cb48e42d-7897-467d-a913-e3fccc07e7e1",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "288cb544-22a3-4d99-86a4-8c1a8f404824",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied",
+      "Night Routine",
+      "8 hrs Sleep"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "7f98bbbb-08ab-4af4-baab-8e295108fb93",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Drink Water"
+    ],
+    "water_intake_ml": 2000,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "83c61293-fdac-490e-b913-cc9b23cdee75",
+    "log_date": "2026-08-01",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "83c61293-fdac-490e-b913-cc9b23cdee75",
+    "log_date": "2026-08-02",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "83c61293-fdac-490e-b913-cc9b23cdee75",
+    "log_date": "2026-08-03",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "83c61293-fdac-490e-b913-cc9b23cdee75",
+    "log_date": "2026-08-04",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "83c61293-fdac-490e-b913-cc9b23cdee75",
+    "log_date": "2026-08-05",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "83c61293-fdac-490e-b913-cc9b23cdee75",
+    "log_date": "2026-08-06",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "83c61293-fdac-490e-b913-cc9b23cdee75",
+    "log_date": "2026-08-07",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "83c61293-fdac-490e-b913-cc9b23cdee75",
+    "log_date": "2026-08-08",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "83c61293-fdac-490e-b913-cc9b23cdee75",
+    "log_date": "2026-08-09",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "83c61293-fdac-490e-b913-cc9b23cdee75",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "dfb2bf1b-e672-4a6c-9bc3-b199c8dc7951",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "7857ba2a-ad66-4cc8-a0ad-3217fb35224c",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Cleansing"
+    ],
+    "water_intake_ml": 3000,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "9f5f3346-a0f0-4673-b65e-56d20ff3e4e1",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "2541462e-da8a-4842-8a9d-ffb8997ce381",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "Morning Routine",
+      "Drink Water"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "451b6ecc-4580-44b8-b070-734aa871392d",
+    "log_date": "2026-08-13",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "4b5f4187-9d78-422b-a94b-580445000b31",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "148ddecd-f4f6-4028-ae1b-35b760f1742e",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied",
+      "Night Routine",
+      "8 hrs Sleep"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "475cea65-8d21-4ae6-8711-7c15d1989998",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Drink Water"
+    ],
+    "water_intake_ml": 2000,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "3407b6f4-2f0b-4f7c-9fc9-d0f85f7aebe3",
+    "log_date": "2026-08-01",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "3407b6f4-2f0b-4f7c-9fc9-d0f85f7aebe3",
+    "log_date": "2026-08-02",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "3407b6f4-2f0b-4f7c-9fc9-d0f85f7aebe3",
+    "log_date": "2026-08-03",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "3407b6f4-2f0b-4f7c-9fc9-d0f85f7aebe3",
+    "log_date": "2026-08-04",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "3407b6f4-2f0b-4f7c-9fc9-d0f85f7aebe3",
+    "log_date": "2026-08-05",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "3407b6f4-2f0b-4f7c-9fc9-d0f85f7aebe3",
+    "log_date": "2026-08-06",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "3407b6f4-2f0b-4f7c-9fc9-d0f85f7aebe3",
+    "log_date": "2026-08-07",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "3407b6f4-2f0b-4f7c-9fc9-d0f85f7aebe3",
+    "log_date": "2026-08-08",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "3407b6f4-2f0b-4f7c-9fc9-d0f85f7aebe3",
+    "log_date": "2026-08-09",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "3407b6f4-2f0b-4f7c-9fc9-d0f85f7aebe3",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "905f76e3-a1aa-411e-bad1-d7a70441d140",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "56a4e3f1-b0d8-4db9-95ab-1a60f6aa2547",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Cleansing"
+    ],
+    "water_intake_ml": 3000,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "65e3d8d5-26cc-4335-8f2c-2b64271ffb31",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "cd15ad3f-92ff-43dd-a227-8bc240173ca4",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "Morning Routine",
+      "Drink Water"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "d032fbcf-0362-4da5-954f-7cf5e1e01dd0",
+    "log_date": "2026-08-13",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "34b862cb-a78a-4424-b550-16f527928d17",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "2232f997-50f6-47b7-b270-06dcfc6259f7",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied",
+      "Night Routine",
+      "8 hrs Sleep"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "2cd5dc1d-7a3f-4768-bdcf-bbf9370f7175",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Drink Water"
+    ],
+    "water_intake_ml": 2000,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "9046f90d-3343-4bcf-b4c9-897f9c5d9571",
+    "log_date": "2026-08-01",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "9046f90d-3343-4bcf-b4c9-897f9c5d9571",
+    "log_date": "2026-08-02",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "9046f90d-3343-4bcf-b4c9-897f9c5d9571",
+    "log_date": "2026-08-03",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "9046f90d-3343-4bcf-b4c9-897f9c5d9571",
+    "log_date": "2026-08-04",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "9046f90d-3343-4bcf-b4c9-897f9c5d9571",
+    "log_date": "2026-08-05",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "9046f90d-3343-4bcf-b4c9-897f9c5d9571",
+    "log_date": "2026-08-06",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "9046f90d-3343-4bcf-b4c9-897f9c5d9571",
+    "log_date": "2026-08-07",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "9046f90d-3343-4bcf-b4c9-897f9c5d9571",
+    "log_date": "2026-08-08",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "9046f90d-3343-4bcf-b4c9-897f9c5d9571",
+    "log_date": "2026-08-09",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "9046f90d-3343-4bcf-b4c9-897f9c5d9571",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "7f7f1e41-3085-492d-a445-28dc66d69326",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "15214eb7-b63c-49a4-b21f-aec0872801ef",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Cleansing"
+    ],
+    "water_intake_ml": 3000,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "0bffd2b3-a06f-44cc-adf5-30f5e197f025",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "c3c6d7c6-f60e-44cb-b9eb-a1a7ad8bbdde",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "Morning Routine",
+      "Drink Water"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "d7447b48-1d15-47dc-8357-a55a46d4d11f",
+    "log_date": "2026-08-16",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "be546864-b066-4ca6-9649-52341332fd7b",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "98180853-3a20-4549-b26a-f974b9ac7012",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied",
+      "Night Routine",
+      "8 hrs Sleep"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "26412f13-a9e6-43a9-8cef-1235a1a07c7a",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Drink Water"
+    ],
+    "water_intake_ml": 2000,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "7d6fc467-d871-4289-9e97-8d3293ab13d3",
+    "log_date": "2026-08-01",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "7d6fc467-d871-4289-9e97-8d3293ab13d3",
+    "log_date": "2026-08-02",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "7d6fc467-d871-4289-9e97-8d3293ab13d3",
+    "log_date": "2026-08-03",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "7d6fc467-d871-4289-9e97-8d3293ab13d3",
+    "log_date": "2026-08-04",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "7d6fc467-d871-4289-9e97-8d3293ab13d3",
+    "log_date": "2026-08-05",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "7d6fc467-d871-4289-9e97-8d3293ab13d3",
+    "log_date": "2026-08-06",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "7d6fc467-d871-4289-9e97-8d3293ab13d3",
+    "log_date": "2026-08-07",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "7d6fc467-d871-4289-9e97-8d3293ab13d3",
+    "log_date": "2026-08-08",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "7d6fc467-d871-4289-9e97-8d3293ab13d3",
+    "log_date": "2026-08-09",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "7d6fc467-d871-4289-9e97-8d3293ab13d3",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "7008546c-bb49-4d08-a157-e9e0161f2c24",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "239f85d4-c9cd-43e1-9e3b-a77decb61db5",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Cleansing"
+    ],
+    "water_intake_ml": 3000,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "49c04a9d-d498-4a23-972e-8786d67fc452",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "e3143f8e-ab36-499d-b094-bf7c4c5512bd",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "Morning Routine",
+      "Drink Water"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "2d69ed06-fe17-4042-81d8-ac0b23fb5b1b",
+    "log_date": "2026-08-16",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "0b6e8d05-4ad7-4a2f-93c7-f473782882ff",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "847c1852-d3da-4eed-952d-7882b8fe65c2",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied",
+      "Night Routine",
+      "8 hrs Sleep"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "bb03a732-f111-42e3-a399-419acb64d3b1",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Drink Water"
+    ],
+    "water_intake_ml": 2000,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "f5f7b120-fea0-4399-a772-6457d5f59d9e",
+    "log_date": "2026-08-01",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "f5f7b120-fea0-4399-a772-6457d5f59d9e",
+    "log_date": "2026-08-02",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "f5f7b120-fea0-4399-a772-6457d5f59d9e",
+    "log_date": "2026-08-03",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "f5f7b120-fea0-4399-a772-6457d5f59d9e",
+    "log_date": "2026-08-04",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "f5f7b120-fea0-4399-a772-6457d5f59d9e",
+    "log_date": "2026-08-05",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "f5f7b120-fea0-4399-a772-6457d5f59d9e",
+    "log_date": "2026-08-06",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "f5f7b120-fea0-4399-a772-6457d5f59d9e",
+    "log_date": "2026-08-07",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "f5f7b120-fea0-4399-a772-6457d5f59d9e",
+    "log_date": "2026-08-08",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "f5f7b120-fea0-4399-a772-6457d5f59d9e",
+    "log_date": "2026-08-09",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "f5f7b120-fea0-4399-a772-6457d5f59d9e",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "ca192229-1419-4814-a856-099f6d4895ba",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "bb568fa4-8b57-4767-a0f0-8b3007a24595",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Cleansing"
+    ],
+    "water_intake_ml": 3000,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "fe80148e-c92d-4240-9db6-7951b6e3a7d1",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "0ab07ef9-eca7-4cc4-800f-76d523023cfc",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "Morning Routine",
+      "Drink Water"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "122be348-1ad0-48ea-a7ef-7f15d821646d",
+    "log_date": "2026-08-16",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "2929136d-1e46-4756-bdab-b6e927a35c1b",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "f12d35be-659b-45ec-9d37-b2ecf974a778",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Sunscreen Applied",
+      "Night Routine",
+      "8 hrs Sleep"
+    ],
+    "water_intake_ml": 2500,
+    "sleep_hours": 7.5
+  },
+  {
+    "user_id": "75ee692f-2680-4fbd-82a0-4dd0abf6b183",
+    "log_date": "2026-08-11",
+    "completed_steps": [
+      "Morning Routine",
+      "Drink Water"
+    ],
+    "water_intake_ml": 2000,
+    "sleep_hours": 8.0
+  },
+  {
+    "user_id": "c3229c98-9bb9-46a1-9030-3111a4e0bcfa",
+    "log_date": "2026-08-01",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "c3229c98-9bb9-46a1-9030-3111a4e0bcfa",
+    "log_date": "2026-08-02",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "c3229c98-9bb9-46a1-9030-3111a4e0bcfa",
+    "log_date": "2026-08-03",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "c3229c98-9bb9-46a1-9030-3111a4e0bcfa",
+    "log_date": "2026-08-04",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "c3229c98-9bb9-46a1-9030-3111a4e0bcfa",
+    "log_date": "2026-08-05",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "c3229c98-9bb9-46a1-9030-3111a4e0bcfa",
+    "log_date": "2026-08-06",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "c3229c98-9bb9-46a1-9030-3111a4e0bcfa",
+    "log_date": "2026-08-07",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "c3229c98-9bb9-46a1-9030-3111a4e0bcfa",
+    "log_date": "2026-08-08",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "c3229c98-9bb9-46a1-9030-3111a4e0bcfa",
+    "log_date": "2026-08-09",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  },
+  {
+    "user_id": "c3229c98-9bb9-46a1-9030-3111a4e0bcfa",
+    "log_date": "2026-08-10",
+    "completed_steps": [
+      "step_1",
+      "step_2",
+      "step_3",
+      "step_4"
+    ]
+  }
+]

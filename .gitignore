@@ -1,12 +1,39 @@
-# Python
-venv/
-__pycache__/
-*.pyc
+# Environment / secrets
 .env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
 
 # Node
 node_modules/
-dist/
 
-# OS
+# Build output (tracked dist/ for Railway deployment)
+# dist/
+
+# Local uploads / generated files
+uploads/
+
+# OS / editor
 .DS_Store
+Thumbs.db
+.vscode/
+
+# Local project metadata
+.thumbnail
+
+# Temporary investigation dumps
+*-code.txt
+*-router.txt
+*-current.txt
+schemas.txt

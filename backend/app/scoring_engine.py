@@ -1,89 +1,72 @@
-import math
-from typing import List, Dict, Any, Optional
+from typing import Dict, Any, List, Tuple
+import numpy as np
 
 def calculate_skin_health_score(
-    s_cond: float,
-    l_habits: float,
-    s_sleep: float,
-    r_consist: float,
-    h_hydro: float
-) -> float:
+    concerns_severity: Dict[str, int],
+    lifestyle: Dict[str, Any],
+    sleep_hours: float,
+    water_intake_l: float,
+    adherence_pct: float = 100.0
+) -> Tuple[float, Dict[str, float], List[str]]:
     """
-    Weighted scoring formula:
-    Skin Health Score = (S_cond * 0.35) + (L_habits * 0.20) + (S_sleep * 0.15) + (R_consist * 0.20) + (H_hydro * 0.10)
+    Executes the exact Milestone 2 Weighted Scoring Model:
+    Score = 0.35(C) + 0.20(L) + 0.15(S) + 0.20(A) + 0.10(H)
     """
-    score = (s_cond * 0.35) + (l_habits * 0.20) + (s_sleep * 0.15) + (r_consist * 0.20) + (h_hydro * 0.10)
-    return round(max(0.0, min(100.0, score)), 2)
+    # 1. Condition Subscore (C - 35%)
+    # Start at 100. Deduct 15 for High Severity (>7), 7 for Medium Severity (4-7), 0 for Low (<4).
+    c_score = 100.0
+    detected_concerns = []
+    for concern, severity in concerns_severity.items():
+        if severity > 0:
+            label = concern.replace("_severity", "").replace("_", " ").title()
+            if severity >= 7:
+                c_score -= 15.0
+                detected_concerns.append(f"{label} (Severe: {severity}/10)")
+            elif severity >= 4:
+                c_score -= 7.0
+                detected_concerns.append(f"{label} (Moderate: {severity}/10)")
+            else:
+                detected_concerns.append(f"{label} (Mild: {severity}/10)")
+    c_score = float(np.clip(c_score, 0.0, 100.0))
 
+    # 2. Lifestyle Subscore (L - 20%)
+    # Start at 100. Deduct based on stress level and UV exposure.
+    l_score = 100.0
+    stress = lifestyle.get("stress_level", 4)
+    raw_sun = lifestyle.get("sun_exposure", "Moderate")
+    sun = str(raw_sun).strip().title() if raw_sun else "Moderate"
+    if stress >= 7:
+        l_score -= 20.0
+    elif stress >= 5:
+        l_score -= 10.0
+        
+    if sun in ["High", "Extreme"]:
+        l_score -= 15.0
+    elif sun == "Moderate":
+        l_score -= 5.0
+    l_score = float(np.clip(l_score, 0.0, 100.0))
 
-def calculate_s_cond(concerns: List[Dict[str, Any]]) -> float:
-    """
-    Start at 100. Subtract 15 points for every "high" severity concern,
-    and 7 points for "medium" severity concerns. Low severity is 0. Capped at 0.
-    """
-    score = 100.0
-    for c in concerns:
-        severity = str(c.get("severity", "low")).lower()
-        if severity == "high":
-            score -= 15.0
-        elif severity == "medium":
-            score -= 7.0
-    return max(0.0, score)
+    # 3. Sleep Subscore (S - 15%)
+    # Ideal 8 hours
+    s_score = float(np.clip((sleep_hours / 8.0) * 100.0, 0.0, 100.0))
 
+    # 4. Consistency / Adherence Subscore (A - 20%)
+    a_score = float(np.clip(adherence_pct, 0.0, 100.0))
 
-def calculate_l_habits(environmental_exposure: Optional[str]) -> float:
-    """
-    Start at 100. Deduct points if environmental exposure metrics show
-    high unprotected UV index exposure.
-    - High unprotected UV: deduct 30 points
-    - Medium unprotected UV: deduct 15 points
-    - Else: deduct 0 points
-    """
-    if not environmental_exposure:
-        return 100.0
+    # 5. Hydration Subscore (H - 10%)
+    # 3.0L daily benchmark
+    h_score = float(np.clip((water_intake_l / 3.0) * 100.0, 0.0, 100.0))
 
-    exp_lower = environmental_exposure.lower()
-    deduction = 0.0
-    if "high" in exp_lower and ("uv" in exp_lower or "sun" in exp_lower or "unprotected" in exp_lower or "exposure" in exp_lower):
-        deduction = 30.0
-    elif "medium" in exp_lower and ("uv" in exp_lower or "sun" in exp_lower or "unprotected" in exp_lower or "exposure" in exp_lower):
-        deduction = 15.0
-    elif "uv" in exp_lower or "sun" in exp_lower or "unprotected" in exp_lower:
-        deduction = 15.0  # Default to moderate/medium deduction if uv/sun/unprotected is mentioned
-    
-    return max(0.0, 100.0 - deduction)
+    # Overarching Weighted Score
+    overall = (0.35 * c_score) + (0.20 * l_score) + (0.15 * s_score) + (0.20 * a_score) + (0.10 * h_score)
+    overall = round(float(np.clip(overall, 0.0, 100.0)), 1)
 
+    subscores = {
+        "condition": round(c_score, 1),
+        "lifestyle": round(l_score, 1),
+        "sleep": round(s_score, 1),
+        "consistency": round(a_score, 1),
+        "hydration": round(h_score, 1),
+    }
 
-def calculate_s_sleep(sleep_hours: Optional[float]) -> float:
-    """
-    Evaluate recorded sleep data against the ideal 8-hour target:
-    ((Hours Logged / 8) * 100, capped at 100).
-    """
-    if sleep_hours is None or sleep_hours < 0:
-        return 100.0  # Default to 100 if no sleep is logged
-    return min(100.0, (sleep_hours / 8.0) * 100.0)
-
-
-def calculate_h_hydro(water_intake_liters: Optional[float]) -> float:
-    """
-    Compare recorded water intake metrics against standard recommendations (2.0L).
-    ((Water / 2.0) * 100, capped at 100).
-    """
-    if water_intake_liters is None or water_intake_liters < 0:
-        return 100.0  # Default to 100 if no hydration is logged
-    return min(100.0, (water_intake_liters / 2.0) * 100.0)
-
-
-def calculate_r_consist(routine_logs: List[Dict[str, Any]], expected_weekly_steps: int) -> float:
-    """
-    Consistency: percentage of checks completed in MongoDB routine logs for the last 7 days.
-    """
-    if expected_weekly_steps <= 0:
-        return 100.0
-
-    completed_count = 0
-    for log in routine_logs:
-        completed_steps = log.get("completed_steps", [])
-        completed_count += len(completed_steps)
-
-    return min(100.0, (completed_count / expected_weekly_steps) * 100.0)
+    return overall, subscores, detected_concerns
