@@ -344,9 +344,35 @@ the neutral darkspace, the same way `primary-container` stays navy while `surfac
 neutral. This is a v3 design decision, not an oversight.
 
 **The ambient aurora.** Blur is invisible over a flat background, so the `body` carries a
-very subtle fixed aurora: 2–3 large radial-gradient blobs in navy → royal blue → teal at
-**6–10% opacity** (4–6% in dark mode), softly blurred, optionally drifting over ~60s
+fixed aurora: 3 large radial-gradient blobs in primary → secondary → tertiary at
+**20% opacity** (10% in dark mode — raised from an earlier 6–10%/4–6% pass that read as
+"plain paper" against the glass panels), softly blurred, optionally drifting over ~60s
 (disabled under `prefers-reduced-motion`). It must never compete with content.
+
+**Gradient token system** (v2 rebalance, ported from the `demo_ui.html` theme preview).
+Every gradient in the app derives from three aliases that auto-correct per palette —
+`--gradient-start`/`--gradient-mid`/`--gradient-end` (= `--primary`/`--secondary`/
+`--tertiary`) — so no gradient is ever hand-tuned per palette:
+- `--gradient-ambient` / `--gradient-ambient-opacity` — the aurora above.
+- `--gradient-hero` / `--gradient-hero-opacity` (34% light, 16% dark) — a two-stop radial
+  wash for hero-band-style panels.
+- `--gradient-cta` — a 135° primary→secondary linear gradient, for a future gradient CTA
+  treatment (not yet wired into the shared Button component — existing solid-fill CTAs,
+  including the landing page's already-tuned hero/pricing/final-CTA gradients, are
+  deliberately left as is pending a real design decision to unify them).
+- `--gradient-card-featured-opacity` (14%) — reserved for a "featured" card overlay
+  variant; no component consumes it yet.
+- `--brand-start`/`--brand-mid`/`--brand-end` (teal → `#1f9fbc` → royal blue) — the Skin
+  Score Ring's gradient stroke. Deliberately **not** aliased to `--gradient-*`: the ring
+  is palette-invariant by design (§9), so it keeps its own fixed anchors regardless of
+  which palette is active.
+- Per-palette light-mode `--background` gets a subtle atmospheric tint (e.g. Ocean
+  `#f8fafc`, Forest `#f9fbf8`) instead of the flat neutral `#fafafa`; dark mode stays one
+  shared `#131315` across every palette.
+- `--chart-bar` — per-palette override for single-series bar-chart fills, falling back to
+  `--chart-1` (`var(--chart-bar, var(--chart-1))`) where a component uses it. Only Slate
+  (both modes, → `--chart-2`) and Forest dark (→ `--chart-3`) override it — their
+  `--chart-1` reads flat/washed-out or too neon-lime in that one context.
 
 **Guardrails**
 - Maximum **2 stacked glass layers** (e.g., glass header over glass hero — never a third).
@@ -433,7 +459,8 @@ the aurora drift — opacity fades remain.
   92%"** label; clinical (dermatologist) modules carry a "Clinical" tag instead — the two
   must never be confusable. No shadow, ever — a 1px border only (`rgba(255,255,255,0.08)`
   in dark mode, `outline-variant` in light).
-- **Skin Score Ring (signature).** Radial gauge, teal→royal-blue gradient stroke, subtle
+- **Skin Score Ring (signature).** Radial gauge, teal→`#1f9fbc`→royal-blue gradient
+  stroke (`--brand-start`/`--brand-mid`/`--brand-end` — fixed, palette-invariant), subtle
   inner shadow, `data-display` Geist numeral centered, band label beneath, the five
   weighted bars (35/20/20/15/10) alongside; housed in glass at hero sizes, borderless at
   inline sizes. Identical construction at every size, in both themes.

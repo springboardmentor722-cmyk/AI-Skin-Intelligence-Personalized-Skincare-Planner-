@@ -642,16 +642,9 @@
     position: fixed;
     inset: 0;
     z-index: -1;
-    opacity: 0.08;
+    opacity: var(--gradient-ambient-opacity);
     filter: blur(100px);
-    background-image:
-      radial-gradient(circle at 15% 20%, var(--primary), transparent 60%),
-      radial-gradient(circle at 85% 15%, var(--secondary), transparent 55%),
-      radial-gradient(circle at 50% 90%, var(--tertiary), transparent 55%);
-  }
-
-  .dark .aurora {
-    opacity: 0.05;
+    background-image: var(--gradient-ambient);
   }
 
   @media (prefers-reduced-motion: no-preference) {

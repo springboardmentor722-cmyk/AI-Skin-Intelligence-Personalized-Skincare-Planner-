@@ -81,8 +81,9 @@ export function SkinScoreRing({
           />
           <defs>
             <linearGradient id="skin-score-ring-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="var(--tertiary)" />
-              <stop offset="100%" stopColor="var(--secondary)" />
+              <stop offset="0%" stopColor="var(--brand-start)" />
+              <stop offset="50%" stopColor="var(--brand-mid)" />
+              <stop offset="100%" stopColor="var(--brand-end)" />
             </linearGradient>
           </defs>
         </svg>
