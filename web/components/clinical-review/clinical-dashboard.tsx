@@ -51,16 +51,46 @@ function toDonutSlices(
   }));
 }
 
-function toRankedBars(
-  distribution: { key: string; label: string; count: number }[],
-  total: number
-): RankedBarItem[] {
-  return distribution.map((slice) => ({
-    key: slice.key,
-    label: slice.label,
-    percent: total > 0 ? Math.round((slice.count / total) * 100) : 0,
-    count: slice.count,
-  }));
+// Consultant's row-2 secondary panel: routine/product adherence is the workflow's
+// visual anchor (AGENTS.md Step 2 brief), bucketed from the roster's real
+// routine_adherence_score already fetched for the table above — no new query.
+const ADHERENCE_BANDS = [
+  { key: "high", label: "80-100% adherence", min: 80, max: 101 },
+  { key: "mid", label: "60-79% adherence", min: 60, max: 80 },
+  { key: "low", label: "40-59% adherence", min: 40, max: 60 },
+  { key: "critical", label: "Below 40% adherence", min: 0, max: 40 },
+] as const;
+
+function toAdherenceBars(roster: ClientSummary[]): RankedBarItem[] {
+  const scored = roster.filter((r) => r.routine_adherence_score != null);
+  return ADHERENCE_BANDS.map((band) => {
+    const count = scored.filter((r) => {
+      const v = r.routine_adherence_score ?? 0;
+      return v >= band.min && v < band.max;
+    }).length;
+    return {
+      key: band.key,
+      label: band.label,
+      percent: scored.length > 0 ? Math.round((count / scored.length) * 100) : 0,
+      count,
+    };
+  });
+}
+
+// Dermatologist's row-2 secondary panel: which patients need attention first,
+// ranked by real compliance_seven_day (lowest = highest risk) — same roster fetch,
+// no invented severity field (the portfolio-stats aggregate has no per-concern
+// severity to sort by).
+function toComplianceRiskBars(roster: ClientSummary[]): RankedBarItem[] {
+  return [...roster]
+    .filter((r) => r.compliance_seven_day != null)
+    .sort((a, b) => (a.compliance_seven_day ?? 0) - (b.compliance_seven_day ?? 0))
+    .slice(0, 5)
+    .map((r) => ({
+      key: r.user_id,
+      label: r.name ?? r.email,
+      percent: Math.round((r.compliance_seven_day ?? 0) * 100),
+    }));
 }
 
 // One shared layout for both clinical roles (MILESTONE_2_MASTER_PROMPT.md P5:
@@ -68,7 +98,11 @@ function toRankedBars(
 // Structurally twins, deliberately NOT collapsed: consultant's 3-cell stat footer
 // vs dermatologist's 4-cell (incl. neutral "Stable"), "Skin Concerns Guide" vs
 // "Skin Conditions Guide" (lib/nav-config.ts, unchanged), "Consultant Tip" (1 line)
-// vs "AI Clinical Insights" (2 lines).
+// vs "AI Clinical Insights" (2 lines). Row 2's secondary panel and roster column
+// order/emphasis differ by role too (UI polish pass): consultant keeps adherence
+// as the visual anchor (toAdherenceBars), dermatologist gets a compliance-risk-
+// ranked "needs attention" list + score-adjacent risk badge + earlier trend column
+// instead of a second count-distribution panel that just repeated the donut.
 //
 // Milestone 2 P14 (ADR-024's deferred consequence, ADR-031's naming precedent) —
 // roster and every KPI/donut/bars/trend/stat-footer/recent-assessment number below
@@ -88,8 +122,14 @@ export function ClinicalDashboard({ role }: ClinicalDashboardProps) {
   const rosterQuery = useQuery({
     queryKey: ["clinical-review", "roster", role],
     queryFn: async () => {
+      // 100 is this endpoint's real max page_size (clinical_review/router.py:
+      // `le=100`) — schemas.py itself notes a portfolio "genuinely grows into the
+      // hundreds over time", so toAdherenceBars/toComplianceRiskBars below (derived
+      // from this same fetch) can still under-represent a very large portfolio;
+      // the honest-partial-data note near those panels covers that gap rather than
+      // silently presenting a partial ranking as complete.
       const { data, error } = await api.GET("/api/v1/clients/me", {
-        params: { query: { page: 1, page_size: 50 } },
+        params: { query: { page: 1, page_size: 100 } },
       });
       if (error) throw new Error("Couldn't load your roster.");
       return data;
@@ -123,8 +163,8 @@ export function ClinicalDashboard({ role }: ClinicalDashboardProps) {
 
   const skinTypeDonut = stats ? toDonutSlices(stats.skin_type_distribution, stats.total_assigned) : [];
   const concernDonut = stats ? toDonutSlices(stats.top_concerns, stats.total_assigned) : [];
-  const concernBars = stats ? toRankedBars(stats.top_concerns, stats.total_assigned) : [];
-  const skinTypeBars = stats ? toRankedBars(stats.skin_type_distribution, stats.total_assigned) : [];
+  const adherenceBars = toAdherenceBars(roster);
+  const complianceRiskBars = toComplianceRiskBars(roster);
 
   const trendSeries = (stats?.portfolio_score_trend ?? []).map((y, i) => ({
     x: `Assessment ${i + 1}`,
@@ -330,10 +370,21 @@ export function ClinicalDashboard({ role }: ClinicalDashboardProps) {
           </div>
           <div className="border-border bg-card rounded-2xl border p-5">
             <h3 className="font-heading mb-3 text-base font-semibold">
-              {isDerma ? "Skin Type Breakdown" : "Top Skin Concerns"}
+              {isDerma ? "Patients Needing Attention" : "Routine Adherence"}
             </h3>
-            <RankedBarList state={statsState}
-            onRetry={retryStats} items={isDerma ? skinTypeBars : concernBars} showCount />
+            <RankedBarList
+              state={rosterState}
+              onRetry={retryRoster}
+              items={isDerma ? complianceRiskBars : adherenceBars}
+              showCount={!isDerma}
+              emptyMessage={isDerma ? "No compliance data yet." : "No adherence data yet."}
+            />
+            {stats && stats.total_assigned > roster.length && (
+              <p className="text-on-surface-variant mt-3 font-sans text-xs">
+                Based on the {roster.length} most recently synced of {stats.total_assigned.toLocaleString("en-IN")}{" "}
+                total {personLabelPlural.toLowerCase()}.
+              </p>
+            )}
           </div>
         </div>
       </div>

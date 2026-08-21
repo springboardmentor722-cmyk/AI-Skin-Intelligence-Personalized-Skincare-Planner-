@@ -222,9 +222,11 @@
   --sidebar-accent-foreground: var(--on-tertiary-container);
   --sidebar-border: var(--glass-border);
   --sidebar-ring: var(--secondary);
+  --scroll-shadow: oklch(0% 0 0 / 12%);
 }
 
 .dark {
+  --scroll-shadow: oklch(100% 0 0 / 14%);
   /* docs/DESIGN.md `colors-dark:` v3 "Skin Intelligence System" — authoritative dark
      palette, supersedes the old mechanically-derived tokens (PROGRESS.md Known Issues:
      this was flagged as unconfirmed; v3 resolves it with real designer values). */
@@ -661,6 +663,25 @@
       transform: translate3d(-2%, 2%, 0) scale(1.05);
     }
   }
+}
+
+/* Pure-CSS scroll-shadow affordance for horizontally-scrollable tables (no JS scroll
+   listener needed) — the classic two-gradient-pair trick: a `local`-attached pair
+   masks the shadow under fully-visible content, a `scroll`-attached pair reveals it
+   only where the track is actually clipped. Card-background only (docs/DESIGN.md:
+   data tables always sit on a solid --card surface, never glass). --scroll-shadow
+   flips light/dark (a black shadow is invisible on the dark theme's near-black
+   --card) the same way every other shadow token here does — never a literal color. */
+.scroll-fade-x {
+  background:
+    linear-gradient(to right, var(--card) 30%, transparent) left,
+    linear-gradient(to left, var(--card) 30%, transparent) right,
+    linear-gradient(to right, var(--scroll-shadow), transparent 12px) left,
+    linear-gradient(to left, var(--scroll-shadow), transparent 12px) right;
+  background-color: var(--card);
+  background-repeat: no-repeat;
+  background-size: 24px 100%, 24px 100%, 12px 100%, 12px 100%;
+  background-attachment: local, local, scroll, scroll;
 }
 
 /* Geist labels/data are always tabular so number columns align — docs/DESIGN.md §4 */

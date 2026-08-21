@@ -175,7 +175,7 @@ export default function AdminUsersPage() {
         />
       ) : (
         <div className="border-border bg-card overflow-hidden rounded-2xl border">
-          <div className="overflow-x-auto">
+          <div className="scroll-fade-x overflow-x-auto">
             <table className="w-full text-left">
               <thead>
                 <tr className="border-border text-on-surface-variant border-b font-geist text-[11px] font-semibold tracking-[0.05em] uppercase">

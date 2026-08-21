@@ -1,7 +1,6 @@
-import { FlaskConical } from "lucide-react";
-
 import { MatchRing } from "@/components/products/match-ring";
-import { formatPrice } from "@/lib/utils";
+import { categoryIcon } from "@/lib/category-icon";
+import { formatPrice, stripMarkdownArtifacts } from "@/lib/utils";
 import type { components } from "@/lib/api-types";
 
 type RecommendationRead = components["schemas"]["RecommendationRead"];
@@ -37,7 +36,15 @@ export function ProductRecommendationCard({
           />
         ) : (
           <div className="bg-surface-container-low flex h-full w-full flex-col items-center justify-center gap-1.5">
-            <FlaskConical className="text-on-surface-variant/50 size-7" strokeWidth={1.5} />
+            {(() => {
+              // categoryIcon picks from a fixed, stateless Lucide icon set
+              // (lib/category-icon.ts) — remounting on a category change has no
+              // visible effect. Same reasoning as ingredient-detail.tsx's
+              // react-hooks/static-components suppression; the lint rule doesn't
+              // happen to flag this particular call site.
+              const Icon = categoryIcon(product.category);
+              return <Icon className="text-on-surface-variant/50 size-7" strokeWidth={1.5} />;
+            })()}
             <span className="font-geist text-on-surface-variant text-[10px] font-medium tracking-[0.05em] uppercase">
               No photo yet
             </span>
@@ -46,9 +53,11 @@ export function ProductRecommendationCard({
         <MatchRing score={match_percentage} className="absolute top-2 right-2" />
       </div>
       <h4 className="font-heading text-on-surface text-sm font-semibold">
-        {product.product_name ?? "Untitled product"}
+        {stripMarkdownArtifacts(product.product_name) ?? "Untitled product"}
       </h4>
-      <p className="text-on-surface-variant font-sans text-xs">{product.brand_name}</p>
+      <p className="text-on-surface-variant font-sans text-xs">
+        {stripMarkdownArtifacts(product.brand_name)}
+      </p>
       <div className="mt-1 flex items-center justify-between">
         <span className="font-geist text-on-surface text-sm tabular-nums">
           {formatPrice(product.price, product.currency)}
@@ -60,7 +69,9 @@ export function ProductRecommendationCard({
         )}
       </div>
       {!compact && reasons.length > 0 && (
-        <p className="text-on-surface-variant mt-2 font-sans text-xs">{reasons[0]}</p>
+        <p className="text-on-surface-variant mt-2 font-sans text-xs">
+          {stripMarkdownArtifacts(reasons[0])}
+        </p>
       )}
     </div>
   );

@@ -102,28 +102,43 @@ export default function InsightsPage() {
             </h3>
             <div className="flex flex-col gap-4">
               {correlations.map((c) => {
-                const magnitude = c.correlation !== null ? Math.abs(c.correlation) : 0;
-                const positive = (c.correlation ?? 0) >= 0;
+                if (c.correlation === null) {
+                  return (
+                    <div key={c.label}>
+                      <div className="mb-1.5 flex items-center justify-between">
+                        <span className="font-sans text-sm font-medium">{c.label}</span>
+                        <span className="text-on-surface-variant font-sans text-xs">
+                          Not enough data yet
+                        </span>
+                      </div>
+                      <div className="bg-muted h-2 w-full rounded-full" />
+                    </div>
+                  );
+                }
+                const positive = c.correlation >= 0;
+                // Floor the visible width so a real-but-weak correlation (common for
+                // lifestyle factors) doesn't render as an invisible sliver swallowed by
+                // the track's rounded ends — same floor pattern as the roster Sparkline
+                // (client-list-table.tsx).
+                const width = Math.max(4, Math.abs(c.correlation) * 100);
                 return (
                   <div key={c.label}>
                     <div className="mb-1.5 flex items-center justify-between">
                       <span className="font-sans text-sm font-medium">{c.label}</span>
-                      {c.correlation !== null && (
-                        <span
-                          className={cn(
-                            "font-geist text-xs font-semibold tabular-nums",
-                            positive ? "text-tertiary" : "text-destructive"
-                          )}
-                        >
-                          {positive ? "+" : ""}
-                          {Math.round(c.correlation * 100)}%
-                        </span>
-                      )}
+                      <span
+                        className={cn(
+                          "font-geist text-xs font-semibold tabular-nums",
+                          positive ? "text-tertiary" : "text-destructive"
+                        )}
+                      >
+                        {positive ? "+" : ""}
+                        {Math.round(c.correlation * 100)}%
+                      </span>
                     </div>
                     <div className="bg-muted h-2 w-full overflow-hidden rounded-full">
                       <div
                         className={cn("h-full rounded-full", positive ? "bg-tertiary" : "bg-destructive")}
-                        style={{ width: `${magnitude * 100}%` }}
+                        style={{ width: `${width}%` }}
                       />
                     </div>
                   </div>

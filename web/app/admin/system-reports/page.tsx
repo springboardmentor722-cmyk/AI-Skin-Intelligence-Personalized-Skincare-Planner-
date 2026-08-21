@@ -1,5 +1,7 @@
 import { FileBarChart, LineChart, TrendingUp } from "lucide-react";
 
+import { ComingSoonPanel } from "@/components/app-shell/coming-soon-panel";
+
 // Honest "coming soon" — same pattern as Progress Tracking's before/after-photos
 // card (docs/WIREFRAMES.md screen 7) and Content & Data's Lifestyle Dataset card.
 // System-wide analytics/reports need real usage data across every role, which this
@@ -34,17 +36,12 @@ export default function AdminSystemReportsPage() {
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {PANELS.map((panel) => (
-          <div
+          <ComingSoonPanel
             key={panel.title}
-            className="border-border bg-card rounded-2xl border border-dashed p-6 text-center"
-          >
-            <panel.icon
-              className="text-on-surface-variant/40 mx-auto mb-3 size-7"
-              strokeWidth={1.5}
-            />
-            <h3 className="font-heading text-on-surface text-sm font-semibold">{panel.title}</h3>
-            <p className="text-on-surface-variant mt-1 font-sans text-xs">Coming soon</p>
-          </div>
+            icon={panel.icon}
+            title={panel.title}
+            description={panel.body}
+          />
         ))}
       </div>
     </div>

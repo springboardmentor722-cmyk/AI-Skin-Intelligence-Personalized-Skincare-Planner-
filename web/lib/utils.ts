@@ -20,6 +20,14 @@ export function computePercent(value: number, total: number): number {
   return Math.max(0, Math.min(100, Math.round((value / total) * 100)));
 }
 
+// Scraped seed data (training_dataset raw CSV/JSON) sometimes carries literal
+// markdown emphasis markers with no renderer to interpret them (e.g. "**Urtica Dioica
+// Leaf Extract") — strip them for display rather than rendering the raw asterisks.
+export function stripMarkdownArtifacts<T extends string | null | undefined>(text: T): T {
+  if (!text) return text;
+  return text.replace(/\*+/g, "").replace(/\s{2,}/g, " ").trim() as T;
+}
+
 // Products are seeded/priced in INR (AGENTS.md §4: "₹ primary, $ secondary") but the API
 // returns whatever `currency` the row carries — never hard-code the symbol.
 export function formatPrice(price: number | null, currency: string | null): string {
