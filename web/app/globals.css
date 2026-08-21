@@ -359,6 +359,7 @@
   --tertiary-container: #ecfccb;
   --on-tertiary-container: #3f6212;
   --surface-tint: #059669;
+  --background: #f9fbf9;
 }
 [data-palette="emerald"].dark {
   --primary: #6ee7b7;
@@ -390,6 +391,7 @@
   --tertiary-container: #cffafe;
   --on-tertiary-container: #155e75;
   --surface-tint: #0284c7;
+  --background: #f8fafc;
 }
 [data-palette="ocean"].dark {
   --primary: #7dd3fc;
@@ -421,6 +423,7 @@
   --tertiary-container: #fae8ff;
   --on-tertiary-container: #86198f;
   --surface-tint: #7c3aed;
+  --background: #fbfafe;
 }
 [data-palette="lavender"].dark {
   --primary: #c4b5fd;
@@ -452,6 +455,7 @@
   --tertiary-container: #fce7f3;
   --on-tertiary-container: #9d174d;
   --surface-tint: #ea580c;
+  --background: #fdfaf8;
 }
 [data-palette="sunset"].dark {
   --primary: #fdba74;
@@ -483,6 +487,10 @@
   --tertiary-container: #fef3c7;
   --on-tertiary-container: #92400e;
   --surface-tint: #475569;
+  --background: #f9fafb;
+  /* Slate's chart-1 (steel) reads too flat/washed-out for the bar chart specifically
+     — use the brass chart-2 here instead, both modes. */
+  --chart-bar: var(--chart-2);
 }
 [data-palette="slate"].dark {
   --primary: #cbd5e1;
@@ -514,6 +522,7 @@
   --tertiary-container: #ccfbf1;
   --on-tertiary-container: #115e59;
   --surface-tint: #e11d48;
+  --background: #fdfafb;
 }
 [data-palette="rose"].dark {
   --primary: #fda4af;
@@ -545,6 +554,7 @@
   --tertiary-container: #fef3c7;
   --on-tertiary-container: #854d0e;
   --surface-tint: #4d7c0f;
+  --background: #f9fbf8;
 }
 [data-palette="forest"].dark {
   --primary: #86efac;
@@ -560,6 +570,9 @@
   --tertiary-container: #92400e;
   --on-tertiary-container: #fef3c7;
   --surface-tint: #bef264;
+  /* Forest dark's chart-1 (sage) renders more saturated/"lime" than the hex intends —
+     use the cooler teal chart-3 for this one chart component in dark mode only. */
+  --chart-bar: var(--chart-3);
 }
 
 @layer base {
