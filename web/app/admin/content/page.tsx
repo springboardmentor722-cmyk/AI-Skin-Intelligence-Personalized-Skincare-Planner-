@@ -7,6 +7,7 @@ import { Database, RotateCw, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StateCard } from "@/components/state-card";
+import { ComingSoonPanel } from "@/components/app-shell/coming-soon-panel";
 import { api } from "@/lib/api";
 
 const PAGE_SIZE = 10;
@@ -209,13 +210,7 @@ export default function AdminContentPage() {
         <ProductsTable />
       </div>
 
-      <div className="border-border bg-card rounded-2xl border border-dashed p-6 text-center">
-        <Database className="text-on-surface-variant/40 mx-auto mb-3 size-7" strokeWidth={1.5} />
-        <h3 className="font-heading text-on-surface text-sm font-semibold">
-          Lifestyle dataset management
-        </h3>
-        <p className="text-on-surface-variant mt-1 font-sans text-xs">Coming soon</p>
-      </div>
+      <ComingSoonPanel icon={Database} title="Lifestyle dataset management" />
     </div>
   );
 }

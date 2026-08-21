@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
+import { categoryIcon } from "@/lib/category-icon";
+import { stripMarkdownArtifacts } from "@/lib/utils";
 
 // Milestone 2 P12 — the "Ingredient Database" shared by consultant, dermatologist,
 // and admin (mile_2.docx §5). Same real GET /ingredients / /ingredients/interactions
@@ -85,7 +87,7 @@ export function IngredientList({ basePath }: { basePath: string }) {
   });
   const pair = interactionQuery.data?.pairs[0];
   const selectItemsByIngredientId = Object.fromEntries(
-    items.map((i) => [String(i.ingredient_id), i.ingredient_name])
+    items.map((i) => [String(i.ingredient_id), stripMarkdownArtifacts(i.ingredient_name)])
   );
 
   return (
@@ -182,15 +184,24 @@ export function IngredientList({ basePath }: { basePath: string }) {
               className="border-border bg-card hover:border-secondary/40 flex flex-col gap-3 rounded-2xl border p-5 transition-colors"
             >
               <div className="bg-secondary/10 text-secondary flex size-12 items-center justify-center rounded-xl">
-                <FlaskConical className="size-6" strokeWidth={1.5} />
+                {(() => {
+                  // categoryIcon picks from a fixed, stateless Lucide icon set
+                  // (lib/category-icon.ts) — remounting on a category change has no
+                  // visible effect. react-hooks/static-components doesn't reach into
+                  // .map() callbacks so this doesn't lint-error here the way the
+                  // identical pattern does in ingredient-detail.tsx, but the
+                  // reasoning is the same — see that file's comment.
+                  const Icon = categoryIcon(ingredient.category);
+                  return <Icon className="size-6" strokeWidth={1.5} />;
+                })()}
               </div>
               <div>
                 <h3 className="font-heading text-on-surface font-semibold">
-                  {ingredient.ingredient_name}
+                  {stripMarkdownArtifacts(ingredient.ingredient_name)}
                 </h3>
                 {ingredient.inci_name && ingredient.inci_name !== ingredient.ingredient_name && (
                   <p className="text-on-surface-variant font-sans text-xs">
-                    {ingredient.inci_name}
+                    {stripMarkdownArtifacts(ingredient.inci_name)}
                   </p>
                 )}
               </div>
@@ -228,7 +239,7 @@ export function IngredientList({ basePath }: { basePath: string }) {
                 <SelectContent>
                   {items.map((i) => (
                     <SelectItem key={i.ingredient_id} value={String(i.ingredient_id)}>
-                      {i.ingredient_name}
+                      {stripMarkdownArtifacts(i.ingredient_name)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -244,7 +255,7 @@ export function IngredientList({ basePath }: { basePath: string }) {
                 <SelectContent>
                   {items.map((i) => (
                     <SelectItem key={i.ingredient_id} value={String(i.ingredient_id)}>
-                      {i.ingredient_name}
+                      {stripMarkdownArtifacts(i.ingredient_name)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -266,7 +277,9 @@ export function IngredientList({ basePath }: { basePath: string }) {
                     {VERDICT_LABEL[pair.verdict]}
                   </p>
                   {pair.reason && (
-                    <p className="mt-1 font-sans text-sm leading-relaxed">{pair.reason}</p>
+                    <p className="mt-1 font-sans text-sm leading-relaxed">
+                      {stripMarkdownArtifacts(pair.reason)}
+                    </p>
                   )}
                 </div>
               </div>

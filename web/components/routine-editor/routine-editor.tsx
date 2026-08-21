@@ -8,7 +8,6 @@ import {
   ArrowLeft,
   ChevronDown,
   ChevronUp,
-  FlaskConical,
   Loader2,
   Plus,
   Trash2,
@@ -26,8 +25,9 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/lib/api";
+import { categoryIcon } from "@/lib/category-icon";
 import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
-import { cn } from "@/lib/utils";
+import { cn, stripMarkdownArtifacts } from "@/lib/utils";
 import type { components } from "@/lib/api-types";
 
 type RoutineRead = components["schemas"]["RoutineRead"];
@@ -83,7 +83,7 @@ function toEditableSteps(routine: RoutineRead): EditableStep[] {
     stepId: step.step_id,
     stepName: step.step_name ?? "",
     productId: step.products[0]?.product.product_id ?? 0,
-    productName: step.products[0]?.product.product_name ?? "No product",
+    productName: stripMarkdownArtifacts(step.products[0]?.product.product_name) ?? "No product",
     usageNotes: step.products[0]?.usage_notes ?? "",
     isNew: false,
   }));
@@ -100,6 +100,13 @@ function ProductPicker({
 }) {
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebouncedValue(query, 300);
+
+  // categoryIcon picks from a fixed, stateless Lucide icon set
+  // (lib/category-icon.ts) — remounting on a category change has no visible
+  // effect. Same reasoning as ingredient-detail.tsx's
+  // react-hooks/static-components suppression; the lint rule doesn't happen to
+  // flag this particular call site.
+  const CategoryIcon = categoryIcon(category);
 
   const searchQuery = useQuery({
     queryKey: ["routine-product-search", clientUserId ?? "me", category, debouncedQuery],
@@ -139,11 +146,15 @@ function ProductPicker({
               className="hover:bg-muted flex items-center gap-3 rounded-lg p-2 text-left transition-colors"
             >
               <div className="bg-muted flex size-8 shrink-0 items-center justify-center rounded">
-                <FlaskConical className="text-on-surface-variant/40 size-4" strokeWidth={1.5} />
+                <CategoryIcon className="text-on-surface-variant/40 size-4" strokeWidth={1.5} />
               </div>
               <div>
-                <p className="font-sans text-sm font-medium">{product.product_name}</p>
-                <p className="text-on-surface-variant text-xs">{product.brand_name}</p>
+                <p className="font-sans text-sm font-medium">
+                  {stripMarkdownArtifacts(product.product_name)}
+                </p>
+                <p className="text-on-surface-variant text-xs">
+                  {stripMarkdownArtifacts(product.brand_name)}
+                </p>
               </div>
             </button>
           ))
@@ -233,7 +244,7 @@ export function RoutineEditor({ routine, backHref, clientUserId }: RoutineEditor
         stepId: null,
         stepName: category,
         productId: product.product_id,
-        productName: product.product_name ?? "Product",
+        productName: stripMarkdownArtifacts(product.product_name) ?? "Product",
         usageNotes: "",
         isNew: true,
       },
@@ -505,7 +516,7 @@ export function RoutineEditor({ routine, backHref, clientUserId }: RoutineEditor
                   onPick={(product) =>
                     updateSelected({
                       productId: product.product_id,
-                      productName: product.product_name ?? "Product",
+                      productName: stripMarkdownArtifacts(product.product_name) ?? "Product",
                     })
                   }
                   clientUserId={clientUserId}

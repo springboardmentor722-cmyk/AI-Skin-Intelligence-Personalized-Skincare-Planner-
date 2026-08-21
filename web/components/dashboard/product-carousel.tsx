@@ -2,18 +2,20 @@
 
 import Image from "next/image";
 import { useRef } from "react";
-import { ChevronLeft, ChevronRight, FlaskConical, Star } from "lucide-react";
+import { ChevronLeft, ChevronRight, Star } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatPrice } from "@/lib/utils";
+import { categoryIcon } from "@/lib/category-icon";
+import { formatPrice, stripMarkdownArtifacts } from "@/lib/utils";
 import { WidgetEmpty, WidgetError, type WidgetStateProps } from "@/components/dashboard/widget-states";
 
 export interface CarouselProduct {
   key: string | number;
   name: string;
   imageUrl?: string;
+  category?: string | null;
   price: number | null;
   currency: string | null;
   rating?: number;
@@ -59,19 +61,26 @@ export function ProductCarousel({
   return (
     <div className="relative">
       <div ref={scrollerRef} className="flex gap-3 overflow-x-auto scroll-smooth pb-1">
-        {products.map((product) => (
+        {products.map((product) => {
+          // categoryIcon picks from a fixed, stateless Lucide icon set
+          // (lib/category-icon.ts) — remounting on a category change has no
+          // visible effect. Same reasoning as ingredient-detail.tsx's
+          // react-hooks/static-components suppression; the lint rule doesn't
+          // happen to flag this particular call site.
+          const CategoryIcon = categoryIcon(product.category);
+          return (
           <div key={product.key} className="border-border bg-card w-36 shrink-0 rounded-xl border p-2">
             <div className="bg-muted relative mb-2 flex h-24 items-center justify-center overflow-hidden rounded-lg">
               {product.imageUrl ? (
                 <Image src={product.imageUrl} alt={product.name} fill className="object-contain" />
               ) : (
-                <FlaskConical
+                <CategoryIcon
                   className="text-on-surface-variant/50 size-5"
                   strokeWidth={1.5}
                 />
               )}
             </div>
-            <p className="line-clamp-2 text-xs font-medium">{product.name}</p>
+            <p className="line-clamp-2 text-xs font-medium">{stripMarkdownArtifacts(product.name)}</p>
             <div className="mt-1 flex items-center justify-between">
               <span className="text-sm font-semibold tabular-nums">
                 {formatPrice(product.price, product.currency)}
@@ -101,7 +110,8 @@ export function ProductCarousel({
               </Badge>
             )}
           </div>
-        ))}
+          );
+        })}
       </div>
       <Button
         variant="outline"

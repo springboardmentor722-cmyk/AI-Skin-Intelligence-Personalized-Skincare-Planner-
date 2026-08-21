@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { getScoreBand, windowByCalendarDays } from "../score-components.ts";
-import { computePercent, formatPrice } from "../utils.ts";
+import { computePercent, formatPrice, stripMarkdownArtifacts } from "../utils.ts";
 
 // Milestone 2 P3 — pure-function unit tests for the widget kit's three non-JSX
 // pieces (score ramp, percentage maths, en-IN currency). Run with
@@ -81,4 +81,17 @@ test("windowByCalendarDays — dense points: count-based slice would have been w
 
 test("windowByCalendarDays — empty input returns empty output", () => {
   assert.deepEqual(windowByCalendarDays([], 7), []);
+});
+
+// UI polish pass — scraped seed data (training_dataset raw CSV/JSON) sometimes
+// carries literal markdown emphasis with no renderer to interpret it.
+test("stripMarkdownArtifacts — strips unbalanced/stray asterisks", () => {
+  assert.equal(stripMarkdownArtifacts("**Urtica Dioica Leaf Extract"), "Urtica Dioica Leaf Extract");
+  assert.equal(stripMarkdownArtifacts("Plain Ingredient Name"), "Plain Ingredient Name");
+  assert.equal(stripMarkdownArtifacts("**Bold** mid *word* end"), "Bold mid word end");
+});
+
+test("stripMarkdownArtifacts — passes through null/undefined unchanged", () => {
+  assert.equal(stripMarkdownArtifacts(null), null);
+  assert.equal(stripMarkdownArtifacts(undefined), undefined);
 });
