@@ -1,3 +1,7 @@
+
+
+https://github.com/user-attachments/assets/781442dd-59de-45ad-b89a-1f69df4b6b8c
+
 # AI Skin Intelligence & Personalized Skincare Planner
 
 **Milestone 1 — Foundation**
