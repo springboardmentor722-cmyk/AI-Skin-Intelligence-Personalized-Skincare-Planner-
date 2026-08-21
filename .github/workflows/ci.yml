@@ -32,9 +32,11 @@ jobs:
         flake8 backend/app --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
     - name: Run tests with pytest
+      env:
+        POSTGRES_URL: "sqlite:///./test.db"
       run: |
         cd backend
-        pytest
+        pytest tests/
 
   frontend-build:
     runs-on: ubuntu-latest
