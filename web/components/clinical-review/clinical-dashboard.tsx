@@ -14,6 +14,7 @@ import { DonutBreakdown, type DonutSlice } from "@/components/charts/donut-break
 import { RankedBarList, type RankedBarItem } from "@/components/charts/ranked-bar-list";
 import { ScoreChip } from "@/components/charts/score-chip";
 import { TrendChart } from "@/components/charts/trend-chart";
+import { HeroBand } from "@/components/dashboard/hero-band";
 import { InsightBanner } from "@/components/dashboard/insight-banner";
 import { RosterTable, type RosterColumn } from "@/components/dashboard/roster-table";
 import { StatCard } from "@/components/dashboard/stat-card";
@@ -215,6 +216,17 @@ export function ClinicalDashboard({ role }: ClinicalDashboardProps) {
 
   return (
     <div className="flex flex-col gap-6">
+      <HeroBand
+        tint="clinical"
+        eyebrow={isDerma ? "Clinical Intelligence" : "Client Intelligence"}
+        title={isDerma ? "Patient overview" : "Client overview"}
+        subtitle={
+          stats
+            ? `${stats.total_assigned.toLocaleString("en-IN")} ${personLabelPlural.toLowerCase()} · ${stats.clients_need_attention.toLocaleString("en-IN")} need attention`
+            : undefined
+        }
+      />
+
       {/* Row 1 — 5 KPIs, 5th is the real "Next Appointment" widget */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <StatCard

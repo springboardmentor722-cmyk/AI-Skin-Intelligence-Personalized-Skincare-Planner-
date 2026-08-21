@@ -4,7 +4,7 @@ import { ScoreExplainerBand } from "@/components/landing/score-explainer-band";
 import { HowItWorksSection } from "@/components/landing/how-it-works-section";
 import { FeaturesGrid } from "@/components/landing/features-grid";
 import { RolesSection } from "@/components/landing/roles-section";
-import { TestimonialsSection } from "@/components/landing/testimonials-section";
+import { TrustStrip } from "@/components/landing/trust-strip";
 import { PricingSection } from "@/components/landing/pricing-section";
 import { FaqSection } from "@/components/landing/faq-section";
 import { FinalCtaSection } from "@/components/landing/final-cta-section";
@@ -24,7 +24,7 @@ export default function Home() {
         <HowItWorksSection />
         <FeaturesGrid />
         <RolesSection />
-        <TestimonialsSection />
+        <TrustStrip />
         <PricingSection />
         <FaqSection />
         <FinalCtaSection />

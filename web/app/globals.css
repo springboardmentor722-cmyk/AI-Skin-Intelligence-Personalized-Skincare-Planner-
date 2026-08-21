@@ -166,6 +166,30 @@
   --score-amber: #f59e0b;
   --score-red: #ef4444;
 
+  /* Gradient system — docs/DESIGN.md addendum, ported verbatim from demo_ui.html.
+     --gradient-start/mid/end alias the brand triad so every palette re-themes
+     these for free, same indirection pattern as --foreground/--surface-soft. */
+  --gradient-start: var(--primary);
+  --gradient-mid: var(--secondary);
+  --gradient-end: var(--tertiary);
+  --gradient-ambient-opacity: 0.2;
+  --gradient-ambient:
+    radial-gradient(circle at 12% 18%, var(--gradient-start), transparent 55%),
+    radial-gradient(circle at 88% 12%, var(--gradient-mid), transparent 50%),
+    radial-gradient(circle at 55% 100%, var(--gradient-end), transparent 55%);
+  --gradient-hero:
+    radial-gradient(120% 120% at 20% -10%, var(--gradient-start), transparent 62%),
+    radial-gradient(100% 100% at 100% 0%, var(--gradient-end), transparent 58%);
+  --gradient-hero-opacity: 0.34;
+  --gradient-cta: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  --gradient-card-featured-opacity: 0.14;
+
+  /* Skin Score Ring brand anchors — palette-invariant by design (demo_ui.html §4),
+     never overridden per palette. */
+  --brand-start: var(--score-teal);
+  --brand-mid: #1f9fbc;
+  --brand-end: var(--score-blue);
+
   /* shadcn semantic mapping — docs/DESIGN.md §10 (--background is already set
      above; DESIGN.md uses the same name for the raw token and the shadcn slot) */
   --foreground: var(--on-background);
@@ -256,6 +280,9 @@
   --score-amber: #f59e0b;
   --score-red: #ef4444;
 
+  --gradient-ambient-opacity: 0.1;
+  --gradient-hero-opacity: 0.16;
+
   /* shadcn semantic mapping (--background already set above) */
   --foreground: var(--on-background);
   --card: var(--surface-container-lowest);
@@ -332,6 +359,7 @@
   --tertiary-container: #ecfccb;
   --on-tertiary-container: #3f6212;
   --surface-tint: #059669;
+  --background: #f9fbf9;
 }
 [data-palette="emerald"].dark {
   --primary: #6ee7b7;
@@ -363,6 +391,7 @@
   --tertiary-container: #cffafe;
   --on-tertiary-container: #155e75;
   --surface-tint: #0284c7;
+  --background: #f8fafc;
 }
 [data-palette="ocean"].dark {
   --primary: #7dd3fc;
@@ -394,6 +423,7 @@
   --tertiary-container: #fae8ff;
   --on-tertiary-container: #86198f;
   --surface-tint: #7c3aed;
+  --background: #fbfafe;
 }
 [data-palette="lavender"].dark {
   --primary: #c4b5fd;
@@ -425,6 +455,7 @@
   --tertiary-container: #fce7f3;
   --on-tertiary-container: #9d174d;
   --surface-tint: #ea580c;
+  --background: #fdfaf8;
 }
 [data-palette="sunset"].dark {
   --primary: #fdba74;
@@ -456,6 +487,10 @@
   --tertiary-container: #fef3c7;
   --on-tertiary-container: #92400e;
   --surface-tint: #475569;
+  --background: #f9fafb;
+  /* Slate's chart-1 (steel) reads too flat/washed-out for the bar chart specifically
+     — use the brass chart-2 here instead, both modes. */
+  --chart-bar: var(--chart-2);
 }
 [data-palette="slate"].dark {
   --primary: #cbd5e1;
@@ -487,6 +522,7 @@
   --tertiary-container: #ccfbf1;
   --on-tertiary-container: #115e59;
   --surface-tint: #e11d48;
+  --background: #fdfafb;
 }
 [data-palette="rose"].dark {
   --primary: #fda4af;
@@ -518,6 +554,7 @@
   --tertiary-container: #fef3c7;
   --on-tertiary-container: #854d0e;
   --surface-tint: #4d7c0f;
+  --background: #f9fbf8;
 }
 [data-palette="forest"].dark {
   --primary: #86efac;
@@ -533,6 +570,9 @@
   --tertiary-container: #92400e;
   --on-tertiary-container: #fef3c7;
   --surface-tint: #bef264;
+  /* Forest dark's chart-1 (sage) renders more saturated/"lime" than the hex intends —
+     use the cooler teal chart-3 for this one chart component in dark mode only. */
+  --chart-bar: var(--chart-3);
 }
 
 @layer base {
@@ -602,16 +642,9 @@
     position: fixed;
     inset: 0;
     z-index: -1;
-    opacity: 0.08;
+    opacity: var(--gradient-ambient-opacity);
     filter: blur(100px);
-    background-image:
-      radial-gradient(circle at 15% 20%, var(--primary), transparent 60%),
-      radial-gradient(circle at 85% 15%, var(--secondary), transparent 55%),
-      radial-gradient(circle at 50% 90%, var(--tertiary), transparent 55%);
-  }
-
-  .dark .aurora {
-    opacity: 0.05;
+    background-image: var(--gradient-ambient);
   }
 
   @media (prefers-reduced-motion: no-preference) {

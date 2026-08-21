@@ -48,14 +48,14 @@ export function HeroSection() {
             ) : role ? (
               <Button
                 size="lg"
-                className="h-auto px-8 py-4 text-base"
+                className="h-auto px-8 py-4 text-base shadow-xl transition-transform hover:scale-[1.02] active:scale-[0.98]"
                 nativeButton={false}
                 render={<Link href={ROLE_HOME[role]}>Go to Dashboard</Link>}
               />
             ) : (
               <Button
                 size="lg"
-                className="h-auto px-8 py-4 text-base"
+                className="h-auto px-8 py-4 text-base shadow-xl transition-transform hover:scale-[1.02] active:scale-[0.98]"
                 nativeButton={false}
                 render={<Link href="/signup">Get started free</Link>}
               />
@@ -84,8 +84,8 @@ export function HeroSection() {
                 ))}
               </div>
               <span className="font-sans text-sm font-medium">
-                12,000+ skin profiles analyzed ·{" "}
-                <span className="text-secondary">Dermatologist-informed</span>
+                AI-powered skin analysis ·{" "}
+                <span className="text-secondary">Personalized routines</span>
               </span>
             </div>
           </div>
