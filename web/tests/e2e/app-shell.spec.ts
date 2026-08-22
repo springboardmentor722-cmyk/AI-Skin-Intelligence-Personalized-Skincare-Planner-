@@ -147,6 +147,35 @@ test.describe("app shell", () => {
     }
   });
 
+  test("collapsed sidebar centers nav icons in their button box", async ({ page }) => {
+    // Regression guard for a real bug: the shared collapsed-icon square
+    // (group-data-[collapsible=icon]:size-8!/p-2! in ui/sidebar.tsx) has no
+    // justify-center of its own, so once the label span is hidden the icon sat
+    // flush at the flex-start edge instead of centered under its active/hover
+    // background. Fixed via group-data-[collapsible=icon]:justify-center on
+    // app-sidebar.tsx's per-item className.
+    const email = `e2e-shell-collapse-icon-${Date.now()}@example.com`;
+    const password = "SuperSecret123!";
+    let userId: string | null = null;
+
+    try {
+      userId = await signUpAndLand(page, email, password);
+      await page.goto("/dashboard");
+      await page.getByRole("button", { name: "Toggle Sidebar" }).first().click();
+
+      const button = page.locator('[data-sidebar="content"] [data-sidebar="menu-button"]').first();
+      const icon = button.locator("svg").first();
+      const buttonBox = await button.boundingBox();
+      const iconBox = await icon.boundingBox();
+      if (!buttonBox || !iconBox) throw new Error("expected a visible collapsed sidebar icon button");
+
+      const dx = Math.abs(buttonBox.x + buttonBox.width / 2 - (iconBox.x + iconBox.width / 2));
+      expect(dx).toBeLessThanOrEqual(1);
+    } finally {
+      if (userId) await deleteTestUser(userId);
+    }
+  });
+
   test("account menu and command palette open", async ({ page }) => {
     const email = `e2e-shell-menu-${Date.now()}@example.com`;
     const password = "SuperSecret123!";

@@ -102,7 +102,7 @@ export function AppSidebar({ role, userName }: AppSidebarProps) {
                         isActive={active}
                         tooltip={item.label}
                         size="lg"
-                        className={`h-auto py-1.5 ${item.built ? "" : "pr-14"} ${ACTIVE_VARIANT_CLASSES[activeVariant]}`}
+                        className={`h-auto py-1.5 group-data-[collapsible=icon]:justify-center ${item.built ? "" : "pr-14"} ${ACTIVE_VARIANT_CLASSES[activeVariant]}`}
                         render={<Link href={item.href} />}
                       >
                         <item.icon strokeWidth={1.75} className="size-[18px]!" />
