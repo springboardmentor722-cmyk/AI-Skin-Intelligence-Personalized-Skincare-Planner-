@@ -65,7 +65,17 @@ function ShareButton() {
 // Share API instead of linking anywhere.
 export function LandingFooter() {
   return (
-    <footer className="border-border bg-card border-t pt-16 pb-8">
+    <footer
+      className="border-border bg-card border-t pt-16 pb-8"
+      style={{
+        // Continuity hint, not a repaint: the CTA band above ends in a themed
+        // gradient (final-cta-section.tsx) — cutting straight to flat --card read as
+        // "no gradient at all" (bug report). A fast top-edge fade of the same
+        // --primary-container token settles back to plain --card within ~200px.
+        backgroundImage:
+          "linear-gradient(to bottom, color-mix(in oklch, var(--primary-container) 22%, transparent), transparent 260px)",
+      }}
+    >
       <div className="mx-auto max-w-7xl px-6">
         <div className="mb-16 grid grid-cols-1 gap-12 md:grid-cols-4">
           <div>
