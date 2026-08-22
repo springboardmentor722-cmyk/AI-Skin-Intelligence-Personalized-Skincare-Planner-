@@ -302,6 +302,13 @@ const RAW_NAV: Record<Role, RawNavSection[]> = {
           icon: AlarmClock,
           built: true,
         },
+        {
+          id: "settings",
+          label: "Settings",
+          subtitle: "Account & preferences",
+          path: "/settings",
+          icon: Settings,
+        },
       ],
     },
     {
@@ -424,6 +431,13 @@ const RAW_NAV: Record<Role, RawNavSection[]> = {
           path: "/reminders",
           icon: BellRing,
           built: false,
+        },
+        {
+          id: "settings",
+          label: "Settings",
+          subtitle: "Account & preferences",
+          path: "/settings",
+          icon: Settings,
         },
       ],
     },
