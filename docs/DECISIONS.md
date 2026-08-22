@@ -2158,3 +2158,48 @@ vs "Consultant" badges, `web/components/clinical-review/
 client-recommendations-view.tsx`). Same extensibility precedent as ADR-050 —
 no parallel recommendation system, just provenance metadata on the existing
 rows.
+
+## ADR-052 — Dark-mode glass tokens derive from `--primary-container` per palette instead of one hardcoded navy
+
+**Status:** Accepted (bug fix, 2026-08-22 — "every non-default theme looks grey/washed
+out in dark mode" report)
+
+**Context:** `docs/DESIGN.md` §3 / `web/app/globals.css`'s `.dark` block previously
+documented `--glass-bg`/`--glass-bg-strong` as a literal `rgba(15,23,42,*)` "deliberately
+kept... not an oversight" — a decision made back when only the Default palette existed.
+Once the 8-palette appearance system (ADR-019) shipped, that literal never got
+re-examined: every palette's dark-mode sidebar/header/dialogs/sheets still rendered the
+same hardcoded navy tint regardless of the selected palette, since `--glass-bg` was never
+parameterized per palette. Separately, `[data-palette="X"]` (light) and `.dark` both set
+`--background` at equal specificity (0,1,0); the light block's later source position won
+the tie, so every palette's dark mode also leaked its *light* background hex into dark
+mode.
+
+**Decision:**
+1. `--glass-bg`/`--glass-bg-strong` (`.dark` block) now read
+   `color-mix(in oklch, var(--primary-container) 32%/46%, transparent)` instead of a
+   literal. `--primary-container` already cascades correctly per palette (each
+   `[data-palette="X"].dark` block redeclares it at specificity (0,2,0), no tie), so this
+   is a zero-line-per-palette fix. Default's `--primary-container` is `#0f172a`, so at
+   this mix % the sidebar/navbar reads as a noticeably darker navy than the original v3
+   literal (`rgba(15,23,42,0.68)`) — see below. `--glass-border`/`--glass-highlight`/
+   `--glass-shadow` stay neutral (rim/shadow details, not the "which theme is this"
+   surface read) — not part of this fix.
+   - Initial pass used 68%/82% (reproducing Default's old literal exactly); owner
+     feedback the same day found all 8 palettes' sidebar/navbar too bright/saturated at
+     that strength. Tuned down twice: 68%/82% → 46%/60% → 32%/46%, each step letting more
+     of the near-black backdrop show through. This makes Default's glass darker than its
+     pre-fix baseline too, not just the 7 alt palettes — an explicit, requested tradeoff,
+     not an oversight.
+2. Each `[data-palette="X"].dark` block (all 7 non-default palettes) now redeclares
+   `--background: var(--surface);` to win the specificity tie outright, instead of
+   leaving it to source order. `--surface` is already palette-invariant (`#131315`) by
+   design, so this reuses an existing token rather than repeating a literal 7 times.
+
+**Consequences:** Every palette's dark mode now shows its own deep brand tone through
+glass surfaces (emerald → deep green-black, ocean → deep blue-black, etc.) instead of one
+shared navy, and the page background is reliably near-black in dark mode regardless of
+which palette is active. Light mode and Skinlytics Default dark mode are pixel-unchanged.
+No new component-level overrides — both fixes live entirely in the token layer, so every
+screen consuming `--glass-bg`/`--sidebar`/`--background` (sidebar, header, dialogs,
+sheets, dropdowns, command palette, toasts, hero panels) inherits the fix automatically.
