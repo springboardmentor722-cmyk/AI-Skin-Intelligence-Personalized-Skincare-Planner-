@@ -235,6 +235,7 @@ export default function UserDashboardPage() {
       key: rec.product.product_id,
       name: rec.product.product_name ?? "Product",
       imageUrl: rec.product.image_url ?? undefined,
+      category: rec.product.category,
       price: rec.product.price,
       currency: rec.product.currency,
       rating: rec.product.rating ?? undefined,

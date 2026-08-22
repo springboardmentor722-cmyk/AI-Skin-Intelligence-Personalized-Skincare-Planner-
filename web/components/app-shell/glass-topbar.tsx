@@ -7,7 +7,6 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Bell,
   CalendarDays,
-  FlaskConical,
   LogOut,
   type LucideIcon,
   Search,
@@ -19,6 +18,8 @@ import {
 } from "lucide-react";
 
 import { ThemeToggle } from "@/components/theme-toggle";
+import { categoryIcon } from "@/lib/category-icon";
+import { stripMarkdownArtifacts } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -237,8 +238,8 @@ export function GlassTopbar({ role, userName, title }: GlassTopbarProps) {
     searchErrored = ingredientsQuery.isError;
     searchHits = (ingredientsQuery.data ?? []).map((ing) => ({
       key: String(ing.ingredient_id),
-      icon: FlaskConical,
-      label: ing.ingredient_name,
+      icon: categoryIcon(ing.category),
+      label: stripMarkdownArtifacts(ing.ingredient_name),
       sub: ing.category ?? undefined,
       href: `/ingredients/${ing.ingredient_id}`,
     }));

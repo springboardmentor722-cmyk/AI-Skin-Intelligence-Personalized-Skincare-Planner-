@@ -20,10 +20,15 @@ export function FinalCtaSection() {
       <div className="bg-primary-container text-on-primary-container relative overflow-hidden rounded-[3rem] p-16 text-center">
         {/* Local depth texture only — not the global .aurora (layout.tsx), scoped to
             this one high-impact CTA band, static (no WebGL/animation), matches
-            wireframe's locally-layered shader wash at equivalent low opacity. */}
+            wireframe's locally-layered shader wash. opacity-30 (old value) washed out
+            to invisible on Slate: its --secondary is a deliberately low-chroma steel-
+            blue (same reason its chart-bar token already swaps to --chart-2, see the
+            [data-palette="slate"] comment in globals.css) — at 30% alpha over the pale
+            --primary-container base it never registered, reading as flat white/no
+            gradient. Bumped so every palette's wash stays visible against that base. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 opacity-30"
+          className="pointer-events-none absolute inset-0 opacity-60"
           style={{
             background:
               "radial-gradient(circle at 20% 20%, var(--tertiary), transparent 55%), radial-gradient(circle at 80% 80%, var(--secondary), transparent 55%)",

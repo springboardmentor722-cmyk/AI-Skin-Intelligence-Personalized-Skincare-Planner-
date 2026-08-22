@@ -338,10 +338,13 @@ in both themes:
 }
 ```
 
-Dark mode's glass background is `rgba(15,23,42,0.68)` — the *old* navy, deliberately kept
-(not the new near-black surface) so glass chrome reads as a distinct branded layer over
-the neutral darkspace, the same way `primary-container` stays navy while `surface` went
-neutral. This is a v3 design decision, not an oversight.
+Dark mode's glass background is `color-mix(in oklch, var(--primary-container) 32%, transparent)`
+— each palette's own deep brand tone, not a literal, so glass chrome reads as a distinct
+branded layer per palette over the neutral darkspace, the same way `primary-container`
+carries brand color while `surface` went neutral. This replaced a hardcoded-navy-for-all-
+palettes bug (ADR-052); the mix % was tuned down twice on owner feedback (2026-08-22 —
+sidebar/navbar read too bright/saturated across all 8 palettes): 68%/82% → 46%/60% →
+32%/46%, each step letting more of the near-black backdrop show through.
 
 **The ambient aurora.** Blur is invisible over a flat background, so the `body` carries a
 fixed aurora: 3 large radial-gradient blobs in primary → secondary → tertiary at

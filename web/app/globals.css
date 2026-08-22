@@ -222,9 +222,11 @@
   --sidebar-accent-foreground: var(--on-tertiary-container);
   --sidebar-border: var(--glass-border);
   --sidebar-ring: var(--secondary);
+  --scroll-shadow: oklch(0% 0 0 / 12%);
 }
 
 .dark {
+  --scroll-shadow: oklch(100% 0 0 / 14%);
   /* docs/DESIGN.md `colors-dark:` v3 "Skin Intelligence System" — authoritative dark
      palette, supersedes the old mechanically-derived tokens (PROGRESS.md Known Issues:
      this was flagged as unconfirmed; v3 resolves it with real designer values). */
@@ -266,11 +268,14 @@
   --on-background: #e4e2e4;
   --surface-variant: #353436;
 
-  /* docs/DESIGN.md `glass:` (dark) — deliberately kept as the *old* navy (not the new
-     near-black surface) so glass chrome reads as a distinct branded layer, matching
-     primary-container staying navy while surface itself went neutral. Not an oversight. */
-  --glass-bg: rgba(15, 23, 42, 0.68);
-  --glass-bg-strong: rgba(15, 23, 42, 0.82);
+  /* docs/DESIGN.md `glass:` (dark) — derived from --primary-container (each palette's
+     own deep brand tone), not a literal, so glass chrome reads as a distinct branded
+     layer per palette instead of one hardcoded navy for all 8. For Skinlytics Default,
+     --primary-container is #0f172a, so this reproduces the old rgba(15,23,42,*) exactly —
+     zero visual change there. Border/highlight/shadow stay neutral on purpose (rim/shadow
+     details, not the "which theme is this" surface read). */
+  --glass-bg: color-mix(in oklch, var(--primary-container) 32%, transparent);
+  --glass-bg-strong: color-mix(in oklch, var(--primary-container) 46%, transparent);
   --glass-border: rgba(255, 255, 255, 0.08);
   --glass-highlight: rgba(255, 255, 255, 0.14);
   --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
@@ -375,6 +380,11 @@
   --tertiary-container: #4d7c0f;
   --on-tertiary-container: #ecfccb;
   --surface-tint: #34d399;
+  /* --background isn't naturally overridden here: `.dark` and `[data-palette="emerald"]`
+     (light) tie at specificity (0,1,0) each, and the light block wins by source order —
+     silently leaking this palette's light background into dark mode. Redeclare at the
+     higher-specificity combo selector to break the tie; same fix on all 7 palettes. */
+  --background: var(--surface);
 }
 
 [data-palette="ocean"] {
@@ -407,6 +417,7 @@
   --tertiary-container: #0e7490;
   --on-tertiary-container: #cffafe;
   --surface-tint: #38bdf8;
+  --background: var(--surface); /* see [data-palette="emerald"].dark's comment above */
 }
 
 [data-palette="lavender"] {
@@ -439,6 +450,7 @@
   --tertiary-container: #a21caf;
   --on-tertiary-container: #fae8ff;
   --surface-tint: #a78bfa;
+  --background: var(--surface); /* see [data-palette="emerald"].dark's comment above */
 }
 
 [data-palette="sunset"] {
@@ -471,6 +483,7 @@
   --tertiary-container: #be185d;
   --on-tertiary-container: #fce7f3;
   --surface-tint: #fb923c;
+  --background: var(--surface); /* see [data-palette="emerald"].dark's comment above */
 }
 
 [data-palette="slate"] {
@@ -506,6 +519,7 @@
   --tertiary-container: #b45309;
   --on-tertiary-container: #fef3c7;
   --surface-tint: #94a3b8;
+  --background: var(--surface); /* see [data-palette="emerald"].dark's comment above */
 }
 
 [data-palette="rose"] {
@@ -538,6 +552,7 @@
   --tertiary-container: #0f766e;
   --on-tertiary-container: #ccfbf1;
   --surface-tint: #fb7185;
+  --background: var(--surface); /* see [data-palette="emerald"].dark's comment above */
 }
 
 [data-palette="forest"] {
@@ -570,6 +585,7 @@
   --tertiary-container: #92400e;
   --on-tertiary-container: #fef3c7;
   --surface-tint: #bef264;
+  --background: var(--surface); /* see [data-palette="emerald"].dark's comment above */
   /* Forest dark's chart-1 (sage) renders more saturated/"lime" than the hex intends —
      use the cooler teal chart-3 for this one chart component in dark mode only. */
   --chart-bar: var(--chart-3);
@@ -661,6 +677,25 @@
       transform: translate3d(-2%, 2%, 0) scale(1.05);
     }
   }
+}
+
+/* Pure-CSS scroll-shadow affordance for horizontally-scrollable tables (no JS scroll
+   listener needed) — the classic two-gradient-pair trick: a `local`-attached pair
+   masks the shadow under fully-visible content, a `scroll`-attached pair reveals it
+   only where the track is actually clipped. Card-background only (docs/DESIGN.md:
+   data tables always sit on a solid --card surface, never glass). --scroll-shadow
+   flips light/dark (a black shadow is invisible on the dark theme's near-black
+   --card) the same way every other shadow token here does — never a literal color. */
+.scroll-fade-x {
+  background:
+    linear-gradient(to right, var(--card) 30%, transparent) left,
+    linear-gradient(to left, var(--card) 30%, transparent) right,
+    linear-gradient(to right, var(--scroll-shadow), transparent 12px) left,
+    linear-gradient(to left, var(--scroll-shadow), transparent 12px) right;
+  background-color: var(--card);
+  background-repeat: no-repeat;
+  background-size: 24px 100%, 24px 100%, 12px 100%, 12px 100%;
+  background-attachment: local, local, scroll, scroll;
 }
 
 /* Geist labels/data are always tabular so number columns align — docs/DESIGN.md §4 */

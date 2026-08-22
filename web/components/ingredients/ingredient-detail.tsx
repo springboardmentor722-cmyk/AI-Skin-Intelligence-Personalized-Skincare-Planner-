@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, BookOpen, FlaskConical, RotateCw, TriangleAlert } from "lucide-react";
+import { ArrowLeft, BookOpen, RotateCw, TriangleAlert } from "lucide-react";
 
 import { StateCard } from "@/components/state-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
-import { formatPrice } from "@/lib/utils";
+import { categoryIcon } from "@/lib/category-icon";
+import { formatPrice, stripMarkdownArtifacts } from "@/lib/utils";
 
 // Milestone 2 P12 — shared ingredient detail view for consultant/dermatologist/admin's
 // "Ingredient Database" (mile_2.docx §5). No per-user suitability card here (unlike
@@ -82,18 +83,25 @@ export function IngredientDetail({
 
       <div className="border-border bg-card flex flex-col gap-4 rounded-2xl border p-6 md:flex-row md:items-start">
         <div className="bg-secondary/10 text-secondary flex size-16 shrink-0 items-center justify-center rounded-2xl">
-          <FlaskConical className="size-8" strokeWidth={1.5} />
+          {(() => {
+            // categoryIcon picks from a fixed, stateless Lucide icon set
+            // (lib/category-icon.ts) — remounting on a category change has no
+            // visible effect.
+            const Icon = categoryIcon(ingredient.category);
+            // eslint-disable-next-line react-hooks/static-components
+            return <Icon className="size-8" strokeWidth={1.5} />;
+          })()}
         </div>
         <div className="flex-1">
           <div className="mb-2 flex flex-wrap gap-2">
             {ingredient.category && <Badge variant="secondary">{ingredient.category}</Badge>}
           </div>
           <h1 className="font-heading text-on-surface text-2xl font-bold">
-            {ingredient.ingredient_name}
+            {stripMarkdownArtifacts(ingredient.ingredient_name)}
           </h1>
           {ingredient.inci_name && ingredient.inci_name !== ingredient.ingredient_name && (
             <p className="text-on-surface-variant font-sans text-sm">
-              Also known as: {ingredient.inci_name}
+              Also known as: {stripMarkdownArtifacts(ingredient.inci_name)}
             </p>
           )}
           <p className="text-on-surface-variant mt-4 font-sans text-xs">
@@ -152,7 +160,9 @@ export function IngredientDetail({
                   <div>
                     <p className="font-sans text-sm font-semibold">{a.skin_type_name}</p>
                     {a.reason && (
-                      <p className="text-on-surface-variant font-sans text-xs">{a.reason}</p>
+                      <p className="text-on-surface-variant font-sans text-xs">
+                        {stripMarkdownArtifacts(a.reason)}
+                      </p>
                     )}
                   </div>
                 </li>
@@ -175,10 +185,12 @@ export function IngredientDetail({
           <ul className="flex flex-col gap-3">
             {ingredient.education.map((article) => (
               <li key={article.article_id} className="border-border/60 border-b pb-3 last:border-b-0">
-                <p className="font-sans text-sm font-semibold">{article.title}</p>
+                <p className="font-sans text-sm font-semibold">
+                  {stripMarkdownArtifacts(article.title)}
+                </p>
                 {article.summary && (
                   <p className="text-on-surface-variant mt-1 font-sans text-sm">
-                    {article.summary}
+                    {stripMarkdownArtifacts(article.summary)}
                   </p>
                 )}
                 {article.source && (
@@ -205,9 +217,11 @@ export function IngredientDetail({
             {ingredient.products.map((product) => (
               <div key={product.product_id} className="border-border rounded-xl border p-4">
                 <p className="text-on-surface-variant font-sans text-xs uppercase">
-                  {product.brand_name}
+                  {stripMarkdownArtifacts(product.brand_name)}
                 </p>
-                <p className="font-sans text-sm font-semibold">{product.product_name}</p>
+                <p className="font-sans text-sm font-semibold">
+                  {stripMarkdownArtifacts(product.product_name)}
+                </p>
                 <p className="font-geist text-on-surface mt-1 text-sm tabular-nums">
                   {formatPrice(product.price, product.currency)}
                 </p>
