@@ -36,10 +36,15 @@ For Admins
 ## 🏗️ Tech Stack
 
  Frontend : React.js 
+ 
  Backend : Python, FastAPI 
+ 
  Database : PostgreSQL 
+ 
  Auth : JWT, role-based access control 
+ 
  AI/ML : EfficientNet-B0 (transfer learning) for skin concern classification 
+ 
  Charts : Chart.js 
 
 
