@@ -55,5 +55,7 @@ class Appointment(Base):
         DateTime(timezone=True), default=None
     )
     notes: Mapped[str | None] = mapped_column(Text, default=None)
+    concern: Mapped[str | None] = mapped_column(Text, default=None)
+    meeting_link: Mapped[str | None] = mapped_column(Text, default=None)
     created_at: Mapped[datetime.datetime | None] = mapped_column(default=None)
     updated_at: Mapped[datetime.datetime | None] = mapped_column(default=None)

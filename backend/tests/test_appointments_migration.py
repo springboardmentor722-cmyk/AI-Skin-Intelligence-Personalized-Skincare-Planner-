@@ -26,3 +26,16 @@ async def test_dermatologist_profiles_has_consultation_modes_column(
         )
     )
     assert result.scalar_one_or_none() == "consultation_modes"
+
+
+async def test_appointments_table_has_concern_and_meeting_link_columns(
+    db_session: AsyncSession,
+) -> None:
+    result = await db_session.execute(
+        text(
+            "SELECT column_name FROM information_schema.columns "
+            "WHERE table_name = 'appointments' AND column_name IN ('concern', 'meeting_link')"
+        )
+    )
+    columns = {row.column_name for row in result.all()}
+    assert columns == {"concern", "meeting_link"}

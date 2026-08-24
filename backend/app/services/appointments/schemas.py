@@ -61,6 +61,7 @@ class AppointmentCreate(BaseModel):
     provider_id: str
     start_time: AwareDatetime
     consultation_mode: ConsultationMode
+    concern: str | None = Field(default=None, max_length=2000)
 
 
 class AppointmentRead(BaseModel):
@@ -76,6 +77,8 @@ class AppointmentRead(BaseModel):
     original_start_time: datetime.datetime | None
     notes: str | None
     other_party_name: str | None
+    concern: str | None
+    meeting_link: str | None
 
 
 class AppointmentCancelUpdate(BaseModel):
@@ -88,3 +91,7 @@ class AppointmentRescheduleUpdate(BaseModel):
 
 class AppointmentCompleteUpdate(BaseModel):
     notes: str | None = None
+
+
+class AppointmentMeetingLinkUpdate(BaseModel):
+    meeting_link: str = Field(min_length=1, max_length=2048)

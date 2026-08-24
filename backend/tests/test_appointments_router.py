@@ -155,6 +155,79 @@ async def test_cancel_appointment_rejects_an_already_cancelled_appointment(
     assert exc_info.value.status_code == 400
 
 
+async def test_create_appointment_persists_and_returns_concern(
+    db_session: AsyncSession, provider_id: str, test_user_id: str
+) -> None:
+    user = {"id": test_user_id, "role": "user", "claims": {}}
+    result = await create_appointment(
+        AppointmentCreate(
+            provider_id=provider_id,
+            start_time=datetime.datetime(2026, 9, 7, 9, 0, tzinfo=datetime.UTC),
+            consultation_mode="video",
+            concern="Sudden breakout along the jawline.",
+        ),
+        user,
+        db_session,
+    )
+    assert result.concern == "Sudden breakout along the jawline."
+    assert result.meeting_link is None
+
+
+async def test_set_meeting_link_by_owning_provider_returns_it(
+    db_session: AsyncSession, provider_id: str, test_user_id: str
+) -> None:
+    from app.services.appointments.router import set_appointment_meeting_link
+    from app.services.appointments.schemas import AppointmentMeetingLinkUpdate
+
+    user = {"id": test_user_id, "role": "user", "claims": {}}
+    provider = {"id": provider_id, "role": "consultant", "claims": {}}
+    created = await create_appointment(
+        AppointmentCreate(
+            provider_id=provider_id,
+            start_time=datetime.datetime(2026, 9, 7, 9, 0, tzinfo=datetime.UTC),
+            consultation_mode="video",
+        ),
+        user,
+        db_session,
+    )
+    result = await set_appointment_meeting_link(
+        created.appointment_id,
+        AppointmentMeetingLinkUpdate(meeting_link="https://meet.google.com/abc-defg-hij"),
+        provider,
+        db_session,
+    )
+    assert result.meeting_link == "https://meet.google.com/abc-defg-hij"
+
+
+async def test_set_meeting_link_rejects_a_stranger_provider(
+    db_session: AsyncSession, provider_id: str, test_user_id: str
+) -> None:
+    from fastapi import HTTPException
+
+    from app.services.appointments.router import set_appointment_meeting_link
+    from app.services.appointments.schemas import AppointmentMeetingLinkUpdate
+
+    user = {"id": test_user_id, "role": "user", "claims": {}}
+    created = await create_appointment(
+        AppointmentCreate(
+            provider_id=provider_id,
+            start_time=datetime.datetime(2026, 9, 7, 9, 0, tzinfo=datetime.UTC),
+            consultation_mode="video",
+        ),
+        user,
+        db_session,
+    )
+    stranger_provider = {"id": f"test-{uuid.uuid4().hex[:16]}", "role": "consultant", "claims": {}}
+    with pytest.raises(HTTPException) as exc_info:
+        await set_appointment_meeting_link(
+            created.appointment_id,
+            AppointmentMeetingLinkUpdate(meeting_link="https://meet.google.com/x"),
+            stranger_provider,
+            db_session,
+        )
+    assert exc_info.value.status_code == 404
+
+
 async def test_cancel_appointment_rejects_a_non_participant_as_404(
     db_session: AsyncSession, provider_id: str, test_user_id: str
 ) -> None:

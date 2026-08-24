@@ -122,7 +122,10 @@ export function ClientDetailView({ userId, backHref }: ClientDetailViewProps) {
           <h1 className="font-heading text-on-surface text-2xl font-bold">
             {client.name ?? client.email}
           </h1>
-          <p className="text-on-surface-variant font-sans text-sm">{client.email}</p>
+          <p className="text-on-surface-variant font-sans text-sm">
+            {client.email}
+            {client.phone ? ` · ${client.phone}` : ""}
+          </p>
         </div>
       </div>
 
