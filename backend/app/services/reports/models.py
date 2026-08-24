@@ -19,6 +19,9 @@ class ProgressReport(Base):
     report_id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[str] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
     report_type: Mapped[str] = mapped_column()
+    # PDF/Excel export (M4 audit fix, PDF requirement "PDF export. Excel export.") —
+    # defaults to "pdf" so every existing caller/row is unaffected.
+    format: Mapped[str] = mapped_column(server_default="pdf")
     summary: Mapped[str | None] = mapped_column(default=None)
     report_url: Mapped[str | None] = mapped_column(default=None)
     generated_at: Mapped[datetime.datetime | None] = mapped_column(server_default=func.now())

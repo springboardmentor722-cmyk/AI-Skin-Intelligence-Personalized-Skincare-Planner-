@@ -190,7 +190,9 @@ async def test_delete_exception_rejects_a_different_providers_row(
     other_provider = f"test-provider-{uuid.uuid4().hex[:16]}"
     await db_session.execute(
         external_user_table.insert().values(
-            id=other_provider, email=f"{other_provider}@test.invalid", name="Other Dr.",
+            id=other_provider,
+            email=f"{other_provider}@test.invalid",
+            name="Other Dr.",
             emailVerified=False,
         )
     )
@@ -215,7 +217,9 @@ async def test_compute_available_slots_from_weekly_pattern(
         provider_id,
         [
             AvailabilityRule(
-                day_of_week=0, start_time=datetime.time(9, 0), end_time=datetime.time(10, 0),
+                day_of_week=0,
+                start_time=datetime.time(9, 0),
+                end_time=datetime.time(10, 0),
                 slot_duration_minutes=30,
             )
         ],
@@ -316,9 +320,7 @@ async def test_compute_available_slots_excludes_past_times_for_today(
             )
         ],
     )
-    slots = await compute_available_slots(
-        db_session, provider_id, today.date(), now=today
-    )
+    slots = await compute_available_slots(db_session, provider_id, today.date(), now=today)
     assert all(s.start_time > today for s in slots)
 
 
@@ -369,7 +371,8 @@ async def test_book_appointment_rejects_an_overlapping_slot(
     )
     start = datetime.datetime(2026, 9, 7, 9, 0, tzinfo=datetime.UTC)
     await book_appointment(
-        db_session, test_user_id,
+        db_session,
+        test_user_id,
         AppointmentCreate(provider_id=provider_id, start_time=start, consultation_mode="video"),
     )
 
@@ -386,7 +389,8 @@ async def test_book_appointment_rejects_an_overlapping_slot(
 
     with pytest.raises(SlotUnavailableError):
         await book_appointment(
-            db_session, other_user,
+            db_session,
+            other_user,
             AppointmentCreate(provider_id=provider_id, start_time=start, consultation_mode="video"),
         )
 
@@ -415,7 +419,8 @@ async def test_book_appointment_derives_provider_role_for_a_dermatologist(
     )
 
     appointment = await book_appointment(
-        db_session, test_user_id,
+        db_session,
+        test_user_id,
         AppointmentCreate(
             provider_id=derm_id,
             start_time=datetime.datetime(2026, 9, 8, 9, 0, tzinfo=datetime.UTC),
@@ -443,9 +448,80 @@ async def test_book_appointment_rejects_an_unsupported_consultation_mode(
 
     with pytest.raises(ValueError, match="not a supported consultation mode"):
         await book_appointment(
-            db_session, test_user_id,
+            db_session,
+            test_user_id,
             AppointmentCreate(
                 provider_id=provider,
+                start_time=datetime.datetime(2026, 9, 9, 9, 0, tzinfo=datetime.UTC),
+                consultation_mode="in_person",
+            ),
+        )
+
+
+async def test_book_appointment_accepts_a_supported_dermatologist_consultation_mode(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    """Audit fix (dermatologist_profile/schemas.py now exposes consultation_modes,
+    same as consultant_profile already did) — _resolve_provider_role's validation
+    must actually work for dermatologists once the field is settable."""
+    derm_id = f"test-derm-modes-{uuid.uuid4().hex[:16]}"
+    await db_session.execute(
+        external_user_table.insert().values(
+            id=derm_id, email=f"{derm_id}@test.invalid", name="Dr. Modes", emailVerified=False
+        )
+    )
+    db_session.add(
+        DermatologistProfile(
+            user_id=derm_id, verification_status="approved", consultation_modes=["video"]
+        )
+    )
+    await db_session.flush()
+    await replace_availability(
+        db_session,
+        derm_id,
+        [
+            AvailabilityRule(
+                day_of_week=1,
+                start_time=datetime.time(9, 0),
+                end_time=datetime.time(10, 0),
+            )
+        ],
+    )
+
+    appointment = await book_appointment(
+        db_session,
+        test_user_id,
+        AppointmentCreate(
+            provider_id=derm_id,
+            start_time=datetime.datetime(2026, 9, 8, 9, 0, tzinfo=datetime.UTC),
+            consultation_mode="video",
+        ),
+    )
+    assert appointment.provider_role == "dermatologist"
+
+
+async def test_book_appointment_rejects_an_unsupported_dermatologist_consultation_mode(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    derm_id = f"test-derm-modes-{uuid.uuid4().hex[:16]}"
+    await db_session.execute(
+        external_user_table.insert().values(
+            id=derm_id, email=f"{derm_id}@test.invalid", name="Dr. Modes", emailVerified=False
+        )
+    )
+    db_session.add(
+        DermatologistProfile(
+            user_id=derm_id, verification_status="approved", consultation_modes=["video"]
+        )
+    )
+    await db_session.flush()
+
+    with pytest.raises(ValueError, match="not a supported consultation mode"):
+        await book_appointment(
+            db_session,
+            test_user_id,
+            AppointmentCreate(
+                provider_id=derm_id,
                 start_time=datetime.datetime(2026, 9, 9, 9, 0, tzinfo=datetime.UTC),
                 consultation_mode="in_person",
             ),
@@ -469,7 +545,8 @@ async def test_list_my_appointments_matches_either_side_of_the_fk(
         ],
     )
     await book_appointment(
-        db_session, test_user_id,
+        db_session,
+        test_user_id,
         AppointmentCreate(
             provider_id=provider_id,
             start_time=datetime.datetime(2026, 9, 7, 9, 0, tzinfo=datetime.UTC),
@@ -500,7 +577,8 @@ async def test_get_appointment_rejects_a_non_participant(
         ],
     )
     appointment = await book_appointment(
-        db_session, test_user_id,
+        db_session,
+        test_user_id,
         AppointmentCreate(
             provider_id=provider_id,
             start_time=datetime.datetime(2026, 9, 7, 9, 0, tzinfo=datetime.UTC),
@@ -535,7 +613,8 @@ async def test_confirm_then_complete_transition(
         ],
     )
     appointment = await book_appointment(
-        db_session, test_user_id,
+        db_session,
+        test_user_id,
         AppointmentCreate(
             provider_id=provider_id,
             start_time=datetime.datetime(2026, 9, 7, 9, 0, tzinfo=datetime.UTC),
@@ -568,7 +647,8 @@ async def test_confirm_rejects_a_non_owning_provider(
         ],
     )
     appointment = await book_appointment(
-        db_session, test_user_id,
+        db_session,
+        test_user_id,
         AppointmentCreate(
             provider_id=provider_id,
             start_time=datetime.datetime(2026, 9, 7, 9, 0, tzinfo=datetime.UTC),
@@ -683,7 +763,8 @@ async def test_booking_notifies_the_provider(
         ],
     )
     await book_appointment(
-        db_session, test_user_id,
+        db_session,
+        test_user_id,
         AppointmentCreate(
             provider_id=provider_id,
             start_time=datetime.datetime(2026, 9, 7, 9, 0, tzinfo=datetime.UTC),
@@ -756,7 +837,8 @@ async def test_book_appointment_rejects_a_time_outside_availability(
     )
     with pytest.raises(SlotUnavailableError):
         await book_appointment(
-            db_session, test_user_id,
+            db_session,
+            test_user_id,
             AppointmentCreate(
                 provider_id=provider_id,
                 start_time=datetime.datetime(2026, 9, 7, 14, 0, tzinfo=datetime.UTC),
@@ -899,16 +981,22 @@ async def test_concurrent_booking_of_the_identical_slot_lets_exactly_one_succeed
             external_user_table.insert().values(
                 [
                     {
-                        "id": provider, "email": f"{provider}@test.invalid",
-                        "name": "Concurrent Provider", "emailVerified": False,
+                        "id": provider,
+                        "email": f"{provider}@test.invalid",
+                        "name": "Concurrent Provider",
+                        "emailVerified": False,
                     },
                     {
-                        "id": user_a, "email": f"{user_a}@test.invalid",
-                        "name": "User A", "emailVerified": False,
+                        "id": user_a,
+                        "email": f"{user_a}@test.invalid",
+                        "name": "User A",
+                        "emailVerified": False,
                     },
                     {
-                        "id": user_b, "email": f"{user_b}@test.invalid",
-                        "name": "User B", "emailVerified": False,
+                        "id": user_b,
+                        "email": f"{user_b}@test.invalid",
+                        "name": "User B",
+                        "emailVerified": False,
                     },
                 ]
             )

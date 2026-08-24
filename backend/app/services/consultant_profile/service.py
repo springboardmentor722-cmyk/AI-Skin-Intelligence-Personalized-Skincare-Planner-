@@ -92,6 +92,32 @@ async def update_own_profile(
     return profile
 
 
+async def apply_verification_transition(
+    db: AsyncSession,
+    *,
+    user_id: str,
+    verification_status: str,
+    reviewed_by: str,
+    reviewed_at: datetime.datetime,
+    update_rejection_reason: bool,
+    rejection_reason: str | None,
+) -> ConsultantProfile | None:
+    """Single-writer interface for admin's verification-review actions (ADR-005) —
+    admin/service.py resolves action -> status/reason and calls this instead of
+    mutating ConsultantProfile directly. Stages the change only (no commit here);
+    admin/service.py's apply_verification_action still owns the single commit and
+    the write_audit_log call."""
+    profile = await get_own_profile(db, user_id=user_id)
+    if profile is None:
+        return None
+    profile.verification_status = verification_status
+    profile.reviewed_by = reviewed_by
+    profile.reviewed_at = reviewed_at
+    if update_rejection_reason:
+        profile.rejection_reason = rejection_reason
+    return profile
+
+
 async def list_own_documents(db: AsyncSession, *, user_id: str) -> list[VerificationDocument]:
     return await admin_service.list_documents_for_owner(db, owner_user_id=user_id)
 

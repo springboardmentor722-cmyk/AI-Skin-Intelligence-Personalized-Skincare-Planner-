@@ -551,6 +551,13 @@ const RAW_NAV: Record<Role, RawNavSection[]> = {
           subtitle: "Platform reports",
           path: "/system-reports",
           icon: FileBarChart,
+          // Nav honesty fix (audit 2026-08-24): the page itself is 100%
+          // ComingSoonPanel (app/admin/system-reports/page.tsx) — a distinct,
+          // deeper page beyond the real Admin Dashboard's system-health widget,
+          // with no ADR/PDF requirement to build it now. `built` defaulted to
+          // true (unset), so it was the one nav item claiming to be finished
+          // while showing only placeholder content.
+          built: false,
         },
         {
           id: "notifications",

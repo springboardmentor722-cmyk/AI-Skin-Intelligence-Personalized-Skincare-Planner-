@@ -5,13 +5,16 @@ import json
 import os
 import tempfile
 import time
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeVar
 
 import faiss
 import numpy as np
 
 from app.core.config import settings
+
+_T = TypeVar("_T")
 
 # FAISS-backed vector store (dev backend; Pinecone is prod-only — same namespace +
 # metadata contract both sides, skinlytics_vector_db_schema_v3.txt). One index per
@@ -58,7 +61,11 @@ def _load_meta(namespace: str) -> dict[str, dict[str, Any]]:
     path = _meta_path(namespace)
     if not path.exists():
         return {}
-    return json.loads(path.read_text(encoding="utf-8"))  # type: ignore[no-any-return]
+    text = _read_with_retry(lambda: path.read_text(encoding="utf-8"))
+    return json.loads(text)  # type: ignore[no-any-return]
+
+
+_RETRY_DELAYS = (0.05, 0.1, 0.2, 0.4)
 
 
 def _replace_with_retry(tmp_name: str, path: Path) -> None:
@@ -68,14 +75,41 @@ def _replace_with_retry(tmp_name: str, path: Path) -> None:
     AV/sync scan transiently locking the just-written temp file. A few short retries
     is the standard, well-known mitigation for this exact class of Windows file lock;
     POSIX systems will simply succeed on the first attempt every time."""
-    delays = (0.05, 0.1, 0.2, 0.4)
-    for delay in delays:
+    for delay in _RETRY_DELAYS:
         try:
             os.replace(tmp_name, path)
             return
         except PermissionError:
             time.sleep(delay)
     os.replace(tmp_name, path)  # last attempt — let the real error surface if it fails
+
+
+def _is_transient_permission_error(exc: BaseException) -> bool:
+    # `Path.read_text` raises a real `PermissionError`; `faiss.read_index` raises a
+    # SWIG-wrapped C++ `RuntimeError` whose message embeds the OS error text instead
+    # (observed live: "...could not open ...products.index for reading: Permission
+    # denied") — same underlying transient Windows lock, different Python exception
+    # type depending on which library hit it.
+    return isinstance(exc, PermissionError) or "Permission denied" in str(exc)
+
+
+def _read_with_retry(read: Callable[[], _T]) -> _T:
+    """Read-side counterpart to `_replace_with_retry`, for the same class of transient
+    Windows permission error: the docker-compose `worker` container bind-mounts this
+    exact directory (deliberately, not a named volume — see docker-compose.yml) and
+    writes it from a second OS process, so a read here can legitimately land mid-
+    replace on a file the worker (or this same process's own atomic write, or an
+    AV/OneDrive scan) is touching. `os.replace` is atomic, so the read never sees a
+    torn file — only a transiently locked one — hence retrying, not erroring, is
+    correct here too."""
+    for delay in _RETRY_DELAYS:
+        try:
+            return read()
+        except Exception as exc:  # noqa: BLE001 - re-raised immediately if not transient
+            if not _is_transient_permission_error(exc):
+                raise
+            time.sleep(delay)
+    return read()  # last attempt — let the real error surface if it fails
 
 
 def _atomic_write_bytes(path: Path, data: bytes) -> None:
@@ -100,7 +134,7 @@ def _save_meta(namespace: str, meta: dict[str, dict[str, Any]]) -> None:
 def _load_index(namespace: str, dim: int) -> faiss.IndexIDMap2:
     path = _index_path(namespace)
     if path.exists():
-        return faiss.read_index(str(path))  # type: ignore[return-value]
+        return _read_with_retry(lambda: faiss.read_index(str(path)))  # type: ignore[return-value]
     return faiss.IndexIDMap2(faiss.IndexFlatIP(dim))
 
 

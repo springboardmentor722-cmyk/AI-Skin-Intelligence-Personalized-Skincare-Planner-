@@ -43,6 +43,9 @@ jobs:
       - name: Lint
         run: npx eslint .
 
+      - name: Unit tests
+        run: npm run test:unit
+
       - name: Prepare build-time env
         run: |
           cp ../.env.example .env

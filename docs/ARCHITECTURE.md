@@ -154,10 +154,17 @@ booking is prevented by a Postgres `EXCLUDE USING gist` constraint, not an
 app-level lock. `analytics` (#10) landed in M3-P3 as a genuine
 read-only aggregator (`GET /analytics/me` merges score timeline, 7/30/90-day
 compliance percentages, and progress-photo links; never a source of truth,
-never written to directly). The image-based Skin Assessment service (#3's
-scan/CV half), Notification (#9), and Report (#11) are still to be built in
-M3–M4 — follow the ownership table above when building them. Full endpoint
-mapping: `AGENTS.md` §5.
+never written to directly). **Notification (#9)** and **Report (#11)** are
+real, implemented services — `backend/app/services/notifications/` (full
+CRUD: `GET /notifications/me`, `GET/POST/PATCH/DELETE /reminders`) and
+`backend/app/services/reports/` (PDF via `reportlab` + Excel via `openpyxl`,
+`POST /reports/generate`, `GET /reports`, `GET /reports/{id}/download`, plus
+`report_schedules` CRUD) — both wired into `main.py` and covered by
+`test_notifications_service.py` / `test_reports_service.py` (corrected
+2026-08-24, audit remediation — this doc previously called both "still to be
+built," which was stale). Only the image-based Skin Assessment service (#3's
+scan/CV half) remains unbuilt, still targeted for M3–M4 — follow the
+ownership table above when building it. Full endpoint mapping: `AGENTS.md` §5.
 
 **Async work** (report rendering, notification delivery, embedding jobs, ES/vector
 projection, weather polling) runs on an **arq worker** over the existing Redis, fed by a
@@ -322,9 +329,13 @@ alongside the audit log. Concurrency isn't measured yet (no real signal for it e
 
 **Security.** TLS everywhere; encryption at rest; signed URLs for all media; secrets via
 env only; RBAC + ownership checks per route; per-tier rate limits; security headers/CSP on
-the web app; dependency + secret scanning in CI. **Clinical-access audit log:** every
-consultant/dermatologist/admin read of a user's skin data writes an immutable audit row
-(who, whose, what, when) — health data demands an access trail. Skin photos are sensitive
+the web app; dependency + secret scanning in CI. **Clinical-access audit log (not yet
+built):** consultant/dermatologist/admin reads of a user's skin data are ownership-checked
+(§2) but not currently audit-logged — only mutating admin actions are, via the single
+`write_audit_log` path (§6, ADR-014). Read-access logging remains an open P0 recommendation
+in `docs/SUGGESTIONS.md`, never promoted to an accepted ADR; §2 above is the accurate
+statement of current behavior, this line previously contradicted it (fixed 2026-08-24,
+audit remediation). Skin photos are sensitive
 data: explicit consent at capture, EXIF stripped, documented retention, full purge on
 delete (see `SUGGESTIONS.md` P0). Visible **"not medical advice"** disclaimer on
 assessment surfaces; dermatologist clinical outputs visually distinct from AI suggestions.

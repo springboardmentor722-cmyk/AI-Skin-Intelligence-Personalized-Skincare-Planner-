@@ -1,0 +1,133 @@
+name: e2e-nightly
+
+# Audit finding: e2e-ci.yml only ever runs a curated 6/7-spec "core" subset on
+# every push/PR (by design — see that file's header, keeps PR CI fast). The
+# other ~18 specs under web/tests/e2e/ pass locally but had zero CI regression
+# protection. This workflow runs the FULL spec directory (both light/dark
+# projects, same as a bare `npx playwright test`) — on push to dev/main and
+# once a day — so a regression in the non-core specs is still caught, just not
+# gating every PR. Setup steps are copied 1:1 from e2e-ci.yml (real
+# Postgres/Redis/Mongo service containers, Better Auth schema, Alembic + seed,
+# real backend) rather than factored into a shared action, to keep this a
+# same-shape, easy-to-diff sibling of that file.
+
+on:
+  push:
+    branches: [dev, main]
+    paths: ["backend/**", "web/**", ".github/workflows/e2e-nightly.yml"]
+  schedule:
+    - cron: "0 3 * * *" # 03:00 UTC daily
+
+jobs:
+  e2e-full:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: skinlytics
+          POSTGRES_PASSWORD: skinlytics
+          POSTGRES_DB: skinlytics
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U skinlytics"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      mongo:
+        image: mongo:7
+        ports: ["27017:27017"]
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand(\"ping\")'"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://skinlytics:skinlytics@localhost:5432/skinlytics
+      MONGO_URI: mongodb://localhost:27017/skinlytics
+      REDIS_URL: redis://localhost:6379/0
+      BETTER_AUTH_URL: http://localhost:3000
+      BETTER_AUTH_SECRET: ci-e2e-placeholder-not-a-real-secret
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+      JWT_ISSUER: http://localhost:3000
+      JWT_AUDIENCE: http://localhost:3000
+      ENVIRONMENT: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.11.28"
+          enable-cache: true
+          cache-dependency-glob: "backend/uv.lock"
+
+      - name: Set up Python
+        run: uv python install
+        working-directory: backend
+
+      - name: Install backend dependencies
+        run: uv sync --locked
+        working-directory: backend
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: web
+
+      - name: Apply Better Auth schema
+        run: npx @better-auth/cli migrate --yes
+        working-directory: web
+
+      - name: Run backend migrations
+        run: uv run alembic upgrade head
+        working-directory: backend
+
+      - name: Seed placeholder product/ingredient catalog
+        run: uv run python -m app.db.seed
+        working-directory: backend
+
+      - name: Start backend
+        run: |
+          uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8000/health && break
+            sleep 1
+          done
+          curl -sf http://localhost:8000/health
+        working-directory: backend
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+        working-directory: web
+
+      # Full directory, both chromium-light/chromium-dark projects (playwright.config.ts)
+      # — no curated list, so a new spec file is automatically covered here without
+      # this workflow needing an update.
+      - name: Run full Playwright e2e suite
+        run: npx playwright test
+        working-directory: web
+
+      - name: Upload e2e artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-nightly-report
+          path: web/playwright-report/
+          retention-days: 14

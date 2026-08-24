@@ -142,7 +142,8 @@ jobs:
             tests/e2e/clinical-dashboard-p5.spec.ts \
             tests/e2e/role-sidebar-labels.spec.ts \
             tests/e2e/role-permission-negatives.spec.ts \
-            tests/e2e/user-journey.spec.ts
+            tests/e2e/user-journey.spec.ts \
+            tests/e2e/appointment-consultation-flow.spec.ts
         working-directory: web
 
       - name: Install tools/vision dependencies

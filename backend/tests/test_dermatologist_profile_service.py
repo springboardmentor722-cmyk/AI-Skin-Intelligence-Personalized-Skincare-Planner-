@@ -37,6 +37,7 @@ def _submission(**overrides: object) -> DermatologistProfileSubmit:
         "specializations": ["psoriasis", "eczema"],
         "research_interests": "Autoimmune skin conditions",
         "professional_biography": "Consultant dermatologist with 10 years of practice.",
+        "consultation_modes": ["video", "chat"],
         "phone": "+44 20 9999 8888",
         "location": "Manchester, UK",
     }
@@ -52,6 +53,10 @@ async def test_submit_profile_creates_a_pending_row_and_audit_log(
     assert profile.verification_status == "pending"
     assert profile.submitted_at is not None
     assert profile.medical_registration_number == "MED-REG-12345"
+    # Audit gap fix (M4): consultation_modes must persist for dermatologists just
+    # like it already does for consultants — appointments/service.py's booking-mode
+    # validation reads it from whichever profile table the provider is in.
+    assert profile.consultation_modes == ["video", "chat"]
 
     result = await db_session.execute(select(AuditLog).where(AuditLog.target_id == test_user_id))
     audit_entries = result.scalars().all()
@@ -114,6 +119,21 @@ async def test_update_own_profile_edits_fields_without_touching_status(
     assert updated.phone == "+1 555 000 2222"
     assert updated.verification_status == "approved"
     assert updated.medical_registration_number == "MED-REG-12345"
+
+
+async def test_update_own_profile_persists_consultation_modes(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    await submit_profile(db_session, user_id=test_user_id, data=_submission())
+
+    updated = await update_own_profile(
+        db_session,
+        user_id=test_user_id,
+        data=DermatologistProfileUpdate(consultation_modes=["in_person"]),
+    )
+
+    assert updated is not None
+    assert updated.consultation_modes == ["in_person"]
 
 
 async def test_update_own_profile_returns_none_when_missing(
