@@ -1831,6 +1831,23 @@ export interface paths {
         patch: operations["reschedule_appointment_api_v1_appointments__appointment_id__reschedule_patch"];
         trace?: never;
     };
+    "/api/v1/appointments/{appointment_id}/meeting-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Set Appointment Meeting Link */
+        patch: operations["set_appointment_meeting_link_api_v1_appointments__appointment_id__meeting_link_patch"];
+        trace?: never;
+    };
     "/api/v1/weather-uv": {
         parameters: {
             query?: never;
@@ -1967,6 +1984,11 @@ export interface components {
             /** Notes */
             notes?: string | null;
         };
+        /** AppointmentMeetingLinkUpdate */
+        AppointmentMeetingLinkUpdate: {
+            /** Meeting Link */
+            meeting_link: string;
+        };
         /** AppointmentCreate */
         AppointmentCreate: {
             /** Provider Id */
@@ -1981,6 +2003,8 @@ export interface components {
              * @enum {string}
              */
             consultation_mode: "video" | "in_person" | "chat";
+            /** Concern */
+            concern?: string | null;
         };
         /** AppointmentRead */
         AppointmentRead: {
@@ -2020,6 +2044,10 @@ export interface components {
             notes: string | null;
             /** Other Party Name */
             other_party_name: string | null;
+            /** Concern */
+            concern: string | null;
+            /** Meeting Link */
+            meeting_link: string | null;
         };
         /** AppointmentRescheduleUpdate */
         AppointmentRescheduleUpdate: {
@@ -2284,6 +2312,8 @@ export interface components {
             name: string | null;
             /** Email */
             email: string;
+            /** Phone */
+            phone: string | null;
             skin_profile: components["schemas"]["SkinProfileRead"] | null;
             score: components["schemas"]["ClientScoreRead"] | null;
             /** Routines */
@@ -2425,6 +2455,8 @@ export interface components {
             name: string | null;
             /** Email */
             email: string;
+            /** Phone */
+            phone: string | null;
             /** Age */
             age: number | null;
             /** Gender */
@@ -7818,6 +7850,41 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["AppointmentCancelUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppointmentRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_appointment_meeting_link_api_v1_appointments__appointment_id__meeting_link_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appointment_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AppointmentMeetingLinkUpdate"];
             };
         };
         responses: {
