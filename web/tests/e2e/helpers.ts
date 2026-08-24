@@ -55,6 +55,20 @@ export async function deleteTestUser(userId: string): Promise<void> {
       userId,
     ]);
     await db.query("delete from verification_documents where owner_user_id = $1", [userId]);
+    // Appointments (Branch — appointment-consultation-flow.spec.ts): appointments.
+    // user_id/provider_id and consultant_clients/consultant_notes.consultant_id/
+    // user_id all reference "user"(id) with no ON DELETE CASCADE (schema v3 —
+    // provider_availability/availability_exceptions DO cascade, these don't), so
+    // the final `delete from "user"` below would FK-violate without this. Table
+    // names are generic ("consultant_clients"/"consultant_notes") but shared by
+    // both consultant and dermatologist roles (clinical_review/models.py).
+    await db.query("delete from appointments where user_id = $1 or provider_id = $1", [userId]);
+    await db.query("delete from consultant_notes where consultant_id = $1 or user_id = $1", [
+      userId,
+    ]);
+    await db.query("delete from consultant_clients where consultant_id = $1 or user_id = $1", [
+      userId,
+    ]);
     await db.query("delete from consultant_profiles where user_id = $1", [userId]);
     await db.query("delete from dermatologist_profiles where user_id = $1", [userId]);
     await db.query("delete from user_appearance_preferences where user_id = $1", [userId]);

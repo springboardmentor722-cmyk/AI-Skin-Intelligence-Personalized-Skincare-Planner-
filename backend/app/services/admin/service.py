@@ -117,18 +117,44 @@ async def apply_verification_action(
     reviewer_id: str,
     reason: str | None,
 ) -> ProfileRow | None:
-    profile = await _get_profile(db, role=role, user_id=user_id)
-    if profile is None:
-        return None
+    # Local imports: consultant_profile/service.py and dermatologist_profile/
+    # service.py both import admin/service.py at module level (for write_audit_log
+    # etc.), so importing either back at this module's top level would be circular
+    # — same pattern as routines/service.py's local scores/service.py import.
+    from app.services.consultant_profile import service as consultant_profile_service
+    from app.services.dermatologist_profile import service as dermatologist_profile_service
 
-    profile.verification_status = _ACTION_STATUS[action]
-    profile.reviewed_by = reviewer_id
     # reviewed_at is a plain TIMESTAMP column (database_schemas/
     # skinlytics_postgresql_schema_v3.sql), not TIMESTAMPTZ — stripped naive to match,
     # same pattern as scores/service.py's `since` calculation.
-    profile.reviewed_at = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
-    if action == "reject":
-        profile.rejection_reason = reason
+    reviewed_at = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
+    is_reject = action == "reject"
+    # Single-writer rule (ADR-005): the owning service mutates its own
+    # ConsultantProfile/DermatologistProfile row — admin/service.py never touches
+    # those models directly, only resolves what the transition should be.
+    profile: ProfileRow | None
+    if role == "consultant":
+        profile = await consultant_profile_service.apply_verification_transition(
+            db,
+            user_id=user_id,
+            verification_status=_ACTION_STATUS[action],
+            reviewed_by=reviewer_id,
+            reviewed_at=reviewed_at,
+            update_rejection_reason=is_reject,
+            rejection_reason=reason if is_reject else None,
+        )
+    else:
+        profile = await dermatologist_profile_service.apply_verification_transition(
+            db,
+            user_id=user_id,
+            verification_status=_ACTION_STATUS[action],
+            reviewed_by=reviewer_id,
+            reviewed_at=reviewed_at,
+            update_rejection_reason=is_reject,
+            rejection_reason=reason if is_reject else None,
+        )
+    if profile is None:
+        return None
 
     await write_audit_log(
         db,

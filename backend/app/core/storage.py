@@ -51,6 +51,13 @@ _MAGIC_SNIFFERS: dict[str, Callable[[bytes], bool]] = {
     "image/jpeg": lambda d: d.startswith(b"\xff\xd8\xff"),
     "image/png": lambda d: d.startswith(b"\x89PNG\r\n\x1a\n"),
     "image/webp": lambda d: d[:4] == b"RIFF" and d[8:12] == b"WEBP",
+    # xlsx (reports/service.py's Excel export, M4 audit fix) is a zip container —
+    # same signature every zip-based Office format shares, but this is the only
+    # one any upload path in this app accepts, so a plain PK\x03\x04 check is
+    # unambiguous here.
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": (
+        lambda d: d[:4] == b"PK\x03\x04"
+    ),
 }
 
 # Government IDs/certificates/licenses are routinely PDF scans, not just photos —

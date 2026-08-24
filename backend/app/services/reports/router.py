@@ -31,7 +31,11 @@ async def generate_my_report(
     # already holds by construction).
     try:
         report = await service.generate_report(
-            db, user["id"], body.report_type, include_profile_header=body.include_profile_header
+            db,
+            user["id"],
+            body.report_type,
+            include_profile_header=body.include_profile_header,
+            format=body.format,
         )
     except FileValidationError as exc:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from exc

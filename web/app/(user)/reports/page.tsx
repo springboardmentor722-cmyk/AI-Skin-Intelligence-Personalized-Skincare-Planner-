@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StateCard } from "@/components/state-card";
@@ -24,6 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { api } from "@/lib/api";
 
@@ -51,6 +53,7 @@ const REPORT_TYPES = [
 export default function Page() {
   const queryClient = useQueryClient();
   const [includeProfileHeader, setIncludeProfileHeader] = useState(true);
+  const [format, setFormat] = useState<"pdf" | "xlsx">("pdf");
 
   const reportsQuery = useQuery({
     queryKey: ["reports", "list"],
@@ -73,7 +76,7 @@ export default function Page() {
   const generateMutation = useMutation({
     mutationFn: async (reportType: "assessment" | "progress" | "routine") => {
       const { data, error } = await api.POST("/api/v1/reports/generate", {
-        body: { report_type: reportType, include_profile_header: includeProfileHeader },
+        body: { report_type: reportType, include_profile_header: includeProfileHeader, format },
       });
       if (error) throw new Error("Couldn't generate that report.");
       return data;
@@ -106,6 +109,19 @@ export default function Page() {
         <p className="text-on-surface-variant mt-1 font-sans text-sm">
           Generate a PDF snapshot of your skin data, or set up a recurring one.
         </p>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <span className="text-on-surface-variant font-sans text-sm">Format</span>
+        <Select value={format} onValueChange={(v) => v && setFormat(v as "pdf" | "xlsx")}>
+          <SelectTrigger className="w-32">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="pdf">PDF</SelectItem>
+            <SelectItem value="xlsx">Excel</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -156,6 +172,7 @@ export default function Page() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Type</TableHead>
+                  <TableHead>Format</TableHead>
                   <TableHead>Summary</TableHead>
                   <TableHead>Generated</TableHead>
                   <TableHead className="text-right">Download</TableHead>
@@ -165,6 +182,11 @@ export default function Page() {
                 {reportsQuery.data?.map((report) => (
                   <TableRow key={report.report_id}>
                     <TableCell className="font-medium capitalize">{report.report_type}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="uppercase">
+                        {report.format}
+                      </Badge>
+                    </TableCell>
                     <TableCell className="text-on-surface-variant">{report.summary}</TableCell>
                     <TableCell className="text-on-surface-variant">
                       {report.generated_at ? new Date(report.generated_at).toLocaleDateString() : "—"}

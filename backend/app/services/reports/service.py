@@ -2,6 +2,7 @@ import datetime
 import io
 from typing import Any
 
+from openpyxl import Workbook
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet
@@ -13,7 +14,12 @@ from app.core.storage import build_key, upload
 from app.services.analytics.service import get_my_analytics
 from app.services.recommendations.service import get_recommendations
 from app.services.reports.models import ProgressReport, ReportSchedule
-from app.services.reports.schemas import ReportScheduleCreate, ReportScheduleUpdate, ReportType
+from app.services.reports.schemas import (
+    ReportFormat,
+    ReportScheduleCreate,
+    ReportScheduleUpdate,
+    ReportType,
+)
 from app.services.routines.service import get_or_generate_routines
 from app.services.scores.service import get_latest_score
 from app.services.skin_profile.models import SkinType
@@ -128,13 +134,163 @@ _SECTION_BUILDERS = {
 }
 
 
-async def generate_report(
+# --- Excel export (M4 audit fix, requirements PDF: "PDF export. Excel export.") ---
+# Sibling row-builders, not a refactor of the flowables above: each calls the same
+# underlying service function its PDF counterpart does and returns
+# (header_row, data_rows, summary) instead of reportlab flowables. Small amount of
+# duplication with the *_flowables functions above, same tradeoff this codebase
+# already makes elsewhere rather than forcing one shared abstraction over two
+# genuinely different output formats.
+
+
+async def _assessment_rows(
+    db: AsyncSession, user_id: str
+) -> tuple[list[str], list[list[Any]], str]:
+    score = await get_latest_score(db, user_id)
+    header = ["Metric", "Score"]
+    if score is None:
+        return header, [], "No assessment data available."
+    rows: list[list[Any]] = [
+        ["Skin Condition (35%)", float(score.skin_condition_score or 0)],
+        ["Lifestyle (20%)", float(score.lifestyle_score or 0)],
+        ["Routine Adherence (20%)", float(score.routine_adherence_score or 0)],
+        ["Sleep Quality (15%)", float(score.sleep_quality_score or 0)],
+        ["Hydration (10%)", float(score.hydration_score or 0)],
+        ["Overall Score", float(score.overall_score or 0)],
+    ]
+    summary = f"Overall skin health score: {score.overall_score or 0:.1f}/100."
+    return header, rows, summary
+
+
+async def _progress_rows(db: AsyncSession, user_id: str) -> tuple[list[str], list[list[Any]], str]:
+    analytics = await get_my_analytics(db, user_id, days=90)
+    header = ["Window", "Compliance %"]
+    rows: list[list[Any]] = [
+        ["7-day", float(analytics.compliance.seven_day or 0)],
+        ["30-day", float(analytics.compliance.thirty_day or 0)],
+        ["90-day", float(analytics.compliance.ninety_day or 0)],
+    ]
+    summary = f"30-day routine compliance: {analytics.compliance.thirty_day or 0:.0f}%."
+    return header, rows, summary
+
+
+async def _routine_rows(db: AsyncSession, user_id: str) -> tuple[list[str], list[list[Any]], str]:
+    routines = await get_or_generate_routines(db, user_id)
+    recs = await get_recommendations(db, user_id)
+    header = ["Type", "Name", "Match %"]
+    rows: list[list[Any]] = []
+    for routine in routines:
+        rows.append(["Routine", routine.routine_name or routine.routine_type or "Routine", None])
+        for step in routine.steps:
+            rows.append(["Step", step.step_name or "Step", None])
+    for rec in recs[:5]:
+        rows.append(["Product", rec.product.product_name or "Product", rec.match_percentage])
+    summary = f"{len(routines)} routine(s), {len(recs)} recommendation(s)."
+    return header, rows, summary
+
+
+_ROW_BUILDERS = {
+    "assessment": _assessment_rows,
+    "progress": _progress_rows,
+    "routine": _routine_rows,
+}
+
+
+def _build_xlsx(
+    header: list[str],
+    rows: list[list[Any]],
+    *,
+    sheet_title: str,
+    profile_lines: list[tuple[str, Any]],
+) -> bytes:
+    """Header rows + a header row + data rows on one sheet. Empty `rows` still
+    writes header-only (never errors on a brand-new user with no data yet)."""
+    workbook = Workbook()
+    sheet = workbook.active
+    assert sheet is not None
+    sheet.title = sheet_title[:31]  # Excel's own sheet-name length limit.
+
+    row_index = 1
+    for label, value in profile_lines:
+        sheet.cell(row=row_index, column=1, value=label)
+        sheet.cell(row=row_index, column=2, value=value)
+        row_index += 1
+    if profile_lines:
+        row_index += 1  # blank separator row before the data table
+
+    for column_index, title in enumerate(header, start=1):
+        sheet.cell(row=row_index, column=column_index, value=title)
+    row_index += 1
+    for row in rows:
+        for column_index, value in enumerate(row, start=1):
+            sheet.cell(row=row_index, column=column_index, value=value)
+        row_index += 1
+
+    buffer = io.BytesIO()
+    workbook.save(buffer)
+    return buffer.getvalue()
+
+
+async def _profile_header_lines(db: AsyncSession, user_id: str) -> list[tuple[str, Any]]:
+    profile = await get_current_profile(db, user_id)
+    if profile is None:
+        return []
+    skin_type_name = "Unknown"
+    result = await db.execute(
+        select(SkinType.skin_type_name).where(SkinType.skin_type_id == profile.skin_type_id)
+    )
+    row = result.scalar_one_or_none()
+    if row:
+        skin_type_name = row
+    return [
+        ("Skin type", skin_type_name),
+        ("Generated on", datetime.datetime.now(datetime.UTC).replace(tzinfo=None)),
+    ]
+
+
+async def _generate_xlsx_report(
     db: AsyncSession, user_id: str, report_type: ReportType, *, include_profile_header: bool
 ) -> ProgressReport:
-    builder = _SECTION_BUILDERS.get(report_type)
-    if builder is None:
+    builder = _ROW_BUILDERS[report_type]
+    header, rows, summary = await builder(db, user_id)
+    profile_lines = await _profile_header_lines(db, user_id) if include_profile_header else []
+
+    xlsx_bytes = _build_xlsx(
+        header, rows, sheet_title=report_type.capitalize(), profile_lines=profile_lines
+    )
+
+    key = build_key(prefix="reports", owner_user_id=user_id, filename=f"{report_type}.xlsx")
+    await upload(
+        key,
+        xlsx_bytes,
+        allowed_content_types={"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},
+    )
+
+    report = ProgressReport(
+        user_id=user_id, report_type=report_type, format="xlsx", summary=summary, report_url=key
+    )
+    db.add(report)
+    await db.commit()
+    return report
+
+
+async def generate_report(
+    db: AsyncSession,
+    user_id: str,
+    report_type: ReportType,
+    *,
+    include_profile_header: bool,
+    format: ReportFormat = "pdf",
+) -> ProgressReport:
+    if report_type not in _SECTION_BUILDERS:
         raise ValueError(f"Unknown report_type: {report_type!r}")
 
+    if format == "xlsx":
+        return await _generate_xlsx_report(
+            db, user_id, report_type, include_profile_header=include_profile_header
+        )
+
+    builder = _SECTION_BUILDERS[report_type]
     flowables: list[Any] = []
     if include_profile_header:
         flowables.extend(await _profile_header_flowables(db, user_id))
@@ -159,7 +315,7 @@ async def generate_report(
     await upload(key, pdf_bytes, allowed_content_types={"application/pdf"})
 
     report = ProgressReport(
-        user_id=user_id, report_type=report_type, summary=summary, report_url=key
+        user_id=user_id, report_type=report_type, format="pdf", summary=summary, report_url=key
     )
     db.add(report)
     await db.commit()
