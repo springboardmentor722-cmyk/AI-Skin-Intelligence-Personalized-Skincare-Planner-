@@ -558,6 +558,8 @@ CREATE TABLE appointments (
     cancellation_reason TEXT,
     original_start_time TIMESTAMPTZ,
     notes TEXT,
+    concern TEXT,
+    meeting_link TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CHECK (provider_role IN ('consultant', 'dermatologist')),
