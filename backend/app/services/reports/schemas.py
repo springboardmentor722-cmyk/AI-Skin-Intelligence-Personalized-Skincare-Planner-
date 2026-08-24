@@ -4,11 +4,13 @@ from typing import Literal, Self
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 ReportType = Literal["assessment", "progress", "routine"]
+ReportFormat = Literal["pdf", "xlsx"]
 
 
 class ReportGenerateRequest(BaseModel):
     report_type: ReportType
     include_profile_header: bool = True
+    format: ReportFormat = "pdf"
 
 
 class ReportRead(BaseModel):
@@ -16,6 +18,7 @@ class ReportRead(BaseModel):
 
     report_id: int
     report_type: str
+    format: str
     summary: str | None
     generated_at: datetime.datetime | None
 

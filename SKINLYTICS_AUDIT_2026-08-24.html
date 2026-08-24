@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap">
+<title>Skinlytics Readiness Audit</title>
+<style>
+  :root{
+    --paper:#F5F6F8; --card:#FFFFFF; --line:#E1E4EA; --line-soft:#EBEDF1;
+    --ink:#14171C; --muted:#5B6472; --faint:#8A93A1;
+    --navy:#14213D; --navy-ink:#0E1830; --teal:#0E8B8A; --teal-soft:#E4F4F3;
+    --ok:#1E8A5F; --ok-bg:#E7F5EE;
+    --partial:#A9700A; --partial-bg:#FBF1DE;
+    --missing:#B23B3B; --missing-bg:#FBEAEA;
+    --broken:#9A3E63; --broken-bg:#F8EAF0;
+    --deferred:#3B6FB2; --deferred-bg:#EAF1FA;
+    --shadow: 0 1px 2px rgba(20,23,28,0.04), 0 8px 24px -12px rgba(20,23,28,0.10);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#101317; --card:#171B21; --line:#2A2F38; --line-soft:#20242C;
+      --ink:#E7E9ED; --muted:#9AA3B2; --faint:#6C7686;
+      --navy:#8FA8DA; --navy-ink:#C7D5F0; --teal:#5FC9C6; --teal-soft:#132524;
+      --ok:#5FCB93; --ok-bg:#122A20;
+      --partial:#E0AA4C; --partial-bg:#2C2210;
+      --missing:#EC8888; --missing-bg:#2E1717;
+      --broken:#E1A0C0; --broken-bg:#2A1620;
+      --deferred:#8FB4E8; --deferred-bg:#152030;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#101317; --card:#171B21; --line:#2A2F38; --line-soft:#20242C;
+    --ink:#E7E9ED; --muted:#9AA3B2; --faint:#6C7686;
+    --navy:#8FA8DA; --navy-ink:#C7D5F0; --teal:#5FC9C6; --teal-soft:#132524;
+    --ok:#5FCB93; --ok-bg:#122A20;
+    --partial:#E0AA4C; --partial-bg:#2C2210;
+    --missing:#EC8888; --missing-bg:#2E1717;
+    --broken:#E1A0C0; --broken-bg:#2A1620;
+    --deferred:#8FB4E8; --deferred-bg:#152030;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+
+  *{box-sizing:border-box;}
+  html{ background:var(--paper); }
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:"Inter",-apple-system,sans-serif; font-size:15px; line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{ font-family:"Sora",sans-serif; text-wrap:balance; color:var(--ink); margin:0; }
+  .mono, .data, td.num, th.num, .pill, .chip, code { font-family:"Space Grotesk",monospace; font-variant-numeric: tabular-nums; }
+  a{ color:var(--teal); }
+  code{ background:var(--line-soft); padding:0.1em 0.4em; border-radius:4px; font-size:0.88em; }
+
+  .shell{ display:grid; grid-template-columns: 260px minmax(0,1fr); min-height:100vh; }
+  @media (max-width: 880px){ .shell{ grid-template-columns: 1fr; } .toc{ position:static; height:auto; border-right:none; border-bottom:1px solid var(--line); } }
+
+  .toc{
+    position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+    border-right:1px solid var(--line); padding:28px 20px; background:var(--paper);
+  }
+  .toc .brand{ font-family:"Sora",sans-serif; font-weight:800; font-size:15px; letter-spacing:0.01em; margin-bottom:2px; }
+  .toc .brand-sub{ font-size:11.5px; color:var(--faint); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:22px; }
+  .toc nav{ display:flex; flex-direction:column; gap:1px; }
+  .toc a{
+    color:var(--muted); text-decoration:none; font-size:13.5px; padding:6px 10px; border-radius:7px;
+    display:flex; align-items:center; gap:8px; white-space:nowrap;
+  }
+  .toc a:hover{ background:var(--line-soft); color:var(--ink); }
+  .toc .grp{ font-size:10.5px; text-transform:uppercase; letter-spacing:0.09em; color:var(--faint); margin:16px 10px 4px; }
+  .toc .grp:first-child{ margin-top:0; }
+
+  main{ padding:44px 48px 100px; max-width:980px; }
+  @media (max-width:640px){ main{ padding:28px 18px 80px; } }
+
+  header.top{ margin-bottom:36px; }
+  header.top .eyebrow{ font-size:12px; text-transform:uppercase; letter-spacing:0.1em; color:var(--teal); font-weight:600; margin-bottom:10px; }
+  header.top h1{ font-size:34px; font-weight:800; line-height:1.15; margin-bottom:12px; }
+  header.top p.thesis{ font-size:16px; color:var(--muted); max-width:62ch; margin-bottom:22px; }
+  .verdict-row{ display:flex; flex-wrap:wrap; gap:8px; }
+
+  .pill{
+    display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600;
+    padding:5px 11px; border-radius:100px; border:1px solid transparent; white-space:nowrap;
+  }
+  .pill.ok{ background:var(--ok-bg); color:var(--ok); }
+  .pill.partial{ background:var(--partial-bg); color:var(--partial); }
+  .pill.missing{ background:var(--missing-bg); color:var(--missing); }
+  .pill.broken{ background:var(--broken-bg); color:var(--broken); }
+  .pill.deferred{ background:var(--deferred-bg); color:var(--deferred); }
+  .pill.neutral{ background:var(--line-soft); color:var(--muted); border-color:var(--line); }
+
+  section{ margin:56px 0; scroll-margin-top:24px; }
+  section > .sechead{ display:flex; align-items:baseline; gap:12px; margin-bottom:6px; }
+  section > .sechead h2{ font-size:22px; font-weight:700; }
+  section > .sechead .letter{ font-family:"Space Grotesk"; font-size:13px; color:var(--faint); border:1px solid var(--line); border-radius:6px; padding:1px 7px; }
+  section > .dek{ color:var(--muted); font-size:14.5px; max-width:68ch; margin:0 0 22px; }
+
+  .card{ background:var(--card); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:22px 24px; margin-bottom:16px; }
+  .card h3{ font-size:16px; font-weight:700; margin-bottom:10px; }
+  .card h4{ font-size:13.5px; font-weight:600; color:var(--muted); margin:16px 0 8px; text-transform:uppercase; letter-spacing:0.04em; }
+  .card h4:first-child{ margin-top:0; }
+
+  table{ width:100%; border-collapse:collapse; font-size:13.5px; }
+  .table-wrap{ overflow-x:auto; border:1px solid var(--line); border-radius:12px; }
+  thead th{
+    text-align:left; font-family:"Space Grotesk"; font-weight:600; font-size:11.5px; text-transform:uppercase;
+    letter-spacing:0.05em; color:var(--faint); background:var(--line-soft);
+    padding:10px 14px; border-bottom:1px solid var(--line); white-space:nowrap;
+  }
+  tbody td{ padding:10px 14px; border-bottom:1px solid var(--line-soft); vertical-align:top; }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody tr:hover{ background:var(--line-soft); }
+  td.ev{ font-family:"Space Grotesk"; font-size:12px; color:var(--muted); }
+
+  .status-dot{ display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px; flex:none; }
+  .status-dot.ok{ background:var(--ok); } .status-dot.partial{ background:var(--partial); }
+  .status-dot.missing{ background:var(--missing); } .status-dot.broken{ background:var(--broken); }
+  .status-dot.deferred{ background:var(--deferred); }
+
+  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:720px){ .grid2{ grid-template-columns:1fr; } }
+
+  .role-nav-item{ display:flex; align-items:center; gap:8px; padding:5px 0; font-size:13.5px; border-bottom:1px dashed var(--line-soft); }
+  .role-nav-item:last-child{ border-bottom:none; }
+  .role-nav-item .path{ margin-left:auto; font-family:"Space Grotesk"; font-size:11.5px; color:var(--faint); }
+
+  .finding{ display:flex; gap:14px; padding:14px 0; border-bottom:1px solid var(--line-soft); }
+  .finding:last-child{ border-bottom:none; }
+  .finding .bar{ width:4px; border-radius:2px; flex:none; align-self:stretch; }
+  .finding .bar.crit{ background:var(--missing); }
+  .finding .bar.imp{ background:var(--partial); }
+  .finding .bar.min{ background:var(--deferred); }
+  .finding .bar.def{ background:var(--faint); opacity:0.5; }
+  .finding .body{ flex:1; min-width:0; }
+  .finding .title{ font-weight:600; font-size:14.5px; margin-bottom:3px; }
+  .finding .meta{ font-size:12px; color:var(--faint); font-family:"Space Grotesk"; margin-bottom:6px; display:flex; flex-wrap:wrap; gap:6px 14px; }
+  .finding .why, .finding .rec{ font-size:13.5px; color:var(--muted); margin-bottom:4px; }
+  .finding .rec b{ color:var(--ink); font-weight:600; }
+
+  .priority-tier{ margin-bottom:8px; }
+  .priority-tier > .tier-head{ display:flex; align-items:center; gap:10px; margin:34px 0 4px; }
+  .priority-tier > .tier-head h3{ font-size:17px; }
+  .priority-tier > .tier-dek{ font-size:13px; color:var(--muted); margin-bottom:4px; }
+
+  .verdict-grid{ display:grid; grid-template-columns:1fr auto; gap:10px 20px; font-size:14px; }
+  .verdict-grid dt{ color:var(--muted); }
+  .verdict-grid dd{ margin:0; font-family:"Space Grotesk"; font-weight:600; text-align:right; }
+
+  ol.required li{ margin-bottom:10px; font-size:14.5px; }
+  ol.required li b{ font-weight:600; }
+  ul.optional li{ margin-bottom:8px; font-size:14px; color:var(--muted); }
+
+  .overall-band{
+    margin-top:18px; padding:16px 20px; border-radius:12px; background:var(--partial-bg); color:var(--partial);
+    font-family:"Sora"; font-weight:700; font-size:15px; display:flex; align-items:center; gap:10px;
+  }
+
+  footer.end{ margin-top:60px; padding-top:20px; border-top:1px solid var(--line); font-size:12px; color:var(--faint); }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="toc">
+    <div class="brand">Skinlytics Audit</div>
+    <div class="brand-sub">Readiness · 2026-08-24</div>
+    <nav>
+      <a href="#exec">Executive summary</a>
+      <div class="grp">Report</div>
+      <a href="#matrix">B · Requirements matrix</a>
+      <a href="#roles">C · Role audit</a>
+      <a href="#arch">D · Architecture audit</a>
+      <a href="#dbapi">E · Database / API audit</a>
+      <a href="#uiux">F · UI/UX audit</a>
+      <a href="#testing">G · Testing audit</a>
+      <div class="grp">Action</div>
+      <a href="#pending">Prioritized pending list</a>
+      <a href="#verdict">Final verdict</a>
+    </nav>
+  </aside>
+
+  <main>
+    <header class="top" id="exec">
+      <div class="eyebrow">Read-only architecture &amp; requirements audit</div>
+      <h1>Is Skinlytics aligned with its own spec?</h1>
+      <p class="thesis">Audited against <code>docs/ARCHITECTURE.md</code> (the real, current architecture reference — no <code>architecture.md</code> exists at repo root) and the 15-page requirements PDF (no <code>skin_same.pdf</code> exists at repo root either — this is the only requirements PDF in the repo). Five parallel code audits, cross-checked against both documents line by line.</p>
+      <div class="verdict-row">
+        <span class="pill partial"><span class="status-dot partial"></span>Overall: Mostly complete</span>
+        <span class="pill ok">11 / 12 PDF modules substantially delivered</span>
+        <span class="pill missing">1 architecture rule violated</span>
+        <span class="pill broken">1 doc self-contradiction (audit logging)</span>
+      </div>
+    </header>
+
+    <div class="card">
+      <h3>Bottom line</h3>
+      <p style="margin:0 0 10px;">Every one of the PDF's 12 modules has a real backend service behind it — no module is a frontend-only mockup. The two things a diligent reviewer should not accept without a decision from you: <b>(1)</b> <code>docs/ARCHITECTURE.md</code> §9 promises a clinical-data access audit trail that does not exist in code (§2, elsewhere in the same doc, correctly says it doesn't) — this is a live compliance question for a health-data app, not a nice-to-have; <b>(2)</b> the Admin service writes directly into Consultant/Dermatologist profile tables it doesn't own, with no sanctioned interface to call instead — a real, unambiguous violation of this repo's own single-writer rule.</p>
+      <p style="margin:0;">Everything else found is real but smaller: Excel export was never built (PDF asks for PDF <i>and</i> Excel), only Google OAuth is wired (PDF says "OAuth2 login," ARCHITECTURE.md says Google/Facebook/Apple), one profile field (dermatologist consultation modes) can never be set so a validation check silently no-ops, six minor index/nullability drifts between the live migrations and the canonical schema doc, and the frontend CI pipeline runs zero tests despite 25 Playwright specs and 3 unit-test files existing on disk. None of these break the running system today; all of them are worth fixing before calling the project done.</p>
+    </div>
+
+    <!-- ============================================================ -->
+    <section id="matrix">
+      <div class="sechead"><span class="letter">B</span><h2>Requirements matrix</h2></div>
+      <p class="dek">Every PDF module plus every architecture-level requirement that touches it, mapped to what's actually in the repo. Status legend: <span class="pill ok" style="padding:2px 8px;">done</span> <span class="pill partial" style="padding:2px 8px;">partial</span> <span class="pill missing" style="padding:2px 8px;">missing</span> <span class="pill broken" style="padding:2px 8px;">broken/incorrect</span> <span class="pill deferred" style="padding:2px 8px;">deferred / not required</span></p>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Source</th><th>Requirement</th><th>Role</th><th>Status</th><th>Evidence</th><th>Pending work</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">1</td><td>PDF §4.1</td><td>User auth &amp; RBAC — JWT, OAuth2, profile mgmt</td><td>All</td><td><span class="pill partial"><span class="status-dot partial"></span>Partial</span></td><td class="ev">web/lib/auth.ts, core/security.py</td><td>Google-only OAuth; Facebook/Apple absent</td></tr>
+          <tr><td class="mono">2</td><td>PDF §4.2</td><td>Skin profile, type, lifestyle/sleep/hydration/env tracking</td><td>User</td><td><span class="pill ok"><span class="status-dot ok"></span>Done</span></td><td class="ev">services/skin_profile/*</td><td>—</td></tr>
+          <tr><td class="mono">3</td><td>PDF §4.3</td><td>Skin assessment: concern ID, scoring, prioritization, risk factors</td><td>User</td><td><span class="pill partial"><span class="status-dot partial"></span>Partial</span></td><td class="ev">assessment/, scores/ — survey-based only</td><td>Image/CV assessment unbuilt (correctly deferred M3–M4)</td></tr>
+          <tr><td class="mono">4</td><td>PDF §4.4</td><td>Routine generator — AM/PM/weekly/seasonal/adaptive</td><td>User</td><td><span class="pill ok"><span class="status-dot ok"></span>Done</span></td><td class="ev">services/routines/*</td><td>—</td></tr>
+          <tr><td class="mono">5</td><td>PDF §4.5</td><td>Ingredient intelligence — suitability/interaction/allergy/education</td><td>User</td><td><span class="pill ok"><span class="status-dot ok"></span>Done</span></td><td class="ev">services/ingredients/*</td><td>—</td></tr>
+          <tr><td class="mono">6</td><td>PDF §4.6</td><td>Product recommendation — suitability/comparison/alternatives/budget</td><td>User</td><td><span class="pill ok"><span class="status-dot ok"></span>Done</span></td><td class="ev">services/recommendations/*, 6,700+ real ingested products</td><td>—</td></tr>
+          <tr><td class="mono">7</td><td>PDF §4.7</td><td>Skin health scoring — weighted 35/20/15/20/10</td><td>User</td><td><span class="pill ok"><span class="status-dot ok"></span>Done</span></td><td class="ev">scoring_engine.py:224-261, DB CHECK chk_weights_sum</td><td>—</td></tr>
+          <tr><td class="mono">8</td><td>PDF §4.8</td><td>Progress tracking — monitoring/adherence/before-after/trend</td><td>User</td><td><span class="pill ok"><span class="status-dot ok"></span>Done</span></td><td class="ev">services/progress/*, real OLS trend (ai/trend.py)</td><td>—</td></tr>
+          <tr><td class="mono">9</td><td>PDF §4.9</td><td>4 role dashboards</td><td>All</td><td><span class="pill partial"><span class="status-dot partial"></span>Partial</span></td><td class="ev">see §C</td><td>Admin analytics widgets are disclosed fixtures; one admin page mislabeled as built</td></tr>
+          <tr><td class="mono">10</td><td>PDF §4.10</td><td>Notification &amp; reminder system</td><td>User</td><td><span class="pill partial"><span class="status-dot partial"></span>Partial</span></td><td class="ev">services/notifications/* — real CRUD</td><td>No email/push delivery path found — in-app only</td></tr>
+          <tr><td class="mono">11</td><td>PDF §4.11</td><td>Reports &amp; export — PDF + Excel</td><td>User/Consultant/Derma</td><td><span class="pill partial"><span class="status-dot partial"></span>Partial</span></td><td class="ev">services/reports/* — reportlab PDF real</td><td>Excel export not implemented at all</td></tr>
+          <tr><td class="mono">12</td><td>PDF §4.12</td><td>Integration, testing, deployment</td><td>—</td><td><span class="pill partial"><span class="status-dot partial"></span>Partial</span></td><td class="ev">3 CI workflows, docker-compose.yml</td><td>frontend-ci runs 0 tests; 19/25 e2e specs never CI-gated; no web/Dockerfile</td></tr>
+          <tr><td class="mono">13</td><td>ARCHITECTURE.md §4</td><td>"Notification &amp; Report services still to be built"</td><td>—</td><td><span class="pill broken"><span class="status-dot broken"></span>Doc wrong</span></td><td class="ev">notifications/, reports/ both real, wired, tested</td><td>Correct the doc</td></tr>
+          <tr><td class="mono">14</td><td>ARCHITECTURE.md §2 vs §9</td><td>Clinical-data read access audit trail</td><td>Consultant/Derma/Admin</td><td><span class="pill broken"><span class="status-dot broken"></span>Contradiction</span></td><td class="ev">write_audit_log: 0 calls from any read path</td><td>Resolve conflict — build it or correct §9</td></tr>
+          <tr><td class="mono">15</td><td>ADR-049 (not a PDF module)</td><td>Appointment booking — concern, meeting link, phone</td><td>User/Consultant/Derma</td><td><span class="pill ok"><span class="status-dot ok"></span>Done</span></td><td class="ev">services/appointments/*, 91+28 tests, 47/47 real HTTP checks this session</td><td>No committed Playwright e2e</td></tr>
+          <tr><td class="mono">16</td><td>Schema gap</td><td>Dermatologist consultation modes</td><td>Dermatologist</td><td><span class="pill broken"><span class="status-dot broken"></span>Broken</span></td><td class="ev">dermatologist_profile/schemas.py — field never submittable</td><td>Booking-mode validation silently skipped for dermatologists</td></tr>
+          <tr><td class="mono">17</td><td>ADR-005 single-writer rule</td><td>Admin writes ConsultantProfile/DermatologistProfile directly</td><td>Admin</td><td><span class="pill missing"><span class="status-dot missing"></span>Violation</span></td><td class="ev">admin/service.py:124,125,129,131</td><td>Add write interfaces to the owning services</td></tr>
+          <tr><td class="mono">18</td><td>ADR-005 single-writer rule</td><td>Cross-service read-only model access (5 services)</td><td>—</td><td><span class="pill partial"><span class="status-dot partial"></span>Undocumented</span></td><td class="ev">ingredients/recommendations/skin_profile/appointments/clinical_review</td><td>Formalize as an ADR or add a service accessor</td></tr>
+          <tr><td class="mono">19</td><td>AGENTS.md §5</td><td>Migrations ⇄ v3.sql lockstep</td><td>—</td><td><span class="pill partial"><span class="status-dot partial"></span>Drift</span></td><td class="ev">6 missing indexes; product_ingredients' 2 indexes never migrated</td><td>Sync v3.sql, add the missing migration</td></tr>
+          <tr><td class="mono">20</td><td>API surface</td><td>Dead columns unreachable via any response schema</td><td>—</td><td><span class="pill partial"><span class="status-dot partial"></span>5 found</span></td><td class="ev">appointments.cancelled_by (medium), 4 others (low)</td><td>Expose cancelled_by if "who cancelled" matters to users</td></tr>
+          <tr><td class="mono">21</td><td>Schema/API</td><td>Nullable ⇄ required mismatches</td><td>—</td><td><span class="pill partial"><span class="status-dot partial"></span>3 found</span></td><td class="ev">progress, notifications, reports schemas</td><td>Low risk — all self-flagged in code comments already</td></tr>
+          <tr><td class="mono">22</td><td>PDF §4.1</td><td>Facebook / Apple OAuth</td><td>All</td><td><span class="pill deferred"><span class="status-dot deferred"></span>Absent</span></td><td class="ev">auth.ts socialProviders: google only</td><td>Product decision — PDF wording is generic, may not require both</td></tr>
+          <tr><td class="mono">23</td><td>AGENTS.md — defense in depth</td><td>Edge-level (middleware.ts) role guard</td><td>—</td><td><span class="pill deferred"><span class="status-dot deferred"></span>Absent</span></td><td class="ev">Client-side layout guards only; backend independently enforces everything</td><td>Optional hardening, not a live gap</td></tr>
+          <tr><td class="mono">24</td><td>AGENTS.md §2 rule 6</td><td>Every endpoint declares its role(s)</td><td>—</td><td><span class="pill deferred"><span class="status-dot deferred"></span>2 exceptions</span></td><td class="ev">GET /skin-types, /skin-concerns — no auth dependency</td><td>Likely intentional (pre-signup forms) — document it</td></tr>
+          <tr><td class="mono">25</td><td>ADR-033</td><td>Payments / subscriptions</td><td>—</td><td><span class="pill deferred"><span class="status-dot deferred"></span>Deferred</span></td><td class="ev">Tables exist, unused; no Stripe/Razorpay code anywhere</td><td>Explicitly out of scope — no action</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section id="roles">
+      <div class="sechead"><span class="letter">C</span><h2>Role audit</h2></div>
+      <p class="dek">Every nav item traced to a real page; every dashboard widget traced to a real API call or an honestly-disclosed fixture.</p>
+
+      <div class="card">
+        <h3>User</h3>
+        <h4>Nav (13 items, all real pages)</h4>
+        <div class="role-nav-item">Dashboard, Skin Profile, Skin Assessment, My Routine, Products, Ingredients, Progress, Appointments, Lifestyle &amp; Habits, Insights, Reports, Reminders, Settings <span class="path">all ✅</span></div>
+        <div class="role-nav-item">Ask AI, Upload Photo <span class="path">🟡 honest "Coming soon" stubs — not PDF-required</span></div>
+        <h4>Dashboard widgets vs PDF</h4>
+        <div class="role-nav-item">Skin health score (5 weighted mini-bars) <span class="path">✅ GET /assessment/score</span></div>
+        <div class="role-nav-item">Personalized routine <span class="path">✅ GET /routine</span></div>
+        <div class="role-nav-item">Product recommendations <span class="path">✅ GET /recommendations/me</span></div>
+        <div class="role-nav-item">Progress tracking chart <span class="path">✅ GET /analytics/me</span></div>
+        <div class="role-nav-item">Daily skincare checklist <span class="path">✅ interactive, real mutation</span></div>
+        <p style="margin:10px 0 0; font-size:13.5px; color:var(--muted);">Nothing missing against the PDF. Loading/error/empty states present on every widget via a shared <code>widgetStateFor</code> helper.</p>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <h3>Consultant</h3>
+          <h4>Dashboard vs PDF</h4>
+          <div class="role-nav-item">Client profiles <span class="path">✅ GET /clients/me</span></div>
+          <div class="role-nav-item">Assessment reports <span class="path">✅ portfolio-stats</span></div>
+          <div class="role-nav-item">Progress monitoring <span class="path">✅ trend chart</span></div>
+          <div class="role-nav-item">Recommendation mgmt <span class="path">✅ separate real page</span></div>
+          <p style="margin:10px 0 0; font-size:13px; color:var(--muted);">"Consultant Tip" banner is static copy sitting next to live widgets, unbadged (unlike Admin's fixtures, which <i>are</i> badged) — minor honesty nit.</p>
+        </div>
+        <div class="card">
+          <h3>Dermatologist</h3>
+          <h4>Dashboard vs PDF</h4>
+          <div class="role-nav-item">Patient insights <span class="path">✅ real roster</span></div>
+          <div class="role-nav-item">Condition reports <span class="path">✅ concern donut</span></div>
+          <div class="role-nav-item">Treatment recs <span class="path">✅ separate real page</span></div>
+          <div class="role-nav-item">Progress analytics <span class="path">✅ trend + stats</span></div>
+          <p style="margin:10px 0 0; font-size:13px; color:var(--muted);">Independently verified — not a reskin of Consultant; different vocabulary, different query branch (<code>isDerma</code>). Same static-banner nit as Consultant.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Admin</h3>
+        <h4>Dashboard vs PDF</h4>
+        <div class="role-nav-item">User management <span class="path">✅ Better-Auth-backed, real ban/unban</span></div>
+        <div class="role-nav-item">Platform analytics <span class="path">🟡 mixed — see below</span></div>
+        <div class="role-nav-item">Recommendation monitoring <span class="path">✅ "Top Skin Concerns" + system health</span></div>
+        <div class="role-nav-item">System reports <span class="path">❌ /admin/system-reports</span></div>
+        <p style="margin:10px 0 0; font-size:13.5px; color:var(--muted);">Assessment/routine/product counts and Monitoring's p50/p95 latency are real. "Platform Revenue," "System Uptime," "User Growth" are explicit fixtures, each individually badged <b>"Sample data"</b> and code-commented with the real reason no backing system exists (no billing/uptime/growth infra — matches ADR-033). <b>/admin/system-reports</b> is flagged <code>built:true</code> in nav config (no "Soon" badge shown to the user) but its entire content is three <code>ComingSoonPanel</code> cards — the one place a page claims to be finished and isn't.</p>
+      </div>
+
+      <div class="card">
+        <h4 style="margin-top:0;">Auth / OAuth2 (all roles)</h4>
+        <p style="margin:0; font-size:13.5px; color:var(--muted);"><code>web/lib/auth.ts</code> wires Google only. No Facebook or Apple provider block exists. Login/signup pages render exactly one social button. Email/password + verification-link flow is real (dev-mode: logs the link, no provider chosen yet — an honest gap, not a fake one).</p>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section id="arch">
+      <div class="sechead"><span class="letter">D</span><h2>Architecture audit</h2></div>
+      <p class="dek">Where the code follows <code>docs/ARCHITECTURE.md</code>, where it deviates, and which deviations are real debt vs. acceptable, documented calls.</p>
+
+      <div class="card">
+        <h3>Matches</h3>
+        <p style="margin:0; font-size:13.5px; color:var(--muted);">14-service modular monolith under <code>backend/app/services/</code>, all routes under <code>/api/v1</code>, single auth location (<code>core/security.py</code>), Better Auth identity tables never touched by Alembic (confirmed, zero violations), Alembic chain is a clean single linear head with no branches or orphans (<code>8f3c1a6d9e42</code>), <code>scoring_weights</code> CHECK constraint present and DB-driven, not hardcoded.</p>
+      </div>
+
+      <div class="card">
+        <h3>Real deviations</h3>
+        <div class="finding">
+          <div class="bar crit"></div>
+          <div class="body">
+            <div class="title">Admin bypasses the single-writer rule</div>
+            <div class="meta">admin/service.py:124,125,129,131 · ADR-005</div>
+            <p class="why">Directly mutates <code>ConsultantProfile</code>/<code>DermatologistProfile</code> ORM models it imports rather than calling those services' own interfaces — and no write interface exists there to call. No functional bug (writes succeed, get audit-logged at the admin layer) but an unambiguous rule violation this repo's own docs call "bugs, not style choices."</p>
+          </div>
+        </div>
+        <div class="finding">
+          <div class="bar imp"></div>
+          <div class="body">
+            <div class="title">Read-only cross-service model access, never formalized</div>
+            <div class="meta">ingredients, recommendations, skin_profile, appointments, clinical_review</div>
+            <p class="why">Each imports another service's ORM model directly for read-only joins on reference/catalog data. Self-documented in code comments as a deliberate, consistent pattern — but AGENTS.md requires a new structural pattern to get an ADR, and none exists.</p>
+          </div>
+        </div>
+        <div class="finding">
+          <div class="bar def"></div>
+          <div class="body">
+            <div class="title">No edge-level (middleware.ts) role guard</div>
+            <div class="meta">web/ — client-side layout checks only</div>
+            <p class="why">Not a live vulnerability: every backend endpoint independently re-checks role + ownership (confirmed by the security audit, no counter-example found). It is a single point of failure if a future endpoint ever ships without its dependency.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Documentation vs. reality</h3>
+        <p style="margin:0 0 10px; font-size:13.5px; color:var(--muted);"><code>docs/ARCHITECTURE.md</code> §4 claims the Notification and Report services are "still to be built in M3–M4." Both are real: full CRUD, wired into <code>main.py</code>, covered by <code>test_notifications_service.py</code> / <code>test_reports_service.py</code>. Timestamps confirm the doc simply predates these services and was never updated — code is ahead of docs here, the reverse of AGENTS.md's usual "code is the bug" default.</p>
+        <p style="margin:0; font-size:13.5px; color:var(--muted);">Separately, §2 and §9 of the same document flatly disagree on whether clinical reads are audit-logged (resolved below, §E doesn't cover this — see the callout in the Executive Summary and item #14 in the matrix). This is the one finding in the whole audit that isn't a "which is right" question — it's a genuine open product decision.</p>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section id="dbapi">
+      <div class="sechead"><span class="letter">E</span><h2>Database / API audit</h2></div>
+      <p class="dek">Model → migration → <code>v3.sql</code> → Pydantic schema → <code>api-types.ts</code> → frontend hook, traced for all 14+ services.</p>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Category</th><th>Finding</th><th>Evidence</th><th>Severity</th></tr></thead>
+        <tbody>
+          <tr><td>Frontend↔backend contract</td><td>All ~106 <code>/api/v1/*</code> paths matched in both directions. Zero mismatches.</td><td class="ev">api-types.ts vs every router.py</td><td><span class="pill ok">Clean</span></td></tr>
+          <tr><td>Migration head</td><td>Exactly one linear chain, 26 files, no branches, no orphans.</td><td class="ev">head = 8f3c1a6d9e42</td><td><span class="pill ok">Clean</span></td></tr>
+          <tr><td>Better Auth isolation</td><td>Zero migrations touch user/session/account/verification/jwks.</td><td class="ev">ADR-003 holds</td><td><span class="pill ok">Clean</span></td></tr>
+          <tr><td>Index drift</td><td>6 indexes exist in migrations, absent from v3.sql (allergies, scoring_weights active-row, product_images, 2× professional-id, ...).</td><td class="ev">e8c1b402, c21b3568, a3f7c9d2, 5f6e0ea4, b47becd1</td><td><span class="pill partial">Low ×5</span></td></tr>
+          <tr><td>Index drift</td><td>product_ingredients' 2 indexes are in v3.sql but <b>no migration ever creates them</b> — despite a migration docstring claiming exact mirroring.</td><td class="ev">ccb49f9b0f47:91-108</td><td><span class="pill partial">Medium</span></td></tr>
+          <tr><td>Dead column</td><td><code>appointments.cancelled_by</code> written on cancel, never returned by any schema.</td><td class="ev">service.py:390, schemas.py:67-82</td><td><span class="pill partial">Medium</span></td></tr>
+          <tr><td>Dead column</td><td><code>dermatologist_profiles.consultation_modes</code> has no path to ever be set — absent from both Submit and Update schemas.</td><td class="ev">dermatologist_profile/schemas.py</td><td><span class="pill broken">Medium — causes #16 in matrix</span></td></tr>
+          <tr><td>Dead column</td><td>3 more (routines.generated_by_ai/skin_profile_id, skin_profiles.is_current/is_deleted) — internal-only by design.</td><td class="ev">routines/models.py, skin_profile/models.py</td><td><span class="pill deferred">Low</span></td></tr>
+          <tr><td>Nullable mismatch</td><td>progress.uploaded_at, notifications.reminder_type/title, reports.report_type — DB nullable, schema requires. All self-flagged in code comments.</td><td class="ev">3 services</td><td><span class="pill partial">Low</span></td></tr>
+          <tr><td>Typed-client bypass</td><td>admin-audit-log.ts makes a raw fetch() instead of going through the typed client (server-side only, deliberate).</td><td class="ev">web/lib/admin-audit-log.ts:18</td><td><span class="pill deferred">Low</span></td></tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section id="uiux">
+      <div class="sechead"><span class="letter">F</span><h2>UI/UX audit</h2></div>
+      <p class="dek">No screens redesigned here — only checked against the PDF's dashboard requirements and this repo's own locked design system.</p>
+      <div class="grid2">
+        <div class="card">
+          <h3>What's solid</h3>
+          <p style="margin:0; font-size:13.5px; color:var(--muted);">Both themes fully implemented (full <code>.dark</code> token block, not partial; <code>next-themes</code>, server-persisted). Loading/error/empty states consistently present across every page spot-checked, via a shared <code>widget-state.ts</code> helper. Skin Score Ring (the locked signature element) renders the real 5 weighted mini-bars everywhere it appears. Reports export exists and works — for PDF.</p>
+        </div>
+        <div class="card">
+          <h3>Gaps found</h3>
+          <p style="margin:0; font-size:13.5px; color:var(--muted);">Reports UI has no format selector at all — <code>ReportGenerateRequest</code> carries no "format" field, so Excel isn't just unbuilt on the backend, the frontend never offered it either. <code>/admin/system-reports</code> is nav-flagged as finished but is 100% placeholder. Two clinical dashboards show a static "tip" banner beside live data with no "sample" disclosure, unlike Admin's honestly-badged fixtures.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section id="testing">
+      <div class="sechead"><span class="letter">G</span><h2>Testing audit</h2></div>
+      <div class="card">
+        <h4 style="margin-top:0;">Backend tests</h4>
+        <p style="margin:0 0 14px; font-size:13.5px; color:var(--muted);">Every one of the 14 named services, plus notifications, reports, and analytics, has a dedicated test file — no service is untested. Depth varies: <code>scores</code> (60 tests, incl. a randomized property test) and <code>clinical_review</code> (33 tests, an "unassigned user rejected" negative test on nearly every read path) are the strongest. <code>weather</code> is the thinnest — 3 tests, no router-level test at all. <code>appointments</code> is the newest and most exhaustive, including a real concurrent-booking race-condition test.</p>
+        <h4>Frontend tests</h4>
+        <p style="margin:0 0 14px; font-size:13.5px; color:var(--muted);">3 unit-test files (assessment payload builder, severity bands, widget utils) and 25 Playwright e2e specs covering every role, onboarding, RBAC negatives, theme persistence, and a real Postgres/Mongo/worker restart-persistence check. <b>No spec exists for the appointment/consultation flow</b> — the one feature with zero e2e coverage despite full backend coverage.</p>
+        <h4>Integration / CI reality</h4>
+        <p style="margin:0 0 14px; font-size:13.5px; color:var(--muted);"><code>backend-ci.yml</code>: ruff, ruff format, mypy --strict, and the <i>entire</i> pytest suite against real Postgres/Redis/Mongo — nothing skipped. <code>frontend-ci.yml</code>: <code>tsc</code>, eslint, and build — <b>zero test execution, unit or e2e</b>. <code>e2e-ci.yml</code>: runs a curated 6 of the 25 Playwright specs plus 2 visual-regression checks; the other 19 (including onboarding, admin RBAC, reports, reminders) exist and pass locally but never gate CI.</p>
+        <h4>Real HTTP / browser verification</h4>
+        <p style="margin:0; font-size:13.5px; color:var(--muted);">The appointment feature was independently verified this session with 47/47 real HTTP assertions against a live dev stack, and walked through in a real Chrome browser across all 3 roles (user, consultant, dermatologist). Both are one-time manual verifications from this session, not committed, automated, or repeatable — they don't substitute for the missing Playwright spec above.</p>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section id="pending">
+      <div class="sechead"><h2>Prioritized pending list</h2></div>
+      <p class="dek">Every item below is grounded in a PDF requirement, an architecture rule, or an actual code inconsistency found above — nothing here is a stylistic preference.</p>
+
+      <div class="priority-tier">
+        <div class="tier-head"><span class="pill missing">🔴 Critical</span><h3>Must resolve before "complete"</h3></div>
+        <div class="card">
+          <div class="finding">
+            <div class="bar crit"></div>
+            <div class="body">
+              <div class="title">Clinical-data read access has no audit trail</div>
+              <div class="meta">Source: ARCHITECTURE.md §9 (self-contradicted by §2) · Affects: Consultant, Dermatologist, Admin</div>
+              <p class="why"><b>Why pending:</b> §9 states every consultant/dermatologist/admin <i>read</i> of a user's skin data writes an immutable audit row — "health data demands an access trail." Verified: zero <code>write_audit_log</code> calls exist on any read path anywhere in the backend; only mutations are logged.</p>
+              <p class="rec"><b>Files:</b> clinical_review/service.py (10 read functions, 0 audit calls) · admin/service.py (write_audit_log, the only real call sites) · <b>Recommended:</b> either implement read-audit-logging, or correct §9 to match §2 and the real code — this is a decision for you, not something to silently pick.</p>
+            </div>
+          </div>
+          <div class="finding">
+            <div class="bar crit"></div>
+            <div class="body">
+              <div class="title">Admin writes into tables it doesn't own</div>
+              <div class="meta">Source: ADR-005, AGENTS.md §2 rule 4 · Affects: Admin, Consultant, Dermatologist (profile data)</div>
+              <p class="why"><b>Why pending:</b> <code>admin/service.py</code> imports and directly mutates <code>ConsultantProfile</code>/<code>DermatologistProfile</code> ORM models. No write interface exists on the owning services to call instead — this isn't a shortcut around one, it's a genuine missing seam.</p>
+              <p class="rec"><b>Files:</b> backend/app/services/admin/service.py:124,125,129,131 · <b>Recommended:</b> add verification-status write functions to consultant_profile/service.py and dermatologist_profile/service.py; have admin call those.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="priority-tier">
+        <div class="tier-head"><span class="pill partial">🟠 Important</span><h3>Real gaps, not blocking the core system</h3></div>
+        <div class="card">
+          <div class="finding"><div class="bar imp"></div><div class="body">
+            <div class="title">Excel export was never built</div>
+            <div class="meta">Source: PDF §4.11 · Affects: User, Consultant, Dermatologist</div>
+            <p class="why"><b>Why:</b> PDF explicitly requires "PDF export" and "Excel export." Only PDF exists (reportlab); zero references to openpyxl/xlsx anywhere in the backend, and the frontend request shape has no format field to select it with.</p>
+            <p class="rec"><b>Files:</b> backend/app/services/reports/service.py · <b>Recommended:</b> add an xlsx path (openpyxl) alongside the existing PDF builder.</p>
+          </div></div>
+          <div class="finding"><div class="bar imp"></div><div class="body">
+            <div class="title">Dermatologist consultation-mode validation silently no-ops</div>
+            <div class="meta">Source: schema gap · Affects: Dermatologist</div>
+            <p class="why"><b>Why:</b> <code>DermatologistProfileSubmit</code>/<code>Update</code> have no <code>consultation_modes</code> field, so the column is always NULL. Booking's validation (<code>if consultation_modes and ...</code>) short-circuits to "skip check" on NULL — bookings aren't rejected, but the feature is asymmetric: consultants get real mode validation, dermatologists get none.</p>
+            <p class="rec"><b>Files:</b> backend/app/services/dermatologist_profile/schemas.py (add field, mirror consultant_profile/schemas.py:29,51,73) · appointments/service.py:206-236</p>
+          </div></div>
+          <div class="finding"><div class="bar imp"></div><div class="body">
+            <div class="title">frontend-ci.yml runs zero tests</div>
+            <div class="meta">Source: AGENTS.md §7 ("quality gates pass") · Affects: whole frontend</div>
+            <p class="why"><b>Why:</b> The workflow runs tsc, eslint, and build — never <code>npm run test:unit</code> (3 files) or any Playwright spec. AGENTS.md's own definition-of-done claims frontend quality gates are enforced; they aren't, for tests specifically.</p>
+            <p class="rec"><b>Files:</b> .github/workflows/frontend-ci.yml · <b>Recommended:</b> add a test:unit step; consider widening e2e-ci.yml's curated 6-spec subset.</p>
+          </div></div>
+          <div class="finding"><div class="bar imp"></div><div class="body">
+            <div class="title">No e2e test for the appointment/consultation flow</div>
+            <div class="meta">Source: test-coverage gap · Affects: User, Consultant, Dermatologist</div>
+            <p class="why"><b>Why:</b> Full backend coverage exists (91+28 tests) but zero Playwright specs reference "appointment." This session's 47/47 HTTP checks and 3-role browser walkthrough were manual and one-off, not committed.</p>
+            <p class="rec"><b>Files:</b> web/tests/e2e/ (new file) · <b>Recommended:</b> book → confirm → set meeting link → user sees it, mirroring the backend test's shape.</p>
+          </div></div>
+          <div class="finding"><div class="bar imp"></div><div class="body">
+            <div class="title">19 of 25 Playwright specs never run in any CI workflow</div>
+            <div class="meta">Source: CI audit · Affects: whole frontend</div>
+            <p class="why"><b>Why:</b> Real, passing local tests (onboarding, admin RBAC, reports, reminders, ingredient intelligence, persistence-after-restart) provide zero regression protection today.</p>
+            <p class="rec"><b>Files:</b> .github/workflows/e2e-ci.yml</p>
+          </div></div>
+          <div class="finding"><div class="bar imp"></div><div class="body">
+            <div class="title">appointments.cancelled_by is write-only</div>
+            <div class="meta">Source: DB/API audit · Affects: User, Consultant, Dermatologist</div>
+            <p class="why"><b>Why:</b> Set on every cancellation, never returned — neither party can ever see who cancelled an appointment even though the data already exists.</p>
+            <p class="rec"><b>Files:</b> appointments/schemas.py:67-82 (add to AppointmentRead)</p>
+          </div></div>
+          <div class="finding"><div class="bar imp"></div><div class="body">
+            <div class="title">product_ingredients indexes documented but never migrated</div>
+            <div class="meta">Source: DB/API audit · Affects: recommendations, ingredients (query cost)</div>
+            <p class="why"><b>Why:</b> v3.sql declares idx_product_ingredients_product/_ingredient; the migration whose own docstring claims to mirror v3.sql exactly never creates either. Real, uncompensated query cost on a join table.</p>
+            <p class="rec"><b>Files:</b> new Alembic migration; backend/app/migrations/versions/ccb49f9b0f47</p>
+          </div></div>
+          <div class="finding"><div class="bar imp"></div><div class="body">
+            <div class="title">docs/ARCHITECTURE.md's module map is stale</div>
+            <div class="meta">Source: architecture audit · Affects: every future agent reading this doc</div>
+            <p class="why"><b>Why:</b> Claims Notification and Report services are unbuilt; both are real. A future agent trusting this doc would rebuild what already exists.</p>
+            <p class="rec"><b>Files:</b> docs/ARCHITECTURE.md §4</p>
+          </div></div>
+          <div class="finding"><div class="bar imp"></div><div class="body">
+            <div class="title">/admin/system-reports is 100% placeholder but nav-flagged as built</div>
+            <div class="meta">Source: UI/UX audit · Affects: Admin</div>
+            <p class="why"><b>Why:</b> Every other unbuilt page in this repo carries a visible "Soon" badge (built:false). This one doesn't, so a user only discovers it's empty after navigating in.</p>
+            <p class="rec"><b>Files:</b> web/lib/nav-config.ts, web/app/admin/system-reports/page.tsx</p>
+          </div></div>
+        </div>
+      </div>
+
+      <div class="priority-tier">
+        <div class="tier-head"><span class="pill deferred">🟡 Minor</span><h3>Polish, consistency, documented technical debt</h3></div>
+        <div class="card">
+          <div class="finding"><div class="bar min"></div><div class="body"><div class="title">6 low-severity index/nullability drifts between migrations, v3.sql, and Pydantic schemas</div><p class="rec">progress.uploaded_at, notifications.reminder_type/title, reports.report_type, plus 5 index-only drifts — all self-flagged in code comments already, low real risk.</p></div></div>
+          <div class="finding"><div class="bar min"></div><div class="body"><div class="title">5 dead/unreachable DB columns beyond cancelled_by</div><p class="rec">routines.generated_by_ai/skin_profile_id, skin_profiles.is_current/is_deleted — internal-only by design, no user-facing impact.</p></div></div>
+          <div class="finding"><div class="bar min"></div><div class="body"><div class="title">Cross-service read-only model access lacks an ADR</div><p class="rec">ingredients/recommendations/skin_profile/appointments/clinical_review — consistent, self-documented pattern, just never formalized per AGENTS.md's own rule.</p></div></div>
+          <div class="finding"><div class="bar min"></div><div class="body"><div class="title">3 frontend unit-test files orphaned from any run script</div><p class="rec">Not referenced by package.json's test scripts or any CI workflow.</p></div></div>
+          <div class="finding"><div class="bar min"></div><div class="body"><div class="title">Static "tip" banners on clinical dashboards, unbadged</div><p class="rec">Consultant/Dermatologist dashboards show static educational copy next to live data with no "sample" disclosure, unlike Admin's fixtures.</p></div></div>
+          <div class="finding"><div class="bar min"></div><div class="body"><div class="title">admin-audit-log.ts bypasses the typed API client</div><p class="rec">Deliberate, server-side-only raw fetch() — a backend schema change here wouldn't be caught by tsc.</p></div></div>
+        </div>
+      </div>
+
+      <div class="priority-tier">
+        <div class="tier-head"><span class="pill neutral">🔵 Not required / deferred</span><h3>Explicitly out of current scope</h3></div>
+        <div class="card">
+          <div class="finding"><div class="bar def"></div><div class="body"><div class="title">Image/CV-based skin assessment</div><p class="rec">Correctly deferred to M3–M4 per ARCHITECTURE.md's own roadmap; a trained lesion model exists but honestly documents itself as unwired and fairness-unvalidated.</p></div></div>
+          <div class="finding"><div class="bar def"></div><div class="body"><div class="title">Per-service Docker container split</div><p class="rec">Explicitly M4 scope per ADR-005. web/Dockerfile does not exist at all yet (not just deferred in compose) — worth a heads-up for M4 planning, not a current gap.</p></div></div>
+          <div class="finding"><div class="bar def"></div><div class="body"><div class="title">Payments / Stripe / Razorpay</div><p class="rec">Tables exist, unused; ADR-033 explicitly defers this — no current PDF requirement gates on it.</p></div></div>
+          <div class="finding"><div class="bar def"></div><div class="body"><div class="title">MFA, edge middleware, 2 unauthenticated taxonomy endpoints</div><p class="rec">All either explicitly deferred (no requirement driving MFA) or backed by an independent enforcement layer that already covers the gap (backend RBAC covers the missing edge middleware; the two public endpoints are non-sensitive taxonomy lookups, likely intentional for pre-signup forms).</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section id="verdict">
+      <div class="sechead"><h2>Final verdict</h2></div>
+      <div class="card">
+        <dl class="verdict-grid">
+          <dt>Architecture alignment</dt><dd style="color:var(--partial)">Mostly aligned</dd>
+          <dt>Product requirements</dt><dd style="color:var(--partial)">Mostly complete</dd>
+          <dt>Backend implementation</dt><dd style="color:var(--partial)">Mostly complete</dd>
+          <dt>Frontend implementation</dt><dd style="color:var(--partial)">Mostly complete</dd>
+          <dt>Database consistency</dt><dd style="color:var(--ok)">Mostly consistent</dd>
+          <dt>Authorization / security</dt><dd style="color:var(--partial)">Substantially secure, 1 compliance gap</dd>
+          <dt>Testing coverage</dt><dd style="color:var(--partial)">Strong backend / weak CI-gating</dd>
+          <dt>Browser verification</dt><dd style="color:var(--broken)">Manual only, not automated</dd>
+        </dl>
+        <div class="overall-band">Overall: MOSTLY COMPLETE</div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <h3>Required before completion</h3>
+          <ol class="required">
+            <li><b>Resolve the audit-log contradiction</b> — implement clinical-read logging or correct ARCHITECTURE.md §9.</li>
+            <li><b>Fix the admin single-writer violation</b> — add write interfaces to consultant_profile/dermatologist_profile.</li>
+            <li><b>Decide on Excel export</b> — build it, or get explicit sign-off to descope it from the PDF requirement.</li>
+            <li><b>Wire frontend-ci.yml to actually run tests</b> — currently zero test execution in that pipeline.</li>
+            <li><b>Add e2e coverage for appointments</b> — the one fully-backend-tested feature with no frontend automation.</li>
+            <li><b>Fix dermatologist consultation_modes</b> — currently unsettable, silently skips a validation check.</li>
+            <li><b>Correct docs/ARCHITECTURE.md's stale claims</b> — Notification and Report services are real, not "still to be built."</li>
+          </ol>
+        </div>
+        <div class="card">
+          <h3>Optional enhancements</h3>
+          <ul class="optional">
+            <li>Facebook / Apple OAuth providers (PDF wording is generic; may not require both).</li>
+            <li>Sync database_schemas/skinlytics_postgresql_schema_v3.sql's minor index drift.</li>
+            <li>Expose appointments.cancelled_by in the appointment detail UI.</li>
+            <li>Formalize the cross-service reference-table read pattern as an ADR.</li>
+            <li>Add web/middleware.ts for edge-level defense-in-depth (backend already covers this).</li>
+            <li>Badge the clinical dashboards' static "tip" banners the way Admin's fixtures already are.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <footer class="end">Read-only audit — no files were modified, no branches changed, nothing committed. Source-of-truth mapping used: <code>docs/ARCHITECTURE.md</code> for "architecture.md" and <code>AI_Skin Intelligence &amp; Personalized Skincare Planner (1).pdf</code> for "skin_same.pdf" — neither literal filename exists in the repo. Five parallel code audits (backend/PDF modules, frontend/nav, database/API, security/RBAC, tests/CI) plus direct inspection of both source documents.</footer>
+  </main>
+</div>
+</body>
+</html>

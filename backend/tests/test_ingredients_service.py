@@ -8,12 +8,14 @@ import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.elasticsearch import get_elasticsearch
 from app.db.mongo import get_mongo_db
 from app.db.postgres import external_user_table
 from app.services.ingredients import service
 from app.services.ingredients.service import list_all_ingredients
 from app.services.skin_profile.schemas import SkinProfileCreate
 from app.services.skin_profile.service import create_profile
+from app.worker.consumers.es_projection import project_to_elasticsearch
 
 
 async def test_list_all_ingredients_paginates_over_real_seeded_data(
@@ -69,6 +71,16 @@ async def _create_profile(
 async def test_list_ingredients_via_es_finds_a_real_seeded_ingredient(
     db_session: AsyncSession,
 ) -> None:
+    # ES is a derived, eventually-consistent store (ADR-010) - a dev stack that hasn't
+    # (yet) run the outbox/worker projection for this row shouldn't fail this test.
+    # Project it directly first, same pattern test_es_projection.py already uses.
+    await project_to_elasticsearch(
+        db_session, mongo=None, aggregate_type="ingredient", aggregate_id=str(_RETINOL_ID)
+    )
+    # es.index() is near-real-time (default ~1s refresh interval) - force it visible
+    # to the search() call below immediately, same pattern as test_rebuild.py.
+    await get_elasticsearch().indices.refresh(index="ingredients_index")
+
     page = await service.list_ingredients(
         db_session, page=1, page_size=20, category=None, q="Retinol"
     )
@@ -96,6 +108,12 @@ async def test_list_ingredients_pg_fallback_when_es_is_reported_down(
 
 
 async def test_list_ingredients_filters_by_category(db_session: AsyncSession) -> None:
+    # Same rationale as the test above - don't depend on out-of-band ES projection.
+    await project_to_elasticsearch(
+        db_session, mongo=None, aggregate_type="ingredient", aggregate_id=str(_RETINOL_ID)
+    )
+    await get_elasticsearch().indices.refresh(index="ingredients_index")
+
     page = await service.list_ingredients(
         db_session, page=1, page_size=20, category="Retinoids", q=None
     )

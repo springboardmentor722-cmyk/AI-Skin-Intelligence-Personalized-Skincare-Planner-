@@ -1,9 +1,12 @@
 """Reports service — generation writes a real PDF to storage and a real
 progress_reports row, never a fabricated one (AGENTS.md §0.2)."""
 
+import io
 import uuid
 from collections.abc import AsyncGenerator
 
+import httpx
+import openpyxl
 import pytest
 from httpx import AsyncClient
 from pydantic import ValidationError
@@ -11,6 +14,7 @@ from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import require_user
+from app.core.storage import get_presigned_url
 from app.db.postgres import async_session_factory, external_user_table
 from app.main import app
 from app.services.reports.models import ProgressReport
@@ -77,6 +81,87 @@ async def test_generate_routine_report_writes_a_real_row(
     assert report.report_url is not None
 
 
+async def _download(report: ProgressReport) -> bytes:
+    assert report.report_url is not None
+    url = await get_presigned_url(report.report_url, expires_in=60)
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url)
+    assert response.status_code == 200
+    return response.content
+
+
+async def test_generate_assessment_xlsx_report_round_trips_format_and_is_openable(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    report = await generate_report(
+        db_session, test_user_id, "assessment", include_profile_header=True, format="xlsx"
+    )
+
+    assert report.report_type == "assessment"
+    assert report.format == "xlsx"
+    assert report.report_url is not None
+    assert report.report_url.endswith(".xlsx")
+
+    content = await _download(report)
+    workbook = openpyxl.load_workbook(io.BytesIO(content))
+    sheet = workbook.active
+    assert sheet is not None
+    assert sheet["A1"].value is not None
+
+
+async def test_generate_progress_xlsx_report_round_trips_format(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    report = await generate_report(
+        db_session, test_user_id, "progress", include_profile_header=False, format="xlsx"
+    )
+
+    assert report.report_type == "progress"
+    assert report.format == "xlsx"
+    assert report.report_url is not None and report.report_url.endswith(".xlsx")
+
+
+async def test_generate_routine_xlsx_report_round_trips_format(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    report = await generate_report(
+        db_session, test_user_id, "routine", include_profile_header=False, format="xlsx"
+    )
+
+    assert report.report_type == "routine"
+    assert report.format == "xlsx"
+    assert report.report_url is not None and report.report_url.endswith(".xlsx")
+
+
+async def test_generate_pdf_report_still_defaults_format_to_pdf(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    report = await generate_report(
+        db_session, test_user_id, "assessment", include_profile_header=False
+    )
+    assert report.format == "pdf"
+    assert report.report_url is not None and report.report_url.endswith(".pdf")
+
+
+async def test_generate_xlsx_report_for_a_brand_new_user_writes_header_only(
+    db_session: AsyncSession, test_user_id: str
+) -> None:
+    """No assessment/progress/routines recorded yet for this throwaway user — the
+    empty-dataset case must still succeed with a header-only sheet, not error."""
+    report = await generate_report(
+        db_session, test_user_id, "assessment", include_profile_header=False, format="xlsx"
+    )
+
+    assert report.format == "xlsx"
+    content = await _download(report)
+    workbook = openpyxl.load_workbook(io.BytesIO(content))
+    sheet = workbook.active
+    assert sheet is not None
+    assert sheet["A1"].value == "Metric"
+    # Header row only — no data rows follow for a user with no assessment yet.
+    assert sheet["A2"].value is None
+
+
 async def test_generate_report_rejects_an_unknown_type(
     db_session: AsyncSession, test_user_id: str
 ) -> None:
@@ -117,6 +202,30 @@ async def test_generate_list_and_download_report_via_http(
         download_response = await client.get(f"/api/v1/reports/{report_id}/download")
         assert download_response.status_code == 200
         assert download_response.json()["url"].startswith("http")
+    finally:
+        app.dependency_overrides.pop(require_user, None)
+
+
+async def test_generate_xlsx_report_via_http_round_trips_format(
+    client: AsyncClient, router_test_user: str
+) -> None:
+    app.dependency_overrides[require_user] = lambda: {
+        "id": router_test_user,
+        "role": "user",
+        "claims": {},
+    }
+    try:
+        generate_response = await client.post(
+            "/api/v1/reports/generate",
+            json={"report_type": "progress", "include_profile_header": False, "format": "xlsx"},
+        )
+        assert generate_response.status_code == 200
+        body = generate_response.json()
+        assert body["format"] == "xlsx"
+
+        list_response = await client.get("/api/v1/reports")
+        listed = list_response.json()
+        assert any(r["report_id"] == body["report_id"] and r["format"] == "xlsx" for r in listed)
     finally:
         app.dependency_overrides.pop(require_user, None)
 

@@ -376,6 +376,7 @@ CREATE TABLE progress_reports (
     report_id SERIAL PRIMARY KEY,
     user_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
     report_type VARCHAR(50),
+    format VARCHAR(10) NOT NULL DEFAULT 'pdf',
     summary TEXT,
     report_url VARCHAR(255),
     generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

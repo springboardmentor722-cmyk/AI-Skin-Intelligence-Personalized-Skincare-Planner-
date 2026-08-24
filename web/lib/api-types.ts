@@ -3574,6 +3574,12 @@ export interface components {
              * @default true
              */
             include_profile_header: boolean;
+            /**
+             * Format
+             * @default pdf
+             * @enum {string}
+             */
+            format?: "pdf" | "xlsx";
         };
         /** ReportRead */
         ReportRead: {
@@ -3585,6 +3591,8 @@ export interface components {
             summary: string | null;
             /** Generated At */
             generated_at: string | null;
+            /** Format */
+            format: string;
         };
         /** ReportScheduleCreate */
         ReportScheduleCreate: {

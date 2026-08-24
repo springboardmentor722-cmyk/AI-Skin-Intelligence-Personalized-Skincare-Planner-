@@ -96,11 +96,20 @@ async def ensure_indices() -> None:
     long-running process, which left the cache believing an index existed when it
     didn't — the next `es.index()` call then silently let Elasticsearch
     auto-create it with an inferred mapping instead of the documented one (found
-    live, regression-tested in test_es_projection.py)."""
+    live, regression-tested in test_es_projection.py).
+
+    `create` is wrapped with `ignore_status=400` for the same reason `project_to_
+    elasticsearch`'s delete below already ignores 404: this function is called from
+    more than one OS process against the same live cluster (the `worker` container's
+    own outbox poller calls it too, on its own cron tick — docker-compose.yml's
+    bind-mounted, not isolated, by design). Two processes can both see an index
+    missing and both call create — the loser gets `resource_already_exists_exception`
+    for an index that now exists with the correct mapping either way, so ignoring it
+    is correct, not a swallowed bug."""
     es = get_elasticsearch()
     for name, mapping in INDEX_MAPPINGS.items():
         if not await es.indices.exists(index=name):
-            await es.indices.create(index=name, mappings=mapping)
+            await es.options(ignore_status=400).indices.create(index=name, mappings=mapping)
 
 
 async def build_product_document(db: AsyncSession, product_id: int) -> dict[str, Any] | None:

@@ -17,8 +17,11 @@ DocumentType = Literal[
 # license, supporting documents). Matches DermatologistProfile's own nullability
 # (database_schemas/skinlytics_postgresql_schema_v3.sql) — a distinct field set from
 # ConsultantProfileSubmit, not a shared/parameterized one, since the two roles'
-# real-world fields genuinely differ (medical registration/council vs. license/
-# consultation modes).
+# real-world fields genuinely differ (medical registration/council vs. license
+# number). consultation_modes exists on both models and both submit schemas —
+# appointments/service.py's booking-mode validation (_resolve_provider_role)
+# reads it from whichever profile table the provider has a row in, so it must be
+# settable for dermatologists too, not just consultants (audit finding, M4).
 
 
 class DermatologistProfileSubmit(BaseModel):
@@ -31,6 +34,7 @@ class DermatologistProfileSubmit(BaseModel):
     specializations: list[str] = Field(min_length=1)
     research_interests: str | None = None
     professional_biography: str = Field(min_length=1)
+    consultation_modes: list[str] = Field(min_length=1)
     phone: str = Field(min_length=1)
     location: str | None = None
 
@@ -49,6 +53,7 @@ class DermatologistProfileUpdate(BaseModel):
     specializations: list[str] | None = None
     research_interests: str | None = None
     professional_biography: str | None = None
+    consultation_modes: list[str] | None = None
     phone: str | None = None
     location: str | None = None
 
@@ -67,6 +72,7 @@ class DermatologistProfileRead(BaseModel):
     specializations: list[str] | None
     research_interests: str | None
     professional_biography: str | None
+    consultation_modes: list[str] | None
     phone: str | None
     location: str | None
     verification_status: VerificationStatus
