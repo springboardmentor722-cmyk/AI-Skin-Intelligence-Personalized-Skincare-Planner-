@@ -263,6 +263,7 @@ async def book_appointment(db: AsyncSession, user_id: str, data: AppointmentCrea
         start_time=data.start_time,
         end_time=data.start_time + datetime.timedelta(minutes=duration_minutes),
         status="pending",
+        concern=data.concern,
     )
     db.add(appointment)
     try:
@@ -430,4 +431,16 @@ async def reschedule_appointment(
         message="An appointment has been rescheduled.",
         notification_type="appointment_rescheduled",
     )
+    return appointment
+
+
+async def set_meeting_link(
+    db: AsyncSession, provider_id: str, appointment_id: int, meeting_link: str
+) -> Appointment:
+    """Consultant-authored, manually pasted external link (Google Meet/Zoom/etc) —
+    no video SDK, no auto-generation. Same ownership pattern as _transition:
+    only the assigned provider for this appointment may set it."""
+    appointment = await _get_owned_by_provider(db, provider_id, appointment_id)
+    appointment.meeting_link = meeting_link
+    await db.commit()
     return appointment
