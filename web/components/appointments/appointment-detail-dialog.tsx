@@ -14,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import {
   useCancelAppointmentMutation,
   useCompleteAppointmentMutation,
@@ -21,6 +22,7 @@ import {
   useNoShowAppointmentMutation,
   useProviderSlotsQuery,
   useRescheduleAppointmentMutation,
+  useSetMeetingLinkMutation,
   type AppointmentRead,
 } from "@/lib/hooks/use-appointments";
 
@@ -56,6 +58,16 @@ export function AppointmentDetailDialog({
   const noShowMutation = useNoShowAppointmentMutation();
   const cancelMutation = useCancelAppointmentMutation();
   const rescheduleMutation = useRescheduleAppointmentMutation();
+  const setMeetingLinkMutation = useSetMeetingLinkMutation();
+  const [meetingLinkDraft, setMeetingLinkDraft] = useState(appointment?.meeting_link ?? "");
+  // Adjust state during render on prop change (react.dev/learn/you-might-not-need-an-effect)
+  // instead of useEffect — appointment can change while the dialog stays mounted (a
+  // different row opened) and syncing via effect trips react-hooks/set-state-in-effect.
+  const [syncedAppointmentId, setSyncedAppointmentId] = useState(appointment?.appointment_id);
+  if (appointment?.appointment_id !== syncedAppointmentId) {
+    setSyncedAppointmentId(appointment?.appointment_id);
+    setMeetingLinkDraft(appointment?.meeting_link ?? "");
+  }
 
   // Local date, not UTC — same fix as booking-panel.tsx's dateParam: .toISOString()
   // shifts local midnight back a day for any UTC-ahead timezone (incl. India,
@@ -71,6 +83,17 @@ export function AppointmentDetailDialog({
   if (!appointment) return null;
   const isProvider = viewerRole !== "user";
   const otherPartyId = viewerRole === "user" ? appointment.provider_id : appointment.user_id;
+
+  const handleSaveMeetingLink = () => {
+    if (!meetingLinkDraft.trim()) return;
+    setMeetingLinkMutation.mutate(
+      { appointmentId: appointment.appointment_id, meetingLink: meetingLinkDraft.trim() },
+      {
+        onSuccess: () => toast.success("Meeting link saved"),
+        onError: () => toast.error("Couldn't save the meeting link. Try again."),
+      }
+    );
+  };
 
   const handleCancel = () => {
     cancelMutation.mutate(
@@ -210,6 +233,58 @@ export function AppointmentDetailDialog({
             </Badge>
             {appointment.notes && (
               <p className="text-on-surface-variant font-sans text-sm">{appointment.notes}</p>
+            )}
+            {appointment.concern && (
+              <div className="flex flex-col gap-1">
+                <p className="text-on-surface font-sans text-xs font-medium">User&apos;s concern</p>
+                <p className="text-on-surface-variant font-sans text-sm">{appointment.concern}</p>
+              </div>
+            )}
+            {isProvider ? (
+              <div className="flex flex-col gap-1.5">
+                <label
+                  htmlFor="meeting-link-input"
+                  className="text-on-surface font-sans text-xs font-medium"
+                >
+                  Meeting link
+                </label>
+                <div className="flex gap-2">
+                  <Input
+                    id="meeting-link-input"
+                    value={meetingLinkDraft}
+                    onChange={(e) => setMeetingLinkDraft(e.target.value)}
+                    placeholder="https://meet.google.com/..."
+                    maxLength={2048}
+                  />
+                  <Button
+                    variant="outline"
+                    disabled={
+                      setMeetingLinkMutation.isPending ||
+                      !meetingLinkDraft.trim() ||
+                      meetingLinkDraft.trim() === appointment.meeting_link
+                    }
+                    onClick={handleSaveMeetingLink}
+                  >
+                    Save
+                  </Button>
+                </div>
+              </div>
+            ) : appointment.meeting_link ? (
+              <div className="flex flex-col gap-1">
+                <p className="text-on-surface font-sans text-xs font-medium">Consultation meeting</p>
+                <a
+                  href={appointment.meeting_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-secondary font-sans text-sm underline"
+                >
+                  Join meeting
+                </a>
+              </div>
+            ) : (
+              <p className="text-on-surface-variant font-sans text-xs">
+                Meeting link will be shared by your consultant.
+              </p>
             )}
             <DialogFooter className="flex-wrap gap-2">
               {onOpenProfile && (
