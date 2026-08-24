@@ -213,6 +213,7 @@ async def list_my_clients(
                 user_id=assignment.user_id,
                 name=name,
                 email=email,
+                phone=user_profile.phone_number,
                 age=_age_from_date_of_birth(user_profile.date_of_birth),
                 gender=user_profile.gender,
                 skin_type_name=skin_types.get(profile.skin_type_id) if profile else None,
@@ -377,6 +378,7 @@ async def get_client_detail(
 ) -> ClientDetailRead:
     await _verify_assignment(db, professional_id, user_id)
     name, email = await _get_user_row(db, user_id)
+    user_profile = await user_service.get_or_create_profile(db, user_id)
 
     profile = await skin_profile_service.get_current_profile(db, user_id)
     scores = await scores_service.get_recent_scores(db, user_id, days=30)
@@ -392,6 +394,7 @@ async def get_client_detail(
         user_id=user_id,
         name=name,
         email=email,
+        phone=user_profile.phone_number,
         skin_profile=profile,
         score=ClientScoreRead.model_validate(latest) if latest else None,
         routines=routines,

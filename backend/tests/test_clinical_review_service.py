@@ -138,6 +138,34 @@ async def test_get_client_detail_returns_real_profile_score_and_routines(
     assert {r.routine_type for r in detail.routines} == {"AM", "PM", "Weekly", "Seasonal"}
 
 
+async def test_get_client_detail_returns_phone_from_user_profile(
+    db_session: AsyncSession, professional_id: str, client_user_id: str
+) -> None:
+    from app.services.user.service import get_or_create_profile
+
+    await create_assignment(db_session, professional_id, client_user_id)
+    profile = await get_or_create_profile(db_session, client_user_id)
+    profile.phone_number = "+91 98765 43210"
+    await db_session.commit()
+
+    detail = await get_client_detail(db_session, professional_id, client_user_id)
+    assert detail.phone == "+91 98765 43210"
+
+
+async def test_list_my_clients_returns_phone_from_user_profile(
+    db_session: AsyncSession, professional_id: str, client_user_id: str
+) -> None:
+    from app.services.user.service import get_or_create_profile
+
+    await create_assignment(db_session, professional_id, client_user_id)
+    profile = await get_or_create_profile(db_session, client_user_id)
+    profile.phone_number = "+91 98765 43210"
+    await db_session.commit()
+
+    summaries, _total = await list_my_clients(db_session, professional_id)
+    assert summaries[0].phone == "+91 98765 43210"
+
+
 async def test_add_and_list_notes_for_an_assigned_client(
     db_session: AsyncSession, professional_id: str, client_user_id: str
 ) -> None:
