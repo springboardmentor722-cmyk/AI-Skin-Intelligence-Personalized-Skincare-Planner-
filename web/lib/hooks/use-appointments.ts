@@ -173,6 +173,30 @@ export function useRescheduleAppointmentMutation() {
   });
 }
 
+export function useSetMeetingLinkMutation() {
+  const invalidate = useInvalidateAppointments();
+  return useMutation({
+    mutationFn: async ({
+      appointmentId,
+      meetingLink,
+    }: {
+      appointmentId: number;
+      meetingLink: string;
+    }) => {
+      const { data, error } = await api.PATCH(
+        "/api/v1/appointments/{appointment_id}/meeting-link",
+        {
+          params: { path: { appointment_id: appointmentId } },
+          body: { meeting_link: meetingLink },
+        }
+      );
+      if (error) throw new Error("meeting_link_update_failed");
+      return data;
+    },
+    onSuccess: invalidate,
+  });
+}
+
 export function useMyAvailabilityQuery() {
   return useQuery({
     queryKey: ["appointments", "availability", "me"],
