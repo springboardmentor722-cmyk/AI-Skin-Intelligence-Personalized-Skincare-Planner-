@@ -29,6 +29,7 @@ class ClientSummaryRead(BaseModel):
     user_id: str
     name: str | None
     email: str
+    phone: str | None
     # Milestone 2 P14 (ADR-024's "materially narrower than UI_SPEC's roster
     # columns" gap) — both real, both backed by user_profiles' own columns
     # (date_of_birth/gender, user_service.get_or_create_profile), not invented.
@@ -146,6 +147,7 @@ class ClientDetailRead(BaseModel):
     user_id: str
     name: str | None
     email: str
+    phone: str | None
     # None if the client's assignment is real but they haven't completed the
     # assessment wizard yet — a legitimate state, not an error (the assignment
     # itself is still valid).

@@ -18,6 +18,7 @@ from app.services.appointments.schemas import (
     AvailabilityRule,
 )
 from app.services.appointments.service import (
+    AppointmentOwnershipError,
     SlotUnavailableError,
     add_exception,
     book_appointment,
@@ -25,6 +26,7 @@ from app.services.appointments.service import (
     get_availability,
     list_exceptions,
     replace_availability,
+    set_meeting_link,
 )
 from app.services.clinical_review.service import _verify_assignment
 from app.services.consultant_profile.models import ConsultantProfile
@@ -760,6 +762,110 @@ async def test_book_appointment_rejects_a_time_outside_availability(
                 start_time=datetime.datetime(2026, 9, 7, 14, 0, tzinfo=datetime.UTC),
                 consultation_mode="video",
             ),
+        )
+
+
+async def test_book_appointment_persists_concern(
+    db_session: AsyncSession, provider_id: str, test_user_id: str
+) -> None:
+    await replace_availability(
+        db_session,
+        provider_id,
+        [
+            AvailabilityRule(
+                day_of_week=0, start_time=datetime.time(9, 0), end_time=datetime.time(10, 0)
+            )
+        ],
+    )
+    appointment = await book_appointment(
+        db_session,
+        test_user_id,
+        AppointmentCreate(
+            provider_id=provider_id,
+            start_time=datetime.datetime(2026, 9, 7, 9, 0, tzinfo=datetime.UTC),
+            consultation_mode="video",
+            concern="Persistent redness on both cheeks for 3 weeks.",
+        ),
+    )
+    assert appointment.concern == "Persistent redness on both cheeks for 3 weeks."
+
+
+async def test_book_appointment_allows_no_concern(
+    db_session: AsyncSession, provider_id: str, test_user_id: str
+) -> None:
+    await replace_availability(
+        db_session,
+        provider_id,
+        [
+            AvailabilityRule(
+                day_of_week=0, start_time=datetime.time(9, 0), end_time=datetime.time(10, 0)
+            )
+        ],
+    )
+    appointment = await book_appointment(
+        db_session,
+        test_user_id,
+        AppointmentCreate(
+            provider_id=provider_id,
+            start_time=datetime.datetime(2026, 9, 7, 9, 0, tzinfo=datetime.UTC),
+            consultation_mode="video",
+        ),
+    )
+    assert appointment.concern is None
+
+
+async def test_set_meeting_link_by_owning_provider_persists_it(
+    db_session: AsyncSession, provider_id: str, test_user_id: str
+) -> None:
+    await replace_availability(
+        db_session,
+        provider_id,
+        [
+            AvailabilityRule(
+                day_of_week=0, start_time=datetime.time(9, 0), end_time=datetime.time(10, 0)
+            )
+        ],
+    )
+    created = await book_appointment(
+        db_session,
+        test_user_id,
+        AppointmentCreate(
+            provider_id=provider_id,
+            start_time=datetime.datetime(2026, 9, 7, 9, 0, tzinfo=datetime.UTC),
+            consultation_mode="video",
+        ),
+    )
+    updated = await set_meeting_link(
+        db_session, provider_id, created.appointment_id, "https://meet.google.com/abc-defg-hij"
+    )
+    assert updated.meeting_link == "https://meet.google.com/abc-defg-hij"
+
+
+async def test_set_meeting_link_rejects_a_stranger_provider(
+    db_session: AsyncSession, provider_id: str, test_user_id: str
+) -> None:
+    await replace_availability(
+        db_session,
+        provider_id,
+        [
+            AvailabilityRule(
+                day_of_week=0, start_time=datetime.time(9, 0), end_time=datetime.time(10, 0)
+            )
+        ],
+    )
+    created = await book_appointment(
+        db_session,
+        test_user_id,
+        AppointmentCreate(
+            provider_id=provider_id,
+            start_time=datetime.datetime(2026, 9, 7, 9, 0, tzinfo=datetime.UTC),
+            consultation_mode="video",
+        ),
+    )
+    stranger_provider_id = f"test-{uuid.uuid4().hex[:16]}"
+    with pytest.raises(AppointmentOwnershipError):
+        await set_meeting_link(
+            db_session, stranger_provider_id, created.appointment_id, "https://meet.google.com/x"
         )
 
 

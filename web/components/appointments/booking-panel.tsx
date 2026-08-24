@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
 import {
   useBookAppointmentMutation,
   useProviderSlotsQuery,
@@ -37,6 +38,7 @@ export function BookingPanel({ providerId, role, onBack, onBooked }: BookingPane
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [mode, setMode] = useState<string>(provider?.consultation_modes?.[0] ?? "video");
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [concern, setConcern] = useState("");
   const bookMutation = useBookAppointmentMutation();
 
   // Local date, not UTC: date is local midnight of the clicked day, so
@@ -50,11 +52,17 @@ export function BookingPanel({ providerId, role, onBack, onBooked }: BookingPane
   const handleConfirm = () => {
     if (!selectedSlot) return;
     bookMutation.mutate(
-      { provider_id: providerId, start_time: selectedSlot, consultation_mode: mode as "video" | "in_person" | "chat" },
+      {
+        provider_id: providerId,
+        start_time: selectedSlot,
+        consultation_mode: mode as "video" | "in_person" | "chat",
+        concern: concern.trim() || null,
+      },
       {
         onSuccess: () => {
           toast.success("Appointment booked");
           setConfirmOpen(false);
+          setConcern("");
           onBooked();
         },
         onError: (err) => {
@@ -149,6 +157,19 @@ export function BookingPanel({ providerId, role, onBack, onBooked }: BookingPane
               {provider?.name} · {selectedSlot && new Date(selectedSlot).toLocaleString()} · {mode}
             </DialogDescription>
           </DialogHeader>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="booking-concern" className="text-on-surface font-sans text-sm font-medium">
+              Describe your concern
+            </label>
+            <Textarea
+              id="booking-concern"
+              value={concern}
+              onChange={(e) => setConcern(e.target.value)}
+              maxLength={2000}
+              placeholder="Briefly describe the skin concern you'd like to discuss with the consultant."
+              rows={4}
+            />
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setConfirmOpen(false)}>
               Back

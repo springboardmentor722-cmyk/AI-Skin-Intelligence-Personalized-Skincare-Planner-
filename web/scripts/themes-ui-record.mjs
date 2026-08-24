@@ -4,14 +4,17 @@
 // converts to <repo-root>/themes_ui.mp4 via ffmpeg-static (Playwright's own bundled
 // ffmpeg has no mp4 muxer).
 //
-// Usage: node scripts/themes-ui-record.js
+// Usage: node scripts/themes-ui-record.mjs
 // Requires: npm run dev already running on localhost:3000, credentials.md at repo root
 // (gitignored — never hardcode the password here instead).
 
-const { chromium } = require("@playwright/test");
-const { execFileSync } = require("node:child_process");
-const fs = require("node:fs");
-const path = require("node:path");
+import { chromium } from "@playwright/test";
+import { execFileSync } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const BASE_URL = "http://localhost:3000";
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
@@ -110,7 +113,7 @@ async function main() {
   const webmPath = path.join(RECORDINGS_DIR, files[0]);
 
   console.log(`Converting ${webmPath} -> ${OUT_MP4}...`);
-  const ffmpeg = require("ffmpeg-static");
+  const { default: ffmpeg } = await import("ffmpeg-static");
   execFileSync(ffmpeg, ["-y", "-i", webmPath, "-c:v", "libx264", "-pix_fmt", "yuv420p", OUT_MP4], {
     stdio: "inherit",
   });

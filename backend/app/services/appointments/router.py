@@ -13,6 +13,7 @@ from app.services.appointments.schemas import (
     AppointmentCancelUpdate,
     AppointmentCompleteUpdate,
     AppointmentCreate,
+    AppointmentMeetingLinkUpdate,
     AppointmentRead,
     AppointmentRescheduleUpdate,
     AvailabilityExceptionCreate,
@@ -54,6 +55,8 @@ async def _to_read(db: AsyncSession, caller_id: str, appointment: Appointment) -
         original_start_time=appointment.original_start_time,
         notes=appointment.notes,
         other_party_name=other_party_name,
+        concern=appointment.concern,
+        meeting_link=appointment.meeting_link,
     )
 
 
@@ -292,5 +295,21 @@ async def reschedule_appointment(
     except PermissionError as exc:
         raise HTTPException(status.HTTP_403_FORBIDDEN, str(exc)) from exc
     except ValueError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+    return await _to_read(db, user["id"], appointment)
+
+
+@router.patch("/{appointment_id}/meeting-link")
+async def set_appointment_meeting_link(
+    appointment_id: int,
+    data: AppointmentMeetingLinkUpdate,
+    user: Annotated[dict[str, Any], Depends(require_role("consultant", "dermatologist"))],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> AppointmentRead:
+    try:
+        appointment = await service.set_meeting_link(
+            db, user["id"], appointment_id, data.meeting_link
+        )
+    except service.AppointmentOwnershipError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
     return await _to_read(db, user["id"], appointment)

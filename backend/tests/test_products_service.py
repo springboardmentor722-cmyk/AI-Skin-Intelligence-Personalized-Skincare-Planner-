@@ -203,8 +203,15 @@ async def _create_temp_product(
 
 
 async def test_alternatives_only_include_the_same_category(db_session: AsyncSession) -> None:
-    target_id = await _create_temp_product(db_session, category="Serum", price=1000)
-    same_category_id = await _create_temp_product(db_session, category="Serum", price=1000)
+    # A unique category per test, not a real seeded one ("Serum") — get_alternatives
+    # truncates to the top _MAX_ALTERNATIVES=10 by relevance, and the live dev catalog
+    # has far more than 10 real "Serum" products, which silently crowded out these
+    # freshly-created temp fixtures every run. A category no real product uses keeps
+    # the candidate pool scoped to exactly what this test creates, independent of
+    # how large the real catalog grows.
+    category = f"Test-Category-{uuid.uuid4().hex[:8]}"
+    target_id = await _create_temp_product(db_session, category=category, price=1000)
+    same_category_id = await _create_temp_product(db_session, category=category, price=1000)
     other_category_id = await _create_temp_product(db_session, category="Face Wash", price=1000)
     user_id = f"test-{uuid.uuid4().hex[:16]}"
     await _create_test_user(db_session, user_id)
@@ -217,9 +224,11 @@ async def test_alternatives_only_include_the_same_category(db_session: AsyncSess
 
 
 async def test_alternatives_respect_the_budget_band(db_session: AsyncSession) -> None:
-    target_id = await _create_temp_product(db_session, category="Serum", price=1000)
-    in_band_id = await _create_temp_product(db_session, category="Serum", price=1200)  # +20%
-    out_of_band_id = await _create_temp_product(db_session, category="Serum", price=2000)  # +100%
+    # Unique category — see test_alternatives_only_include_the_same_category above.
+    category = f"Test-Category-{uuid.uuid4().hex[:8]}"
+    target_id = await _create_temp_product(db_session, category=category, price=1000)
+    in_band_id = await _create_temp_product(db_session, category=category, price=1200)  # +20%
+    out_of_band_id = await _create_temp_product(db_session, category=category, price=2000)  # +100%
     user_id = f"test-{uuid.uuid4().hex[:16]}"
     await _create_test_user(db_session, user_id)
 
@@ -234,11 +243,13 @@ async def test_alternatives_hard_exclude_an_avoid_flagged_product(
     db_session: AsyncSession,
 ) -> None:
     # Retinol (ingredient_id=1) is really avoid-flagged for Sensitive skin (seed.py).
-    target_id = await _create_temp_product(db_session, category="Serum", price=1000)
+    # Unique category — see test_alternatives_only_include_the_same_category above.
+    category = f"Test-Category-{uuid.uuid4().hex[:8]}"
+    target_id = await _create_temp_product(db_session, category=category, price=1000)
     unsafe_id = await _create_temp_product(
-        db_session, category="Serum", price=1000, ingredient_id=1
+        db_session, category=category, price=1000, ingredient_id=1
     )
-    safe_id = await _create_temp_product(db_session, category="Serum", price=1000)
+    safe_id = await _create_temp_product(db_session, category=category, price=1000)
     user_id = f"test-{uuid.uuid4().hex[:16]}"
     await _create_test_user(db_session, user_id)
     await _create_profile(db_session, user_id, skin_type_id=5)  # Sensitive
