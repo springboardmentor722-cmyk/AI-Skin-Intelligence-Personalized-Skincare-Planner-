@@ -1,0 +1,26 @@
+services:
+  postgres:
+    container_name: ai_skin_postgres
+    environment:
+      POSTGRES_DB: ai_skin_intelligence
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+    image: postgres:17
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  mongodb:
+    container_name: ai_skin_mongo
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  postgres_data:
+  mongo_data:
